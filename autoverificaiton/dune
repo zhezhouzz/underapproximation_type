@@ -1,0 +1,11 @@
+(library
+ (name autoverification)
+ (wrapped false)
+ (modules
+   prop
+   z3aux
+   query
+ )
+ (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+ (libraries zzdatatype z3)
+)

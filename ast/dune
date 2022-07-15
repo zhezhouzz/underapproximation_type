@@ -1,0 +1,17 @@
+(library
+ (name ast)
+ (wrapped false)
+ (modules_without_implementation ast)
+ (modules
+   ast
+   strid
+   normalty
+   overty
+   normal_anormal
+   over_anormal
+   value
+   languages
+ )
+ (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+  (libraries zzdatatype)
+)
