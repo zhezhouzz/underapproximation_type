@@ -1,0 +1,10 @@
+(library
+ (name utils)
+ (wrapped false)
+ (modules
+ sugar
+ json
+ zlog
+ )
+ (libraries zzdatatype core yojson dolog)
+)

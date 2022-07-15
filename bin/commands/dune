@@ -1,0 +1,10 @@
+(library
+ (name commands)
+ (libraries utils core ocaml_parser base)
+ (modules
+   caux
+   ctest
+ )
+ (preprocess (pps ppx_inline_test ppx_assert ppx_jane))
+ (inline_tests)
+)

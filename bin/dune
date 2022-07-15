@@ -1,0 +1,10 @@
+(env
+ (dev
+  (flags (:standard -w -32 -w -35 -w -27 -w -33 -w -26)))
+)
+(executable
+ (name main)
+ (modules main)
+ (libraries core commands)
+ (preprocess (pps ppx_jane))
+)
