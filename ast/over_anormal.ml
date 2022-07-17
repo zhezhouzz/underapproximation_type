@@ -1,4 +1,4 @@
-module T : Ast.Anormal =
+module T =
 struct
   open Sexplib.Std
   type ty = Overty.T.t

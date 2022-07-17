@@ -1,0 +1,77 @@
+open Ocaml_parser
+open Parsetree
+module L = Languages.Termlang
+
+let dest_to_pat pat =
+  {
+    ppat_desc = pat;
+    ppat_loc = Location.none;
+    ppat_loc_stack = [];
+    ppat_attributes = [];
+  }
+
+let rec pattern_to_slang pattern =
+  match pattern.ppat_desc with
+  | Ppat_tuple ps -> L.make_untyped @@ L.Tu (List.map pattern_to_slang ps)
+  | Ppat_var ident -> L.make_untyped @@ L.Var ident.txt
+  | Ppat_constraint (ident, tp) ->
+      let term = pattern_to_slang ident in
+      L.{ ty = Some (Type.core_type_to_t tp); x = term.x }
+  | Ppat_construct (c, args) ->
+      let c =
+        match Longident.flatten c.txt with
+        | [ c ] -> L.make_untyped @@ L.Var c
+        | _ -> failwith "unimp: long name"
+      in
+      let res =
+        match args with
+        | None -> L.App (c, [])
+        | Some arg -> (
+            let arg = pattern_to_slang arg in
+            match (arg.L.ty, arg.L.x) with
+            | None, L.Tu args -> L.App (c, args) (* NOTE: here we decurry *)
+            | None, L.Var _ -> L.App (c, [ arg ])
+            | _ -> failwith "pat die")
+      in
+      L.make_untyped res
+  | _ ->
+      Pprintast.pattern Format.std_formatter pattern;
+      failwith "wrong pattern name, maybe untyped"
+
+let rec slang_to_pattern slang = dest_to_pat @@ slang_to_pattern_desc slang
+
+and slang_to_pattern_desc slang =
+  match slang.L.x with
+  | L.Var name -> (
+      let pat = Ppat_var (Location.mknoloc name) in
+      match slang.ty with
+      | None -> pat
+      | Some ty -> Ppat_constraint (dest_to_pat pat, Type.t_to_core_type ty))
+  | L.Tu ss -> Ppat_tuple (List.map slang_to_pattern ss)
+  | L.App (c, arg) -> (
+      let c =
+        match c.L.x with
+        | L.Var name -> (
+            match Longident.unflatten [ name ] with
+            | Some x -> Location.mknoloc x
+            | _ -> failwith "die: pat")
+        | _ -> failwith "pat die"
+      in
+      match arg with
+      | [] -> Ppat_construct (c, None)
+      | [ arg ] -> Ppat_construct (c, Some (slang_to_pattern arg))
+      | _ ->
+          Ppat_construct
+            (c, Some (slang_to_pattern (L.make_untyped @@ L.Tu arg))))
+  | _ -> failwith "wrong pattern name, maybe untyped"
+
+(* TODO: Check nested tuple *)
+let to_typed_slang x =
+  let open L in
+  let rec aux l x =
+    match x.x with
+    | Var name -> l @ [ name ]
+    | Tu xs -> List.fold_left aux l xs
+    | _ -> failwith "not a patten"
+  in
+  List.map make_untyped @@ aux [] x

@@ -1,4 +1,4 @@
-module T : Ast.OverTy = struct
+module T = struct
   open Sexplib.Std
   type id = Strid.T.t
   [@@deriving sexp]

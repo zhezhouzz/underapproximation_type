@@ -1,0 +1,204 @@
+open Ocaml_parser
+open Parsetree
+open Zzdatatype.Datatype
+module L = Languages.Termlang
+
+let get_if_rec flag =
+  match flag with Asttypes.Recursive -> true | Asttypes.Nonrecursive -> false
+
+let mk_idloc names =
+  match Longident.unflatten names with
+  | None -> failwith "die"
+  | Some id -> Location.mknoloc id
+
+let desc_to_ocamlexpr desc =
+  {
+    pexp_desc = desc;
+    pexp_loc = Location.none;
+    pexp_loc_stack = [];
+    pexp_attributes = [];
+  }
+
+let rec expr_to_ocamlexpr expr =
+  desc_to_ocamlexpr @@ expr_to_ocamlexpr_desc expr
+
+and expr_to_ocamlexpr_desc expr =
+  let aux expr =
+    match expr with
+    | L.Tu es -> Pexp_tuple (List.map expr_to_ocamlexpr es)
+    | L.Var var -> Pexp_ident (mk_idloc [ var ])
+    | L.Const v -> (Value.value_to_expr v).pexp_desc
+    | L.Let (_, [], _, _) -> failwith "die"
+    | L.Let (if_rec, names, e, body) ->
+        let flag =
+          if if_rec then Asttypes.Recursive else Asttypes.Nonrecursive
+        in
+        let vb =
+          {
+            pvb_pat =
+              Pat.slang_to_pattern
+                (L.make_untyped_tuple (List.map (fun x -> x.L.x) names));
+            pvb_expr = expr_to_ocamlexpr e;
+            pvb_attributes = [];
+            pvb_loc = Location.none;
+          }
+        in
+        Pexp_let (flag, [ vb ], expr_to_ocamlexpr body)
+    | L.App (func, args) ->
+        let func = expr_to_ocamlexpr func in
+        let args =
+          List.map (fun x -> (Asttypes.Nolabel, expr_to_ocamlexpr x)) args
+        in
+        Pexp_apply (func, args)
+    | L.Ite (e1, e2, e3) ->
+        let e1, e2, e3 = Sugar.map3 expr_to_ocamlexpr (e1, e2, e3) in
+        Pexp_ifthenelse (e1, e2, Some e3)
+    | L.Match (case_target, cs) ->
+        let case_target = expr_to_ocamlexpr case_target in
+        let cases =
+          List.map
+            (fun case ->
+              {
+                pc_lhs =
+                  Pat.slang_to_pattern
+                    L.(make_untyped_id_app (case.L.constuctor, case.L.args));
+                pc_guard = None;
+                pc_rhs = expr_to_ocamlexpr case.L.exp;
+              })
+            cs
+        in
+        Pexp_match (case_target, cases)
+    | L.Lam ([], _) -> failwith "die"
+    | L.Lam ([ x ], body) ->
+        let flag = Asttypes.Nolabel in
+        let body =
+          let e = expr_to_ocamlexpr body in
+          match body.L.ty with
+          | None -> e
+          | Some tp ->
+              desc_to_ocamlexpr @@ Pexp_constraint (e, Type.t_to_core_type tp)
+        in
+        Pexp_fun (flag, None, Pat.slang_to_pattern (L.typedstr_to_var x), body)
+    | L.Lam (x :: t, body) ->
+        let flag = Asttypes.Nolabel in
+        Pexp_fun
+          ( flag,
+            None,
+            Pat.slang_to_pattern (L.typedstr_to_var x),
+            expr_to_ocamlexpr @@ L.make_untyped @@ L.Lam (t, body) )
+  in
+  aux expr.x
+
+let handle_case_v1 case =
+  match case.pc_guard with
+  | None ->
+      Printf.printf "%s\n" @@ Pprintast.string_of_expression case.pc_rhs;
+      failwith "handle_case"
+  | Some guard -> (guard, case.pc_rhs)
+
+let handle_case_v2 case =
+  let l = Pat.pattern_to_slang case.pc_lhs in
+  (l, case.pc_rhs)
+
+let expr_of_ocamlexpr expr =
+  let handle_id id =
+    match Longident.flatten id.Location.txt with
+    | [ x ] -> x
+    | ids ->
+        failwith
+          (Printf.sprintf "expr, handel id: %s"
+          @@ Zzdatatype.Datatype.StrList.to_string ids)
+  in
+  let id_to_var id = L.(make_untyped @@ Var (handle_id id)) in
+  let rec aux expr =
+    match expr.pexp_desc with
+    | Pexp_tuple es -> L.(make_untyped @@ Tu (List.map aux es))
+    | Pexp_constraint (expr, _) -> aux expr
+    | Pexp_ident id -> id_to_var id
+    | Pexp_construct (c, args) -> (
+        let c = id_to_var c in
+        match args with
+        | None -> L.(make_untyped @@ App (c, []))
+        | Some args -> (
+            let args = aux args in
+            match args.x with
+            | L.Var _ -> L.(make_untyped @@ App (c, [ args ]))
+            | L.Tu es -> L.(make_untyped @@ App (c, es))
+            | _ -> failwith "die"))
+    | Pexp_constant _ -> L.(make_untyped @@ Const (Value.expr_to_value expr))
+    | Pexp_let (flag, vbs, e) ->
+        List.fold_right
+          (fun vb body ->
+            let leftvar = Pat.pattern_to_slang vb.pvb_pat in
+            let leftvars = Pat.to_typed_slang leftvar in
+            L.(
+              make_untyped
+              @@ Let (get_if_rec flag, leftvars, aux vb.pvb_expr, body)))
+          vbs (aux e)
+    | Pexp_apply (func, args) ->
+        let func = aux func in
+        let args = List.map (fun x -> aux @@ snd x) args in
+        L.(make_untyped @@ App (func, args))
+    | Pexp_ifthenelse (e1, e2, Some e3) ->
+        L.(make_untyped @@ Ite (aux e1, aux e2, aux e3))
+    | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
+    | Pexp_match (case_target, cases) ->
+        let get_constructor x =
+          match L.term_to_string_opt x with
+          | Some x -> (x, [])
+          | None -> (
+              match x.x with
+              | L.App (id, ids) -> (
+                  match
+                    (L.term_to_string_opt id, L.terms_to_strings_opt ids)
+                  with
+                  | Some id, Some ids -> (id, ids)
+                  | _ -> failwith "pexp match")
+              | _ -> failwith "pexp match")
+        in
+        (* let handle_match_args match_arg = *)
+        (*   let e = aux match_arg in *)
+        (*   let rec aux e = *)
+        (*     match e with *)
+        (*     | L.Var (_, var) -> [ var ] *)
+        (*     | L.Tu vars -> List.flatten @@ List.map aux vars *)
+        (*     | _ -> failwith "parser: wrong format in match" *)
+        (*   in *)
+        (*   aux e *)
+        (* in *)
+        (* let case_target = handle_match_args case_target in *)
+        let cs =
+          List.map
+            (fun case ->
+              let exp = aux case.pc_rhs in
+              let pat = Pat.pattern_to_slang case.pc_lhs in
+              let constuctor, args = get_constructor pat in
+              L.{ constuctor; args; exp })
+            cases
+        in
+        L.(make_untyped @@ Match (aux case_target, cs))
+    | Pexp_fun (_, _, _, _) ->
+        (* un-curry *)
+        let rec parse_function args expr =
+          match expr.pexp_desc with
+          | Pexp_fun (_, _, arg, expr) ->
+              let arg = Pat.to_typed_slang @@ Pat.pattern_to_slang arg in
+              parse_function (args @ arg) expr
+          | Pexp_constraint (e, tp) ->
+              L.(
+                make_untyped
+                @@ Lam
+                     ( args,
+                       { ty = Some (Type.core_type_to_t tp); x = (aux e).x } ))
+          | _ -> L.(make_untyped @@ Lam (args, aux expr))
+        in
+        parse_function [] expr
+    | _ ->
+        raise
+        @@ failwith
+             (Sugar.spf "not imp client parsing:%s"
+             @@ Pprintast.string_of_expression expr)
+  in
+  aux expr
+
+let layout x = Pprintast.string_of_expression @@ expr_to_ocamlexpr x

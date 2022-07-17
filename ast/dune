@@ -1,15 +1,17 @@
 (library
  (name ast)
  (wrapped false)
- (modules_without_implementation ast)
+ ; (modules_without_implementation ast)
  (modules
-   ast
+   ; ast
    strid
    normalty
+   termlang
    overty
    normal_anormal
    over_anormal
    value
+   modu
    languages
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))

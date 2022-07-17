@@ -1,4 +1,4 @@
-module T : Ast.Id = struct
+module T = struct
   open Sexplib.Std
   type t = string
   [@@deriving sexp]

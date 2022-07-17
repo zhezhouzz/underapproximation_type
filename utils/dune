@@ -5,6 +5,7 @@
  sugar
  json
  zlog
+ rename
  )
  (libraries zzdatatype core yojson dolog)
 )

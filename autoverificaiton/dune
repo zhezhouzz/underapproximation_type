@@ -5,6 +5,8 @@
    prop
    z3aux
    query
+   check
+   autov
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
  (libraries zzdatatype z3)

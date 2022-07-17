@@ -1,6 +1,6 @@
 (library
  (name commands)
- (libraries utils core ocaml_parser base)
+ (libraries utils core ocaml_parser frontend translate)
  (modules
    caux
    ctest
