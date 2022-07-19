@@ -1,7 +1,7 @@
-module T = struct
+module F (Type : Type.T) = struct
   open Sexplib.Std
 
-  type ty = Normalty.T.t [@@deriving sexp]
+  type ty = Type.t [@@deriving sexp]
   type id = Strid.T.t [@@deriving sexp]
   type 'a typed = { ty : ty; x : 'a } [@@deriving sexp]
 
@@ -19,3 +19,6 @@ module T = struct
   and case = { constuctor : id; args : id list; exp : term typed }
   [@@deriving sexp]
 end
+
+module NormalAnormal = F (Normalty.T)
+module OverAnormal = F (Overty.T)

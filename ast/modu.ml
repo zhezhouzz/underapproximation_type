@@ -23,7 +23,7 @@ module StrucNA = struct
 
   type t = {
     name : string;
-    body : Normal_anormal.T.term Normal_anormal.T.typed;
+    body : Anormal.NormalAnormal.term Anormal.NormalAnormal.typed;
   }
   [@@deriving sexp]
 

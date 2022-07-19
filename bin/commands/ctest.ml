@@ -50,6 +50,8 @@ let parse_to_anormal =
         in
         let code = Structure.client_of_ocamlstruct code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
+        let code = Typecheck.Termcheck.struc_check code in
+        let () = Printf.printf "%s\n" @@ Structure.layout code in
         let code = Trans.struc_term_to_nan code in
         let () = Printf.printf "%s\n" (Na.struct_layout code) in
         ())

@@ -188,6 +188,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   | Let (true, _, _, _) ->
       failwith "cannot infer ret type of recursive function"
   | Let (if_rec, args, rhs, body) ->
+      let () = Printf.printf "let!!!\n" in
       let () =
         (* TODO: fix recurisve bug *)
         if true then
@@ -246,4 +247,21 @@ module LS = Languages.Struc
 
 let struc_check l =
   let open LS in
-  List.map (fun { if_rec; name; body } -> { if_rec; name; body = check body }) l
+  List.map
+    (fun { if_rec; name; body } ->
+      let open Exp in
+      let rec get_fty e =
+        match e.x with
+        | Lam (ty, _, body) ->
+            Sugar.(
+              let* bty = get_fty body in
+              Some (Ty_arrow (ty, bty)))
+        | _ -> e.ty
+      in
+      match (if_rec, get_fty body) with
+      | false, _ -> { if_rec; name; body = check body }
+      | true, None -> failwith "cannot infer ret type of recursive function"
+      | true, Some ty ->
+          let body = bidirect_type_check [ (name, ty) ] body ty in
+          { if_rec; name; body })
+    l

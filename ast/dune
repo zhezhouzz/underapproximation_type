@@ -1,15 +1,16 @@
 (library
  (name ast)
  (wrapped false)
- ; (modules_without_implementation ast)
+ (modules_without_implementation type)
  (modules
+   type
    ; ast
    strid
    normalty
    termlang
    overty
-   normal_anormal
-   over_anormal
+   ; normal_anormal
+   anormal
    value
    modu
    languages
