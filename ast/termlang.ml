@@ -3,20 +3,20 @@ module T = struct
 
   type ty = Normalty.T.t [@@deriving sexp]
   type id = Strid.T.t [@@deriving sexp]
-  type 'a typed = { ty : ty option; x : 'a } [@@deriving sexp]
+  type 'a opttyped = { ty : ty option; x : 'a } [@@deriving sexp]
   type if_rec = bool [@@deriving sexp]
 
   type term =
     | Const of Value.t
     | Var of id
-    | Tu of term typed list
-    | Lam of id typed list * term typed
-    | App of term typed * term typed list
-    | Let of if_rec * id typed list * term typed * term typed
-    | Ite of term typed * term typed * term typed
-    | Match of term typed * case list
+    | Tu of term opttyped list
+    | Lam of ty * id * term opttyped
+    | App of term opttyped * term opttyped list
+    | Let of if_rec * (ty * id) list * term opttyped * term opttyped
+    | Ite of term opttyped * term opttyped * term opttyped
+    | Match of term opttyped * case list
 
-  and case = { constuctor : id; args : id list; exp : term typed }
+  and case = { constuctor : id; args : id list; exp : term opttyped }
   [@@deriving sexp]
 
   let make_untyped x = { ty = None; x }

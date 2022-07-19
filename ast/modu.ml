@@ -11,7 +11,7 @@ module Struc = struct
   type t = {
     name : string;
     if_rec : bool;
-    body : Termlang.T.term Termlang.T.typed;
+    body : Termlang.T.term Termlang.T.opttyped;
   }
   [@@deriving sexp]
 

@@ -1,1 +1,2 @@
-let rec f x l = match x :: l with [] -> x | h :: t -> f h t
+let rec f (x : int) (l : int list) : int =
+  match x :: l with [] -> x | h :: t -> f h t

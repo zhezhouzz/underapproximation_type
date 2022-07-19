@@ -9,11 +9,6 @@ let nan_to_term = Term2normalanormal.to_term
 let struc_term_to_nan code =
   List.map
     (fun S.{ name; if_rec; body } ->
-      let body =
-        T.(
-          make_untyped
-          @@ Let (if_rec, [ make_untyped name ], body, make_untyped_var name))
-      in
-      let body = Term2normalanormal.to_anormal body in
+      let body = Term2normalanormal.to_anormal_with_name name if_rec body in
       SN.{ name; body = Na.simplify body })
     code

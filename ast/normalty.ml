@@ -31,4 +31,17 @@ module T = struct
         else false
     | Ty_constructor _, Ty_constructor _ -> failwith "unimp"
     | _ -> false
+
+  let destruct_arrow_tp tp =
+    let rec aux = function
+      | Ty_arrow (t1, t2) ->
+          let argsty, bodyty = aux t2 in
+          (t1 :: argsty, bodyty)
+      | ty -> ([], ty)
+    in
+    aux tp
+
+  let rec construct_arrow_tp = function
+    | [], retty -> retty
+    | h :: t, retty -> Ty_arrow (h, construct_arrow_tp (t, retty))
 end

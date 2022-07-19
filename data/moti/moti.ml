@@ -1,1 +1,1 @@
-let foo x l = match x :: l with [] -> [] | h :: t -> t
+let foo (x : int) (l : int list) = match x :: l with [] -> [] | h :: t -> t

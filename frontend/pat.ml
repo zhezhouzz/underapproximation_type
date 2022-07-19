@@ -2,6 +2,11 @@ open Ocaml_parser
 open Parsetree
 module L = Languages.Termlang
 
+let layout_ t =
+  let _ = Format.flush_str_formatter () in
+  Pprintast.pattern Format.str_formatter t;
+  Format.flush_str_formatter ()
+
 let dest_to_pat pat =
   {
     ppat_desc = pat;
@@ -15,6 +20,9 @@ let rec pattern_to_slang pattern =
   | Ppat_tuple ps -> L.make_untyped @@ L.Tu (List.map pattern_to_slang ps)
   | Ppat_var ident -> L.make_untyped @@ L.Var ident.txt
   | Ppat_constraint (ident, tp) ->
+      (* let () = *)
+      (*   Printf.printf "paring id:%s tp:%s\n" (layout_ ident) (Type.layout_ tp) *)
+      (* in *)
       let term = pattern_to_slang ident in
       L.{ ty = Some (Type.core_type_to_t tp); x = term.x }
   | Ppat_construct (c, args) ->
@@ -40,13 +48,11 @@ let rec pattern_to_slang pattern =
 
 let rec slang_to_pattern slang = dest_to_pat @@ slang_to_pattern_desc slang
 
-and slang_to_pattern_desc slang =
-  match slang.L.x with
-  | L.Var name -> (
+and slang_to_pattern_desc_untyped slang =
+  match slang with
+  | L.Var name ->
       let pat = Ppat_var (Location.mknoloc name) in
-      match slang.ty with
-      | None -> pat
-      | Some ty -> Ppat_constraint (dest_to_pat pat, Type.t_to_core_type ty))
+      pat
   | L.Tu ss -> Ppat_tuple (List.map slang_to_pattern ss)
   | L.App (c, arg) -> (
       let c =
@@ -65,13 +71,28 @@ and slang_to_pattern_desc slang =
             (c, Some (slang_to_pattern (L.make_untyped @@ L.Tu arg))))
   | _ -> failwith "wrong pattern name, maybe untyped"
 
+and slang_to_pattern_desc slang =
+  match slang.L.ty with
+  | None -> slang_to_pattern_desc_untyped slang.L.x
+  | Some ty ->
+      let ty = Type.t_to_core_type ty in
+      let pat = dest_to_pat @@ slang_to_pattern_desc_untyped slang.L.x in
+      (* let () = *)
+      (*   Printf.printf "layout id:%s tp:%s\n" (layout_ pat) (Type.layout_ ty) *)
+      (* in *)
+      Ppat_constraint (pat, ty)
+
 (* TODO: Check nested tuple *)
 let to_typed_slang x =
   let open L in
   let rec aux l x =
+    (* let _ = *)
+    (*   Printf.printf "to_typed_slang: %s\n" *)
+    (*     (match x.ty with None -> "none" | Some ty -> Type.layout ty) *)
+    (* in *)
     match x.x with
-    | Var name -> l @ [ name ]
+    | Var name -> l @ [ { ty = x.ty; x = name } ]
     | Tu xs -> List.fold_left aux l xs
     | _ -> failwith "not a patten"
   in
-  List.map make_untyped @@ aux [] x
+  aux [] x

@@ -11,9 +11,15 @@ open Zzdatatype.Datatype
 
 let layout_one StrucNA.{ name; body } =
   Frontend.Expr.layout @@ Term2normalanormal.to_term
-  @@ NA.(
-       make_untyped
-       @@ Let ([ make_untyped name ], body, make_untyped_var "function-end"))
+  @@ NA.
+       {
+         ty = body.ty;
+         x =
+           Let
+             ( [ { ty = body.ty; x = name } ],
+               body,
+               { ty = Languages.Normalty.Ty_unit; x = Var "function-end" } );
+       }
 
 let struct_layout code = spf "%s\n" (List.split_by "\n" layout_one code)
 

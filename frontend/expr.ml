@@ -20,7 +20,15 @@ let desc_to_ocamlexpr desc =
   }
 
 let rec expr_to_ocamlexpr expr =
-  desc_to_ocamlexpr @@ expr_to_ocamlexpr_desc expr
+  desc_to_ocamlexpr @@ typed_expr_to_ocamlexpr_desc expr
+
+and typed_expr_to_ocamlexpr_desc expr =
+  match expr.L.ty with
+  | None -> expr_to_ocamlexpr_desc expr.L.x
+  | Some ty ->
+      Pexp_constraint
+        ( desc_to_ocamlexpr @@ expr_to_ocamlexpr_desc expr.L.x,
+          Type.t_to_core_type ty )
 
 and expr_to_ocamlexpr_desc expr =
   let aux expr =
@@ -37,7 +45,12 @@ and expr_to_ocamlexpr_desc expr =
           {
             pvb_pat =
               Pat.slang_to_pattern
-                (L.make_untyped_tuple (List.map (fun x -> x.L.x) names));
+                L.(
+                  make_untyped
+                  @@ Tu
+                       (List.map
+                          (fun (ty, id) -> { ty = Some ty; x = Var id })
+                          names));
             pvb_expr = expr_to_ocamlexpr e;
             pvb_attributes = [];
             pvb_loc = Location.none;
@@ -68,26 +81,29 @@ and expr_to_ocamlexpr_desc expr =
             cs
         in
         Pexp_match (case_target, cases)
-    | L.Lam ([], _) -> failwith "die"
-    | L.Lam ([ x ], body) ->
+    | L.Lam (ty, x, body) ->
         let flag = Asttypes.Nolabel in
-        let body =
-          let e = expr_to_ocamlexpr body in
-          match body.L.ty with
-          | None -> e
-          | Some tp ->
-              desc_to_ocamlexpr @@ Pexp_constraint (e, Type.t_to_core_type tp)
-        in
-        Pexp_fun (flag, None, Pat.slang_to_pattern (L.typedstr_to_var x), body)
-    | L.Lam (x :: t, body) ->
-        let flag = Asttypes.Nolabel in
+        (* let body = *)
+        (*   let e = expr_to_ocamlexpr body in *)
+        (*   match body.L.ty with *)
+        (*   | None -> e *)
+        (*   | Some tp -> *)
+        (*       desc_to_ocamlexpr @@ Pexp_constraint (e, Type.t_to_core_type tp) *)
+        (* in *)
         Pexp_fun
           ( flag,
             None,
-            Pat.slang_to_pattern (L.typedstr_to_var x),
-            expr_to_ocamlexpr @@ L.make_untyped @@ L.Lam (t, body) )
+            Pat.slang_to_pattern L.{ ty = Some ty; x = Var x },
+            expr_to_ocamlexpr body )
+    (* | L.Lam (x :: t, body) -> *)
+    (*     let flag = Asttypes.Nolabel in *)
+    (*     Pexp_fun *)
+    (*       ( flag, *)
+    (*         None, *)
+    (*         Pat.slang_to_pattern (L.typedstr_to_var x), *)
+    (*         expr_to_ocamlexpr @@ L.make_untyped @@ L.Lam (t, body) ) *)
   in
-  aux expr.x
+  aux expr
 
 let handle_case_v1 case =
   match case.pc_guard with
@@ -113,7 +129,13 @@ let expr_of_ocamlexpr expr =
   let rec aux expr =
     match expr.pexp_desc with
     | Pexp_tuple es -> L.(make_untyped @@ Tu (List.map aux es))
-    | Pexp_constraint (expr, _) -> aux expr
+    | Pexp_constraint (expr, ty) -> (
+        let e = aux expr in
+        let ty = Type.core_type_to_t ty in
+        L.(
+          match e.ty with
+          | None -> { ty = Some ty; x = e.x }
+          | Some _ -> failwith "multi typed"))
     | Pexp_ident id -> id_to_var id
     | Pexp_construct (c, args) -> (
         let c = id_to_var c in
@@ -131,6 +153,27 @@ let expr_of_ocamlexpr expr =
           (fun vb body ->
             let leftvar = Pat.pattern_to_slang vb.pvb_pat in
             let leftvars = Pat.to_typed_slang leftvar in
+            let leftvars =
+              List.map
+                L.(
+                  fun x ->
+                    match x.ty with
+                    | None ->
+                        failwith
+                          "Syntax error: let binding should provide types"
+                    | Some ty -> (ty, x.x))
+                leftvars
+            in
+            (* let _ = *)
+            (*   Printf.printf "leftvar: %s --> %s\n" (Pat.layout_ vb.pvb_pat) *)
+            (*     (List.split_by_comma *)
+            (*        (fun x -> *)
+            (*          Printf.sprintf "%s:%s" x.L.x *)
+            (*            (match x.ty with *)
+            (*            | None -> "none" *)
+            (*            | Some ty -> Type.layout ty)) *)
+            (*        leftvars) *)
+            (* in *)
             L.(
               make_untyped
               @@ Let (get_if_rec flag, leftvars, aux vb.pvb_expr, body)))
@@ -177,22 +220,21 @@ let expr_of_ocamlexpr expr =
             cases
         in
         L.(make_untyped @@ Match (aux case_target, cs))
-    | Pexp_fun (_, _, _, _) ->
-        (* un-curry *)
-        let rec parse_function args expr =
-          match expr.pexp_desc with
-          | Pexp_fun (_, _, arg, expr) ->
-              let arg = Pat.to_typed_slang @@ Pat.pattern_to_slang arg in
-              parse_function (args @ arg) expr
-          | Pexp_constraint (e, tp) ->
-              L.(
-                make_untyped
-                @@ Lam
-                     ( args,
-                       { ty = Some (Type.core_type_to_t tp); x = (aux e).x } ))
-          | _ -> L.(make_untyped @@ Lam (args, aux expr))
+    | Pexp_fun (_, _, arg, expr) ->
+        let arg = Pat.pattern_to_slang arg in
+        let ty =
+          match arg.L.ty with
+          | None ->
+              failwith "Syntax error: lambda function should provide types"
+          | Some ty -> ty
         in
-        parse_function [] expr
+        let x =
+          match arg.L.x with
+          | L.Var x -> x
+          | _ -> failwith "Syntax error: lambda function wrong argument"
+        in
+        L.(make_untyped @@ Lam (ty, x, aux expr))
+        (* un-curry *)
     | _ ->
         raise
         @@ failwith
