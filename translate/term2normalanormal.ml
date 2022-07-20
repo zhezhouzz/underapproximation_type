@@ -37,6 +37,7 @@ let bind (cont : cont) e =
   let body = cont T.{ ty = e.ty; x } in
   make_let x e body
 
+(* TODO: alpha renaming *)
 let rec to_anormal (e : term opttyped) : T.term T.typed = cps (ret ()) e
 
 and cps_multi (conts : conts) (es : term opttyped list) : T.term T.typed =

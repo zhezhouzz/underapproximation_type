@@ -32,11 +32,6 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-let get_ty ctx id =
-  match Typectx.find_opt ctx id with
-  | None -> failwith @@ Sugar.spf "no such name (%s) in the type context" id
-  | Some ty -> ty
-
 let fail_as b str = if b then () else failwith str
 
 let check_eq (t1, t2) str =
@@ -67,7 +62,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       let () = check_eq (ty, ty') "type_check:const:" in
       { ty = Some ty; x }
   | Var id, _ ->
-      let ty' = get_ty ctx id in
+      let ty' = Typectx.get_ty_normal ctx id in
       let () = check_eq (ty, ty') "type_check:var:" in
       { ty = Some ty; x }
   | Tu es, Ty_tuple tys ->
@@ -160,7 +155,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = infer_value c in
       ({ ty = Some ty; x }, ty)
   | Var id ->
-      let ty = get_ty ctx id in
+      let ty = Typectx.get_ty_normal ctx id in
       ({ ty = Some ty; x }, ty)
   | Tu es ->
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in

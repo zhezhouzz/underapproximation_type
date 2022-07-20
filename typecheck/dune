@@ -6,4 +6,5 @@
    primitive
    typectx
    termcheck
+   overcheck
  ))

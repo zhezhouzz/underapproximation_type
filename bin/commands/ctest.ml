@@ -56,12 +56,25 @@ let parse_to_anormal =
         let () = Printf.printf "%s\n" (Na.struct_layout code) in
         ())
 
+let parsing_refinements =
+  Command.basic ~summary:"parsing structure"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source file" %: regular_file) in
+      fun () ->
+        let x = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let refinements = Structure.refinement_of_ocamlstruct x in
+        let () =
+          Printf.printf "%s" (Structure.layout_refinements refinements)
+        in
+        ())
+
 let test =
   Command.group ~summary:"test"
     [
       ("parse-to-anormal", parse_to_anormal);
       ("parse-to-typed-term", parse_to_typed_term);
       ("parsing-structure", parsing_structure);
+      ("parsing-refinements", parsing_refinements);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]
