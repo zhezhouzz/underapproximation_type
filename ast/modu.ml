@@ -29,3 +29,15 @@ module StrucNA = struct
 
   type code = t list [@@deriving sexp]
 end
+
+module StrucOA = struct
+  open Sexplib.Std
+
+  type t = {
+    name : string;
+    body : Anormal.OverAnormal.term Anormal.OverAnormal.typed;
+  }
+  [@@deriving sexp]
+
+  type code = t list [@@deriving sexp]
+end

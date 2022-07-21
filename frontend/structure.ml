@@ -43,7 +43,7 @@ let refinement_of_ocamlstruct structures =
   List.map refinement_of_ocamlstruct_one structures
 
 let layout_one_refinement (name, r) =
-  spf "|- %s : %s\n" name @@ Overtype.pretty_layout r
+  spf "⊢ %s : %s\n" name @@ Overtype.pretty_layout r
 
 let layout_refinements l =
   spf "%s\n" (List.split_by "\n" layout_one_refinement l)

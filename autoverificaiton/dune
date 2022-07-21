@@ -2,6 +2,7 @@
  (name autov)
  (wrapped true)
  (modules
+   smtty
    prop
    z3aux
    query

@@ -59,9 +59,9 @@ let overtype_to_ocamlexpr x =
   let rec aux x =
     match x with
     | OverTy_base { basename; normalty; prop } ->
-        let mode = Expr.expr_to_ocamlexpr T.{ ty = None; x = Var "over" } in
+        let mode = Expr.expr_to_ocamlexpr { ty = None; x = Var "over" } in
         let x =
-          Expr.expr_to_ocamlexpr T.{ ty = Some normalty; x = Var basename }
+          Expr.expr_to_ocamlexpr { ty = Some normalty; x = Var basename }
         in
         let prop = Autov.prop_to_ocamlexpr prop in
         Expr.desc_to_ocamlexpr
@@ -92,10 +92,10 @@ let pretty_layout x =
   let rec aux x =
     match x with
     | OverTy_base { basename; normalty; prop } ->
-        Sugar.spf "[%s:%s | %s]" basename (Type.layout normalty)
-          (Autov.layout_prop prop)
+        Sugar.spf "{%s:%s | %s}" basename (Type.layout normalty)
+          (Autov.pretty_layout_prop prop)
     | OverTy_arrow { argname; argty; retty } ->
-        Sugar.spf "(%s:%s) -> %s" argname (aux argty) (aux retty)
+        Sugar.spf "(%s:%s) → %s" argname (aux argty) (aux retty)
     | OverTy_tuple ts ->
         Sugar.spf "(%s)" @@ Zzdatatype.Datatype.List.split_by_comma aux ts
   in

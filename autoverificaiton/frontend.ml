@@ -1,6 +1,6 @@
 open Ocaml_parser
 open Parsetree
-module L = Prop.Prop
+module L = Prop.T
 
 type label = Fa | Ex
 
@@ -91,7 +91,7 @@ let prop_of_ocamlexpr expr =
                 | Ppat_var arg -> arg.txt
                 | _ -> failwith "parsing: prop function"
               in
-              (label, L.{ ty = Some Prop.SMTTy.Int; x = arg })
+              (label, L.{ ty = Some Smtty.T.Int; x = arg })
           | _ -> failwith "parsing: prop function"
         in
         let body = aux expr in
@@ -194,3 +194,44 @@ let prop_to_expr prop =
   aux prop
 
 let layout prop = Pprintast.string_of_expression @@ prop_to_expr prop
+
+open P
+
+let sym_and = " ∧ "
+let sym_or = " ∨ "
+let sym_not = "¬"
+let sym_implies = "=>"
+let sym_iff = "<=>"
+
+let is_op op =
+  match op with "==" | "<" | ">" | "<=" | ">=" -> true | _ -> false
+
+open Printf
+open Zzdatatype.Datatype
+
+let pretty_layout x =
+  let rec layout = function
+    | True -> "⊤"
+    | Not True -> "⊥"
+    | Var b -> b.x
+    | MethodPred (mp, args) ->
+        if is_op mp then
+          match args with
+          | [ a; b ] -> sprintf "(%s %s %s)" a.x mp b.x
+          | _ -> sprintf "%s(%s)" mp (List.split_by_comma (fun x -> x.x) args)
+        else
+          sprintf "(%s %s)" mp
+            (* (Method_predicate.poly_name mp) *)
+            (List.split_by " " (fun x -> x.x) args)
+    | Implies (p1, p2) ->
+        sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
+    | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps
+    | Or ps -> sprintf "(%s)" @@ List.split_by sym_or layout ps
+    | Not p -> sprintf "(%s %s)" sym_not @@ layout p
+    | Iff (p1, p2) -> sprintf "(%s %s %s)" (layout p1) sym_iff (layout p2)
+    | Ite (p1, p2, p3) ->
+        sprintf "(if %s then %s else %s)" (layout p1) (layout p2) (layout p3)
+    | Forall (id, body) -> sprintf "(∀ %s, %s)" id.x (layout body)
+    | Exists (id, body) -> sprintf "(∃ %s, %s)" id.x (layout body)
+  in
+  layout x

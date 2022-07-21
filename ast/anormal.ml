@@ -16,7 +16,7 @@ module F (Type : Type.T) = struct
     | Ite of id typed * term typed * term typed
     | Match of id typed * case list
 
-  and case = { constuctor : id; args : id list; exp : term typed }
+  and case = { constructor : id; args : id list; exp : term typed }
   [@@deriving sexp]
 end
 

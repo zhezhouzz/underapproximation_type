@@ -74,7 +74,7 @@ and expr_to_ocamlexpr_desc expr =
               {
                 pc_lhs =
                   Pat.slang_to_pattern
-                    L.(make_untyped_id_app (case.L.constuctor, case.L.args));
+                    L.(make_untyped_id_app (case.L.constructor, case.L.args));
                 pc_guard = None;
                 pc_rhs = expr_to_ocamlexpr case.L.exp;
               })
@@ -215,8 +215,8 @@ let expr_of_ocamlexpr expr =
             (fun case ->
               let exp = aux case.pc_rhs in
               let pat = Pat.pattern_to_slang case.pc_lhs in
-              let constuctor, args = get_constructor pat in
-              L.{ constuctor; args; exp })
+              let constructor, args = get_constructor pat in
+              L.{ constructor; args; exp })
             cases
         in
         L.(make_untyped @@ Match (aux case_target, cs))

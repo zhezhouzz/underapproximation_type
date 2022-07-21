@@ -62,7 +62,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       let () = check_eq (ty, ty') "type_check:const:" in
       { ty = Some ty; x }
   | Var id, _ ->
-      let ty' = Typectx.get_ty_normal ctx id in
+      let ty' = Typectx.get_ty_with_prim Primitive.get_primitive_ty ctx id in
       let () = check_eq (ty, ty') "type_check:var:" in
       { ty = Some ty; x }
   | Tu es, Ty_tuple tys ->
@@ -120,28 +120,28 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
   | Match (e, cases), ty -> (
       match cases with
       | [] -> failwith "type_infer: pattern matching branch is empty"
-      | { constuctor; args; exp } :: cases ->
+      | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
-            destruct_arrow_tp @@ Primitive.get_primitive_ty constuctor
+            destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
           in
           let ctx' =
             List.fold_left Typectx.overlap ctx (List.combine argsty args)
           in
           let exp = bidirect_type_check ctx' exp ty in
-          let case = { constuctor; args; exp } in
+          let case = { constructor; args; exp } in
           let ety = bodyty in
           let cases =
             List.map
-              (fun { constuctor; args; exp } ->
+              (fun { constructor; args; exp } ->
                 let argsty, bodyty =
-                  destruct_arrow_tp @@ Primitive.get_primitive_ty constuctor
+                  destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
                 in
                 let () = check_eq (ety, bodyty) "type_infer:Match" in
                 let ctx' =
                   List.fold_left Typectx.overlap ctx (List.combine argsty args)
                 in
                 let exp = bidirect_type_check ctx' exp ty in
-                { constuctor; args; exp })
+                { constructor; args; exp })
               cases
           in
           let e = bidirect_type_check ctx e ety in
@@ -155,7 +155,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = infer_value c in
       ({ ty = Some ty; x }, ty)
   | Var id ->
-      let ty = Typectx.get_ty_normal ctx id in
+      let ty = Typectx.get_ty_with_prim Primitive.get_primitive_ty ctx id in
       ({ ty = Some ty; x }, ty)
   | Tu es ->
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in
@@ -209,28 +209,28 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   | Match (e, cases) -> (
       match cases with
       | [] -> failwith "type_infer: pattern matching branch is empty"
-      | { constuctor; args; exp } :: cases ->
+      | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
-            destruct_arrow_tp @@ Primitive.get_primitive_ty constuctor
+            destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
           in
           let ctx' =
             List.fold_left Typectx.overlap ctx (List.combine argsty args)
           in
           let exp, ty = bidirect_type_infer ctx' exp in
-          let case = { constuctor; args; exp } in
+          let case = { constructor; args; exp } in
           let ety = bodyty in
           let cases =
             List.map
-              (fun { constuctor; args; exp } ->
+              (fun { constructor; args; exp } ->
                 let argsty, bodyty =
-                  destruct_arrow_tp @@ Primitive.get_primitive_ty constuctor
+                  destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
                 in
                 let () = check_eq (ety, bodyty) "type_infer:Match" in
                 let ctx' =
                   List.fold_left Typectx.overlap ctx (List.combine argsty args)
                 in
                 let exp = bidirect_type_check ctx' exp ty in
-                { constuctor; args; exp })
+                { constructor; args; exp })
               cases
           in
           let e = bidirect_type_check ctx e ety in

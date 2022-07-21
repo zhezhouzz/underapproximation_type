@@ -16,7 +16,7 @@ module T = struct
     | Ite of term opttyped * term opttyped * term opttyped
     | Match of term opttyped * case list
 
-  and case = { constuctor : id; args : id list; exp : term opttyped }
+  and case = { constructor : id; args : id list; exp : term opttyped }
   [@@deriving sexp]
 
   let make_untyped x = { ty = None; x }

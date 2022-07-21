@@ -10,9 +10,24 @@ module T = struct
     | OverTy_tuple of t list
   [@@deriving sexp]
 
-  let eq = failwith "unimp"
-  let destruct_arrow_tp = failwith "unimp"
-  let construct_arrow_tp = failwith "unimp"
+  (* let eq = failwith "unimp over eq" *)
+
+  let rec destruct_arrow_tp = function
+    | OverTy_arrow { argname; argty; retty; _ } ->
+        let a, b = destruct_arrow_tp retty in
+        ((argty, argname) :: a, b)
+    | ty -> ([], ty)
+
+  (* let construct_arrow_tp = failwith "unimp" *)
+
+  let basic_normalty_to_smtty t =
+    let open Normalty.T in
+    let aux = function
+      | Ty_bool -> Autov.Smtty.Bool
+      | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
+      | _ -> failwith "to_smtty: not a basic type"
+    in
+    aux t
 
   let rec erase = function
     | OverTy_base { normalty; _ } -> normalty
@@ -35,4 +50,48 @@ module T = struct
       | OverTy_tuple ts -> OverTy_tuple (List.map aux ts)
     in
     aux t
+
+  let base_type_add_conjunction f = function
+    | OverTy_base { basename; normalty; prop } ->
+        OverTy_base
+          { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
+    | _ -> failwith "base_type_add_conjunction"
+
+  module P = Autov.Prop
+  module T = Autov.Smtty
+
+  let nu = "_nu"
+  let mk_int_id name = P.{ ty = Some T.Int; x = name }
+
+  let make_basic_top normalty =
+    OverTy_base { basename = nu; normalty; prop = P.True }
+
+  let make_arrow argname argty rettyf =
+    OverTy_arrow
+      {
+        argname;
+        argty;
+        retty =
+          rettyf
+            P.
+              {
+                ty = Some (basic_normalty_to_smtty @@ erase argty);
+                x = argname;
+              };
+      }
+
+  let arrow_args_rename args overftp =
+    let rec aux args overftp =
+      match (args, overftp) with
+      | [], tp -> tp
+      | id :: args, OverTy_arrow { argname; argty; retty } ->
+          OverTy_arrow
+            {
+              argname = id;
+              argty;
+              retty = aux args @@ subst_id retty argname id;
+            }
+      | _ -> failwith "die:bidirect_type_check"
+    in
+    aux args overftp
 end

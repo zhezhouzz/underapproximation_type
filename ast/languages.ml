@@ -8,3 +8,4 @@ module Termlang = Termlang.T
 module Signat = Modu.Signat
 module Struc = Modu.Struc
 module StrucNA = Modu.StrucNA
+module StrucOA = Modu.StrucOA

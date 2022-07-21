@@ -1,13 +1,7 @@
-module SMTTy = struct
-  type t = Bool | Int [@@deriving sexp]
-
-  let eq = function Bool, Bool | Int, Int -> true | _ -> false
-end
-
-module Prop = struct
+module T = struct
   open Sexplib.Std
 
-  type ty = SMTTy.t [@@deriving sexp]
+  type ty = Smtty.T.t [@@deriving sexp]
   type 'a typed = { ty : ty option; x : 'a } [@@deriving sexp]
 
   type t =
@@ -29,7 +23,7 @@ module Prop = struct
       let () =
         match (x.ty, y.ty) with
         | Some xty, Some yty ->
-            if SMTTy.eq (xty, yty) then () else failwith "prop naming error"
+            if Smtty.T.eq (xty, yty) then () else failwith "prop naming error"
         | _, _ -> ()
       in
       true

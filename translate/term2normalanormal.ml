@@ -83,7 +83,7 @@ and cps (cont : cont) (e : term opttyped) : T.term T.typed =
                  List.map
                    (fun case ->
                      {
-                       T.constuctor = case.constuctor;
+                       T.constructor = case.constructor;
                        T.args = case.args;
                        T.exp = to_anormal case.exp;
                      })
@@ -133,7 +133,7 @@ let rec to_term e =
              List.map
                (fun case ->
                  {
-                   constuctor = case.T.constuctor;
+                   constructor = case.T.constructor;
                    args = case.T.args;
                    exp = to_term case.T.exp;
                  })

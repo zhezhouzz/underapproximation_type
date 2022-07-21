@@ -59,13 +59,40 @@ let parse_to_anormal =
 let parsing_refinements =
   Command.basic ~summary:"parsing structure"
     Command.Let_syntax.(
-      let%map_open source_file = anon ("source file" %: regular_file) in
+      let%map_open refine_file = anon ("source file" %: regular_file) in
       fun () ->
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
         let refinements = Structure.refinement_of_ocamlstruct x in
         let () =
           Printf.printf "%s" (Structure.layout_refinements refinements)
         in
+        ())
+
+let over_type_check =
+  Command.basic ~summary:"over_type_check"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source file" %: regular_file)
+      and refine_file = anon ("refine_file" %: regular_file) in
+      fun () ->
+        let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let () =
+          Printf.printf "%s\n\n"
+          @@ Ocaml_parser.Pprintast.string_of_structure code
+        in
+        let code = Structure.client_of_ocamlstruct code in
+        let () = Printf.printf "%s\n" @@ Structure.layout code in
+        let code = Typecheck.Termcheck.struc_check code in
+        let () = Printf.printf "%s\n" @@ Structure.layout code in
+        let code = Trans.struc_term_to_nan code in
+        let () = Printf.printf "%s\n" (Na.struct_layout code) in
+        let refinements =
+          Structure.refinement_of_ocamlstruct
+            (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+        in
+        let () =
+          Printf.printf "%s" (Structure.layout_refinements refinements)
+        in
+        let code = Typecheck.Overcheck.struc_check code refinements in
         ())
 
 let test =
@@ -75,6 +102,7 @@ let test =
       ("parse-to-typed-term", parse_to_typed_term);
       ("parsing-structure", parsing_structure);
       ("parsing-refinements", parsing_refinements);
+      ("over-type-check", over_type_check);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]

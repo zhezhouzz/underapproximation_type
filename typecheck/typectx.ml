@@ -7,11 +7,10 @@ let find_opt (ctx : 'a t) id : 'a option =
   let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in
   Some t
 
-let find_opt_normal ctx id =
-  try Some (Primitive.get_primitive_ty id) with _ -> find_opt ctx id
+let find_opt_with_prim f ctx id = try Some (f id) with _ -> find_opt ctx id
 
-let get_ty_normal (ctx : 'a t) id : 'a =
-  match find_opt_normal ctx id with
+let get_ty_with_prim f (ctx : 'a t) id : 'a =
+  match find_opt_with_prim f ctx id with
   | None -> failwith @@ Sugar.spf "no such name (%s) in the type context" id
   | Some ty -> ty
 
@@ -27,3 +26,8 @@ let overlap ctx (ty, id) =
         if String.equal id id' then (id', ty) :: t else (id', ty') :: aux t
   in
   aux ctx
+
+let overlaps ctx l = List.fold_left overlap ctx l
+
+let layout f ctx =
+  List.split_by "; " (fun (name, ty) -> spf "%s:%s" name (f ty)) ctx
