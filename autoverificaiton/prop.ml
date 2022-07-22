@@ -63,4 +63,12 @@ module T = struct
       | Exists (u, e) -> if String.equal u.x x then t else Exists (u, aux e)
     in
     aux t
+
+  let mk_forall_intqv x prop =
+    let u = { ty = Smtty.T.Int; x = "_" ^ x } in
+    Forall (u, prop u)
+
+  let mk_exists_intqv x prop =
+    let u = { ty = Smtty.T.Int; x = "_" ^ x } in
+    Exists (u, prop u)
 end

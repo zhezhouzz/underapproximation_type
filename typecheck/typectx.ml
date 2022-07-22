@@ -30,6 +30,3 @@ let overlap ctx (ty, id) =
   aux ctx
 
 let overlaps ctx l = List.fold_left overlap ctx l
-
-let layout f ctx =
-  List.split_by "; " (fun (name, ty) -> spf "%s:%s" name (f ty)) ctx

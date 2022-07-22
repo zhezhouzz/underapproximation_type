@@ -27,7 +27,7 @@ let layout_one { name; if_rec; body } =
 
 let layout l = spf "%s\n" (List.split_by "\n" layout_one l)
 
-let refinement_of_ocamlstruct_one structure =
+let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
   match structure.pstr_desc with
   | Pstr_value (_, [ value_binding ]) ->
       let name =
@@ -35,15 +35,14 @@ let refinement_of_ocamlstruct_one structure =
         | L.Var name -> name
         | _ -> failwith "die"
       in
-      let refinement = Overtype.overtype_of_ocamlexpr value_binding.pvb_expr in
+      let refinement = t_of_ocamlexpr value_binding.pvb_expr in
       (name, refinement)
   | _ -> raise @@ failwith "translate not a function value"
 
-let refinement_of_ocamlstruct structures =
-  List.map refinement_of_ocamlstruct_one structures
+let refinement_of_ocamlstruct t_of_ocamlexpr structures =
+  List.map (refinement_of_ocamlstruct_one t_of_ocamlexpr) structures
 
-let layout_one_refinement (name, r) =
-  spf "⊢ %s : %s\n" name @@ Overtype.pretty_layout r
+let layout_one_refinement f (name, r) = spf "⊢ %s : %s\n" name @@ f r
 
-let layout_refinements l =
-  spf "%s\n" (List.split_by "\n" layout_one_refinement l)
+let layout_refinements f l =
+  spf "%s\n" (List.split_by "\n" (layout_one_refinement f) l)

@@ -1,0 +1,10 @@
+(library
+ (name abstraction)
+ (wrapped true)
+ (libraries utils ast core frontend)
+ (modules
+   normalprim
+   overprim
+   underprim
+   prim
+))

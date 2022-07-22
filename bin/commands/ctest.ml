@@ -53,18 +53,38 @@ let parse_to_anormal =
         let code = Typecheck.Termcheck.struc_check code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
         let code = Trans.struc_term_to_nan code in
-        let () = Printf.printf "%s\n" (Na.struct_layout code) in
+        let () =
+          Printf.printf "%s\n" (Structure.layout @@ Trans.struc_nan_to_term code)
+        in
         ())
 
-let parsing_refinements =
-  Command.basic ~summary:"parsing structure"
+let parsing_over_refinements =
+  Command.basic ~summary:"parsing_over_refinements"
     Command.Let_syntax.(
       let%map_open refine_file = anon ("source file" %: regular_file) in
       fun () ->
         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
-        let refinements = Structure.refinement_of_ocamlstruct x in
+        let refinements =
+          Structure.refinement_of_ocamlstruct Overtype.overtype_of_ocamlexpr x
+        in
         let () =
-          Printf.printf "%s" (Structure.layout_refinements refinements)
+          Printf.printf "%s"
+            (Structure.layout_refinements Overtype.pretty_layout refinements)
+        in
+        ())
+
+let parsing_under_refinements =
+  Command.basic ~summary:"parsing_over_refinements"
+    Command.Let_syntax.(
+      let%map_open refine_file = anon ("source file" %: regular_file) in
+      fun () ->
+        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
+        let refinements =
+          Structure.refinement_of_ocamlstruct Undertype.undertype_of_ocamlexpr x
+        in
+        let () =
+          Printf.printf "%s"
+            (Structure.layout_refinements Undertype.pretty_layout refinements)
         in
         ())
 
@@ -84,13 +104,16 @@ let over_type_check =
         let code = Typecheck.Termcheck.struc_check code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
         let code = Trans.struc_term_to_nan code in
-        let () = Printf.printf "%s\n" (Na.struct_layout code) in
+        let () =
+          Printf.printf "%s\n" (Structure.layout @@ Trans.struc_nan_to_term code)
+        in
         let refinements =
-          Structure.refinement_of_ocamlstruct
+          Structure.refinement_of_ocamlstruct Overtype.overtype_of_ocamlexpr
             (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
         in
         let () =
-          Printf.printf "%s" (Structure.layout_refinements refinements)
+          Printf.printf "%s"
+            (Structure.layout_refinements Overtype.pretty_layout refinements)
         in
         let code = Typecheck.Overcheck.struc_check code refinements in
         ())
@@ -100,8 +123,9 @@ let test =
     [
       ("parse-to-anormal", parse_to_anormal);
       ("parse-to-typed-term", parse_to_typed_term);
-      ("parsing-structure", parsing_structure);
-      ("parsing-refinements", parsing_refinements);
+      ("parse-structure", parsing_structure);
+      ("parse-over-refinements", parsing_over_refinements);
+      ("parse-under-refinements", parsing_under_refinements);
       ("over-type-check", over_type_check);
     ]
 

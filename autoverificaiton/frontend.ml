@@ -45,7 +45,10 @@ let prop_of_ocamlexpr expr =
   let expr_to_id e =
     match e.pexp_desc with
     | Pexp_ident id -> handle_id id
-    | _ -> failwith "parsing: prop does not have nested application"
+    | _ ->
+        failwith
+        @@ Printf.sprintf "parsing: prop does not have nested application (%s)"
+        @@ Pprintast.string_of_expression e
   in
   let rec aux expr =
     match expr.pexp_desc with

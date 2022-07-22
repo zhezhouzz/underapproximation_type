@@ -1,10 +1,11 @@
 (library
  (name typecheck)
  (wrapped true)
- (libraries utils ast core frontend)
+ (libraries utils ast core frontend translate abstraction)
  (modules
-   primitive
+   ; primitive
    typectx
    termcheck
    overcheck
+   undercheck
  ))

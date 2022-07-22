@@ -1,4 +1,11 @@
 {
     "mode": "debug",
-    "logfile": ".log"
+    "logfile": ".log",
+    "prmitive": [
+        {
+            "over": "data/prim/over.ml",
+            "under": "data/prim/under.ml",
+            "normal": "data/prim/normal.ml"
+        }
+    ]
 }

@@ -41,4 +41,26 @@ module T = struct
             | None -> None
             | Some x -> Some (l @ [ x ])))
       (Some []) x
+
+  let erase_type term =
+    let rec aux { x; _ } =
+      let x =
+        match x with
+        | Const _ | Var _ -> x
+        | Tu es -> Tu (List.map aux es)
+        | Lam (ty, id, e) -> Lam (ty, id, aux e)
+        | App (e, es) -> App (aux e, List.map aux es)
+        | Let (if_rec, lhs, rhs, body) -> Let (if_rec, lhs, aux rhs, aux body)
+        | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+        | Match (e, cases) ->
+            Match
+              ( aux e,
+                List.map
+                  (fun { constructor; args; exp } ->
+                    { constructor; args; exp = aux exp })
+                  cases )
+      in
+      { ty = None; x }
+    in
+    aux term
 end

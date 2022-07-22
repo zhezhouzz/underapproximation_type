@@ -50,7 +50,7 @@ let smt_solve ctx vc =
   let solver = mk_solver ctx None in
   let g = mk_goal ctx true false false in
   let q = Query.to_z3 ctx vc in
-  let () = Printf.printf "Q: %s\n" @@ Z3.Expr.to_string q in
-  let _ = Goal.add g [ Query.to_z3 ctx vc ] in
+  (* let () = Printf.printf "Q: %s\n" @@ Z3.Expr.to_string q in *)
+  let _ = Goal.add g [ q ] in
   let _ = Solver.add solver (get_formulas g) in
   solver_result solver

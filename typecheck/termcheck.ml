@@ -4,6 +4,7 @@ module Type = Languages.Normalty
 open Zzdatatype.Datatype
 open Type
 open Sugar
+open Abstraction
 
 let layout = Frontend.Type.layout
 
@@ -62,7 +63,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       let () = check_eq (ty, ty') "type_check:const:" in
       { ty = Some ty; x }
   | Var id, _ ->
-      let ty' = Typectx.get_ty_with_prim Primitive.get_primitive_ty ctx id in
+      let ty' = Typectx.get_ty_with_prim Prim.get_primitive_normal_ty ctx id in
       let () = check_eq (ty, ty') "type_check:var:" in
       { ty = Some ty; x }
   | Tu es, Ty_tuple tys ->
@@ -122,7 +123,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       | [] -> failwith "type_infer: pattern matching branch is empty"
       | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
-            destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
+            destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
           in
           let ctx' =
             List.fold_left Typectx.overlap ctx (List.combine argsty args)
@@ -134,7 +135,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
             List.map
               (fun { constructor; args; exp } ->
                 let argsty, bodyty =
-                  destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
+                  destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
                 in
                 let () = check_eq (ety, bodyty) "type_infer:Match" in
                 let ctx' =
@@ -155,7 +156,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = infer_value c in
       ({ ty = Some ty; x }, ty)
   | Var id ->
-      let ty = Typectx.get_ty_with_prim Primitive.get_primitive_ty ctx id in
+      let ty = Typectx.get_ty_with_prim Prim.get_primitive_normal_ty ctx id in
       ({ ty = Some ty; x }, ty)
   | Tu es ->
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in
@@ -183,13 +184,12 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   | Let (true, _, _, _) ->
       failwith "cannot infer ret type of recursive function"
   | Let (if_rec, args, rhs, body) ->
-      let () = Printf.printf "let!!!\n" in
-      let () =
-        (* TODO: fix recurisve bug *)
-        if true then
-          Printf.printf "rec::: %s\n" @@ Frontend.Expr.layout { ty = None; x }
-        else ()
-      in
+      (* let () = Printf.printf "let!!!\n" in *)
+      (* let () = *)
+      (*   if if_rec then *)
+      (*     Printf.printf "rec::: %s\n" @@ Frontend.Expr.layout { ty = None; x } *)
+      (*   else () *)
+      (* in *)
       let rhsty =
         match List.map fst args with
         | [] -> failwith "type_infer: let binding lhs is empty"
@@ -211,7 +211,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       | [] -> failwith "type_infer: pattern matching branch is empty"
       | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
-            destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
+            destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
           in
           let ctx' =
             List.fold_left Typectx.overlap ctx (List.combine argsty args)
@@ -223,7 +223,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
             List.map
               (fun { constructor; args; exp } ->
                 let argsty, bodyty =
-                  destruct_arrow_tp @@ Primitive.get_primitive_ty constructor
+                  destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
                 in
                 let () = check_eq (ety, bodyty) "type_infer:Match" in
                 let ctx' =
