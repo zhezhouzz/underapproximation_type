@@ -13,7 +13,18 @@ let check_implies a b =
   | SmtSat _ -> false
   | Timeout -> failwith "smt timeout"
 
+let check_implies_multi_pre a_s b =
+  let open Check in
+  let q = Prop.(Not (Implies (And a_s, b))) in
+  match smt_solve ctx q with
+  | SmtUnsat -> true
+  | SmtSat model ->
+      Printf.printf "%s\n" @@ Z3.Model.to_string model;
+      false
+  | Timeout -> failwith "smt timeout"
+
 let prop_of_ocamlexpr = Frontend.prop_of_ocamlexpr
 let prop_to_ocamlexpr = Frontend.prop_to_expr
 let layout_prop = Frontend.layout
 let pretty_layout_prop = Frontend.pretty_layout
+let prop_fv = Fv.fv

@@ -4,11 +4,13 @@
  (modules
    smtty
    prop
+   ; typecheck
    z3aux
    query
    check
    autov
    frontend
+   fv
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
  (libraries zzdatatype z3 ocaml_parser)

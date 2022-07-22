@@ -32,9 +32,10 @@ let label_to_core_type x =
   }
 
 let prop_of_ocamlexpr expr =
+  (* TODO: parse type of prop *)
   let handle_id id =
     match Longident.flatten id.Location.txt with
-    | [ x ] -> L.{ ty = None; x }
+    | [ x ] -> L.{ ty = Smtty.T.Int; x }
     | ids ->
         failwith
           (Printf.sprintf "expr, handel id: %s"
@@ -82,7 +83,7 @@ let prop_of_ocamlexpr expr =
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_match _ -> failwith "parsing: prop does not have match"
     | Pexp_fun (_, _, arg, expr) -> (
-        let label, arg =
+        let label, (uty, u) =
           match arg.ppat_desc with
           | Ppat_constraint (arg, core_type) ->
               let label = core_type_to_label core_type in
@@ -91,13 +92,13 @@ let prop_of_ocamlexpr expr =
                 | Ppat_var arg -> arg.txt
                 | _ -> failwith "parsing: prop function"
               in
-              (label, L.{ ty = Some Smtty.T.Int; x = arg })
+              (label, (Smtty.T.Int, arg))
           | _ -> failwith "parsing: prop function"
         in
         let body = aux expr in
         match label with
-        | Fa -> L.Forall (arg, body)
-        | Ex -> L.Exists (arg, body))
+        | Fa -> L.Forall ({ ty = uty; x = u }, body)
+        | Ex -> L.Exists ({ ty = uty; x = u }, body))
     | _ ->
         raise
         @@ failwith
@@ -169,24 +170,24 @@ let prop_to_expr prop =
     | P.Iff (e1, e2) ->
         desc_to_ocamlexpr
           (Pexp_apply (string_to_expr "iff", List.map aux' [ e1; e2 ]))
-    | P.Forall (x, body) ->
+    | P.Forall (u, body) ->
         desc_to_ocamlexpr
           (Pexp_fun
              ( Asttypes.Nolabel,
                None,
                dest_to_pat
                  (Ppat_constraint
-                    ( dest_to_pat (Ppat_var (Location.mknoloc x.x)),
+                    ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
                       label_to_core_type Fa )),
                aux body ))
-    | P.Exists (x, body) ->
+    | P.Exists (u, body) ->
         desc_to_ocamlexpr
           (Pexp_fun
              ( Asttypes.Nolabel,
                None,
                dest_to_pat
                  (Ppat_constraint
-                    ( dest_to_pat (Ppat_var (Location.mknoloc x.x)),
+                    ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
                       label_to_core_type Ex )),
                aux body ))
   in
@@ -213,7 +214,8 @@ let pretty_layout x =
   let rec layout = function
     | True -> "⊤"
     | Not True -> "⊥"
-    | Var b -> b.x
+    | Var b -> (
+        match b.ty with Smtty.T.Bool -> sprintf "(%s:𝓑 )" b.x | _ -> b.x)
     | MethodPred (mp, args) ->
         if is_op mp then
           match args with
@@ -231,7 +233,7 @@ let pretty_layout x =
     | Iff (p1, p2) -> sprintf "(%s %s %s)" (layout p1) sym_iff (layout p2)
     | Ite (p1, p2, p3) ->
         sprintf "(if %s then %s else %s)" (layout p1) (layout p2) (layout p3)
-    | Forall (id, body) -> sprintf "(∀ %s, %s)" id.x (layout body)
-    | Exists (id, body) -> sprintf "(∃ %s, %s)" id.x (layout body)
+    | Forall (u, body) -> sprintf "(∀ %s, %s)" u.x (layout body)
+    | Exists (u, body) -> sprintf "(∃ %s, %s)" u.x (layout body)
   in
   layout x

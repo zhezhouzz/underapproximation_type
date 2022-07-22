@@ -22,7 +22,10 @@ let z3func ctx funcname inptps outtp =
 
 let to_z3 ctx prop =
   let get_ty x =
-    match x.ty with None -> failwith "untyped prop" | Some ty -> ty
+    x.ty
+    (* match x.ty with *)
+    (* | None -> failwith (Printf.sprintf "untyped prop variable %s" x.x) *)
+    (* | Some ty -> ty *)
   in
   let rec aux prop =
     match prop with
@@ -36,25 +39,24 @@ let to_z3 ctx prop =
     | Iff (p1, p2) -> Z3.Boolean.mk_iff ctx (aux p1) (aux p2)
     | Forall (u, body) -> make_forall ctx [ aux (Var u) ] (aux body)
     | Exists (u, body) -> make_exists ctx [ aux (Var u) ] (aux body)
-    | MethodPred ("==", [ a; b ]) ->
-        let a = aux (Var a) in
-        let b = aux (Var b) in
-        Z3.Boolean.mk_eq ctx a b
-    | MethodPred ("==", _) -> raise @@ failwith "prop to z3: bad =="
-    | MethodPred ("<", [ a; b ]) ->
-        let a = aux (Var a) in
-        let b = aux (Var b) in
-        Z3.Arithmetic.mk_lt ctx a b
-    | MethodPred ("<", _) -> raise @@ failwith "prop to z3: bad <"
-    | MethodPred (mp, args) ->
-        let argsty =
-          List.map
-            (fun x ->
-              match x.ty with Some ty -> ty | _ -> failwith "untyped prop")
-            args
-        in
+    | MethodPred (mp, args) -> (
+        let argsty = List.map get_ty args in
         let args = List.map (fun x -> aux (Var x)) args in
-        let func = z3func ctx mp argsty T.Bool in
-        Z3.FuncDecl.apply func args
+        match (mp, args) with
+        | "==", [ a; b ] -> Z3.Boolean.mk_eq ctx a b
+        | "==", _ -> failwith "wrong prop with operator =="
+        | "!=", [ a; b ] -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)
+        | "!=", _ -> failwith "wrong prop with operator !="
+        | "<=", [ a; b ] -> Z3.Arithmetic.mk_le ctx a b
+        | "<=", _ -> failwith "wrong prop with operator <="
+        | ">=", [ a; b ] -> Z3.Arithmetic.mk_ge ctx a b
+        | ">=", _ -> failwith "wrong prop with operator >="
+        | "<", [ a; b ] -> Z3.Arithmetic.mk_lt ctx a b
+        | "<", _ -> failwith "wrong prop with operator <"
+        | ">", [ a; b ] -> Z3.Arithmetic.mk_gt ctx a b
+        | ">", _ -> failwith "wrong prop with operator >"
+        | mp, args ->
+            let func = z3func ctx mp argsty T.Bool in
+            Z3.FuncDecl.apply func args)
   in
   aux prop

@@ -61,7 +61,7 @@ module T = struct
   module T = Autov.Smtty
 
   let nu = "_nu"
-  let mk_int_id name = P.{ ty = Some T.Int; x = name }
+  let mk_int_id name = P.{ ty = T.Int; x = name }
 
   let make_basic_top normalty =
     OverTy_base { basename = nu; normalty; prop = P.True }
@@ -72,12 +72,7 @@ module T = struct
         argname;
         argty;
         retty =
-          rettyf
-            P.
-              {
-                ty = Some (basic_normalty_to_smtty @@ erase argty);
-                x = argname;
-              };
+          rettyf P.{ ty = basic_normalty_to_smtty @@ erase argty; x = argname };
       }
 
   let arrow_args_rename args overftp =
@@ -94,4 +89,6 @@ module T = struct
       | _ -> failwith "die:bidirect_type_check"
     in
     aux args overftp
+
+  let is_base_type = function OverTy_base _ -> true | _ -> false
 end

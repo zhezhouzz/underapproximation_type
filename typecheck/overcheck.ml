@@ -4,6 +4,47 @@ module NT = Languages.Normalty
 module OT = Languages.Overty
 open Zzdatatype.Datatype
 
+(* let typectx_well_founded_overlap ctx (ty, name) = *)
+(*   let open OT in *)
+(*   let rec aux (ty, name) = *)
+(*     let ty = *)
+(*     match ty with *)
+(*     | OverTy_base {basename; normalty; prop;} -> *)
+(*       if String.equal basename name then ty else *)
+(*         OverTy_base {basename = name; normalty; prop = P.subst_id prop basename name} *)
+(*     | OverTy_tuple ts ->  *)
+
+let subtyping_to_query ctx (prop1, prop2) =
+  let fv1 = Autov.prop_fv prop1 in
+  let fv2 = Autov.prop_fv prop2 in
+  let fv = fv1 @ fv2 in
+  let ctx =
+    List.filter_map
+      (fun (x, ty) ->
+        OT.(
+          match ty with
+          | OverTy_base { basename; prop; _ } ->
+              let prop = P.subst_id prop basename x in
+              Some (x, prop)
+          | _ -> None))
+      ctx
+  in
+  let () =
+    List.iter
+      (fun name ->
+        if List.exists (fun (x, _) -> String.equal name x) ctx then ()
+        else failwith "type context is not well founded")
+      fv
+  in
+  let pre = List.map snd ctx in
+  let () =
+    Printf.printf "SMT check:\n\twith ctx: %s\n\t(%s) => (%s)\n\n"
+      (List.split_by " ∧ " Autov.pretty_layout_prop pre)
+      (Autov.pretty_layout_prop prop1)
+      (Autov.pretty_layout_prop prop2)
+  in
+  (pre @ [ prop1 ], prop2)
+
 let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let open OT in
   let rec aux ctx (t1, t2) =
@@ -16,13 +57,16 @@ let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
     match (t1, t2) with
     | ( OverTy_base { basename = name1; prop = prop1; _ },
         OverTy_base { basename = name2; prop = prop2; _ } ) ->
-        let prop2 = P.subst_id prop2 name2 name1 in
-        let () =
-          Printf.printf "SMT check: (%s) => (%s)\n\n"
-            (Autov.pretty_layout_prop prop1)
-            (Autov.pretty_layout_prop prop2)
+        let prop1, prop2 =
+          match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
+          | true, true ->
+              if String.equal name1 name2 then (prop1, prop2)
+              else failwith "subtype bad name"
+          | false, true -> (P.subst_id prop1 name1 name2, prop2)
+          | _, _ -> (prop1, P.subst_id prop2 name2 name1)
         in
-        if Autov.check_implies prop1 prop2 then ()
+        let pres, res = subtyping_to_query ctx (prop1, prop2) in
+        if Autov.check_implies_multi_pre pres res then ()
         else failwith "rejected by the verifier"
     | OverTy_tuple ts1, OverTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2
@@ -50,11 +94,8 @@ let rec bidirect_type_infer (ctx : OT.t Typectx.t) (a : NL.term NL.typed) :
   match a.x with
   | Const _ -> failwith "unimp const type check"
   | Var x ->
-      OL.
-        {
-          ty = Typectx.get_ty_with_prim Primitive.over_get_primitive_ty ctx x;
-          x = Var x;
-        }
+      let x = bidirect_type_infer_id ctx { ty = a.ty; x } in
+      OL.{ ty = x.ty; x = Var x.x }
   | Tu es ->
       let es = List.map (bidirect_type_infer_id ctx) es in
       let ty = OT.OverTy_tuple (List.map (fun x -> x.OL.ty) es) in
@@ -99,6 +140,15 @@ and bidirect_type_infer_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id OL.typed =
   let ty = Typectx.get_ty_with_prim Primitive.over_get_primitive_ty ctx id.x in
   let () = erase_check (ty, id.ty) in
+  (* TODO: what is the type of variable that is in the context? *)
+  let ty =
+    OT.(
+      match ty with
+      | OverTy_base { basename; normalty; prop } ->
+          OverTy_base
+            { basename = id.x; normalty; prop = P.subst_id prop basename id.x }
+      | _ -> ty)
+  in
   OL.{ ty; x = id.x }
 
 and bidirect_type_check_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed)
@@ -181,9 +231,9 @@ and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
       { ty = body.ty; x = Let (lhs, rhs, body) }
   | Ite (id, e1, e2), ty ->
       let id = bidirect_type_infer_id ctx id in
-      let true_branch_prop x = Autov.(Prop.(Var { ty = Some Smtty.Bool; x })) in
+      let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
       let false_branch_prop x =
-        Autov.(Prop.(Not (Var { ty = Some Smtty.Bool; x })))
+        Autov.(Prop.(Not (Var { ty = Smtty.Bool; x })))
       in
       let true_branch_ctx =
         Typectx.overlap ctx

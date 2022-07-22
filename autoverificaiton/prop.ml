@@ -2,7 +2,7 @@ module T = struct
   open Sexplib.Std
 
   type ty = Smtty.T.t [@@deriving sexp]
-  type 'a typed = { ty : ty option; x : 'a } [@@deriving sexp]
+  type 'a typed = { ty : ty; x : 'a } [@@deriving sexp]
 
   type t =
     | True
@@ -21,10 +21,7 @@ module T = struct
   let typed_id_eq (x, y) =
     if String.equal x.x y.x then
       let () =
-        match (x.ty, y.ty) with
-        | Some xty, Some yty ->
-            if Smtty.T.eq (xty, yty) then () else failwith "prop naming error"
-        | _, _ -> ()
+        if Smtty.T.eq (x.ty, y.ty) then () else failwith "prop naming error"
       in
       true
     else false
@@ -39,7 +36,7 @@ module T = struct
       | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
       | Not e -> Not (aux e)
       | And es -> And (List.map aux es)
-      | Or es -> And (List.map aux es)
+      | Or es -> Or (List.map aux es)
       | Iff (e1, e2) -> Iff (aux e1, aux e2)
       | MethodPred (mp, args) -> MethodPred (mp, List.map (do_subst x y) args)
       | Forall (u, e) -> if typed_id_eq (x, u) then t else Forall (u, aux e)
@@ -59,7 +56,7 @@ module T = struct
       | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
       | Not e -> Not (aux e)
       | And es -> And (List.map aux es)
-      | Or es -> And (List.map aux es)
+      | Or es -> Or (List.map aux es)
       | Iff (e1, e2) -> Iff (aux e1, aux e2)
       | MethodPred (mp, args) -> MethodPred (mp, List.map (do_subst x y) args)
       | Forall (u, e) -> if String.equal u.x x then t else Forall (u, aux e)

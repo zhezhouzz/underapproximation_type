@@ -3,6 +3,8 @@ open Sugar
 
 type 'a t = (string * 'a) list
 
+let in_ctx ctx name = List.exists (fun (x, _) -> String.equal x name) ctx
+
 let find_opt (ctx : 'a t) id : 'a option =
   let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in
   Some t
