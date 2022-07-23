@@ -50,10 +50,10 @@ let to_z3 ctx prop =
         let args = List.map (fun x -> aux (Var x)) args in
         match (mp, args) with
         | "==", [ a; b ] ->
-            let () =
-              Printf.printf "make ==: %s, %s" (Expr.to_string a)
-                (Expr.to_string b)
-            in
+            (* let () = *)
+            (*   Printf.printf "make ==: %s, %s" (Expr.to_string a) *)
+            (*     (Expr.to_string b) *)
+            (* in *)
             Z3.Boolean.mk_eq ctx a b
         | "==", _ -> failwith "wrong prop with operator =="
         | "!=", [ a; b ] -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)

@@ -5,17 +5,8 @@ module UT = Languages.Underty
 open Zzdatatype.Datatype
 open Abstraction
 
-let layout_judge = Frontend.Undertype.pretty_layout_judge Trans.nan_to_term
-
-(* let typectx_well_founded_overlap ctx (ty, name) = *)
-(*   let open UT in *)
-(*   let rec aux (ty, name) = *)
-(*     let ty = *)
-(*     match ty with *)
-(*     | UnderTy_base {basename; normalty; prop;} -> *)
-(*       if String.equal basename name then ty else *)
-(*         UnderTy_base {basename = name; normalty; prop = P.subst_id prop basename name} *)
-(*     | UnderTy_tuple ts ->  *)
+let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
+let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
 let subtyping_to_query ctx (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
@@ -43,20 +34,15 @@ let subtyping_to_query ctx (prop1, prop2) =
   let () =
     Printf.printf "SMT check:\n\twith ctx: %s\n\t(%s) => (%s)\n\n"
       (List.split_by " ∧ " Autov.pretty_layout_prop pre)
-      (Autov.pretty_layout_prop prop1)
       (Autov.pretty_layout_prop prop2)
+      (Autov.pretty_layout_prop prop1)
   in
   (pre @ [ prop2 ], prop1)
 
 let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
   let open UT in
   let rec aux ctx (t1, t2) =
-    (* let () = *)
-    (*   Printf.printf "%s ⊢ \n\t%s <:\n\t%s\n\n" *)
-    (*     (Typectx.layout Frontend.Undertype.pretty_layout ctx) *)
-    (*     (Frontend.Undertype.pretty_layout t1) *)
-    (*     (Frontend.Undertype.pretty_layout t2) *)
-    (* in *)
+    let () = Printf.printf "Subtype: %s\n" @@ layout_subtyping ctx (t1, t2) in
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; _ },
         UnderTy_base { basename = name2; prop = prop2; _ } ) ->
@@ -255,8 +241,34 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
       let id = bidirect_type_infer_id ctx id in
       let handle_case { constructor; args; exp } =
         let constructor_ty = Prim.get_primitive_rev_under_ty constructor in
-        let constructor_ty = UT.arrow_args_rename args constructor_ty in
-        let args, retty = UT.destruct_arrow_tp constructor_ty in
+        let retty, args =
+          let open UT in
+          match constructor_ty with
+          | UnderTy_base _ -> (constructor_ty, [])
+          | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
+              let () =
+                if List.length ts != List.length args then
+                  failwith "wrong rev under prim: arity"
+                else ()
+              in
+              let ts = List.map (fun t -> UT.subst_id t argname id.x) ts in
+              let args =
+                List.map (fun (t, id) ->
+                    match t with
+                    | UnderTy_base { basename; normalty; prop } ->
+                        ( UnderTy_base
+                            {
+                              basename = id;
+                              normalty;
+                              prop = P.subst_id prop basename id;
+                            },
+                          id )
+                    | _ -> failwith "wrong rev under prim")
+                @@ List.combine ts args
+              in
+              (argty, args)
+          | _ -> failwith "wrong rev under prim"
+        in
         let retty_prop id =
           UT.(
             match retty with
@@ -264,8 +276,8 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
             | _ -> failwith "bad constructor type")
         in
         let ctx' =
-          Typectx.overlaps ctx @@ args
-          @ [ (UT.base_type_add_conjunction retty_prop id.ty, id.x) ]
+          Typectx.overlaps ctx
+          @@ ((UT.base_type_add_conjunction retty_prop id.ty, id.x) :: args)
         in
         let exp = bidirect_type_check ctx' exp ty in
         UL.{ constructor; args = List.map snd args; exp }

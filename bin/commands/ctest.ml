@@ -1,6 +1,7 @@
 open Core
 open Caux
 open Frontend
+open Static
 
 (* let parsing_signature = *)
 (*   Command.basic ~summary:"parsing signature" *)
@@ -100,27 +101,8 @@ let over_type_check =
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
-        let () =
-          Printf.printf "%s\n\n"
-          @@ Ocaml_parser.Pprintast.string_of_structure code
-        in
-        let code = Structure.client_of_ocamlstruct code in
-        let () = Printf.printf "%s\n" @@ Structure.layout code in
-        let code = Typecheck.Termcheck.struc_check code in
-        let () = Printf.printf "%s\n" @@ Structure.layout code in
-        let code = Trans.struc_term_to_nan code in
-        let () =
-          Printf.printf "%s\n" (Structure.layout @@ Trans.struc_nan_to_term code)
-        in
-        let refinements =
-          Structure.refinement_of_ocamlstruct Overtype.overtype_of_ocamlexpr
-            (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
-        in
-        let () =
-          Printf.printf "%s"
-            (Structure.layout_refinements Overtype.pretty_layout refinements)
-        in
+        let code = Inputstage.load_ssa source_file in
+        let refinements = Inputstage.load_over_refinments refine_file in
         let code = Typecheck.Overcheck.struc_check code refinements in
         ())
 
@@ -131,21 +113,8 @@ let under_type_check =
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
-        let code = Structure.client_of_ocamlstruct code in
-        let code = Typecheck.Termcheck.struc_check code in
-        let code = Trans.struc_term_to_nan code in
-        let () =
-          Printf.printf "%s\n" (Structure.layout @@ Trans.struc_nan_to_term code)
-        in
-        let refinements =
-          Structure.refinement_of_ocamlstruct Undertype.undertype_of_ocamlexpr
-            (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
-        in
-        let () =
-          Printf.printf "%s"
-            (Structure.layout_refinements Undertype.pretty_layout refinements)
-        in
+        let code = Inputstage.load_ssa source_file in
+        let refinements = Inputstage.load_under_refinments refine_file in
         let code = Typecheck.Undercheck.struc_check code refinements in
         ())
 

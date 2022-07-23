@@ -31,11 +31,13 @@ let label_to_core_type x =
     ptyp_attributes = [];
   }
 
+(* NOTE: should we parse type here? or is the prop is typed? *)
+let default_type = Smtty.T.Int
+
 let prop_of_ocamlexpr expr =
-  (* TODO: parse type of prop *)
   let handle_id id =
     match Longident.flatten id.Location.txt with
-    | [ x ] -> L.{ ty = Smtty.T.Int; x }
+    | [ x ] -> L.{ ty = default_type; x }
     | ids ->
         failwith
           (Printf.sprintf "expr, handel id: %s"
@@ -95,7 +97,7 @@ let prop_of_ocamlexpr expr =
                 | Ppat_var arg -> arg.txt
                 | _ -> failwith "parsing: prop function"
               in
-              (label, (Smtty.T.Int, arg))
+              (label, (default_type, arg))
           | _ -> failwith "parsing: prop function"
         in
         let body = aux expr in
@@ -217,8 +219,7 @@ let pretty_layout x =
   let rec layout = function
     | True -> "⊤"
     | Not True -> "⊥"
-    | Var b -> (
-        match b.ty with Smtty.T.Bool -> sprintf "(%s:𝓑 )" b.x | _ -> b.x)
+    | Var b -> Smtty.T.pretty_typed_layout b.x b.ty
     | MethodPred (mp, args) ->
         if is_op mp then
           match args with

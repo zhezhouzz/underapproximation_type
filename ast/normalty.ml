@@ -44,4 +44,12 @@ module T = struct
   let rec construct_arrow_tp = function
     | [], retty -> retty
     | h :: t, retty -> Ty_arrow (h, construct_arrow_tp (t, retty))
+
+  let to_smtty t =
+    let aux = function
+      | Ty_bool -> Autov.Smtty.Bool
+      | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
+      | _ -> failwith "to_smtty: not a basic type"
+    in
+    aux t
 end

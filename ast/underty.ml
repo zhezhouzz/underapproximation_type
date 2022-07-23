@@ -17,21 +17,12 @@ module T = struct
   (* let eq = failwith "unimp over eq" *)
 
   let rec destruct_arrow_tp = function
-    | UnderTy_arrow { argname; argty; retty; _ } ->
+    | UnderTy_arrow { argname; argty; retty } ->
         let a, b = destruct_arrow_tp retty in
         ((argty, argname) :: a, b)
     | ty -> ([], ty)
 
   (* let construct_arrow_tp = failwith "unimp" *)
-
-  let basic_normalty_to_smtty t =
-    let open Normalty.T in
-    let aux = function
-      | Ty_bool -> Autov.Smtty.Bool
-      | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
-      | _ -> failwith "to_smtty: not a basic type"
-    in
-    aux t
 
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
@@ -72,7 +63,7 @@ module T = struct
 
   let make_basic normalty propf =
     let basename = nu in
-    let nu = P.{ ty = basic_normalty_to_smtty normalty; x = basename } in
+    let nu = P.{ ty = Normalty.T.to_smtty normalty; x = basename } in
     UnderTy_base { basename; normalty; prop = propf nu }
 
   let make_arrow argname argty rettyf =
@@ -81,7 +72,7 @@ module T = struct
         argname;
         argty;
         retty =
-          rettyf P.{ ty = basic_normalty_to_smtty @@ erase argty; x = argname };
+          rettyf P.{ ty = Normalty.T.to_smtty @@ erase argty; x = argname };
       }
 
   let arrow_args_rename args overftp =
@@ -95,7 +86,7 @@ module T = struct
               argty;
               retty = aux args @@ subst_id retty argname id;
             }
-      | _ -> failwith "die:bidirect_type_check"
+      | _ -> failwith "arrow_args_rename"
     in
     aux args overftp
 

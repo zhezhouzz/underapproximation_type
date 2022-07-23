@@ -1,0 +1,7 @@
+(library
+ (name static)
+ (wrapped true)
+ (libraries utils ast core frontend translate abstraction typecheck)
+ (modules
+   inputstage
+))

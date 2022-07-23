@@ -8,4 +8,6 @@
    termcheck
    overcheck
    undercheck
+   undertycheck
+   overtycheck
  ))

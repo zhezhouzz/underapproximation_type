@@ -86,7 +86,7 @@ module T = struct
               argty;
               retty = aux args @@ subst_id retty argname id;
             }
-      | _ -> failwith "die:bidirect_type_check"
+      | _ -> failwith "arrow_args_rename"
     in
     aux args overftp
 

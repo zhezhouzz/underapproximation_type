@@ -85,14 +85,3 @@ let pretty_layout x =
         Sugar.spf "(%s)" @@ Zzdatatype.Datatype.List.split_by_comma aux ts
   in
   aux x
-
-let pretty_layout_typectx ctx =
-  List.split_by "; "
-    (fun (name, ty) -> Printf.sprintf "%s:%s" name (pretty_layout ty))
-    ctx
-
-let pretty_layout_judge f ctx (e, r) =
-  Printf.sprintf "%s⊢\n%s :\n%s\n"
-    (pretty_layout_typectx ctx)
-    (Expr.layout @@ T.erase_type @@ f e)
-    (pretty_layout r)

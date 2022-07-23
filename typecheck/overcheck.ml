@@ -5,17 +5,8 @@ module OT = Languages.Overty
 open Zzdatatype.Datatype
 open Abstraction
 
-let layout_judge = Frontend.Overtype.pretty_layout_judge Trans.nan_to_term
-
-(* let typectx_well_founded_overlap ctx (ty, name) = *)
-(*   let open OT in *)
-(*   let rec aux (ty, name) = *)
-(*     let ty = *)
-(*     match ty with *)
-(*     | OverTy_base {basename; normalty; prop;} -> *)
-(*       if String.equal basename name then ty else *)
-(*         OverTy_base {basename = name; normalty; prop = P.subst_id prop basename name} *)
-(*     | OverTy_tuple ts ->  *)
+let layout_judge = Frontend.Typectx.pretty_layout_over_judge Trans.nan_to_term
+let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
 let subtyping_to_query ctx (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
@@ -53,7 +44,7 @@ let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let rec aux ctx (t1, t2) =
     (* let () = *)
     (*   Printf.printf "%s ⊢ \n\t%s <:\n\t%s\n\n" *)
-    (*     (Typectx.layout Frontend.Overtype.pretty_layout ctx) *)
+    (*     (Frontend.Overtype.pretty_layout_typectx ctx) *)
     (*     (Frontend.Overtype.pretty_layout t1) *)
     (*     (Frontend.Overtype.pretty_layout t2) *)
     (* in *)

@@ -17,4 +17,5 @@ let rev_intlistcons =
     (v : int list) (fun (u : 'ex) ->
         mem v u && fun (w : 'fa) -> implies (mem v w) (w = u))
   in
-  ((h : int) (mem l h), (t : int) (fun (u : 'fa) -> implies (mem t u) (mem l u)))
+  ( (h : int) (mem l h),
+    (t : int list) (fun (u : 'fa) -> implies (mem t u) (mem l u)) )
