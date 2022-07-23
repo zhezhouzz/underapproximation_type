@@ -36,14 +36,25 @@ let to_z3 ctx prop =
     | Not p -> Z3.Boolean.mk_not ctx (aux p)
     | And ps -> Z3.Boolean.mk_and ctx (List.map aux ps)
     | Or ps -> Z3.Boolean.mk_or ctx (List.map aux ps)
-    | Iff (p1, p2) -> Z3.Boolean.mk_iff ctx (aux p1) (aux p2)
+    | Iff (p1, p2) ->
+        let () =
+          Printf.printf "make <=>: %s, %s \n"
+            (Expr.to_string @@ aux p1)
+            (Expr.to_string @@ aux p2)
+        in
+        Z3.Boolean.mk_iff ctx (aux p1) (aux p2)
     | Forall (u, body) -> make_forall ctx [ aux (Var u) ] (aux body)
     | Exists (u, body) -> make_exists ctx [ aux (Var u) ] (aux body)
     | MethodPred (mp, args) -> (
         let argsty = List.map get_ty args in
         let args = List.map (fun x -> aux (Var x)) args in
         match (mp, args) with
-        | "==", [ a; b ] -> Z3.Boolean.mk_eq ctx a b
+        | "==", [ a; b ] ->
+            let () =
+              Printf.printf "make ==: %s, %s" (Expr.to_string a)
+                (Expr.to_string b)
+            in
+            Z3.Boolean.mk_eq ctx a b
         | "==", _ -> failwith "wrong prop with operator =="
         | "!=", [ a; b ] -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)
         | "!=", _ -> failwith "wrong prop with operator !="

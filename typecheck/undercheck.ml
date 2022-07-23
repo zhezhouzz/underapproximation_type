@@ -40,13 +40,13 @@ let subtyping_to_query ctx (prop1, prop2) =
       fv
   in
   let pre = List.map snd ctx in
-  (* let () = *)
-  (*   Printf.printf "SMT check:\n\twith ctx: %s\n\t(%s) => (%s)\n\n" *)
-  (*     (List.split_by " ∧ " Autov.pretty_layout_prop pre) *)
-  (*     (Autov.pretty_layout_prop prop1) *)
-  (*     (Autov.pretty_layout_prop prop2) *)
-  (* in *)
-  (pre @ [ prop1 ], prop2)
+  let () =
+    Printf.printf "SMT check:\n\twith ctx: %s\n\t(%s) => (%s)\n\n"
+      (List.split_by " ∧ " Autov.pretty_layout_prop pre)
+      (Autov.pretty_layout_prop prop1)
+      (Autov.pretty_layout_prop prop2)
+  in
+  (pre @ [ prop2 ], prop1)
 
 let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
   let open UT in
@@ -254,7 +254,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
   | Match (id, cases), ty ->
       let id = bidirect_type_infer_id ctx id in
       let handle_case { constructor; args; exp } =
-        let constructor_ty = Prim.get_primitive_under_ty constructor in
+        let constructor_ty = Prim.get_primitive_rev_under_ty constructor in
         let constructor_ty = UT.arrow_args_rename args constructor_ty in
         let args, retty = UT.destruct_arrow_tp constructor_ty in
         let retty_prop id =

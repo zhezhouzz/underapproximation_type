@@ -1,7 +1,7 @@
 let lt =
   let a = (v : int) true in
   let b = (v : int) true in
-  (v : int) (iff v (a < b))
+  (v : bool) (iff v (a < b))
 
 let intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 let rev_intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
