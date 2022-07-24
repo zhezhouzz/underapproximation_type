@@ -16,7 +16,7 @@ let rec infer_value (c : Value.t) =
   | IL _ -> Ty_list Ty_int
   | IT _ -> Ty_tree Ty_int
   | Tu l -> Ty_tuple (List.map infer_value l)
-  | NotADt -> failwith "infer_value"
+  | NotADt -> _failatwith __FILE__ __LINE__ "die"
 
 let rec check_against_value (c : Value.t) ty =
   let open Value in
@@ -33,11 +33,11 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-let fail_as b str = if b then () else failwith str
+(* let fail_as b str = if b then () else failwith str *)
 
-let check_eq (t1, t2) str =
-  fail_as (eq t1 t2)
-    (spf "%stype %s is not equal to type %s" str (layout t1) (layout t2))
+(* let check_eq (t1, t2) str = *)
+(*   fail_as (eq t1 t2) *)
+(*     (spf "%stype %s is not equal to type %s" str (layout t1) (layout t2)) *)
 
 let rec bidirect_type_infer (ctx : t Typectx.t) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
@@ -50,7 +50,7 @@ and bidirect_type_check (ctx : t Typectx.t) (x : Exp.term Exp.opttyped) (ty : t)
   match x.ty with
   | None -> type_check ctx x.x ty
   | Some ty' ->
-      let () = check_eq (ty, ty') "bidirect_type_check:" in
+      let ty = _check_equality __FILE__ __LINE__ eq ty ty' in
       type_check ctx x.x ty
 
 and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
@@ -58,49 +58,41 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
   let open Exp in
   match (x, ty) with
   | Const c, _ ->
-      let ty' = infer_value c in
-      let () = check_eq (ty, ty') "type_check:const:" in
+      let ty = _check_equality __FILE__ __LINE__ eq ty (infer_value c) in
       { ty = Some ty; x }
   | Var id, _ ->
       let x, ty' = type_infer ctx (Var id) in
-      let () = check_eq (ty, ty') "type_check:var:" in
+      let _ = _check_equality __FILE__ __LINE__ eq ty ty' in
       x
   | Tu es, Ty_tuple tys ->
-      if List.length es != List.length tys then
-        failwith "type_check: tuple wrong number"
-      else
-        let es =
-          List.map (fun (e, ty) -> bidirect_type_check ctx e ty)
-          @@ List.combine es tys
-        in
-        { ty = Some ty; x = Tu es }
+      let estys = _safe_combine __FILE__ __LINE__ es tys in
+      let es = List.map (fun (e, ty) -> bidirect_type_check ctx e ty) estys in
+      { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
-      let () = check_eq (idty, t1) "type_check:Lam:" in
+      let idty = _check_equality __FILE__ __LINE__ eq idty t1 in
       let ctx' = Typectx.overlap ctx (idty, id) in
       let body = bidirect_type_check ctx' body t2 in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
       let f, fty = bidirect_type_infer ctx f in
       let argsty, bodyty = destruct_arrow_tp fty in
-      let () = check_eq (bodyty, ty) "type_check:App:" in
-      if List.length args != List.length argsty then
-        failwith "type_check:App: wrong args number"
-      else
-        let args =
-          List.map (fun (e, ty) -> bidirect_type_check ctx e ty)
-          @@ List.combine args argsty
-        in
-        { ty = Some ty; x = App (f, args) }
-  | Let (if_rec, args, rhs, body), ty ->
-      let () =
-        if if_rec then
-          Printf.printf "rec::: %s\n" @@ Frontend.Expr.layout { ty = None; x }
-        else ()
+      let ty = _check_equality __FILE__ __LINE__ eq bodyty ty in
+      let argsargsty = _safe_combine __FILE__ __LINE__ args argsty in
+      let args =
+        List.map (fun (e, ty) -> bidirect_type_check ctx e ty) argsargsty
       in
+      { ty = Some ty; x = App (f, args) }
+  | Let (if_rec, args, rhs, body), ty ->
+      (* let () = *)
+      (*   if if_rec then *)
+      (*     Printf.printf "rec::: %s\n" @@ Frontend.Expr.layout { ty = None; x } *)
+      (*   else () *)
+      (* in *)
       let xsty = List.map fst args in
       let rhsty =
         match xsty with
-        | [] -> failwith "type_infer: let binding lhs is empty"
+        | [] ->
+            _failatwith __FILE__ __LINE__ "type_infer: let binding lhs is empty"
         | [ tp ] -> tp
         | l -> Ty_tuple l
       in
@@ -119,7 +111,9 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       { ty = Some ty; x = Ite (e1, e2, e3) }
   | Match (e, cases), ty -> (
       match cases with
-      | [] -> failwith "type_infer: pattern matching branch is empty"
+      | [] ->
+          _failatwith __FILE__ __LINE__
+            "type_infer: pattern matching branch is empty"
       | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
             destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
@@ -136,7 +130,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
                 let argsty, bodyty =
                   destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
                 in
-                let () = check_eq (ety, bodyty) "type_infer:Match" in
+                let _ = _check_equality __FILE__ __LINE__ eq ety bodyty in
                 let ctx' =
                   List.fold_left Typectx.overlap ctx (List.combine argsty args)
                 in
@@ -146,7 +140,8 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
           in
           let e = bidirect_type_check ctx e ety in
           { ty = Some ty; x = Match (e, case :: cases) })
-  | _, _ -> failwith "type_check: inconsistent term and type"
+  | _, _ ->
+      _failatwith __FILE__ __LINE__ "type_check: inconsistent term and type"
 
 and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
@@ -178,12 +173,14 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
             let bodytp, args = aux (t2, args) in
             (bodytp, arg :: args)
         | _ ->
-            failwith "type_infer: App, not a function type or wrong args number"
+            _failatwith __FILE__ __LINE__
+              "type_infer: App, not a function type or wrong args number"
       in
       let ty, args = aux (fty, args) in
       ({ ty = Some ty; x = App (f, args) }, ty)
   | Let (true, _, _, _) ->
-      failwith "cannot infer ret type of recursive function"
+      _failatwith __FILE__ __LINE__
+        "cannot infer ret type of recursive function"
   | Let (if_rec, args, rhs, body) ->
       (* let () = Printf.printf "let!!!\n" in *)
       (* let () = *)
@@ -193,7 +190,8 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       (* in *)
       let rhsty =
         match List.map fst args with
-        | [] -> failwith "type_infer: let binding lhs is empty"
+        | [] ->
+            _failatwith __FILE__ __LINE__ "type_infer: let binding lhs is empty"
         | [ tp ] -> tp
         | l -> Ty_tuple l
       in
@@ -209,7 +207,9 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       ({ ty = Some ty; x = Ite (e1, e2, e3) }, ty)
   | Match (e, cases) -> (
       match cases with
-      | [] -> failwith "type_infer: pattern matching branch is empty"
+      | [] ->
+          _failatwith __FILE__ __LINE__
+            "type_infer: pattern matching branch is empty"
       | { constructor; args; exp } :: cases ->
           let argsty, bodyty =
             destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
@@ -226,9 +226,10 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
                 let argsty, bodyty =
                   destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
                 in
-                let () = check_eq (ety, bodyty) "type_infer:Match" in
+                let _ = _check_equality __FILE__ __LINE__ eq ety bodyty in
                 let ctx' =
-                  List.fold_left Typectx.overlap ctx (List.combine argsty args)
+                  List.fold_left Typectx.overlap ctx
+                    (_safe_combine __FILE__ __LINE__ argsty args)
                 in
                 let exp = bidirect_type_check ctx' exp ty in
                 { constructor; args; exp })
@@ -256,7 +257,9 @@ let struc_check l =
       in
       match (if_rec, get_fty body) with
       | false, _ -> { if_rec; name; body = check body }
-      | true, None -> failwith "cannot infer ret type of recursive function"
+      | true, None ->
+          _failatwith __FILE__ __LINE__
+            "cannot infer ret type of recursive function"
       | true, Some ty ->
           let body = bidirect_type_check [ (name, ty) ] body ty in
           { if_rec; name; body })

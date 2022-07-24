@@ -43,18 +43,4 @@ let ( let* ) x f = opt_bind x f
 let ( let+ ) x f = opt_fmap x f
 let compare_bind a b = if a != 0 then a else b
 
-let _check_arity file line a b =
-  if List.length a != List.length b then
-    failwith (spf "Arity check error on %s line %i" file line)
-  else ()
-
-let _check_equality file line eq a b =
-  if not @@ eq a b then
-    failwith (spf "Equality check error on %s line %i" file line)
-  else a
-
-let _safe_combine file line a b =
-  let () = _check_arity file line a b in
-  List.combine a b
-
-let at_failwith file line = failwith (spf "file on file %s line %i" file line)
+include Assertion

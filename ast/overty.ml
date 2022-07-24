@@ -1,5 +1,6 @@
 module T = struct
   open Sexplib.Std
+  open Sugar
 
   type id = Strid.T.t [@@deriving sexp]
   type normalty = Normalty.T.t [@@deriving sexp]
@@ -10,24 +11,11 @@ module T = struct
     | OverTy_tuple of t list
   [@@deriving sexp]
 
-  (* let eq = failwith "unimp over eq" *)
-
   let rec destruct_arrow_tp = function
     | OverTy_arrow { argname; argty; retty; _ } ->
         let a, b = destruct_arrow_tp retty in
         ((argty, argname) :: a, b)
     | ty -> ([], ty)
-
-  (* let construct_arrow_tp = failwith "unimp" *)
-
-  let basic_normalty_to_smtty t =
-    let open Normalty.T in
-    let aux = function
-      | Ty_bool -> Autov.Smtty.Bool
-      | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
-      | _ -> failwith "to_smtty: not a basic type"
-    in
-    aux t
 
   let rec erase = function
     | OverTy_base { normalty; _ } -> normalty
@@ -55,13 +43,13 @@ module T = struct
     | OverTy_base { basename; normalty; prop } ->
         OverTy_base
           { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
-    | _ -> failwith "base_type_add_conjunction"
+    | _ -> _failatwith __FILE__ __LINE__ ""
 
   module P = Autov.Prop
   module T = Autov.Smtty
 
-  let nu = "_nu"
   let mk_int_id name = P.{ ty = T.Int; x = name }
+  let nu = "_nu"
 
   let make_basic_top normalty =
     OverTy_base { basename = nu; normalty; prop = P.True }
@@ -72,7 +60,7 @@ module T = struct
         argname;
         argty;
         retty =
-          rettyf P.{ ty = basic_normalty_to_smtty @@ erase argty; x = argname };
+          rettyf P.{ ty = Normalty.T.to_smtty @@ erase argty; x = argname };
       }
 
   let arrow_args_rename args overftp =
@@ -86,7 +74,7 @@ module T = struct
               argty;
               retty = aux args @@ subst_id retty argname id;
             }
-      | _ -> failwith "arrow_args_rename"
+      | _ -> _failatwith __FILE__ __LINE__ ""
     in
     aux args overftp
 

@@ -32,7 +32,7 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
           || List.exists (fun (x, _) -> String.equal name x) ctx
         then ()
         else
-          failwith
+          _failatwith __FILE__ __LINE__
           @@ spf "type context is not well founded, %s not found in ctx" name)
       fv
   in
@@ -55,14 +55,15 @@ let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
         let typeself, prop1, prop2 =
           match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
           | true, true ->
-              if String.equal name1 name2 then (name1, prop1, prop2)
-              else failwith "subtype bad name"
+              ( _check_equality __FILE__ __LINE__ String.equal name1 name2,
+                prop1,
+                prop2 )
           | false, true -> (name2, P.subst_id prop1 name1 name2, prop2)
           | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
         if Autov.check_implies_multi_pre pres res then ()
-        else failwith "rejected by the verifier"
+        else failwith "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2
     | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
@@ -71,23 +72,24 @@ let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
         let () = aux ctx (t21, t11) in
         let () = aux ctx (t12, t22) in
         ()
-    | _, _ -> failwith "die: under subtype"
+    | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
   in
   aux ctx (t1, t2)
 
-let erase_check (underfty, normalty) =
+let erase_check file line (underfty, normalty) =
   (* let () = *)
   (*   Printf.printf "|_ %s _| = %s\n" *)
   (*     (Frontend.Undertype.layout underfty) *)
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (* in *)
-  Termcheck.check_eq (UT.erase underfty, normalty) "under:bidirect_type_check:"
+  let _ = _check_equality file line NT.eq (UT.erase underfty) normalty in
+  ()
 
 let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
     UL.term UL.typed =
   let open NL in
   match a.x with
-  | Const _ -> failwith "unimp const type check"
+  | Const _ -> _failatwith __FILE__ __LINE__ "unimp const type check"
   | Var x ->
       let x = bidirect_type_infer_id ctx { ty = a.ty; x } in
       UL.{ ty = x.ty; x = Var x.x }
@@ -95,8 +97,8 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       let es = List.map (bidirect_type_infer_id ctx) es in
       let ty = UT.UnderTy_tuple (List.map (fun x -> x.UL.ty) es) in
       UL.{ ty; x = Tu es }
-  | Lam (_, _) -> failwith "cannot infer under arrow type"
-  | Fix _ -> failwith "unimp"
+  | Lam (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
+  | Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
   | App (f, args) ->
       let f = bidirect_type_infer_id ctx f in
       let fty' = UT.arrow_args_rename (List.map (fun x -> x.x) args) f.ty in
@@ -111,11 +113,11 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       let lhstys =
         match rhs.ty with
         | UT.UnderTy_tuple ts when List.length ts = List.length lhs -> ts
-        | _ -> failwith "die:bidirect_type_infer let"
+        | _ -> _failatwith __FILE__ __LINE__ ""
       in
       let lhs =
         List.map (fun (id, idty) ->
-            let () = erase_check (idty, id.ty) in
+            let () = erase_check __FILE__ __LINE__ (idty, id.ty) in
             UL.{ ty = idty; x = id.x })
         @@ List.combine lhs lhstys
       in
@@ -128,8 +130,8 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       in
       let body = bidirect_type_infer ctx' body in
       { ty = body.ty; x = Let (lhs, rhs, body) }
-  | Ite (_, _, _) -> failwith "cannot infer ite"
-  | Match (_, _) -> failwith "cannot infer match"
+  | Ite (_, _, _) -> _failatwith __FILE__ __LINE__ "cannot infer ite"
+  | Match (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer match"
 
 and bidirect_type_infer_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
@@ -151,7 +153,7 @@ and bidirect_type_infer_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
       in
       ty
   in
-  let () = erase_check (ty, id.ty) in
+  let () = erase_check __FILE__ __LINE__ (ty, id.ty) in
   UL.{ ty; x = id.x }
 
 and bidirect_type_check_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed)
@@ -163,30 +165,27 @@ and bidirect_type_check_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed)
 and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
     (ty : UT.t) : UL.term UL.typed =
   let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
-  let () = erase_check (ty, x.ty) in
+  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let open NL in
   match (x.x, ty) with
-  | Const _, _ -> failwith "unimp const type check"
+  | Const _, _ -> _failatwith __FILE__ __LINE__ "unimp"
   | Var _, _ ->
       let x = bidirect_type_infer ctx x in
       let () = subtyping_check ctx x.ty ty in
       x
   | Tu es, UT.UnderTy_tuple tys ->
-      if List.length es != List.length tys then
-        failwith "type_check: tuple wrong number"
-      else
-        let es =
-          List.map (fun (e, ty) -> bidirect_type_check_id ctx e ty)
-          @@ List.combine es tys
-        in
-        { ty; x = Tu es }
+      let estys = _safe_combine __FILE__ __LINE__ es tys in
+      let es =
+        List.map (fun (e, ty) -> bidirect_type_check_id ctx e ty) estys
+      in
+      { ty; x = Tu es }
   | Lam (id, body), UT.(UnderTy_arrow { argname; argty; retty }) ->
-      let () = erase_check (argty, id.ty) in
+      let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = UT.subst_id retty argname id.x in
       let ctx' = Typectx.overlap ctx (argty, id.x) in
       let body = bidirect_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
-  | Fix _, _ -> failwith "unimp"
+  | Fix _, _ -> _failatwith __FILE__ __LINE__ "unimp"
   | App (f, args), ty ->
       let f = bidirect_type_infer_id ctx f in
       let rec check (ctx', args') (args, underftp) =
@@ -200,7 +199,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
             let ctx' = Typectx.overlap ctx' (id.ty, id.x) in
             let retty = UT.subst_id retty argname id.x in
             check (ctx', args' @ [ UL.{ ty = id.ty; x = id.x } ]) (args, retty)
-        | _ -> failwith "die:bidirect_type_check app"
+        | _ -> _failatwith __FILE__ __LINE__ "app"
       in
       check (ctx, []) (args, f.ty)
   | Let (lhs, rhs, body), ty ->
@@ -210,7 +209,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
         | UT.UnderTy_tuple ts when List.length ts = List.length lhs -> ts
         | _ when List.length lhs = 1 -> [ rhs.ty ]
         | _ ->
-            failwith
+            _failatwith __FILE__ __LINE__
             @@ Printf.sprintf "die:bidirect_type_check let (%s) has type (%s)"
                  (List.split_by_comma
                     (fun { ty; x } ->
@@ -220,7 +219,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
       in
       let lhs =
         List.map (fun (id, idty) ->
-            let () = erase_check (idty, id.ty) in
+            let () = erase_check __FILE__ __LINE__ (idty, id.ty) in
             UL.{ ty = idty; x = id.x })
         @@ List.combine lhs lhstys
       in
@@ -260,14 +259,11 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
           match constructor_ty with
           | UnderTy_base _ -> (constructor_ty, [])
           | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
-              let () =
-                if List.length ts != List.length args then
-                  failwith "wrong rev under prim: arity"
-                else ()
-              in
               let ts = List.map (fun t -> UT.subst_id t argname id.x) ts in
+              let tsargs = _safe_combine __FILE__ __LINE__ ts args in
               let args =
-                List.map (fun (t, id) ->
+                List.map
+                  (fun (t, id) ->
                     match t with
                     | UnderTy_base { basename; normalty; prop } ->
                         ( UnderTy_base
@@ -277,17 +273,17 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
                               prop = P.subst_id prop basename id;
                             },
                           id )
-                    | _ -> failwith "wrong rev under prim")
-                @@ List.combine ts args
+                    | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim")
+                  tsargs
               in
               (argty, args)
-          | _ -> failwith "wrong rev under prim"
+          | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
         in
         let retty_prop id =
           UT.(
             match retty with
             | UnderTy_base { basename; prop; _ } -> P.subst_id prop basename id
-            | _ -> failwith "bad constructor type")
+            | _ -> _failatwith __FILE__ __LINE__ "bad constructor type")
         in
         let ctx' =
           Typectx.overlaps ctx
@@ -313,7 +309,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
       let () = subtyping_check ctx merged_ty ty in
       (* NOTE: underappproximate here *)
       { ty; x = Match (id, cases) }
-  | _, _ -> failwith "die: undercheck never happen"
+  | _, _ -> _failatwith __FILE__ __LINE__ "die"
 
 let type_check x ty = bidirect_type_check [] x ty
 
@@ -325,7 +321,7 @@ let struc_check l r =
   List.iter
     (fun (name', ty) ->
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
-      | None -> failwith "does not provide source code"
+      | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
       | Some { body; _ } ->
           let _ = type_check body ty in
           ())

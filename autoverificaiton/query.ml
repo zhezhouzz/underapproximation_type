@@ -37,11 +37,11 @@ let to_z3 ctx prop =
     | And ps -> Z3.Boolean.mk_and ctx (List.map aux ps)
     | Or ps -> Z3.Boolean.mk_or ctx (List.map aux ps)
     | Iff (p1, p2) ->
-        let () =
-          Printf.printf "make <=>: %s, %s \n"
-            (Expr.to_string @@ aux p1)
-            (Expr.to_string @@ aux p2)
-        in
+        (* let () = *)
+        (*   Printf.printf "make <=>: %s, %s \n" *)
+        (*     (Expr.to_string @@ aux p1) *)
+        (*     (Expr.to_string @@ aux p2) *)
+        (* in *)
         Z3.Boolean.mk_iff ctx (aux p1) (aux p2)
     | Forall (u, body) -> make_forall ctx [ aux (Var u) ] (aux body)
     | Exists (u, body) -> make_exists ctx [ aux (Var u) ] (aux body)

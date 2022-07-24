@@ -15,15 +15,11 @@ module T = struct
     | UnderTy_tuple of t list
   [@@deriving sexp]
 
-  (* let eq = failwith "unimp over eq" *)
-
   let rec destruct_arrow_tp = function
     | UnderTy_arrow { argname; argty; retty } ->
         let a, b = destruct_arrow_tp retty in
         ((argty, argname) :: a, b)
     | ty -> ([], ty)
-
-  (* let construct_arrow_tp = failwith "unimp" *)
 
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
@@ -51,7 +47,7 @@ module T = struct
     | UnderTy_base { basename; normalty; prop } ->
         UnderTy_base
           { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
-    | _ -> failwith "base_type_add_conjunction"
+    | _ -> _failatwith __FILE__ __LINE__ ""
 
   module P = Autov.Prop
   module T = Autov.Smtty
@@ -87,7 +83,7 @@ module T = struct
               argty;
               retty = aux args @@ subst_id retty argname id;
             }
-      | _ -> failwith "arrow_args_rename"
+      | _ -> _failatwith __FILE__ __LINE__ ""
     in
     aux args overftp
 
@@ -106,9 +102,29 @@ module T = struct
         in
         UnderTy_base
           { basename = basename1; normalty; prop = P.Or [ prop1; prop2 ] }
-    | _, _ -> failwith "disjunct_basetype"
+    | _, _ -> _failatwith __FILE__ __LINE__ ""
 
-  let strict_eq _ _ = true
+  let strict_eq t1 t2 =
+    let rec aux (t1, t2) =
+      match (t1, t2) with
+      | ( UnderTy_base
+            { basename = basename1; normalty = normalty1; prop = prop1 },
+          UnderTy_base
+            { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
+          String.equal basename1 basename2
+          && Normalty.T.eq normalty1 normalty2
+          && P.strict_eq prop1 prop2
+      | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
+          List.for_all aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2
+      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
+        ->
+          String.equal argname1 argname2
+          && aux (argty1, argty2)
+          && aux (retty1, retty2)
+      | _, _ -> false
+    in
+    aux (t1, t2)
 
   let disjunct t1 t2 =
     let rec aux (t1, t2) =
@@ -128,13 +144,13 @@ module T = struct
           in
           let retty = aux (retty1, retty2) in
           UnderTy_arrow { argname; argty; retty }
-      | _, _ -> at_failwith __FILE__ __LINE__
+      | _, _ -> _failatwith __FILE__ __LINE__ ""
     in
     aux (t1, t2)
 
   let disjunct_list ts =
     match ts with
-    | [] -> failwith "disjunct no types"
+    | [] -> _failatwith __FILE__ __LINE__ "disjunct no types"
     | [ t ] -> t
     | h :: t -> List.fold_left disjunct h t
 end

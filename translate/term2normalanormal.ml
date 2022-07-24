@@ -2,22 +2,23 @@ module S = Languages.Termlang
 module T = Languages.NormalAnormal
 module Type = Languages.Normalty
 open S
+open Sugar
 
 let get_tp e =
   match e.ty with
   | None ->
-      Type.Ty_unit
-      (* failwith *)
-      (*   (Sugar.spf "Never happen: untyped %s in the term language expr" *)
-      (*      (Frontend.Expr.layout e)) *)
+      (* Type.Ty_unit *)
+      _failatwith __FILE__ __LINE__
+        (spf "Never happen: untyped %s in the term language expr"
+           (Frontend.Expr.layout e))
   | Some ty -> ty
 
 let id_get_tp e =
   match e.ty with
   | None ->
-      Type.Ty_unit
-      (* failwith *)
-      (*   (Sugar.spf "Never happen: untyped %s in the term language expr" e.x) *)
+      (* Type.Ty_unit *)
+      _failatwith __FILE__ __LINE__
+        (spf "Never happen: untyped %s in the term language expr" e.x)
   | Some ty -> ty
 
 let id_trans (e : id opttyped) = T.{ ty = id_get_tp e; x = e.x }
@@ -71,7 +72,7 @@ and cps (cont : cont) (e : term opttyped) : T.term T.typed =
       let f = T.{ ty; x } in
       mk_t_term ety
       @@ T.Let ([ f ], mk_t_term ety @@ T.Fix (f, to_anormal rhs), cps cont body)
-  | Let (true, _, _, _) -> failwith "invalid term lang"
+  | Let (true, _, _, _) -> _failatwith __FILE__ __LINE__ "invalid term lang"
   | Ite (e1, e2, e3) ->
       cps (fun x -> mk_t_term ety @@ T.Ite (x, to_anormal e2, to_anormal e3)) e1
   | Match (e, cases) ->
@@ -105,12 +106,11 @@ let rec to_term e =
   | T.Var id -> mk_s_term (Var id)
   | T.Tu es -> mk_s_term (Tu (List.map to_term @@ List.map to_var es))
   | T.Lam (x, body) -> mk_s_term (Lam (x.ty, x.x, to_term body))
-  | T.Fix _ -> failwith "never happend fix"
+  | T.Fix _ -> _failatwith __FILE__ __LINE__ "never happend fix"
   | T.App (e, es) ->
       mk_s_term
       @@ App (to_term @@ to_var e, List.map to_term @@ List.map to_var es)
   | T.Let ([ f ], T.{ x = T.Fix (_, rhs); _ }, body) ->
-      (* let () = Printf.printf "failwith find f\n" in *)
       mk_s_term @@ Let (true, [ (f.ty, f.x) ], to_term rhs, to_term body)
   | T.Let (lhs, rhs, body) ->
       (* let () = *)

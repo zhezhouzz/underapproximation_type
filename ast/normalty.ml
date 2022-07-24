@@ -1,5 +1,6 @@
 module T = struct
   open Sexplib.Std
+  open Sugar
 
   type id = Strid.T.t [@@deriving sexp]
 
@@ -30,7 +31,8 @@ module T = struct
           if List.length xs == List.length ys then
             List.for_all aux @@ List.combine xs ys
           else false
-      | Ty_constructor _, Ty_constructor _ -> failwith "unimp"
+      | Ty_constructor _, Ty_constructor _ ->
+          _failatwith __FILE__ __LINE__ "unimp"
       | _ -> false
     in
     aux (x, y)
@@ -52,7 +54,7 @@ module T = struct
     let aux = function
       | Ty_bool -> Autov.Smtty.Bool
       | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
-      | _ -> failwith "to_smtty: not a basic type"
+      | _ -> _failatwith __FILE__ __LINE__ "not a basic type"
     in
     aux t
 end
