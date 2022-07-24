@@ -9,13 +9,13 @@ let find_opt (ctx : 'a t) id : 'a option =
   let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in
   Some t
 
-let find_opt_with_prim f ctx id = try Some (f id) with _ -> find_opt ctx id
+(* let find_opt_with_prim f ctx id = try Some (f id) with _ -> find_opt ctx id *)
 
-let get_ty_with_prim f (ctx : 'a t) id : 'a =
-  match find_opt_with_prim f ctx id with
-  | None ->
-      failwith @@ Sugar.spf "no such name (%s) in the type context and prim" id
-  | Some ty -> ty
+(* let get_ty_with_prim f (ctx : 'a t) id : 'a = *)
+(*   match find_opt_with_prim f ctx id with *)
+(*   | None -> *)
+(*       failwith @@ Sugar.spf "no such name (%s) in the type context and prim" id *)
+(*   | Some ty -> ty *)
 
 let get_ty (ctx : 'a t) id : 'a =
   match find_opt ctx id with

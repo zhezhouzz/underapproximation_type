@@ -16,21 +16,24 @@ module T = struct
 
   and constructor = { dname : id; dargs : t } [@@deriving sexp]
 
-  let rec eq (x, y) =
-    match (x, y) with
-    | Ty_unknown, Ty_unknown -> true
-    | Ty_unit, Ty_unit -> true
-    | Ty_int, Ty_int -> true
-    | Ty_bool, Ty_bool -> true
-    | Ty_list x, Ty_list y -> eq (x, y)
-    | Ty_tree x, Ty_tree y -> eq (x, y)
-    | Ty_arrow (x, x'), Ty_arrow (y, y') -> eq (x, y) && eq (x', y')
-    | Ty_tuple xs, Ty_tuple ys ->
-        if List.length xs == List.length ys then
-          List.for_all eq @@ List.combine xs ys
-        else false
-    | Ty_constructor _, Ty_constructor _ -> failwith "unimp"
-    | _ -> false
+  let eq x y =
+    let rec aux (x, y) =
+      match (x, y) with
+      | Ty_unknown, Ty_unknown -> true
+      | Ty_unit, Ty_unit -> true
+      | Ty_int, Ty_int -> true
+      | Ty_bool, Ty_bool -> true
+      | Ty_list x, Ty_list y -> aux (x, y)
+      | Ty_tree x, Ty_tree y -> aux (x, y)
+      | Ty_arrow (x, x'), Ty_arrow (y, y') -> aux (x, y) && aux (x', y')
+      | Ty_tuple xs, Ty_tuple ys ->
+          if List.length xs == List.length ys then
+            List.for_all aux @@ List.combine xs ys
+          else false
+      | Ty_constructor _, Ty_constructor _ -> failwith "unimp"
+      | _ -> false
+    in
+    aux (x, y)
 
   let destruct_arrow_tp tp =
     let rec aux = function

@@ -1,5 +1,4 @@
 let spf = Printf.sprintf
-
 let make_dir name = Core.Unix.mkdir_p name
 
 let rec fastexpt : int -> int -> int =
@@ -10,15 +9,10 @@ let rec fastexpt : int -> int -> int =
     if n mod 2 = 0 then b2 * b2 else b * b2 * b2
 
 let map2 f (a, b) = (f a, f b)
-
 let map3 f (a, b, c) = (f a, f b, f c)
-
 let map4 f (a, b, c, d) = (f a, f b, f c, f d)
-
 let map5 f (a, b, c, d, e) = (f a, f b, f c, f d, f e)
-
 let map6 f (a, b, c, d, e, g) = (f a, f b, f c, f d, f e, f g)
-
 let map7 f (a, b, c, d, e, g, h) = (f a, f b, f c, f d, f e, f g, f h)
 
 let opt_comapre c x y =
@@ -46,7 +40,21 @@ let opt_list_to_list_opt l =
     l (Some [])
 
 let ( let* ) x f = opt_bind x f
-
 let ( let+ ) x f = opt_fmap x f
-
 let compare_bind a b = if a != 0 then a else b
+
+let _check_arity file line a b =
+  if List.length a != List.length b then
+    failwith (spf "Arity check error on %s line %i" file line)
+  else ()
+
+let _check_equality file line eq a b =
+  if not @@ eq a b then
+    failwith (spf "Equality check error on %s line %i" file line)
+  else a
+
+let _safe_combine file line a b =
+  let () = _check_arity file line a b in
+  List.combine a b
+
+let at_failwith file line = failwith (spf "file on file %s line %i" file line)

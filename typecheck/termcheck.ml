@@ -36,8 +36,7 @@ let rec check_against_value (c : Value.t) ty =
 let fail_as b str = if b then () else failwith str
 
 let check_eq (t1, t2) str =
-  fail_as
-    (eq (t1, t2))
+  fail_as (eq t1 t2)
     (spf "%stype %s is not equal to type %s" str (layout t1) (layout t2))
 
 let rec bidirect_type_infer (ctx : t Typectx.t) (x : Exp.term Exp.opttyped) :
@@ -63,9 +62,9 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       let () = check_eq (ty, ty') "type_check:const:" in
       { ty = Some ty; x }
   | Var id, _ ->
-      let ty' = Typectx.get_ty_with_prim Prim.get_primitive_normal_ty ctx id in
+      let x, ty' = type_infer ctx (Var id) in
       let () = check_eq (ty, ty') "type_check:var:" in
-      { ty = Some ty; x }
+      x
   | Tu es, Ty_tuple tys ->
       if List.length es != List.length tys then
         failwith "type_check: tuple wrong number"
@@ -156,7 +155,9 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = infer_value c in
       ({ ty = Some ty; x }, ty)
   | Var id ->
-      let ty = Typectx.get_ty_with_prim Prim.get_primitive_normal_ty ctx id in
+      let ty =
+        try Prim.get_primitive_normal_ty id with _ -> Typectx.get_ty ctx id
+      in
       ({ ty = Some ty; x }, ty)
   | Tu es ->
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in

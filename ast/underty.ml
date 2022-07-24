@@ -1,5 +1,6 @@
 module T = struct
   open Sexplib.Std
+  open Sugar
 
   type id = Strid.T.t [@@deriving sexp]
   type normalty = Normalty.T.t [@@deriving sexp]
@@ -91,4 +92,49 @@ module T = struct
     aux args overftp
 
   let is_base_type = function UnderTy_base _ -> true | _ -> false
+
+  let disjunct_basetype = function
+    | ( UnderTy_base { basename = basename1; normalty = normalty1; prop = prop1 },
+        UnderTy_base
+          { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
+        let normalty =
+          _check_equality __FILE__ __LINE__ Normalty.T.eq normalty1 normalty2
+        in
+        let prop2 =
+          if String.equal basename1 basename2 then prop2
+          else P.subst_id prop2 basename2 basename1
+        in
+        UnderTy_base
+          { basename = basename1; normalty; prop = P.Or [ prop1; prop2 ] }
+    | _, _ -> failwith "disjunct_basetype"
+
+  let strict_eq _ _ = true
+
+  let disjunct t1 t2 =
+    let rec aux (t1, t2) =
+      match (t1, t2) with
+      | UnderTy_base _, UnderTy_base _ -> disjunct_basetype (t1, t2)
+      | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
+          UnderTy_tuple (List.map aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2)
+      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
+        ->
+          (* NOTE: we ask the argument should be exactly the same *)
+          let argname =
+            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
+          in
+          let argty =
+            _check_equality __FILE__ __LINE__ strict_eq argty1 argty2
+          in
+          let retty = aux (retty1, retty2) in
+          UnderTy_arrow { argname; argty; retty }
+      | _, _ -> at_failwith __FILE__ __LINE__
+    in
+    aux (t1, t2)
+
+  let disjunct_list ts =
+    match ts with
+    | [] -> failwith "disjunct no types"
+    | [ t ] -> t
+    | h :: t -> List.fold_left disjunct h t
 end

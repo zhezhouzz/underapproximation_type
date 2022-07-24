@@ -132,17 +132,25 @@ let rec bidirect_type_infer (ctx : OT.t Typectx.t) (a : NL.term NL.typed) :
 
 and bidirect_type_infer_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id OL.typed =
-  let ty = Typectx.get_ty_with_prim Prim.get_primitive_over_ty ctx id.x in
-  let () = erase_check (ty, id.ty) in
-  (* TODO: what is the type of variable that is in the context? *)
   let ty =
-    OT.(
-      match ty with
-      | OverTy_base { basename; normalty; prop } ->
-          OverTy_base
-            { basename = id.x; normalty; prop = P.subst_id prop basename id.x }
-      | _ -> ty)
+    try Prim.get_primitive_over_ty id.x
+    with _ ->
+      let ty = Typectx.get_ty ctx id.x in
+      let ty =
+        OT.(
+          match ty with
+          | OverTy_base { basename; normalty; prop } ->
+              OverTy_base
+                {
+                  basename = id.x;
+                  normalty;
+                  prop = P.subst_id prop basename id.x;
+                }
+          | _ -> ty)
+      in
+      ty
   in
+  let () = erase_check (ty, id.ty) in
   OL.{ ty; x = id.x }
 
 and bidirect_type_check_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed)

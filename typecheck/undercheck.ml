@@ -4,11 +4,12 @@ module NT = Languages.Normalty
 module UT = Languages.Underty
 open Zzdatatype.Datatype
 open Abstraction
+open Sugar
 
 let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
 let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
-let subtyping_to_query ctx (prop1, prop2) =
+let subtyping_to_query ctx typeself (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
   let fv2 = Autov.prop_fv prop2 in
   let fv = fv1 @ fv2 in
@@ -26,8 +27,13 @@ let subtyping_to_query ctx (prop1, prop2) =
   let () =
     List.iter
       (fun name ->
-        if List.exists (fun (x, _) -> String.equal name x) ctx then ()
-        else failwith "type context is not well founded")
+        if
+          String.equal typeself name
+          || List.exists (fun (x, _) -> String.equal name x) ctx
+        then ()
+        else
+          failwith
+          @@ spf "type context is not well founded, %s not found in ctx" name)
       fv
   in
   let pre = List.map snd ctx in
@@ -46,15 +52,15 @@ let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; _ },
         UnderTy_base { basename = name2; prop = prop2; _ } ) ->
-        let prop1, prop2 =
+        let typeself, prop1, prop2 =
           match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
           | true, true ->
-              if String.equal name1 name2 then (prop1, prop2)
+              if String.equal name1 name2 then (name1, prop1, prop2)
               else failwith "subtype bad name"
-          | false, true -> (P.subst_id prop1 name1 name2, prop2)
-          | _, _ -> (prop1, P.subst_id prop2 name2 name1)
+          | false, true -> (name2, P.subst_id prop1 name1 name2, prop2)
+          | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
-        let pres, res = subtyping_to_query ctx (prop1, prop2) in
+        let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
         if Autov.check_implies_multi_pre pres res then ()
         else failwith "rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
@@ -127,17 +133,25 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
 
 and bidirect_type_infer_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
-  let ty = Typectx.get_ty_with_prim Prim.get_primitive_under_ty ctx id.x in
-  let () = erase_check (ty, id.ty) in
-  (* TODO: what is the type of variable that is in the context? *)
   let ty =
-    UT.(
-      match ty with
-      | UnderTy_base { basename; normalty; prop } ->
-          UnderTy_base
-            { basename = id.x; normalty; prop = P.subst_id prop basename id.x }
-      | _ -> ty)
+    try Prim.get_primitive_under_ty id.x
+    with _ ->
+      let ty = Typectx.get_ty ctx id.x in
+      let ty =
+        UT.(
+          match ty with
+          | UnderTy_base { basename; normalty; prop } ->
+              UnderTy_base
+                {
+                  basename = id.x;
+                  normalty;
+                  prop = P.subst_id prop basename id.x;
+                }
+          | _ -> ty)
+      in
+      ty
   in
+  let () = erase_check (ty, id.ty) in
   UL.{ ty; x = id.x }
 
 and bidirect_type_check_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed)
@@ -279,11 +293,25 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
           Typectx.overlaps ctx
           @@ ((UT.base_type_add_conjunction retty_prop id.ty, id.x) :: args)
         in
-        let exp = bidirect_type_check ctx' exp ty in
+        let exp = bidirect_type_infer ctx' exp in
+        (* TODO: abduction here *)
         UL.{ constructor; args = List.map snd args; exp }
       in
       let cases = List.map handle_case cases in
-      (* NUTE: underappproximate here *)
+      let casesty = List.map UL.(fun x -> x.exp.ty) cases in
+      let () =
+        List.iter
+          (fun ty ->
+            Printf.printf "case ty: %s\n" @@ Frontend.Undertype.pretty_layout ty)
+          casesty
+      in
+      let merged_ty = UT.disjunct_list casesty in
+      let () =
+        Printf.printf "merged case ty: %s\n"
+        @@ Frontend.Undertype.pretty_layout merged_ty
+      in
+      let () = subtyping_check ctx merged_ty ty in
+      (* NOTE: underappproximate here *)
       { ty; x = Match (id, cases) }
   | _, _ -> failwith "die: undercheck never happen"
 
