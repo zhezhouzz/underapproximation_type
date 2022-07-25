@@ -1,7 +1,6 @@
 open Core
 open Caux
 open Frontend
-open Static
 
 (* let parsing_signature = *)
 (*   Command.basic ~summary:"parsing signature" *)

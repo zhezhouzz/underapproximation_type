@@ -12,7 +12,7 @@ let infer_prop ctx t =
   let open Autov.Prop in
   let rec aux ctx t =
     match t with
-    | True -> t
+    | True | Cint _ -> t
     | Var id -> Var (infer_id ctx id)
     | Implies (e1, e2) -> Implies (aux ctx e1, aux ctx e2)
     | Ite (e1, e2, e3) -> Ite (aux ctx e1, aux ctx e2, aux ctx e3)
@@ -20,7 +20,13 @@ let infer_prop ctx t =
     | And es -> And (List.map (aux ctx) es)
     | Or es -> Or (List.map (aux ctx) es)
     | Iff (e1, e2) -> Iff (aux ctx e1, aux ctx e2)
-    | MethodPred (mp, args) -> MethodPred (mp, List.map (infer_id ctx) args)
+    | MethodPred (mp, args) ->
+        MethodPred
+          ( mp,
+            List.map
+              (function
+                | AVar id -> AVar (infer_id ctx id) | ACint n -> ACint n)
+              args )
     | Forall (u, e) ->
         let ctx = Typectx.overlap ctx (u.ty, u.x) in
         Forall (u, aux ctx e)

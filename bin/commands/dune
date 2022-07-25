@@ -1,6 +1,6 @@
 (library
  (name commands)
- (libraries utils core ocaml_parser frontend translate typecheck env static)
+ (libraries utils core ocaml_parser frontend translate typecheck env driver)
  (modules
    caux
    ctest

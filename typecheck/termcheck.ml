@@ -57,11 +57,8 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
     Exp.term Exp.opttyped =
   let open Exp in
   match (x, ty) with
-  | Const c, _ ->
-      let ty = _check_equality __FILE__ __LINE__ eq ty (infer_value c) in
-      { ty = Some ty; x }
-  | Var id, _ ->
-      let x, ty' = type_infer ctx (Var id) in
+  | Const _, _ | Var _, _ ->
+      let x, ty' = type_infer ctx x in
       let _ = _check_equality __FILE__ __LINE__ eq ty ty' in
       x
   | Tu es, Ty_tuple tys ->
@@ -83,11 +80,6 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       in
       { ty = Some ty; x = App (f, args) }
   | Let (if_rec, args, rhs, body), ty ->
-      (* let () = *)
-      (*   if if_rec then *)
-      (*     Printf.printf "rec::: %s\n" @@ Frontend.Expr.layout { ty = None; x } *)
-      (*   else () *)
-      (* in *)
       let xsty = List.map fst args in
       let rhsty =
         match xsty with

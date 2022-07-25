@@ -8,19 +8,7 @@ let rev_tab_names = [ ("rev_intlistnil", "[]"); ("rev_intlistcons", "::") ]
 let m = ref None
 let rev_m = ref None
 
-let make_m under_path =
-  let open Frontend in
-  let x =
-    Ocaml_parser.Frontend.parse ~sourcefile:under_path
-    (* ^ "/Users/zhezhou/workspace/research/underapproximation_type/data/prim/under.ml" *)
-  in
-  let refinements =
-    Structure.refinement_of_ocamlstruct Undertype.undertype_of_ocamlexpr x
-  in
-  (* let () = *)
-  (*   Printf.printf "%s" *)
-  (*     (Structure.layout_refinements Undertype.pretty_layout refinements) *)
-  (* in *)
+let make_m (refinements : (string * Languages.Underty.t) list) =
   let get_tab tab =
     List.map
       (fun (idx, name) ->

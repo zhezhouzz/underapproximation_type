@@ -1,16 +1,6 @@
-open Sexplib.Std
-
-type mode = Debug of string | Release [@@deriving sexp]
-
-type prim_path = { overp : string; underp : string; normalp : string }
-[@@deriving sexp]
-
-type config = { mode : mode; prim_path : prim_path } [@@deriving sexp]
-
-let config = ref None
-
 open Json
 open Yojson.Basic.Util
+open Env
 
 let load fname =
   let j = load_json fname in
@@ -31,7 +21,9 @@ let load fname =
     }
   in
   let open Abstraction in
-  let () = Prim.init_under_prim prim_path.underp in
+  let () =
+    Prim.init_under_prim (Inputstage.load_under_refinments prim_path.underp)
+  in
   config := Some { mode; prim_path }
 
 let get_prim_path () =

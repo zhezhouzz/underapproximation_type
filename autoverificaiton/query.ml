@@ -30,6 +30,7 @@ let to_z3 ctx prop =
   let rec aux prop =
     match prop with
     | True -> bool_to_z3 ctx true
+    | Cint n -> int_to_z3 ctx n
     | Var x -> tpedvar_to_z3 ctx (get_ty x, x.x)
     | Implies (p1, p2) -> Z3.Boolean.mk_implies ctx (aux p1) (aux p2)
     | Ite (p1, p2, p3) -> Z3.Boolean.mk_ite ctx (aux p1) (aux p2) (aux p3)
@@ -46,8 +47,15 @@ let to_z3 ctx prop =
     | Forall (u, body) -> make_forall ctx [ aux (Var u) ] (aux body)
     | Exists (u, body) -> make_exists ctx [ aux (Var u) ] (aux body)
     | MethodPred (mp, args) -> (
-        let argsty = List.map get_ty args in
-        let args = List.map (fun x -> aux (Var x)) args in
+        let argsty =
+          List.map (function AVar id -> get_ty id | ACint _ -> T.Int) args
+        in
+        let args =
+          List.map
+            (fun x ->
+              match x with ACint n -> int_to_z3 ctx n | AVar x -> aux (Var x))
+            args
+        in
         match (mp, args) with
         | "==", [ a; b ] ->
             (* let () = *)

@@ -43,10 +43,11 @@ let prop_of_ocamlexpr expr =
           (Printf.sprintf "expr, handel id: %s"
           @@ Zzdatatype.Datatype.StrList.to_string ids)
   in
-  (* let id_to_var id = L.(Var (handle_id id)) in *)
-  let expr_to_id e =
+  let expr_to_arg e =
     match e.pexp_desc with
-    | Pexp_ident id -> handle_id id
+    | Pexp_ident id -> L.AVar (handle_id id)
+    | Pexp_constant (Pconst_integer (istr, None)) ->
+        L.ACint (int_of_string istr)
     | _ ->
         failwith
         @@ Printf.sprintf "parsing: prop does not have nested application (%s)"
@@ -65,10 +66,15 @@ let prop_of_ocamlexpr expr =
     | Pexp_construct (_, Some _) -> raise @@ failwith "Pexp_construct"
     (* | Pexp_constant (Pconst_string ("true", _, None)) -> L.True *)
     (* | Pexp_constant (Pconst_string ("false", _, None)) -> L.Not L.True *)
+    | Pexp_constant (Pconst_integer (istr, None)) -> Cint (int_of_string istr)
     | Pexp_constant _ -> raise @@ failwith "do not support complicate literal"
     | Pexp_let _ -> failwith "parsing: prop does not have let"
     | Pexp_apply (func, args) -> (
-        let f = (expr_to_id func).L.x in
+        let f =
+          match func.pexp_desc with
+          | Pexp_ident id -> (handle_id id).L.x
+          | _ -> failwith "wrong method predicate"
+        in
         let args = List.map snd args in
         match (f, args) with
         | "not", [ e1 ] -> L.Not (aux e1)
@@ -82,7 +88,7 @@ let prop_of_ocamlexpr expr =
         | "||", [ a; b ] -> L.Or [ aux a; aux b ]
         | "||", _ -> failwith "parsing: prop wrong or"
         | f, args ->
-            let args = List.map (fun x -> expr_to_id x) args in
+            let args = List.map (fun x -> expr_to_arg x) args in
             L.MethodPred (f, args))
     | Pexp_ifthenelse (e1, e2, Some e3) -> L.(Ite (aux e1, aux e2, aux e3))
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
@@ -144,13 +150,20 @@ let prop_to_expr prop =
     | P.Not P.True ->
         desc_to_ocamlexpr
           (Pexp_construct (Location.mknoloc @@ Longident.Lident "false", None))
+    | P.Cint n ->
+        desc_to_ocamlexpr
+        @@ Pexp_constant (Pconst_integer (string_of_int n, None))
     | P.Var b -> string_to_expr b.x
     | P.MethodPred (mp, args) ->
         desc_to_ocamlexpr
           (Pexp_apply
              ( string_to_expr mp,
                List.map
-                 (fun name -> expr_to_arg @@ string_to_expr name.P.x)
+                 L.(
+                   fun arg ->
+                     match arg with
+                     | ACint n -> expr_to_arg @@ aux (Cint n)
+                     | AVar id -> expr_to_arg @@ aux (Var id))
                  args ))
     | P.Implies (e1, e2) ->
         desc_to_ocamlexpr
@@ -219,16 +232,22 @@ let pretty_layout x =
   let rec layout = function
     | True -> "⊤"
     | Not True -> "⊥"
+    | Cint n -> string_of_int n
     | Var b -> Smtty.T.pretty_typed_layout b.x b.ty
     | MethodPred (mp, args) ->
+        let args =
+          List.map
+            L.(function ACint n -> string_of_int n | AVar id -> id.x)
+            args
+        in
         if is_op mp then
           match args with
-          | [ a; b ] -> sprintf "(%s %s %s)" a.x mp b.x
-          | _ -> sprintf "%s(%s)" mp (List.split_by_comma (fun x -> x.x) args)
+          | [ a; b ] -> sprintf "(%s %s %s)" a mp b
+          | _ -> sprintf "%s(%s)" mp (List.split_by_comma (fun x -> x) args)
         else
           sprintf "(%s %s)" mp
             (* (Method_predicate.poly_name mp) *)
-            (List.split_by " " (fun x -> x.x) args)
+            (List.split_by " " (fun x -> x) args)
     | Implies (p1, p2) ->
         sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
     | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps

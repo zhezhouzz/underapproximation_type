@@ -52,25 +52,23 @@ module T = struct
   module P = Autov.Prop
   module T = Autov.Smtty
 
-  let nu = "_nu"
   let mk_int_id name = P.{ ty = T.Int; x = name }
 
-  let make_basic_top normalty =
-    UnderTy_base { basename = nu; normalty; prop = P.True }
-
-  let make_basic normalty propf =
-    let basename = nu in
-    let nu = P.{ ty = Normalty.T.to_smtty normalty; x = basename } in
-    UnderTy_base { basename; normalty; prop = propf nu }
-
-  let make_arrow argname argty rettyf =
-    UnderTy_arrow
+  let make_basic basename normalty prop =
+    UnderTy_base
       {
-        argname;
-        argty;
-        retty =
-          rettyf P.{ ty = Normalty.T.to_smtty @@ erase argty; x = argname };
+        basename;
+        normalty;
+        prop = prop P.{ ty = Normalty.T.to_smtty normalty; x = basename };
       }
+
+  let make_basic_top basename normalty =
+    make_basic basename normalty (fun _ -> P.True)
+
+  let make_arrow argname normalty argtyf rettyf =
+    let id = P.{ ty = Normalty.T.to_smtty normalty; x = argname } in
+    UnderTy_arrow
+      { argname; argty = argtyf argname normalty; retty = rettyf id }
 
   let arrow_args_rename args overftp =
     let rec aux args overftp =

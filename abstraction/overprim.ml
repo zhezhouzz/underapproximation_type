@@ -5,50 +5,32 @@ module T = Autov.Smtty
 
 let over_tab =
   let open Languages.Overty in
-  let mk_int_var name = P.{ ty = T.Int; x = name } in
-  let u, _, _ = Sugar.map3 mk_int_var ("_u", "_w", "_z") in
   [
     ( "::",
-      let basename = "_nu" in
-      let nu = P.{ ty = T.Int; x = basename } in
-      let prop h t =
+      let prop h t nu =
         P.(
-          Forall
-            ( u,
+          mk_forall_intqv "u" (fun u ->
               Iff
-                ( Or
-                    [
-                      MethodPred ("mem", [ t; u ]); MethodPred ("==", [ h; u ]);
-                    ],
-                  MethodPred ("mem", [ nu; u ]) ) ))
+                ( Or [ mk_mp_vars "mem" [ t; u ]; mk_mp_vars "==" [ h; u ] ],
+                  mk_mp_vars "mem" [ nu; u ] )))
       in
-      make_arrow "_h" (make_basic_top NT.Ty_int) (fun h ->
+      make_arrow "_h" NT.Ty_int make_basic_top (fun h ->
           make_arrow "_t"
-            (make_basic_top NT.(Ty_list Ty_int))
+            NT.(Ty_list Ty_int)
+            make_basic_top
             (fun t ->
-              OverTy_base
-                { basename; normalty = NT.(Ty_list Ty_int); prop = prop h t }))
-    );
+              make_basic "_nu" NT.(Ty_list Ty_int) (fun nu -> prop h t nu))) );
     ( "[]",
-      let basename = "_nu" in
-      let normalty = NT.(Ty_list Ty_int) in
-      let nu = P.{ ty = T.Int; x = basename } in
-      let prop = P.(Forall (u, Not (MethodPred ("mem", [ nu; u ])))) in
-      OverTy_base { basename; normalty; prop } );
+      make_basic "_nu"
+        NT.(Ty_list Ty_int)
+        (fun nu ->
+          P.(mk_forall_intqv "u" (fun u -> Not (mk_mp_vars "mem" [ nu; u ]))))
+    );
     ( "<",
-      let basename = "_nu" in
-      let normalty = NT.Ty_bool in
-      let nu = P.{ ty = T.Bool; x = basename } in
-      make_arrow "_a" (make_basic_top NT.Ty_int) (fun a ->
-          make_arrow "_b"
-            (make_basic_top NT.(Ty_int))
-            (fun b ->
-              OverTy_base
-                {
-                  basename;
-                  normalty;
-                  prop = P.(Iff (Var nu, MethodPred ("<", [ a; b ])));
-                })) );
+      make_arrow "_a" NT.Ty_int make_basic_top (fun a ->
+          make_arrow "_b" NT.Ty_int make_basic_top (fun b ->
+              make_basic "_nu" NT.Ty_bool (fun nu ->
+                  P.(Iff (Var nu, mk_mp_vars "<" [ a; b ]))))) );
   ]
 
 let m = StrMap.from_kv_list over_tab

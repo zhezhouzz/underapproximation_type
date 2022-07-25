@@ -1,10 +1,11 @@
 (library
- (name env)
+ (name driver)
  (wrapped false)
  (modules
-   env
+   config
+   inputstage
  )
- (libraries core utils)
+ (libraries core utils abstraction frontend translate typecheck env)
  (preprocess (pps ppx_inline_test ppx_assert ppx_optcomp ppx_compare ppx_sexp_conv))
  (inline_tests)
 )
