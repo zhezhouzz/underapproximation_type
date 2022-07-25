@@ -1,5 +1,5 @@
 let spf = Printf.sprintf
-let make_dir name = Core.Unix.mkdir_p name
+let make_dir name = Core_unix.mkdir_p name
 
 let rec fastexpt : int -> int -> int =
  fun b n ->

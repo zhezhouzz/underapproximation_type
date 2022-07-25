@@ -5,6 +5,6 @@
 (executable
  (name main)
  (modules main)
- (libraries core commands)
+ (libraries core core_unix.command_unix commands)
  (preprocess (pps ppx_jane))
 )
