@@ -182,7 +182,11 @@ and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
       let ctx' = Typectx.overlap ctx (argty, id.x) in
       let body = bidirect_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
-  | Fix _, _ -> _failatwith __FILE__ __LINE__ "unimp"
+  | Fix (f, body), ty ->
+      let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
+      let ctx' = Typectx.overlap ctx (ty, f.x) in
+      let body = bidirect_type_check ctx' body ty in
+      { ty; x = Fix ({ ty; x = f.x }, body) }
   | App (f, args), ty ->
       let f = bidirect_type_infer_id ctx f in
       let rec check (ctx', args') (args, overftp) =

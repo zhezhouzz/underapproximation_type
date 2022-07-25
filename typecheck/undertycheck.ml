@@ -39,11 +39,11 @@ let infer_prop ctx t =
 let infer t =
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
-        let () =
-          Printf.printf "\t>>: (%s: %s ===> %s )\n" basename
-            (Frontend.Type.layout normalty)
-            (T.layout @@ NT.to_smtty normalty)
-        in
+        (* let () = *)
+        (*   Printf.printf "\t>>: (%s: %s ===> %s )\n" basename *)
+        (*     (Frontend.Type.layout normalty) *)
+        (*     (T.layout @@ NT.to_smtty normalty) *)
+        (* in *)
         let ctx = Typectx.overlap ctx (NT.to_smtty normalty, basename) in
         UnderTy_base { basename; normalty; prop = infer_prop ctx prop }
     | UnderTy_arrow { argname; argty; retty } ->

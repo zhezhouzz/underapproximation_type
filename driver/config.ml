@@ -22,6 +22,9 @@ let load fname =
   in
   let open Abstraction in
   let () =
+    Prim.init_over_prim (Inputstage.load_over_refinments prim_path.overp)
+  in
+  let () =
     Prim.init_under_prim (Inputstage.load_under_refinments prim_path.underp)
   in
   config := Some { mode; prim_path }

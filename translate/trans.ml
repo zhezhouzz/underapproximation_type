@@ -16,7 +16,9 @@ let struc_term_to_nan code =
 let struc_nan_to_term code =
   List.map
     (fun SN.{ name; body } ->
-      (* TODO: handle rec *)
-      let body = Term2normalanormal.to_term body in
-      S.{ name; if_rec = false; body })
+      match body.x with
+      | N.Fix (_, body) ->
+          let body = Term2normalanormal.to_term body in
+          S.{ name; if_rec = true; body }
+      | _ -> S.{ name; if_rec = false; body = Term2normalanormal.to_term body })
     code

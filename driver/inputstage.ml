@@ -13,7 +13,8 @@ let load_ssa source_file =
   (* let () = Printf.printf "%s\n" @@ Structure.layout code in *)
   let code = Trans.struc_term_to_nan code in
   let () =
-    Printf.printf "%s\n" (Structure.layout @@ Trans.struc_nan_to_term code)
+    Printf.printf "[Loading typed A-normal from]:\n%s\n"
+      (Structure.layout @@ Trans.struc_nan_to_term code)
   in
   code
 
@@ -26,7 +27,7 @@ let load_over_refinments refine_file =
     List.map ~f:(fun (name, ty) -> (name, Overtycheck.infer ty)) refinements
   in
   let () =
-    Printf.printf "%s"
+    Printf.printf "[Loading refinement type]:\n%s"
       (Structure.layout_refinements Overtype.pretty_layout refinements)
   in
   refinements
@@ -40,7 +41,7 @@ let load_under_refinments refine_file =
     List.map ~f:(fun (name, ty) -> (name, Undertycheck.infer ty)) refinements
   in
   let () =
-    Printf.printf "%s"
+    Printf.printf "[Loading refinement type]:\n%s"
       (Structure.layout_refinements Undertype.pretty_layout refinements)
   in
   refinements

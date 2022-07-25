@@ -49,6 +49,10 @@ module T = struct
           { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
     | _ -> _failatwith __FILE__ __LINE__ ""
 
+  let base_type_extract_prop = function
+    | UnderTy_base { basename; prop; _ } -> (basename, prop)
+    | _ -> _failatwith __FILE__ __LINE__ ""
+
   module P = Autov.Prop
   module T = Autov.Smtty
 

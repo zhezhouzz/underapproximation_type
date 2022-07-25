@@ -85,6 +85,9 @@ let erase_check file line (underfty, normalty) =
   let _ = _check_equality file line NT.eq (UT.erase underfty) normalty in
   ()
 
+(* TODO: finish hide *)
+let hide_depedent_var _ ty = ty
+
 let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
     UL.term UL.typed =
   let open NL in
@@ -97,7 +100,9 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       let es = List.map (bidirect_type_infer_id ctx) es in
       let ty = UT.UnderTy_tuple (List.map (fun x -> x.UL.ty) es) in
       UL.{ ty; x = Tu es }
-  | Lam (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
+  | Lam (_, _) ->
+      (* NOTE: Can we infer a type of the lambda function without the argment type? *)
+      _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
   | Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
   | App (f, args) ->
       let f = bidirect_type_infer_id ctx f in
@@ -130,8 +135,95 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       in
       let body = bidirect_type_infer ctx' body in
       { ty = body.ty; x = Let (lhs, rhs, body) }
-  | Ite (_, _, _) -> _failatwith __FILE__ __LINE__ "cannot infer ite"
-  | Match (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer match"
+  | Ite (id, e1, e2) ->
+      let id = bidirect_type_infer_id ctx id in
+      let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
+      let false_branch_prop x =
+        Autov.(Prop.(Not (Var { ty = Smtty.Bool; x })))
+      in
+      let true_branch_ctx =
+        Typectx.overlap ctx
+          (UT.base_type_add_conjunction true_branch_prop id.ty, id.x)
+      in
+      let false_branch_ctx =
+        Typectx.overlap ctx
+          (UT.base_type_add_conjunction false_branch_prop id.ty, id.x)
+      in
+      let e1 = bidirect_type_infer true_branch_ctx e1 in
+      let e2 = bidirect_type_infer false_branch_ctx e2 in
+      let tys = [ e1.ty; e2.ty ] in
+      let () =
+        List.iter
+          (fun ty ->
+            Printf.printf "case ty: %s\n" @@ Frontend.Undertype.pretty_layout ty)
+          tys
+      in
+      let ty = UT.disjunct_list tys in
+      let () =
+        Printf.printf "merged case ty: %s\n"
+        @@ Frontend.Undertype.pretty_layout ty
+      in
+      (* NUTE: underappproximate here *)
+      { ty; x = Ite (id, e1, e2) }
+  | Match (id, cases) ->
+      let id = bidirect_type_infer_id ctx id in
+      let handle_case { constructor; args; exp } =
+        let constructor_ty = Prim.get_primitive_rev_under_ty constructor in
+        let retty, args =
+          let open UT in
+          match constructor_ty with
+          | UnderTy_base _ -> (constructor_ty, [])
+          | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
+              let ts = List.map (fun t -> UT.subst_id t argname id.x) ts in
+              let tsargs = _safe_combine __FILE__ __LINE__ ts args in
+              let args =
+                List.map
+                  (fun (t, id) ->
+                    match t with
+                    | UnderTy_base { basename; normalty; prop } ->
+                        ( UnderTy_base
+                            {
+                              basename = id;
+                              normalty;
+                              prop = P.subst_id prop basename id;
+                            },
+                          id )
+                    | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim")
+                  tsargs
+              in
+              (argty, args)
+          | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
+        in
+        let ctx' =
+          Typectx.overlaps ctx
+          @@ UT.
+               ( base_type_add_conjunction
+                   (fun id ->
+                     let basename, prop = base_type_extract_prop retty in
+                     P.subst_id prop basename id)
+                   id.ty,
+                 id.x )
+             :: args
+        in
+        let exp = bidirect_type_infer ctx' exp in
+        (* TODO: abduction here *)
+        UL.{ constructor; args = List.map snd args; exp }
+      in
+      let cases = List.map handle_case cases in
+      let tys = List.map UL.(fun x -> x.exp.ty) cases in
+      let () =
+        List.iter
+          (fun ty ->
+            Printf.printf "case ty: %s\n" @@ Frontend.Undertype.pretty_layout ty)
+          tys
+      in
+      let ty = UT.disjunct_list tys in
+      let () =
+        Printf.printf "merged case ty: %s\n"
+        @@ Frontend.Undertype.pretty_layout ty
+      in
+      (* NOTE: underappproximate here *)
+      { ty; x = Match (id, cases) }
 
 and bidirect_type_infer_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
@@ -186,22 +278,22 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
       let body = bidirect_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
   | Fix _, _ -> _failatwith __FILE__ __LINE__ "unimp"
-  | App (f, args), ty ->
-      let f = bidirect_type_infer_id ctx f in
-      let rec check (ctx', args') (args, underftp) =
-        match (args, underftp) with
-        | [], tp ->
-            let () = subtyping_check ctx' tp ty in
-            UL.{ ty = tp; x = App ({ ty = underftp; x = f.x }, args') }
-        | id :: args, UT.(UnderTy_arrow { argname; argty; retty }) ->
-            let id = bidirect_type_infer_id ctx' id in
-            let () = subtyping_check ctx' id.ty argty in
-            let ctx' = Typectx.overlap ctx' (id.ty, id.x) in
-            let retty = UT.subst_id retty argname id.x in
-            check (ctx', args' @ [ UL.{ ty = id.ty; x = id.x } ]) (args, retty)
-        | _ -> _failatwith __FILE__ __LINE__ "app"
-      in
-      check (ctx, []) (args, f.ty)
+  (* | App (f, args), ty -> *)
+  (*     let f = bidirect_type_infer_id ctx f in *)
+  (*     let rec check (ctx', args') (args, underftp) = *)
+  (*       match (args, underftp) with *)
+  (*       | [], tp -> *)
+  (*           let () = subtyping_check ctx' tp ty in *)
+  (*           UL.{ ty = tp; x = App ({ ty = underftp; x = f.x }, args') } *)
+  (*       | id :: args, UT.(UnderTy_arrow { argname; argty; retty }) -> *)
+  (*           let id = bidirect_type_infer_id ctx' id in *)
+  (*           let () = subtyping_check ctx' id.ty argty in *)
+  (*           let ctx' = Typectx.overlap ctx' (id.ty, id.x) in *)
+  (*           let retty = UT.subst_id retty argname id.x in *)
+  (*           check (ctx', args' @ [ UL.{ ty = id.ty; x = id.x } ]) (args, retty) *)
+  (*       | _ -> _failatwith __FILE__ __LINE__ "app" *)
+  (*     in *)
+  (*     check (ctx, []) (args, f.ty) *)
   | Let (lhs, rhs, body), ty ->
       let rhs = bidirect_type_infer ctx rhs in
       let lhstys =
@@ -232,83 +324,11 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
       in
       let body = bidirect_type_check ctx' body ty in
       { ty = body.ty; x = Let (lhs, rhs, body) }
-  | Ite (id, e1, e2), ty ->
-      let id = bidirect_type_infer_id ctx id in
-      let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
-      let false_branch_prop x =
-        Autov.(Prop.(Not (Var { ty = Smtty.Bool; x })))
-      in
-      let true_branch_ctx =
-        Typectx.overlap ctx
-          (UT.base_type_add_conjunction true_branch_prop id.ty, id.x)
-      in
-      let false_branch_ctx =
-        Typectx.overlap ctx
-          (UT.base_type_add_conjunction false_branch_prop id.ty, id.x)
-      in
-      let e1 = bidirect_type_check true_branch_ctx e1 ty in
-      let e2 = bidirect_type_check false_branch_ctx e2 ty in
+  | Ite (_, _, _), ty | Match (_, _), ty | App (_, _), ty ->
+      let x = bidirect_type_infer ctx x in
+      let () = subtyping_check ctx x.ty ty in
       (* NUTE: underappproximate here *)
-      { ty; x = Ite (id, e1, e2) }
-  | Match (id, cases), ty ->
-      let id = bidirect_type_infer_id ctx id in
-      let handle_case { constructor; args; exp } =
-        let constructor_ty = Prim.get_primitive_rev_under_ty constructor in
-        let retty, args =
-          let open UT in
-          match constructor_ty with
-          | UnderTy_base _ -> (constructor_ty, [])
-          | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
-              let ts = List.map (fun t -> UT.subst_id t argname id.x) ts in
-              let tsargs = _safe_combine __FILE__ __LINE__ ts args in
-              let args =
-                List.map
-                  (fun (t, id) ->
-                    match t with
-                    | UnderTy_base { basename; normalty; prop } ->
-                        ( UnderTy_base
-                            {
-                              basename = id;
-                              normalty;
-                              prop = P.subst_id prop basename id;
-                            },
-                          id )
-                    | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim")
-                  tsargs
-              in
-              (argty, args)
-          | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
-        in
-        let retty_prop id =
-          UT.(
-            match retty with
-            | UnderTy_base { basename; prop; _ } -> P.subst_id prop basename id
-            | _ -> _failatwith __FILE__ __LINE__ "bad constructor type")
-        in
-        let ctx' =
-          Typectx.overlaps ctx
-          @@ ((UT.base_type_add_conjunction retty_prop id.ty, id.x) :: args)
-        in
-        let exp = bidirect_type_infer ctx' exp in
-        (* TODO: abduction here *)
-        UL.{ constructor; args = List.map snd args; exp }
-      in
-      let cases = List.map handle_case cases in
-      let casesty = List.map UL.(fun x -> x.exp.ty) cases in
-      let () =
-        List.iter
-          (fun ty ->
-            Printf.printf "case ty: %s\n" @@ Frontend.Undertype.pretty_layout ty)
-          casesty
-      in
-      let merged_ty = UT.disjunct_list casesty in
-      let () =
-        Printf.printf "merged case ty: %s\n"
-        @@ Frontend.Undertype.pretty_layout merged_ty
-      in
-      let () = subtyping_check ctx merged_ty ty in
-      (* NOTE: underappproximate here *)
-      { ty; x = Match (id, cases) }
+      { ty; x = x.x }
   | _, _ -> _failatwith __FILE__ __LINE__ "die"
 
 let type_check x ty = bidirect_type_check [] x ty

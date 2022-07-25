@@ -102,7 +102,9 @@ let over_type_check =
         let () = Config.load_default () in
         let code = Inputstage.load_ssa source_file in
         let refinements = Inputstage.load_over_refinments refine_file in
+        let () = Printf.printf "[Type checking]:\n" in
         let code = Typecheck.Overcheck.struc_check code refinements in
+        let () = Printf.printf "[Type check]: OK\n" in
         ())
 
 let under_type_check =

@@ -106,7 +106,7 @@ let rec to_term e =
   | T.Var id -> mk_s_term (Var id)
   | T.Tu es -> mk_s_term (Tu (List.map to_term @@ List.map to_var es))
   | T.Lam (x, body) -> mk_s_term (Lam (x.ty, x.x, to_term body))
-  | T.Fix _ -> _failatwith __FILE__ __LINE__ "never happend fix"
+  | T.Fix (f, body) -> mk_s_term (Lam (f.ty, f.x, to_term body))
   | T.App (e, es) ->
       mk_s_term
       @@ App (to_term @@ to_var e, List.map to_term @@ List.map to_var es)
