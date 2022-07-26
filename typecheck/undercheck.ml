@@ -85,8 +85,11 @@ let erase_check file line (underfty, normalty) =
   let _ = _check_equality file line NT.eq (UT.erase underfty) normalty in
   ()
 
-(* TODO: finish hide *)
-let hide_depedent_var _ ty = ty
+let hide_depedent_var ctx name ty =
+  match List.rev ctx with
+  | (name', argty) :: _ when String.equal name name' ->
+      UT.exists_quantify_variable_in_ty name argty ty
+  | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
 let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
     UL.term UL.typed =
@@ -134,7 +137,13 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
           ctx lhs
       in
       let body = bidirect_type_infer ctx' body in
-      { ty = body.ty; x = Let (lhs, rhs, body) }
+      (* TODO: sanity check before hide depedent vars *)
+      let ty =
+        List.fold_right
+          (fun id ty -> UT.exists_quantify_variable_in_ty id.UL.x id.UL.ty ty)
+          lhs body.ty
+      in
+      { ty; x = Let (lhs, rhs, body) }
   | Ite (id, e1, e2) ->
       let id = bidirect_type_infer_id ctx id in
       let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
@@ -206,7 +215,6 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
              :: args
         in
         let exp = bidirect_type_infer ctx' exp in
-        (* TODO: abduction here *)
         UL.{ constructor; args = List.map snd args; exp }
       in
       let cases = List.map handle_case cases in
@@ -222,7 +230,6 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         Printf.printf "merged case ty: %s\n"
         @@ Frontend.Undertype.pretty_layout ty
       in
-      (* NOTE: underappproximate here *)
       { ty; x = Match (id, cases) }
 
 and bidirect_type_infer_id (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
@@ -327,7 +334,7 @@ and bidirect_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed)
   | Ite (_, _, _), ty | Match (_, _), ty | App (_, _), ty ->
       let x = bidirect_type_infer ctx x in
       let () = subtyping_check ctx x.ty ty in
-      (* NUTE: underappproximate here *)
+      (* NOTE: underappproximate here *)
       { ty; x = x.x }
   | _, _ -> _failatwith __FILE__ __LINE__ "die"
 

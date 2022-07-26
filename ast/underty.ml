@@ -155,4 +155,30 @@ module T = struct
     | [] -> _failatwith __FILE__ __LINE__ "disjunct no types"
     | [ t ] -> t
     | h :: t -> List.fold_left disjunct h t
+
+  let exists_quantify_variable_in_ty xname xty ty =
+    match xty with
+    | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "arrow type"
+    | UnderTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
+    | UnderTy_base { basename; normalty; prop } ->
+        let xprop = P.subst_id prop basename xname in
+        let smtty = Normalty.T.to_smtty normalty in
+        let x = P.{ ty = smtty; x = xname } in
+        let rec aux ty =
+          match ty with
+          | UnderTy_base { basename; normalty; prop } ->
+              let fv = Autov.prop_fv prop in
+              if List.exists (fun x' -> String.equal x.x x') fv then
+                UnderTy_base
+                  {
+                    basename;
+                    normalty;
+                    prop = P.Exists (x, Implies (xprop, prop));
+                  }
+              else ty
+          | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
+          (* TODO: what happen when it is a arrow type *)
+          | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
+        in
+        aux ty
 end

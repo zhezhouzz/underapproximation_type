@@ -3,6 +3,11 @@ let lt =
   let b = (v : int) true in
   (v : bool) (iff v (a < b))
 
+let intadd =
+  let a = (v : int) true in
+  let b = (v : int) true in
+  (v : int) (v == a + b)
+
 let intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 let rev_intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 

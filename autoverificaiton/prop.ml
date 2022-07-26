@@ -3,7 +3,11 @@ module T = struct
 
   type ty = Smtty.T.t [@@deriving sexp]
   type 'a typed = { ty : ty; x : 'a } [@@deriving sexp]
-  type arg = ACint of int | AVar of string typed [@@deriving sexp]
+
+  type arg =
+    | ACint of int
+    | AVar of string typed (* | AOp of string * arg * arg *)
+  [@@deriving sexp]
 
   type t =
     | True
@@ -15,6 +19,7 @@ module T = struct
     | And of t list
     | Or of t list
     | Iff of t * t
+    (* | OP2 of string * t * t *)
     | MethodPred of string * arg list
     | Forall of string typed * t
     | Exists of string typed * t
