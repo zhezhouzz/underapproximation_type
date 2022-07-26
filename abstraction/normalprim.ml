@@ -7,6 +7,8 @@ let tab =
     ("::", Ty_arrow (Ty_int, Ty_arrow (Ty_list Ty_int, Ty_list Ty_int)));
     ("[]", Ty_list Ty_int);
     ("<", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool)));
+    ("+", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int)));
+    ("-", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int)));
   ]
 
 let m = StrMap.from_kv_list tab

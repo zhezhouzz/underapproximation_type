@@ -34,40 +34,49 @@ let label_to_core_type x =
 (* NOTE: should we parse type here? or is the prop is typed? *)
 let default_type = Smtty.T.Int
 
-let prop_of_ocamlexpr expr =
-  let handle_id id =
-    match Longident.flatten id.Location.txt with
-    | [ x ] -> L.{ ty = default_type; x }
-    | ids ->
+let handle_id id =
+  match Longident.flatten id.Location.txt with
+  | [ x ] -> L.{ ty = default_type; x }
+  | ids ->
+      failwith
+        (Printf.sprintf "expr, handel id: %s"
+        @@ Zzdatatype.Datatype.StrList.to_string ids)
+
+let rec lit_of_ocamlexpr e =
+  match e.pexp_desc with
+  | Pexp_ident id -> L.AVar (handle_id id)
+  | Pexp_constant (Pconst_integer (istr, None)) -> L.ACint (int_of_string istr)
+  | Pexp_constant _ -> raise @@ failwith "do not support complicate literal"
+  | Pexp_apply (func, [ a; b ]) ->
+      let a = lit_of_ocamlexpr @@ snd a in
+      let b = lit_of_ocamlexpr @@ snd b in
+      let f =
+        match func.pexp_desc with
+        | Pexp_ident id -> (handle_id id).L.x
+        | _ -> failwith "wrong method predicate"
+      in
+      if L.is_op f then L.AOp2 (f, a, b)
+      else
         failwith
-          (Printf.sprintf "expr, handel id: %s"
-          @@ Zzdatatype.Datatype.StrList.to_string ids)
-  in
-  let expr_to_arg e =
-    match e.pexp_desc with
-    | Pexp_ident id -> L.AVar (handle_id id)
-    | Pexp_constant (Pconst_integer (istr, None)) ->
-        L.ACint (int_of_string istr)
-    | _ ->
-        failwith
-        @@ Printf.sprintf "parsing: prop does not have nested application (%s)"
+        @@ Printf.sprintf "parsing: not a op (%s)"
         @@ Pprintast.string_of_expression e
-  in
+  | _ ->
+      failwith
+      @@ Printf.sprintf "parsing: not a op (%s)"
+      @@ Pprintast.string_of_expression e
+
+let prop_of_ocamlexpr expr =
   let rec aux expr =
     match expr.pexp_desc with
     | Pexp_tuple _ -> failwith "parsing: prop does not have tuple"
     | Pexp_constraint _ -> failwith "parsing: prop does not have type"
-    | Pexp_ident id -> L.(Var (handle_id id))
+    | Pexp_ident _ | Pexp_constant _ -> L.Lit (lit_of_ocamlexpr expr)
     | Pexp_construct (id, None) -> (
         match Longident.last id.txt with
         | "true" -> L.True
         | "false" -> L.Not L.True
         | _ -> raise @@ failwith "do not support complicate literal")
     | Pexp_construct (_, Some _) -> raise @@ failwith "Pexp_construct"
-    (* | Pexp_constant (Pconst_string ("true", _, None)) -> L.True *)
-    (* | Pexp_constant (Pconst_string ("false", _, None)) -> L.Not L.True *)
-    | Pexp_constant (Pconst_integer (istr, None)) -> Cint (int_of_string istr)
-    | Pexp_constant _ -> raise @@ failwith "do not support complicate literal"
     | Pexp_let _ -> failwith "parsing: prop does not have let"
     | Pexp_apply (func, args) -> (
         let f =
@@ -88,8 +97,10 @@ let prop_of_ocamlexpr expr =
         | "||", [ a; b ] -> L.Or [ aux a; aux b ]
         | "||", _ -> failwith "parsing: prop wrong or"
         | f, args ->
-            let args = List.map (fun x -> expr_to_arg x) args in
-            L.MethodPred (f, args))
+            if L.is_op f then L.Lit (lit_of_ocamlexpr expr)
+            else
+              let args = List.map lit_of_ocamlexpr args in
+              L.MethodPred (f, args))
     | Pexp_ifthenelse (e1, e2, Some e3) -> L.(Ite (aux e1, aux e2, aux e3))
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_match _ -> failwith "parsing: prop does not have match"
@@ -139,10 +150,23 @@ let dest_to_pat pat =
     ppat_attributes = [];
   }
 
+let rec lit_to_expr lit =
+  let open L in
+  match lit with
+  | ACint n ->
+      desc_to_ocamlexpr
+      @@ Pexp_constant (Pconst_integer (string_of_int n, None))
+  | AVar id -> string_to_expr id.x
+  | AOp2 (mp, a, b) ->
+      let a = lit_to_expr a in
+      let b = lit_to_expr b in
+      desc_to_ocamlexpr
+        (Pexp_apply
+           (string_to_expr mp, [ (Asttypes.Nolabel, a); (Asttypes.Nolabel, b) ]))
+
 let prop_to_expr prop =
-  let expr_to_arg e = (Asttypes.Nolabel, e) in
   let rec aux e =
-    let aux' x = expr_to_arg @@ aux x in
+    let aux' x = (Asttypes.Nolabel, aux x) in
     match e with
     | P.True ->
         desc_to_ocamlexpr
@@ -150,26 +174,15 @@ let prop_to_expr prop =
     | P.Not P.True ->
         desc_to_ocamlexpr
           (Pexp_construct (Location.mknoloc @@ Longident.Lident "false", None))
-    | P.Cint n ->
-        desc_to_ocamlexpr
-        @@ Pexp_constant (Pconst_integer (string_of_int n, None))
-    | P.Var b -> string_to_expr b.x
+    | P.Lit lit -> lit_to_expr lit
     | P.MethodPred (mp, args) ->
         desc_to_ocamlexpr
           (Pexp_apply
              ( string_to_expr mp,
-               List.map
-                 L.(
-                   fun arg ->
-                     match arg with
-                     | ACint n -> expr_to_arg @@ aux (Cint n)
-                     | AVar id -> expr_to_arg @@ aux (Var id))
-                 args ))
+               List.map (fun x -> (Asttypes.Nolabel, lit_to_expr x)) args ))
     | P.Implies (e1, e2) ->
         desc_to_ocamlexpr
-          (Pexp_apply
-             ( string_to_expr "implies",
-               List.map (fun x -> expr_to_arg @@ aux x) [ e1; e2 ] ))
+          (Pexp_apply (string_to_expr "implies", List.map aux' [ e1; e2 ]))
     | P.Ite (e1, e2, e3) ->
         desc_to_ocamlexpr (Pexp_ifthenelse (aux e1, aux e2, Some (aux e3)))
     | P.Not e ->
@@ -228,26 +241,20 @@ let is_op op =
 open Printf
 open Zzdatatype.Datatype
 
+let rec lit_pretty_layout = function
+  | ACint n -> string_of_int n
+  | AVar id -> id.x
+  | AOp2 (mp, a, b) ->
+      sprintf "(%s %s %s)" (lit_pretty_layout a) mp (lit_pretty_layout b)
+
 let pretty_layout x =
   let rec layout = function
     | True -> "⊤"
     | Not True -> "⊥"
-    | Cint n -> string_of_int n
-    | Var b -> Smtty.T.pretty_typed_layout b.x b.ty
+    | Lit lit -> lit_pretty_layout lit
     | MethodPred (mp, args) ->
-        let args =
-          List.map
-            L.(function ACint n -> string_of_int n | AVar id -> id.x)
-            args
-        in
-        if is_op mp then
-          match args with
-          | [ a; b ] -> sprintf "(%s %s %s)" a mp b
-          | _ -> sprintf "%s(%s)" mp (List.split_by_comma (fun x -> x) args)
-        else
-          sprintf "(%s %s)" mp
-            (* (Method_predicate.poly_name mp) *)
-            (List.split_by " " (fun x -> x) args)
+        let args = List.map lit_pretty_layout args in
+        sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
     | Implies (p1, p2) ->
         sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
     | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps

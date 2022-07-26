@@ -235,9 +235,11 @@ and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
       { ty = body.ty; x = Let (lhs, rhs, body) }
   | Ite (id, e1, e2), ty ->
       let id = bidirect_type_infer_id ctx id in
-      let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
+      let true_branch_prop x =
+        Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
+      in
       let false_branch_prop x =
-        Autov.(Prop.(Not (Var { ty = Smtty.Bool; x })))
+        Autov.(Prop.(Not (Lit (AVar { ty = Smtty.Bool; x }))))
       in
       let true_branch_ctx =
         Typectx.overlap ctx

@@ -8,6 +8,11 @@ let intadd =
   let b = (v : int) true in
   (v : int) (v == a + b)
 
+let intsub =
+  let a = (v : int) true in
+  let b = (v : int) true in
+  (v : int) (v == a - b)
+
 let intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 let rev_intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 

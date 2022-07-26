@@ -3,7 +3,15 @@ module NT = Languages.Normalty
 module P = Autov.Prop
 module T = Autov.Smtty
 
-let tab_names = [ ("lt", "<"); ("intlistnil", "[]"); ("intlistcons", "::") ]
+let tab_names =
+  [
+    ("lt", "<");
+    ("intlistnil", "[]");
+    ("intlistcons", "::");
+    ("intadd", "+");
+    ("intsub", "-");
+  ]
+
 let rev_tab_names = [ ("rev_intlistnil", "[]"); ("rev_intlistcons", "::") ]
 let m = ref None
 let rev_m = ref None

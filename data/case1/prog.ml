@@ -1,1 +1,3 @@
-let foo (x : int) = x + 1
+let foo (x : int) =
+  let (y : int) = x + 1 in
+  y

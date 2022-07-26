@@ -9,6 +9,7 @@ open Sugar
 let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
 let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
+(* TODO: the variables in type context, should be forall or exists? *)
 let subtyping_to_query ctx typeself (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
   let fv2 = Autov.prop_fv prop2 in
@@ -91,11 +92,23 @@ let hide_depedent_var ctx name ty =
       UT.exists_quantify_variable_in_ty name argty ty
   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
+let value_type_infer v =
+  let open Value in
+  match v with
+  | U -> _failatwith __FILE__ __LINE__ ""
+  | I n ->
+      UT.(
+        make_basic "_nu" NT.Ty_int (fun nu ->
+            P.(Lit (AOp2 ("==", AVar nu, ACint n)))))
+  | B true -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Lit (AVar nu)))
+  | B false -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu))))
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
 let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
     UL.term UL.typed =
   let open NL in
   match a.x with
-  | Const _ -> _failatwith __FILE__ __LINE__ "unimp const type check"
+  | Const v -> UL.{ ty = value_type_infer v; x = Const v }
   | Var x ->
       let x = bidirect_type_infer_id ctx { ty = a.ty; x } in
       UL.{ ty = x.ty; x = Var x.x }
@@ -146,9 +159,11 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       { ty; x = Let (lhs, rhs, body) }
   | Ite (id, e1, e2) ->
       let id = bidirect_type_infer_id ctx id in
-      let true_branch_prop x = Autov.(Prop.(Var { ty = Smtty.Bool; x })) in
+      let true_branch_prop x =
+        Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
+      in
       let false_branch_prop x =
-        Autov.(Prop.(Not (Var { ty = Smtty.Bool; x })))
+        Autov.(Prop.(Not (Lit (AVar { ty = Smtty.Bool; x }))))
       in
       let true_branch_ctx =
         Typectx.overlap ctx

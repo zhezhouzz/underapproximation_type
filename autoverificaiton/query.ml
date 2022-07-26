@@ -20,18 +20,31 @@ let z3func ctx funcname inptps outtp =
     (List.map (tp_to_sort ctx) inptps)
     (tp_to_sort ctx outtp)
 
-let to_z3 ctx prop =
-  let get_ty x =
-    x.ty
-    (* match x.ty with *)
-    (* | None -> failwith (Printf.sprintf "untyped prop variable %s" x.x) *)
-    (* | Some ty -> ty *)
+let lit_to_z3 ctx lit =
+  let rec aux = function
+    | ACint n -> int_to_z3 ctx n
+    | AVar x -> tpedvar_to_z3 ctx (x.ty, x.x)
+    | AOp2 (mp, a, b) -> (
+        let a = aux a in
+        let b = aux b in
+        match mp with
+        | "==" -> Z3.Boolean.mk_eq ctx a b
+        | "!=" -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)
+        | "<=" -> Z3.Arithmetic.mk_le ctx a b
+        | ">=" -> Z3.Arithmetic.mk_ge ctx a b
+        | "<" -> Z3.Arithmetic.mk_lt ctx a b
+        | ">" -> Z3.Arithmetic.mk_gt ctx a b
+        | "+" -> Z3.Arithmetic.mk_add ctx [ a; b ]
+        | "-" -> Z3.Arithmetic.mk_sub ctx [ a; b ]
+        | _ -> failwith "unknown operator")
   in
+  aux lit
+
+let to_z3 ctx prop =
   let rec aux prop =
     match prop with
     | True -> bool_to_z3 ctx true
-    | Cint n -> int_to_z3 ctx n
-    | Var x -> tpedvar_to_z3 ctx (get_ty x, x.x)
+    | Lit lit -> lit_to_z3 ctx lit
     | Implies (p1, p2) -> Z3.Boolean.mk_implies ctx (aux p1) (aux p2)
     | Ite (p1, p2, p3) -> Z3.Boolean.mk_ite ctx (aux p1) (aux p2) (aux p3)
     | Not p -> Z3.Boolean.mk_not ctx (aux p)
@@ -44,38 +57,14 @@ let to_z3 ctx prop =
         (*     (Expr.to_string @@ aux p2) *)
         (* in *)
         Z3.Boolean.mk_iff ctx (aux p1) (aux p2)
-    | Forall (u, body) -> make_forall ctx [ aux (Var u) ] (aux body)
-    | Exists (u, body) -> make_exists ctx [ aux (Var u) ] (aux body)
-    | MethodPred (mp, args) -> (
-        let argsty =
-          List.map (function AVar id -> get_ty id | ACint _ -> T.Int) args
-        in
-        let args =
-          List.map
-            (fun x ->
-              match x with ACint n -> int_to_z3 ctx n | AVar x -> aux (Var x))
-            args
-        in
-        match (mp, args) with
-        | "==", [ a; b ] ->
-            (* let () = *)
-            (*   Printf.printf "make ==: %s, %s" (Expr.to_string a) *)
-            (*     (Expr.to_string b) *)
-            (* in *)
-            Z3.Boolean.mk_eq ctx a b
-        | "==", _ -> failwith "wrong prop with operator =="
-        | "!=", [ a; b ] -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)
-        | "!=", _ -> failwith "wrong prop with operator !="
-        | "<=", [ a; b ] -> Z3.Arithmetic.mk_le ctx a b
-        | "<=", _ -> failwith "wrong prop with operator <="
-        | ">=", [ a; b ] -> Z3.Arithmetic.mk_ge ctx a b
-        | ">=", _ -> failwith "wrong prop with operator >="
-        | "<", [ a; b ] -> Z3.Arithmetic.mk_lt ctx a b
-        | "<", _ -> failwith "wrong prop with operator <"
-        | ">", [ a; b ] -> Z3.Arithmetic.mk_gt ctx a b
-        | ">", _ -> failwith "wrong prop with operator >"
-        | mp, args ->
-            let func = z3func ctx mp argsty T.Bool in
-            Z3.FuncDecl.apply func args)
+    | Forall (u, body) ->
+        make_forall ctx [ tpedvar_to_z3 ctx (u.ty, u.x) ] (aux body)
+    | Exists (u, body) ->
+        make_exists ctx [ tpedvar_to_z3 ctx (u.ty, u.x) ] (aux body)
+    | MethodPred (mp, args) ->
+        let argsty = List.map lit_get_ty args in
+        let args = List.map (lit_to_z3 ctx) args in
+        let func = z3func ctx mp argsty T.Bool in
+        Z3.FuncDecl.apply func args
   in
   aux prop
