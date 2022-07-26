@@ -9,42 +9,59 @@ open Sugar
 let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
 let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
-(* TODO: the variables in type context, should be forall or exists? *)
-let subtyping_to_query ctx typeself (prop1, prop2) =
-  let fv1 = Autov.prop_fv prop1 in
-  let fv2 = Autov.prop_fv prop2 in
-  let fv = fv1 @ fv2 in
-  let ctx =
-    List.filter_map
-      (fun (x, ty) ->
-        UT.(
+let simply_ctx ctx fv =
+  let in_fv fv name = List.exists (fun x -> String.equal x name) fv in
+  let open UT in
+  let rec aux fv = function
+    | [] -> []
+    | (name, ty) :: ctx ->
+        if in_fv fv name then
           match ty with
           | UnderTy_base { basename; prop; _ } ->
-              let prop = P.subst_id prop basename x in
-              Some (x, prop)
-          | _ -> None))
-      ctx
+              let prop = P.subst_id prop basename name in
+              let fv' = Autov.add_prop_to_fv fv prop in
+              (name, prop) :: aux fv' ctx
+          | _ -> _failatwith __FILE__ __LINE__ "should not happen"
+        else aux fv ctx
   in
-  let () =
-    List.iter
-      (fun name ->
-        if
-          String.equal typeself name
-          || List.exists (fun (x, _) -> String.equal name x) ctx
-        then ()
-        else
-          _failatwith __FILE__ __LINE__
-          @@ spf "type context is not well founded, %s not found in ctx" name)
-      fv
+  aux fv ctx
+
+let subtyping_to_query ctx typeself (prop1, prop2) =
+  let fv = Autov.add_prop_to_fv [ typeself ] prop1 in
+  let fv = Autov.add_prop_to_fv fv prop2 in
+  let () = Printf.printf "free variables: %s\n" (StrList.to_string fv) in
+  let ctxnames, pre = List.split @@ simply_ctx ctx fv in
+  (* let ctx = *)
+  (*   List.filter_map *)
+  (*     (fun (x, ty) -> *)
+  (*       UT.( *)
+  (*         match ty with *)
+  (*         | UnderTy_base { basename; prop; _ } -> *)
+  (*             let prop = P.subst_id prop basename x in *)
+  (*             Some (x, prop) *)
+  (*         | _ -> None)) *)
+  (*     ctx *)
+  (* in *)
+  (* let () = *)
+  (*   List.iter *)
+  (*     (fun name -> *)
+  (*       if *)
+  (*         String.equal typeself name *)
+  (*         || List.exists (fun (x, _) -> String.equal name x) ctx *)
+  (*       then () *)
+  (*       else *)
+  (*         _failatwith __FILE__ __LINE__ *)
+  (*         @@ spf "type context is not well founded, %s not found in ctx" name) *)
+  (*     fv *)
+  (* in *)
+  let q =
+    List.fold_right
+      (fun name prop -> Autov.Prop.mk_exists_intqv name (fun _ -> prop))
+      ctxnames
+      Autov.Prop.(And (pre @ [ Implies (prop2, prop1) ]))
   in
-  let pre = List.map snd ctx in
-  let () =
-    Printf.printf "SMT check:\n\twith ctx: %s\n\t(%s) => (%s)\n\n"
-      (List.split_by " ∧ " Autov.pretty_layout_prop pre)
-      (Autov.pretty_layout_prop prop2)
-      (Autov.pretty_layout_prop prop1)
-  in
-  (pre @ [ prop2 ], prop1)
+  let () = Printf.printf "SMT check:\n%s\n" (Autov.pretty_layout_prop q) in
+  q
 
 let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
   let open UT in
@@ -62,8 +79,8 @@ let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
           | false, true -> (name2, P.subst_id prop1 name1 name2, prop2)
           | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
-        let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
-        if Autov.check_implies_multi_pre pres res then ()
+        let q = subtyping_to_query ctx typeself (prop1, prop2) in
+        if Autov.check q then ()
         else failwith "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2

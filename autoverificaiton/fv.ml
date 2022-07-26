@@ -7,7 +7,7 @@ let rec lit_fv m t =
   | AVar id -> StrMap.add id.x () m
   | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
 
-let fv prop =
+let _add_fv m prop =
   let rec aux m t =
     match t with
     | True -> m
@@ -22,4 +22,10 @@ let fv prop =
     | Forall (u, e) -> StrMap.remove u.x @@ aux m e
     | Exists (u, e) -> StrMap.remove u.x @@ aux m e
   in
-  StrMap.to_key_list @@ aux StrMap.empty prop
+  aux m prop
+
+let add_fv fv prop =
+  StrMap.to_key_list
+  @@ _add_fv (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv) prop
+
+let fv prop = add_fv [] prop
