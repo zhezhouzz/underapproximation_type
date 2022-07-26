@@ -3,4 +3,4 @@ open Commands
 
 let command = Command.group ~summary:"main " [ ("test", Ctest.test) ]
 
-let () = Command.run command
+let () = Command_unix.run command

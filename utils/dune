@@ -8,5 +8,5 @@
    zlog
    rename
  )
- (libraries zzdatatype core yojson dolog)
+ (libraries zzdatatype core core_unix yojson dolog)
 )

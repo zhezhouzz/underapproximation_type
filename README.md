@@ -8,7 +8,7 @@
 You can install them via the following commands:
 
 ```
-# https://github.com/zhezhouzz/zzdatatype.git
+# git clone https://github.com/zhezhouzz/zzdatatype.git
 # cd zzdatatype
 # opam install .
 ```
