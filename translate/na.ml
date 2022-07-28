@@ -73,6 +73,7 @@ let subst (y, y') e =
 (*   in *)
 (*   aux e *)
 
+(* TODO: Fix renaming *)
 let remove_dummy_eq e =
   let open NA in
   let rec aux_value e =
@@ -137,6 +138,7 @@ let remove_dummy_let e =
     in
     { ty = e.ty; x }
   in
+  (* aux e *)
   aux (remove_dummy_eq e)
 
 let simplify = remove_dummy_let

@@ -5,7 +5,7 @@ module OT = Languages.Overty
 open Zzdatatype.Datatype
 open Sugar
 
-let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
+let layout_subtyping = Frontend.Typectx.pretty_layout_over_subtyping
 
 let subtyping_to_query ctx typeself (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
@@ -38,12 +38,7 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
 let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let open OT in
   let rec aux ctx (t1, t2) =
-    (* let () = *)
-    (*   Printf.printf "%s ⊢ \n\t%s <:\n\t%s\n\n" *)
-    (*     (Frontend.Overtype.pretty_layout_typectx ctx) *)
-    (*     (Frontend.Overtype.pretty_layout t1) *)
-    (*     (Frontend.Overtype.pretty_layout t2) *)
-    (* in *)
+    let () = Printf.printf "Subtype: \n%s\n" @@ layout_subtyping ctx (t1, t2) in
     match (t1, t2) with
     | ( OverTy_base { basename = name1; prop = prop1; _ },
         OverTy_base { basename = name2; prop = prop2; _ } ) ->
