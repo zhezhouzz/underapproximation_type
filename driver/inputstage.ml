@@ -4,13 +4,13 @@ open Typecheck
 
 let load_ssa source_file =
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
-  (* let () = *)
-  (*   Printf.printf "%s\n\n" @@ Ocaml_parser.Pprintast.string_of_structure code *)
-  (* in *)
+  let () =
+    Printf.printf "%s\n\n" @@ Ocaml_parser.Pprintast.string_of_structure code
+  in
   let code = Structure.client_of_ocamlstruct code in
-  (* let () = Printf.printf "%s\n" @@ Structure.layout code in *)
+  let () = Printf.printf "%s\n" @@ Structure.layout code in
   let code = Termcheck.struc_check code in
-  (* let () = Printf.printf "%s\n" @@ Structure.layout code in *)
+  let () = Printf.printf "%s\n" @@ Structure.layout code in
   let code = Trans.struc_term_to_nan code in
   let () =
     Printf.printf "[Loading typed A-normal from]:\n%s\n"

@@ -28,55 +28,97 @@ type cont = T.id T.typed -> T.term T.typed
 type conts = T.id T.typed list -> T.term T.typed
 
 let freshname () = Rename.unique "x"
-let ret () x = T.{ ty = x.ty; x = Var x.x }
+let ret () x = T.{ ty = x.ty; x = V (Var x.x) }
 
-let make_let x e body =
-  T.{ ty = body.ty; x = Let ([ T.{ ty = e.ty; x } ], e, body) }
+(* let convert (cont : cont) e = *)
+(*   let x = freshname () in *)
+(*   let body = cont T.{ ty = e.ty; x } in *)
+(*   T.make_let x e body *)
 
-let bind (cont : cont) e =
+let bind_value cont value =
   let x = freshname () in
-  let body = cont T.{ ty = e.ty; x } in
-  make_let x e body
+  let body = cont T.{ ty = value.ty; x } in
+  T.make_letval x value body
 
 (* TODO: alpha renaming *)
-let rec to_anormal (e : term opttyped) : T.term T.typed = cps (ret ()) e
+let rec to_anormal (e : term opttyped) : T.term T.typed = convert (ret ()) e
 
-and cps_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
-  let names = List.map (fun e -> T.{ ty = get_tp e; x = freshname () }) es in
-  List.fold_left
-    (fun body (lhs, rhs) -> make_let lhs.T.x (to_anormal rhs) body)
-    (conts names) (List.combine names es)
+and convert_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
+  (* let convertings = *)
+  (*   List.map (fun e -> ({ ty = get_tp e; x = freshname () }, e)) es *)
+  (* in *)
+  (List.fold_left
+     (fun cont rhs names -> convert (fun name -> cont (name :: names)) rhs)
+     conts es)
+    []
 
-and cps (cont : cont) (e : term opttyped) : T.term T.typed =
+and convert (cont : cont) (e : term opttyped) : T.term T.typed =
   let ety = get_tp e in
   match e.x with
-  | Const v -> bind cont (mk_t_term ety (T.Const v))
-  | Var id -> bind cont (mk_t_term ety (T.Var id))
-  | Tu es -> cps_multi (fun names -> bind cont (mk_t_term ety @@ T.Tu names)) es
+  | Const v -> bind_value cont T.{ ty = ety; x = Const v }
+  | Var id -> cont T.{ ty = ety; x = id }
+  | Tu es ->
+      convert_multi
+        T.(
+          fun args ->
+            let x = freshname () in
+            let tu = { ty = ety; x } in
+            let body = cont tu in
+            { ty = body.ty; x = LetTu { tu; args; body } })
+        es
   | Lam (ty, x, body) ->
-      bind cont (mk_t_term ety (T.Lam (T.{ ty; x }, to_anormal body)))
+      bind_value cont T.{ ty = ety; x = Lam ({ ty; x }, to_anormal body) }
   | App (e, es) ->
-      cps
-        (fun f ->
-          cps_multi
-            (fun names -> bind cont (mk_t_term ety @@ T.App (f, names)))
-            es)
+      convert
+        T.(
+          fun f ->
+            convert_multi
+              (fun args ->
+                let x = freshname () in
+                let ret = { ty = ety; x } in
+                let body = cont ret in
+                { ty = body.ty; x = LetApp { ret; f; args; body } })
+              es)
         e
   | Let (false, lhs, rhs, body) ->
-      mk_t_term ety
-      @@ T.Let
-           ( List.map (fun (ty, x) -> T.{ ty; x }) lhs,
-             to_anormal rhs,
-             cps cont body )
+      let lhs = List.map T.(fun (ty, x) -> { ty; x }) lhs in
+      convert
+        (fun rhs ->
+          let body = convert cont body in
+          match lhs with
+          | [] -> _failatwith __FILE__ __LINE__ ""
+          | [ lhs ] ->
+              {
+                ty = body.ty;
+                x = LetVal { lhs; rhs = { ty = rhs.ty; x = Var rhs.x }; body };
+              }
+          | _ -> { ty = body.ty; x = LetDeTu { args = lhs; tu = rhs; body } })
+        rhs
   | Let (true, [ (ty, x) ], rhs, body) ->
       let f = T.{ ty; x } in
-      mk_t_term ety
-      @@ T.Let ([ f ], mk_t_term ety @@ T.Fix (f, to_anormal rhs), cps cont body)
+      convert
+        T.(
+          fun rhs ->
+            let body = convert cont body in
+            {
+              ty = body.ty;
+              x =
+                LetVal
+                  {
+                    lhs = f;
+                    rhs =
+                      { ty = f.ty; x = Fix (f, { ty = rhs.ty; x = Var rhs.x }) };
+                    body;
+                  };
+            })
+        rhs
   | Let (true, _, _, _) -> _failatwith __FILE__ __LINE__ "invalid term lang"
   | Ite (e1, e2, e3) ->
-      cps (fun x -> mk_t_term ety @@ T.Ite (x, to_anormal e2, to_anormal e3)) e1
+      convert
+        (fun x -> mk_t_term ety @@ T.Ite (x, to_anormal e2, to_anormal e3))
+        e1
   | Match (e, cases) ->
-      cps
+      convert
         (fun x ->
           mk_t_term ety
           @@ T.Match
@@ -91,50 +133,53 @@ and cps (cont : cont) (e : term opttyped) : T.term T.typed =
                    cases ))
         e
 
-let to_anormal_with_name x if_rec (e : term opttyped) : T.term T.typed =
-  let open T in
-  let e = to_anormal e in
-  if if_rec then { ty = e.ty; x = Fix ({ ty = e.ty; x }, e) } else e
-
 let id_trans_rev (e : T.id T.typed) = { ty = Some e.T.ty; x = e.T.x }
 
-let rec to_term e =
-  let to_var id = T.{ ty = id.T.ty; x = T.Var id.T.x } in
-  let mk_s_term x = { ty = Some e.T.ty; x } in
-  match e.T.x with
-  | T.Const v -> mk_s_term (Const v)
-  | T.Var id -> mk_s_term (Var id)
-  | T.Tu es -> mk_s_term (Tu (List.map to_term @@ List.map to_var es))
-  | T.Lam (x, body) -> mk_s_term (Lam (x.ty, x.x, to_term body))
-  | T.Fix (f, body) -> mk_s_term (Lam (f.ty, f.x, to_term body))
-  | T.App (e, es) ->
-      mk_s_term
-      @@ App (to_term @@ to_var e, List.map to_term @@ List.map to_var es)
-  | T.Let ([ f ], T.{ x = T.Fix (_, rhs); _ }, body) ->
-      mk_s_term @@ Let (true, [ (f.ty, f.x) ], to_term rhs, to_term body)
-  | T.Let (lhs, rhs, body) ->
-      (* let () = *)
-      (*   Printf.printf "let lhs = %s\n" *)
-      (*     (Zzdatatype.Datatype.StrList.to_string *)
-      (*     @@ List.map (fun x -> x.T.x) lhs) *)
-      (* in *)
-      mk_s_term
-      @@ Let
-           ( false,
-             List.map (fun x -> T.(x.ty, x.x)) lhs,
-             to_term rhs,
-             to_term body )
-  | T.Ite (e1, e2, e3) ->
-      mk_s_term @@ Ite (to_term @@ to_var e1, to_term e2, to_term e3)
-  | T.Match (x, cases) ->
-      mk_s_term
-      @@ Match
-           ( to_term @@ to_var x,
-             List.map
-               (fun case ->
-                 {
-                   constructor = case.T.constructor;
-                   args = case.T.args;
-                   exp = to_term case.T.exp;
-                 })
-               cases )
+let to_term e =
+  let to_var id = { ty = Some id.T.ty; x = Var id.T.x } in
+  let to_tid id = (id.T.ty, id.T.x) in
+  let rec aux_value e =
+    let x =
+      match e.T.x with
+      | T.Const v -> Const v
+      | T.Var id -> Var id
+      | T.Lam (x, body) -> Lam (x.ty, x.x, aux body)
+      | T.Fix (_, body) -> (aux_value body).x
+    in
+    { ty = Some e.T.ty; x }
+  and aux e =
+    let x =
+      match e.T.x with
+      | V x -> (aux_value T.{ ty = e.ty; x }).x
+      | T.LetTu { tu; args; body } ->
+          Let
+            ( false,
+              [ to_tid tu ],
+              { ty = Some tu.T.ty; x = Tu (List.map to_var args) },
+              aux body )
+      | T.LetDeTu { tu; args; body } ->
+          Let (false, List.map to_tid args, to_var tu, aux body)
+      | T.LetApp { ret; f; args; body } ->
+          Let
+            ( false,
+              [ to_tid ret ],
+              { ty = Some ret.T.ty; x = App (to_var f, List.map to_var args) },
+              aux body )
+      | T.LetVal { lhs; rhs; body } ->
+          Let (false, [ to_tid lhs ], aux_value rhs, aux body)
+      | T.Ite (e1, e2, e3) -> Ite (to_var e1, aux e2, aux e3)
+      | T.Match (x, cases) ->
+          Match
+            ( to_var x,
+              List.map
+                (fun case ->
+                  {
+                    constructor = case.T.constructor;
+                    args = case.T.args;
+                    exp = aux case.T.exp;
+                  })
+                cases )
+    in
+    { ty = Some e.T.ty; x }
+  in
+  aux e

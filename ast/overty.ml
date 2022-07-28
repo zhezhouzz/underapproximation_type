@@ -81,4 +81,30 @@ module T = struct
     aux args overftp
 
   let is_base_type = function OverTy_base _ -> true | _ -> false
+
+  let forall_quantify_variable_in_ty xname xty ty =
+    match xty with
+    | OverTy_arrow _ -> _failatwith __FILE__ __LINE__ "arrow type"
+    | OverTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
+    | OverTy_base { basename; normalty; prop } ->
+        let xprop = P.subst_id prop basename xname in
+        let smtty = Normalty.T.to_smtty normalty in
+        let x = P.{ ty = smtty; x = xname } in
+        let rec aux ty =
+          match ty with
+          | OverTy_base { basename; normalty; prop } ->
+              let fv = Autov.prop_fv prop in
+              if List.exists (fun x' -> String.equal x.x x') fv then
+                OverTy_base
+                  {
+                    basename;
+                    normalty;
+                    prop = P.Forall (x, Implies (xprop, prop));
+                  }
+              else ty
+          | OverTy_tuple ts -> OverTy_tuple (List.map aux ts)
+          (* TODO: what happen when it is a arrow type *)
+          | OverTy_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
+        in
+        aux ty
 end

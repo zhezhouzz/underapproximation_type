@@ -6,6 +6,8 @@
    ; primitive
    typectx
    termcheck
+   oversub
+   undersub
    overcheck
    undercheck
    undertycheck

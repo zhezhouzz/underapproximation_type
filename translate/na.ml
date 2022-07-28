@@ -9,29 +9,42 @@ let subst (y, y') e =
   let subst_tid id =
     if String.equal id.x y then { ty = id.ty; x = y' } else id
   in
-  let rec aux e =
+  let rec aux_value e =
     match e.x with
     | Const _ -> e
     | Var id -> if String.equal id y then { ty = e.ty; x = Var y' } else e
-    | Tu l -> { ty = e.ty; x = Tu (List.map subst_tid l) }
-    | App (f, args) ->
-        { ty = e.ty; x = App (subst_tid f, List.map subst_tid args) }
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) }
-    | Let (ids, rhs, body) ->
-        if List.exists (fun id -> String.equal id.x y) ids then
-          { ty = e.ty; x = Let (ids, aux rhs, body) }
-        else { ty = e.ty; x = Let (ids, aux rhs, aux body) }
-    | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (subst_tid id, aux e1, aux e2) }
-    | Match (id, cases) ->
-        {
-          ty = e.ty;
-          x =
-            Match
-              ( subst_tid id,
-                List.map (fun case -> { case with exp = aux case.exp }) cases );
-        }
+    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
+  and aux e =
+    let x =
+      match e.x with
+      | V v ->
+          let v = aux_value { ty = e.ty; x = v } in
+          V v.x
+      | LetApp { ret; f; args; body } ->
+          let body = if String.equal ret.x y then aux body else body in
+          LetApp { ret; f = subst_tid f; args = List.map subst_tid args; body }
+      | LetVal { lhs; rhs; body } ->
+          let body = if String.equal lhs.x y then aux body else body in
+          LetVal { lhs; rhs = aux_value rhs; body }
+      | LetTu { tu; args; body } ->
+          let body = if String.equal tu.x y then aux body else body in
+          LetTu { tu; args = List.map subst_tid args; body }
+      | LetDeTu { tu; args; body } ->
+          let body =
+            if List.exists (fun x -> String.equal x.x y) args then aux body
+            else body
+          in
+          LetTu { tu = subst_tid tu; args; body }
+      | Ite (id, e1, e2) -> Ite (subst_tid id, aux e1, aux e2)
+      | Match (id, cases) ->
+          Match
+            ( subst_tid id,
+              List.map (fun case -> { case with exp = aux case.exp }) cases )
+    in
+    { ty = e.ty; x }
   in
+
   let res = aux e in
   (* let () = *)
   (*   Printf.printf "[%s |-> %s]\n%s\n----\n%s\n-----\n\n" y y' (layout e) *)
@@ -39,73 +52,90 @@ let subst (y, y') e =
   (* in *)
   res
 
-let remove_tuple e =
-  let open NA in
-  let rec aux e =
-    match e.x with
-    | Const _ | Var _ | App _ -> e
-    | Tu [ x ] -> aux { ty = x.ty; x = Var x.x }
-    | Tu _ -> e
-    | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) }
-    | Let (ids, rhs, body) -> { ty = e.ty; x = Let (ids, aux rhs, aux body) }
-    | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (id, aux e1, aux e2) }
-    | Match (id, cases) ->
-        {
-          ty = e.ty;
-          x =
-            Match
-              (id, List.map (fun case -> { case with exp = aux case.exp }) cases);
-        }
-  in
-  aux e
+(* let remove_tuple e = *)
+(*   let open NA in *)
+(*   let rec aux e = *)
+(*     match e.x with *)
+(*     | Const _ | Var _ | App _ -> e *)
+(*     | Tu [ x ] -> aux { ty = x.ty; x = Var x.x } *)
+(*     | Tu _ -> e *)
+(*     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) } *)
+(*     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) } *)
+(*     | Let (ids, rhs, body) -> { ty = e.ty; x = Let (ids, aux rhs, aux body) } *)
+(*     | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (id, aux e1, aux e2) } *)
+(*     | Match (id, cases) -> *)
+(*         { *)
+(*           ty = e.ty; *)
+(*           x = *)
+(*             Match *)
+(*               (id, List.map (fun case -> { case with exp = aux case.exp }) cases); *)
+(*         } *)
+(*   in *)
+(*   aux e *)
 
 let remove_dummy_eq e =
   let open NA in
-  let rec aux e =
-    (* let () = Printf.printf "%s\n" @@ layout e in *)
+  let rec aux_value e =
     match e.x with
-    | Const _ | Var _ | Tu _ | App _ -> e
+    | Const _ | Var _ -> e
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) }
-    | Let (ids, rhs, body) -> (
-        let rhs = aux rhs in
-        match (ids, rhs.x) with
-        | [ id ], Var id' ->
-            (* let () = Printf.printf ">>>>> id: %s\n" id.x in *)
-            aux (subst (id.x, id') body)
-        | _ -> { ty = e.ty; x = Let (ids, rhs, aux body) })
-    | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (id, aux e1, aux e2) }
-    | Match (id, cases) ->
-        {
-          ty = e.ty;
-          x =
-            Match
-              (id, List.map (fun case -> { case with exp = aux case.exp }) cases);
-        }
+    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
+  and aux e =
+    (* let () = Printf.printf "%s\n" @@ layout e in *)
+    let x =
+      match e.x with
+      | V v ->
+          let v = aux_value { ty = e.ty; x = v } in
+          V v.x
+      | LetApp { ret; f; args; body } ->
+          LetApp { ret; f; args; body = aux body }
+      | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
+      | LetDeTu { tu; args; body } -> LetDeTu { tu; args; body = aux body }
+      | LetVal { lhs; rhs; body } -> (
+          let rhs = aux_value rhs in
+          match rhs.x with
+          | Var id' -> (aux (subst (lhs.x, id') body)).x
+          | _ -> LetVal { lhs; rhs; body = aux body })
+      | Ite (id, e1, e2) -> Ite (id, aux e1, aux e2)
+      | Match (id, cases) ->
+          Match
+            (id, List.map (fun case -> { case with exp = aux case.exp }) cases)
+    in
+    { ty = e.ty; x }
   in
-  aux (remove_tuple e)
+  aux e
 
 let remove_dummy_let e =
   let open NA in
-  let rec aux e =
+  let rec aux_value e =
     match e.x with
-    | Const _ | Var _ | Tu _ | App _ -> e
+    | Const _ | Var _ -> e
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) }
-    | Let (ids, rhs, body) -> (
-        let body = aux body in
-        match (ids, body.x) with
-        | [ id ], Var id' when String.equal id.x id' -> aux rhs
-        | _ -> { ty = e.ty; x = Let (ids, aux rhs, body) })
-    | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (id, aux e1, aux e2) }
-    | Match (id, cases) ->
-        {
-          ty = e.ty;
-          x =
-            Match
-              (id, List.map (fun case -> { case with exp = aux case.exp }) cases);
-        }
+    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
+  and aux e =
+    (* let () = Printf.printf "%s\n" @@ layout e in *)
+    let x =
+      match e.x with
+      | V v ->
+          let v = aux_value { ty = e.ty; x = v } in
+          V v.x
+      | LetApp { ret; f; args; body } ->
+          LetApp { ret; f; args; body = aux body }
+      | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
+      | LetDeTu { tu; args; body } -> LetDeTu { tu; args; body = aux body }
+      | LetVal { lhs; rhs; body } -> (
+          let body = aux body in
+          match body.x with
+          | V (Var id') when String.equal lhs.x id' ->
+              let v = aux_value rhs in
+              V v.x
+          | _ -> LetVal { lhs; rhs = aux_value rhs; body })
+      | Ite (id, e1, e2) -> Ite (id, aux e1, aux e2)
+      | Match (id, cases) ->
+          Match
+            (id, List.map (fun case -> { case with exp = aux case.exp }) cases)
+    in
+    { ty = e.ty; x }
   in
   aux (remove_dummy_eq e)
 

@@ -7,71 +7,6 @@ open Abstraction
 open Sugar
 
 let layout_judge = Frontend.Typectx.pretty_layout_over_judge Trans.nan_to_term
-let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
-
-let subtyping_to_query ctx typeself (prop1, prop2) =
-  let fv1 = Autov.prop_fv prop1 in
-  let fv2 = Autov.prop_fv prop2 in
-  let fv = fv1 @ fv2 in
-  let ctx =
-    List.filter_map
-      (fun (x, ty) ->
-        OT.(
-          match ty with
-          | OverTy_base { basename; prop; _ } ->
-              let prop = P.subst_id prop basename x in
-              Some (x, prop)
-          | _ -> None))
-      ctx
-  in
-  let () =
-    List.iter
-      (fun name ->
-        if
-          String.equal typeself name
-          || List.exists (fun (x, _) -> String.equal name x) ctx
-        then ()
-        else _failatwith __FILE__ __LINE__ @@ "type context is not well founded")
-      fv
-  in
-  let pre = List.map snd ctx in
-  (pre @ [ prop1 ], prop2)
-
-let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
-  let open OT in
-  let rec aux ctx (t1, t2) =
-    (* let () = *)
-    (*   Printf.printf "%s ⊢ \n\t%s <:\n\t%s\n\n" *)
-    (*     (Frontend.Overtype.pretty_layout_typectx ctx) *)
-    (*     (Frontend.Overtype.pretty_layout t1) *)
-    (*     (Frontend.Overtype.pretty_layout t2) *)
-    (* in *)
-    match (t1, t2) with
-    | ( OverTy_base { basename = name1; prop = prop1; _ },
-        OverTy_base { basename = name2; prop = prop2; _ } ) ->
-        let typeself, prop1, prop2 =
-          match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
-          | true, true ->
-              ( _check_equality __FILE__ __LINE__ String.equal name1 name2,
-                prop1,
-                prop2 )
-          | false, true -> (name2, P.subst_id prop1 name1 name2, prop2)
-          | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
-        in
-        let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
-        if Autov.check_implies_multi_pre pres res then ()
-        else failwith "Subtyping check: rejected by the verifier"
-    | OverTy_tuple ts1, OverTy_tuple ts2 ->
-        List.iter (aux ctx) @@ List.combine ts1 ts2
-    | ( OverTy_arrow { argname = x1; argty = t11; retty = t12 },
-        OverTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
-        let t22 = subst_id t22 x2 x1 in
-        let () = aux ctx (t21, t11) in
-        let () = aux ctx (t12, t22) in
-        ()
-    | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
-  in
-  aux ctx (t1, t2)
 
 let erase_check file line (overfty, normalty) =
   (* let () = *)
@@ -82,55 +17,34 @@ let erase_check file line (overfty, normalty) =
   let _ = _check_equality file line NT.eq (OT.erase overfty) normalty in
   ()
 
-let rec bidirect_type_infer (ctx : OT.t Typectx.t) (a : NL.term NL.typed) :
-    OL.term OL.typed =
-  let open NL in
-  match a.x with
-  | Const _ -> _failatwith __FILE__ __LINE__ "unimp const type check"
-  | Var x ->
-      let x = bidirect_type_infer_id ctx { ty = a.ty; x } in
-      OL.{ ty = x.ty; x = Var x.x }
-  | Tu es ->
-      let es = List.map (bidirect_type_infer_id ctx) es in
-      let ty = OT.OverTy_tuple (List.map (fun x -> x.OL.ty) es) in
-      OL.{ ty; x = Tu es }
-  | Lam (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
-  | Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
-  | App (f, args) ->
-      let f = bidirect_type_infer_id ctx f in
-      let fty' = OT.arrow_args_rename (List.map (fun x -> x.x) args) f.ty in
-      let argsty', retty' = OT.destruct_arrow_tp fty' in
-      let args =
-        List.map (fun ((argty, _), arg) -> bidirect_type_check_id ctx arg argty)
-        @@ List.combine argsty' args
-      in
-      OL.{ ty = retty'; x = App (f, args) }
-  | Let (lhs, rhs, body) ->
-      let rhs = bidirect_type_infer ctx rhs in
-      let lhstys =
-        match rhs.ty with
-        | OT.OverTy_tuple ts when List.length ts = List.length lhs -> ts
-        | _ -> _failatwith __FILE__ __LINE__ ""
-      in
-      let lhs =
-        List.map (fun (id, idty) ->
-            let () = erase_check __FILE__ __LINE__ (idty, id.ty) in
-            OL.{ ty = idty; x = id.x })
-        @@ List.combine lhs lhstys
-      in
-      let ctx' =
-        List.fold_left
-          (fun ctx' id ->
-            let ctx' = Typectx.overlap ctx' OL.(id.ty, id.x) in
-            ctx')
-          ctx lhs
-      in
-      let body = bidirect_type_infer ctx' body in
-      { ty = body.ty; x = Let (lhs, rhs, body) }
-  | Ite (_, _, _) -> _failatwith __FILE__ __LINE__ "cannot infer ite"
-  | Match (_, _) -> _failatwith __FILE__ __LINE__ "cannot infer match"
+let erase_check_mk_id file line id overfty =
+  (* let () = *)
+  (*   Printf.printf "|_ %s _| = %s\n" *)
+  (*     (Frontend.Overtype.layout overfty) *)
+  (*     (Frontend.Type.layout @@ OT.erase overfty) *)
+  (* in *)
+  let _ = _check_equality file line NT.eq (OT.erase overfty) id.NL.ty in
+  OL.{ ty = overfty; x = id.x }
 
-and bidirect_type_infer_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
+let hide_depedent_var ctx name ty =
+  match List.rev ctx with
+  | (name', argty) :: _ when String.equal name name' ->
+      OT.forall_quantify_variable_in_ty name argty ty
+  | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
+
+let const_type_infer v =
+  let open Value in
+  match v with
+  | U -> _failatwith __FILE__ __LINE__ ""
+  | I n ->
+      OT.(
+        make_basic "_nu" NT.Ty_int (fun nu ->
+            P.(Lit (AOp2 ("==", AVar nu, ACint n)))))
+  | B true -> OT.(make_basic "_nu" NT.Ty_int (fun nu -> Lit (AVar nu)))
+  | B false -> OT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu))))
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
+let rec id_type_infer (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id OL.typed =
   let ty =
     try Prim.get_primitive_over_ty id.x
@@ -150,91 +64,155 @@ and bidirect_type_infer_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
       in
       ty
   in
-  let () = erase_check __FILE__ __LINE__ (ty, id.ty) in
-  OL.{ ty; x = id.x }
+  erase_check_mk_id __FILE__ __LINE__ id ty
 
-and bidirect_type_check_id (ctx : OT.t Typectx.t) (id : NL.id NL.typed)
-    (ty : OT.t) : NL.id OL.typed =
-  let id = bidirect_type_infer_id ctx id in
-  let () = subtyping_check ctx id.OL.ty ty in
+and id_type_check (ctx : OT.t Typectx.t) (id : NL.id NL.typed) (ty : OT.t) :
+    NL.id OL.typed =
+  let id = id_type_infer ctx id in
+  let () = Oversub.subtyping_check ctx id.OL.ty ty in
   id
 
-and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
-    (ty : OT.t) : OL.term OL.typed =
-  let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
-  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
+and value_type_infer (ctx : OT.t Typectx.t) (a : NL.value NL.typed) :
+    OL.value OL.typed =
   let open NL in
-  match (x.x, ty) with
-  | Const _, _ -> _failatwith __FILE__ __LINE__ "unimp"
-  | Var _, _ ->
-      let x = bidirect_type_infer ctx x in
-      let () = subtyping_check ctx x.ty ty in
+  match a.x with
+  | Const v -> OL.{ ty = const_type_infer v; x = Const v }
+  | Var x ->
+      let x = id_type_infer ctx { ty = a.ty; x } in
+      OL.{ ty = x.ty; x = Var x.x }
+  | Lam (_, _) ->
+      (* NOTE: Can we infer a type of the lambda function without the argment type? *)
+      _failatwith __FILE__ __LINE__ "cannot infer over arrow type"
+  | Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
+
+and value_type_check (ctx : OT.t Typectx.t) (a : NL.value NL.typed) (ty : OT.t)
+    : OL.value OL.typed =
+  let open NL in
+  match (a.x, ty) with
+  | Const _, _ | Var _, _ ->
+      let x = value_type_infer ctx a in
+      let () = Oversub.subtyping_check ctx x.ty ty in
       x
-  | Tu es, OT.OverTy_tuple tys ->
-      let estys = _safe_combine __FILE__ __LINE__ es tys in
-      let es =
-        List.map (fun (e, ty) -> bidirect_type_check_id ctx e ty) estys
-      in
-      { ty; x = Tu es }
   | Lam (id, body), OT.(OverTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = OT.subst_id retty argname id.x in
       let ctx' = Typectx.overlap ctx (argty, id.x) in
-      let body = bidirect_type_check ctx' body retty in
+      let body = term_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
   | Fix (f, body), ty ->
       let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
       let ctx' = Typectx.overlap ctx (ty, f.x) in
-      let body = bidirect_type_check ctx' body ty in
+      let body = value_type_check ctx' body ty in
       { ty; x = Fix ({ ty; x = f.x }, body) }
-  | App (f, args), ty ->
-      let f = bidirect_type_infer_id ctx f in
-      let rec check (ctx', args') (args, overftp) =
-        match (args, overftp) with
-        | [], tp ->
-            let () = subtyping_check ctx' tp ty in
-            OL.{ ty = tp; x = App ({ ty = overftp; x = f.x }, args') }
-        | id :: args, OT.(OverTy_arrow { argname; argty; retty }) ->
-            let id = bidirect_type_infer_id ctx' id in
-            let () = subtyping_check ctx' id.ty argty in
-            let ctx' = Typectx.overlap ctx' (id.ty, id.x) in
-            let retty = OT.subst_id retty argname id.x in
-            check (ctx', args' @ [ OL.{ ty = id.ty; x = id.x } ]) (args, retty)
-        | _ -> _failatwith __FILE__ __LINE__ "app"
-      in
-      check (ctx, []) (args, f.ty)
-  | Let (lhs, rhs, body), ty ->
-      let rhs = bidirect_type_infer ctx rhs in
-      let lhstys =
-        match rhs.ty with
-        | OT.OverTy_tuple ts when List.length ts = List.length lhs -> ts
-        | _ when List.length lhs = 1 -> [ rhs.ty ]
-        | _ ->
-            _failatwith __FILE__ __LINE__
-            @@ Printf.sprintf "die:bidirect_type_check let (%s) has type (%s)"
-                 (List.split_by_comma
-                    (fun { ty; x } ->
-                      Printf.sprintf "(%s:%s)" x (Frontend.Type.layout ty))
-                    lhs)
-                 (Frontend.Overtype.layout rhs.ty)
-      in
-      let lhs =
-        List.map (fun (id, idty) ->
-            let () = erase_check __FILE__ __LINE__ (idty, id.ty) in
-            OL.{ ty = idty; x = id.x })
-        @@ List.combine lhs lhstys
-      in
-      let ctx' =
-        List.fold_left
-          (fun ctx' id ->
-            let ctx' = Typectx.overlap ctx' OL.(id.ty, id.x) in
-            ctx')
-          ctx lhs
-      in
-      let body = bidirect_type_check ctx' body ty in
-      { ty = body.ty; x = Let (lhs, rhs, body) }
-  | Ite (id, e1, e2), ty ->
-      let id = bidirect_type_infer_id ctx id in
+  | _, _ -> _failatwith __FILE__ __LINE__ ""
+
+and handle_lettu ctx (tu, args, body) self =
+  let open OL in
+  let args = List.map (id_type_infer ctx) args in
+  let tuty = OT.OverTy_tuple (List.map (fun x -> x.ty) args) in
+  let tu = erase_check_mk_id __FILE__ __LINE__ tu tuty in
+  let tu = { x = tu.x; ty = tuty } in
+  let ctx' = Typectx.overlap ctx (tu.ty, tu.x) in
+  let body = self ctx' body in
+  (* TODO: sanity check before hide depedent vars *)
+  {
+    ty = OT.forall_quantify_variable_in_ty tu.x tu.ty body.ty;
+    x = LetTu { tu; args; body };
+  }
+
+and handle_letdetu ctx (tu, args, body) self =
+  let open OL in
+  let tu = id_type_infer ctx tu in
+  let argsty =
+    match tu.ty with
+    | OT.OverTy_tuple ts -> ts
+    | _ -> _failatwith __FILE__ __LINE__ ""
+  in
+  let args =
+    List.map (fun (x, ty) -> erase_check_mk_id __FILE__ __LINE__ x ty)
+    @@ List.combine args argsty
+  in
+  let ctx' =
+    List.fold_left
+      (fun ctx' id ->
+        let ctx' = Typectx.overlap ctx' (id.ty, id.x) in
+        ctx')
+      ctx args
+  in
+  let body = self ctx' body in
+  (* TODO: sanity check before hide depedent vars *)
+  let ty =
+    List.fold_right
+      (fun id ty -> OT.forall_quantify_variable_in_ty id.x id.ty ty)
+      args body.ty
+  in
+  { ty; x = LetDeTu { tu; args; body } }
+
+and handle_letapp ctx (ret, f, args, body) self =
+  let open OL in
+  let f = id_type_infer ctx f in
+  let fty' = OT.arrow_args_rename (List.map (fun x -> x.NL.x) args) f.ty in
+  let argsty, retty = OT.destruct_arrow_tp fty' in
+  let args =
+    List.map (fun ((argty, _), arg) -> id_type_check ctx arg argty)
+    @@ List.combine argsty args
+  in
+  let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
+  let ctx' = Typectx.overlap ctx (ret.ty, ret.x) in
+  let body = self ctx' body in
+  (* TODO: sanity check before hide depedent vars *)
+  {
+    ty = OT.forall_quantify_variable_in_ty ret.x ret.ty body.ty;
+    x = LetApp { ret; f; args; body };
+  }
+
+and handle_letval ctx (lhs, rhs, body) self =
+  let open OL in
+  let rhs = value_type_infer ctx rhs in
+  let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
+  let ctx' = Typectx.overlap ctx (lhs.ty, lhs.x) in
+  let body = self ctx' body in
+  (* TODO: sanity check before hide depedent vars *)
+  {
+    ty = OT.forall_quantify_variable_in_ty lhs.x lhs.ty body.ty;
+    x = LetVal { lhs; rhs; body };
+  }
+
+and term_type_infer (ctx : OT.t Typectx.t) (a : NL.term NL.typed) :
+    OL.term OL.typed =
+  let open NL in
+  match a.x with
+  | V v ->
+      let v = value_type_infer ctx { ty = a.ty; x = v } in
+      { ty = v.ty; x = V v.x }
+  | LetTu { tu; args; body } ->
+      handle_lettu ctx (tu, args, body) term_type_infer
+  | LetDeTu { tu; args; body } ->
+      handle_letdetu ctx (tu, args, body) term_type_infer
+  | LetApp { ret; f; args; body } ->
+      handle_letapp ctx (ret, f, args, body) term_type_infer
+  | LetVal { lhs; rhs; body } ->
+      handle_letval ctx (lhs, rhs, body) term_type_infer
+  | Ite (_, _, _) -> _failatwith __FILE__ __LINE__ "should not infer ite"
+  | Match (_, _) -> _failatwith __FILE__ __LINE__ "should not infer match"
+
+and term_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
+    OL.term OL.typed =
+  let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
+  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
+  let self ctx e = term_type_check ctx e ty in
+  let open NL in
+  match (x.x, ty) with
+  | V v, _ ->
+      let v = value_type_check ctx { ty = x.ty; x = v } ty in
+      { ty = v.ty; x = V v.x }
+  | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) self
+  | LetDeTu { tu; args; body }, _ -> handle_letdetu ctx (tu, args, body) self
+  | LetApp { ret; f; args; body }, _ ->
+      handle_letapp ctx (ret, f, args, body) self
+  | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
+  | Ite (id, e1, e2), _ ->
+      let id = id_type_infer ctx id in
       let true_branch_prop x =
         Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
       in
@@ -249,12 +227,12 @@ and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
         Typectx.overlap ctx
           (OT.base_type_add_conjunction false_branch_prop id.ty, id.x)
       in
-      let e1 = bidirect_type_check true_branch_ctx e1 ty in
-      let e2 = bidirect_type_check false_branch_ctx e2 ty in
+      let e1 = term_type_check true_branch_ctx e1 ty in
+      let e2 = term_type_check false_branch_ctx e2 ty in
       (* NOTE: overappproximate here *)
       { ty; x = Ite (id, e1, e2) }
-  | Match (id, cases), ty ->
-      let id = bidirect_type_infer_id ctx id in
+  | Match (id, cases), _ ->
+      let id = id_type_infer ctx id in
       let handle_case { constructor; args; exp } =
         let constructor_ty = Prim.get_primitive_over_ty constructor in
         let constructor_ty = OT.arrow_args_rename args constructor_ty in
@@ -269,15 +247,19 @@ and bidirect_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed)
           Typectx.overlaps ctx @@ args
           @ [ (OT.base_type_add_conjunction retty_prop id.ty, id.x) ]
         in
-        let exp = bidirect_type_check ctx' exp ty in
+        let exp = term_type_check ctx' exp ty in
         OL.{ constructor; args = List.map snd args; exp }
       in
       let cases = List.map handle_case cases in
       (* NOTE: overappproximate here *)
       { ty; x = Match (id, cases) }
-  | _, _ -> _failatwith __FILE__ __LINE__ "die"
 
-let type_check x ty = bidirect_type_check [] x ty
+(* let x = term_type_infer ctx x in *)
+(* let () = Oversub.subtyping_check ctx x.ty ty in *)
+(* (\* NOTE: overappproximate here *\) *)
+(* { ty; x = x.x } *)
+
+let type_check x ty = term_type_check [] x ty
 
 module SNA = Languages.StrucNA
 module SOA = Languages.StrucOA
