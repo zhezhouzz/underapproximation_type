@@ -22,9 +22,10 @@ let foo =
   let x = (v : int) true in
   (v : int) true
 
-(* let foo = *)
-(*   let x = (v : int) false in *)
-(*   (v : int) false *)
+let foo =
+  let x = (v : int) false in
+  (v : int) false
+(* NOTE: should be typable *)
 
 (* let foo = *)
 (*   let x = (v : int) false in *)

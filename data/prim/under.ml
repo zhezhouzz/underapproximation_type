@@ -4,8 +4,8 @@ let lt =
   (v : bool) (iff v (a < b))
 
 let intadd =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = (v : int) false in
+  let b = (v : int) false in
   (v : int) (v == a + b)
 
 let intsub =

@@ -25,7 +25,17 @@ let _add_fv m prop =
   aux m prop
 
 let add_fv fv prop =
-  StrMap.to_key_list
-  @@ _add_fv (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv) prop
+  let fv =
+    StrMap.to_key_list
+    @@ _add_fv
+         (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
+         prop
+  in
+  (* let () = *)
+  (*   Printf.printf "FV %s:\n%s\n" *)
+  (*     (Frontend.pretty_layout prop) *)
+  (*     (StrList.to_string fv) *)
+  (* in *)
+  fv
 
 let fv prop = add_fv [] prop

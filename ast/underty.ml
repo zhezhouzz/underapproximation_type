@@ -173,7 +173,7 @@ module T = struct
                   {
                     basename;
                     normalty;
-                    prop = P.Exists (x, Implies (xprop, prop));
+                    prop = P.Exists (x, And [ xprop; prop ]);
                   }
               else ty
           | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)

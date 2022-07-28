@@ -17,6 +17,8 @@ module T = struct
 
   and constructor = { dname : id; dargs : t } [@@deriving sexp]
 
+  let is_basic_tp = function Ty_unit | Ty_int | Ty_bool -> true | _ -> false
+
   let eq x y =
     let rec aux (x, y) =
       match (x, y) with

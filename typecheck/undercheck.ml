@@ -15,51 +15,54 @@ let simply_ctx ctx fv =
   let rec aux fv = function
     | [] -> []
     | (name, ty) :: ctx ->
+        (* let () = *)
+        (*   Printf.printf "\tfind %s in %s\n" name (StrList.to_string fv) *)
+        (* in *)
         if in_fv fv name then
           match ty with
-          | UnderTy_base { basename; prop; _ } ->
+          | UnderTy_base { basename; prop; normalty } ->
               let prop = P.subst_id prop basename name in
               let fv' = Autov.add_prop_to_fv fv prop in
-              (name, prop) :: aux fv' ctx
+              (name, normalty, prop) :: aux fv' ctx
           | _ -> _failatwith __FILE__ __LINE__ "should not happen"
         else aux fv ctx
   in
-  aux fv ctx
+  List.rev @@ aux fv (List.rev ctx)
 
+(* TODO: well founded check *)
 let subtyping_to_query ctx typeself (prop1, prop2) =
   let fv = Autov.add_prop_to_fv [ typeself ] prop1 in
   let fv = Autov.add_prop_to_fv fv prop2 in
-  let () = Printf.printf "free variables: %s\n" (StrList.to_string fv) in
-  let ctxnames, pre = List.split @@ simply_ctx ctx fv in
-  (* let ctx = *)
-  (*   List.filter_map *)
-  (*     (fun (x, ty) -> *)
-  (*       UT.( *)
-  (*         match ty with *)
-  (*         | UnderTy_base { basename; prop; _ } -> *)
-  (*             let prop = P.subst_id prop basename x in *)
-  (*             Some (x, prop) *)
-  (*         | _ -> None)) *)
-  (*     ctx *)
-  (* in *)
-  (* let () = *)
-  (*   List.iter *)
-  (*     (fun name -> *)
-  (*       if *)
-  (*         String.equal typeself name *)
-  (*         || List.exists (fun (x, _) -> String.equal name x) ctx *)
-  (*       then () *)
-  (*       else *)
-  (*         _failatwith __FILE__ __LINE__ *)
-  (*         @@ spf "type context is not well founded, %s not found in ctx" name) *)
-  (*     fv *)
-  (* in *)
   let q =
+    let open Autov.Prop in
+    (* let body = *)
+    (*   Implies *)
+    (*     ( mk_forall_intqv typeself (fun _ -> prop2), *)
+    (*       mk_forall_intqv typeself (fun _ -> prop1) ) *)
+    (* in *)
     List.fold_right
-      (fun name prop -> Autov.Prop.mk_exists_intqv name (fun _ -> prop))
-      ctxnames
-      Autov.Prop.(And (pre @ [ Implies (prop2, prop1) ]))
+      (fun (x, xnty, xprop) prop ->
+        if NT.is_basic_tp xnty then
+          mk_exists_intqv x (fun _ -> And [ xprop; prop ])
+        else Implies (xprop, prop))
+      (simply_ctx ctx fv)
+      (Implies (prop2, prop1))
   in
+  (* let layout_fv ty fv = *)
+  (*   Printf.printf "free variables of (%s): %s\n" (Autov.layout_prop ty) *)
+  (*     (StrList.to_string fv) *)
+  (* in *)
+  (* let make_clause prop = *)
+  (*   let fv = Autov.add_prop_to_fv [ typeself ] prop in *)
+  (*   let () = layout_fv prop fv in *)
+  (*   let ctxnames, pre = List.split @@ simply_ctx ctx fv in *)
+  (*   Autov.Prop.( *)
+  (*     List.fold_right *)
+  (*       (fun name prop -> mk_exists_intqv name (fun _ -> prop)) *)
+  (*       ctxnames *)
+  (*       (And (pre @ [ prop ]))) *)
+  (* in *)
+  (* let q = Autov.Prop.(Implies (make_clause prop2, make_clause prop1)) in *)
   let () = Printf.printf "SMT check:\n%s\n" (Autov.pretty_layout_prop q) in
   q
 
@@ -151,6 +154,7 @@ let rec bidirect_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       let lhstys =
         match rhs.ty with
         | UT.UnderTy_tuple ts when List.length ts = List.length lhs -> ts
+        | UT.UnderTy_base _ when List.length lhs == 1 -> [ rhs.ty ]
         | _ -> _failatwith __FILE__ __LINE__ ""
       in
       let lhs =
