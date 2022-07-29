@@ -1,6 +1,6 @@
 let lt =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = (v : int) false in
+  let b = (v : int) false in
   (v : bool) (iff v (a < b))
 
 let intadd =
@@ -9,15 +9,15 @@ let intadd =
   (v : int) (v == a + b)
 
 let intsub =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = (v : int) false in
+  let b = (v : int) false in
   (v : int) (v == a - b)
 
 let intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 let rev_intlistnil = (v : int list) (fun (u : 'fa) -> not (mem v u))
 
 let intlistcons =
-  let h = (v : int) true in
+  let h = (v : int) false in
   let t = (v : int list) (fun (u : 'fa) -> implies (mem v u) (u == h)) in
   (v : int list)
     ((fun (u : 'ex) -> mem v u) && fun (u : 'fa) -> implies (mem v u) (u == h))

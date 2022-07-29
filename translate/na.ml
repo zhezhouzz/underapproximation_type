@@ -108,33 +108,33 @@ let remove_dummy_eq e =
 
 let remove_dummy_let e =
   let open NA in
-  let () = Printf.printf "start simplify\n" in
+  (* let () = Printf.printf "start simplify\n" in *)
   let rec aux_value e =
     match e.x with
     | Const _ | Var _ -> e
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
   and aux e =
-    let () =
-      Printf.printf "working on: %s\n"
-      @@ Frontend.Anormal.layout Term2normalanormal.to_term e
-    in
+    (* let () = *)
+    (*   Printf.printf "working on: %s\n" *)
+    (*   @@ Frontend.Anormal.layout Term2normalanormal.to_term e *)
+    (* in *)
     let x =
       match e.x with
       | V v ->
           let v = aux_value { ty = e.ty; x = v } in
           V v.x
       | LetApp { ret; f; args; body } ->
-          let () = Printf.printf "letapp branch\n" in
+          (* let () = Printf.printf "letapp branch\n" in *)
           LetApp { ret; f; args; body = aux body }
       | LetTu { tu; args; body } ->
-          let () = Printf.printf "lettu branch\n" in
+          (* let () = Printf.printf "lettu branch\n" in *)
           LetTu { tu; args; body = aux body }
       | LetDeTu { tu; args; body } ->
-          let () = Printf.printf "letdetu branch\n" in
+          (* let () = Printf.printf "letdetu branch\n" in *)
           LetDeTu { tu; args; body = aux body }
       | LetVal { lhs; rhs; body } -> (
-          let () = Printf.printf "letval branch\n" in
+          (* let () = Printf.printf "letval branch\n" in *)
           let body = aux body in
           match body.x with
           | V (Var id') when String.equal lhs.x id' ->

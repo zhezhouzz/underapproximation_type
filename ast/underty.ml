@@ -43,10 +43,16 @@ module T = struct
     in
     aux t
 
-  let base_type_add_conjunction f = function
+  let base_type_add_conjunction_with_selfname f = function
     | UnderTy_base { basename; normalty; prop } ->
         UnderTy_base
           { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
+    | _ -> _failatwith __FILE__ __LINE__ ""
+
+  let base_type_add_implication c = function
+    | UnderTy_base { basename; normalty; prop } ->
+        UnderTy_base
+          { basename; normalty; prop = Autov.Prop.(Implies (c, prop)) }
     | _ -> _failatwith __FILE__ __LINE__ ""
 
   let base_type_extract_prop = function

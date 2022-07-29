@@ -29,38 +29,27 @@ let simply_ctx ctx fv =
 
 (* TODO: well founded check *)
 let subtyping_to_query ctx typeself (prop1, prop2) =
-  let fv = Autov.add_prop_to_fv [ typeself ] prop1 in
-  let fv = Autov.add_prop_to_fv fv prop2 in
-  let q =
-    let open Autov.Prop in
-    (* let body = *)
-    (*   Implies *)
-    (*     ( mk_forall_intqv typeself (fun _ -> prop2), *)
-    (*       mk_forall_intqv typeself (fun _ -> prop1) ) *)
-    (* in *)
-    List.fold_right
-      (fun (x, xnty, xprop) prop ->
-        if NT.is_basic_tp xnty then
-          mk_exists_intqv x (fun _ -> And [ xprop; prop ])
-        else Implies (xprop, prop))
-      (simply_ctx ctx fv)
-      (Implies (prop2, prop1))
+  let fv_prop2 = Autov.add_prop_to_fv [ typeself ] prop2 in
+  let fv = Autov.add_prop_to_fv fv_prop2 prop1 in
+  let pre_common, pre_fv1 =
+    List.partition (fun (x, _, _) -> List.exists (String.equal x) fv_prop2)
+    @@ simply_ctx ctx fv
   in
-  (* let layout_fv ty fv = *)
-  (*   Printf.printf "free variables of (%s): %s\n" (Autov.layout_prop ty) *)
-  (*     (StrList.to_string fv) *)
-  (* in *)
-  (* let make_clause prop = *)
-  (*   let fv = Autov.add_prop_to_fv [ typeself ] prop in *)
-  (*   let () = layout_fv prop fv in *)
-  (*   let ctxnames, pre = List.split @@ simply_ctx ctx fv in *)
-  (*   Autov.Prop.( *)
-  (*     List.fold_right *)
-  (*       (fun name prop -> mk_exists_intqv name (fun _ -> prop)) *)
-  (*       ctxnames *)
-  (*       (And (pre @ [ prop ]))) *)
-  (* in *)
-  (* let q = Autov.Prop.(Implies (make_clause prop2, make_clause prop1)) in *)
+  let open Autov.Prop in
+  let p2 = prop2 in
+  let p1 =
+    List.fold_right
+      (fun (x, _, xprop) prop ->
+        mk_exists_intqv x (fun _ -> And [ xprop; prop ]))
+      pre_fv1 prop1
+  in
+  let q =
+    List.fold_right
+      (fun (x, _, xprop) prop ->
+        mk_forall_intqv x (fun _ -> Implies (xprop, prop)))
+      pre_common
+      (Implies (p2, p1))
+  in
   let () = Printf.printf "SMT check:\n%s\n" (Autov.pretty_layout_prop q) in
   q
 

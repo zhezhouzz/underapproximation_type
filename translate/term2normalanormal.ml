@@ -88,7 +88,8 @@ and convert (cont : cont) (e : term opttyped) (target_name : string option) :
       bind_value_with_name cont
         T.{ ty = ety; x = Lam ({ ty; x }, to_anormal body None) }
         (force_naming target_name)
-  | App (e, []) -> convert cont e target_name
+  (* NOTE: zero arguments applicaition is still need a name *)
+  (* | App (e, []) -> convert cont e target_name *)
   | App (e, es) ->
       convert
         T.(

@@ -50,18 +50,18 @@ let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     try Prim.get_primitive_under_ty id.x
     with _ ->
       let ty = Typectx.get_ty ctx id.x in
-      let ty =
-        UT.(
-          match ty with
-          | UnderTy_base { basename; normalty; prop } ->
-              UnderTy_base
-                {
-                  basename = id.x;
-                  normalty;
-                  prop = P.subst_id prop basename id.x;
-                }
-          | _ -> ty)
-      in
+      (* let ty = *)
+      (*   UT.( *)
+      (*     match ty with *)
+      (*     | UnderTy_base { basename; normalty; prop } -> *)
+      (*         UnderTy_base *)
+      (*           { *)
+      (*             basename = id.x; *)
+      (*             normalty; *)
+      (*             prop = P.subst_id prop basename id.x; *)
+      (*           } *)
+      (*     | _ -> ty) *)
+      (* in *)
       ty
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
@@ -199,15 +199,22 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       in
       let true_branch_ctx =
         Typectx.overlap ctx
-          (UT.base_type_add_conjunction true_branch_prop id.ty, id.x)
+          ( UT.base_type_add_conjunction_with_selfname true_branch_prop id.ty,
+            id.x )
       in
       let false_branch_ctx =
         Typectx.overlap ctx
-          (UT.base_type_add_conjunction false_branch_prop id.ty, id.x)
+          ( UT.base_type_add_conjunction_with_selfname false_branch_prop id.ty,
+            id.x )
       in
       let e1 = term_type_infer true_branch_ctx e1 in
       let e2 = term_type_infer false_branch_ctx e2 in
-      let tys = [ e1.ty; e2.ty ] in
+      let tys =
+        [
+          UT.base_type_add_implication (true_branch_prop id.x) e1.ty;
+          UT.base_type_add_implication (false_branch_prop id.x) e2.ty;
+        ]
+      in
       let () =
         List.iter
           (fun ty ->
@@ -253,7 +260,7 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         let ctx' =
           Typectx.overlaps ctx
           @@ UT.
-               ( base_type_add_conjunction
+               ( base_type_add_conjunction_with_selfname
                    (fun id ->
                      let basename, prop = base_type_extract_prop retty in
                      P.subst_id prop basename id)
