@@ -30,76 +30,101 @@ type conts = T.id T.typed list -> T.term T.typed
 let freshname () = Rename.unique "x"
 let ret () x = T.{ ty = x.ty; x = V (Var x.x) }
 
-(* let convert (cont : cont) e = *)
+(* let bind_value cont value = *)
 (*   let x = freshname () in *)
-(*   let body = cont T.{ ty = e.ty; x } in *)
-(*   T.make_let x e body *)
+(*   let body = cont T.{ ty = value.ty; x } in *)
+(*   T.make_letval x value body *)
 
-let bind_value cont value =
-  let x = freshname () in
+(* TODO: use value continuation *)
+
+let force_naming name = match name with None -> freshname () | Some x -> x
+
+let bind_value_with_name cont value x =
   let body = cont T.{ ty = value.ty; x } in
   T.make_letval x value body
 
 (* TODO: alpha renaming *)
-let rec to_anormal (e : term opttyped) : T.term T.typed = convert (ret ()) e
+let rec to_anormal (e : term opttyped) (target_name : string option) :
+    T.term T.typed =
+  convert (ret ()) e target_name
 
-and convert_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
+and convert_multi (conts : conts) (es : term opttyped list)
+    (target_names : string list option) : T.term T.typed =
   (* let convertings = *)
   (*   List.map (fun e -> ({ ty = get_tp e; x = freshname () }, e)) es *)
   (* in *)
+  let target_names =
+    match target_names with
+    | None -> List.map (fun _ -> None) es
+    | Some l -> List.map (fun x -> Some x) l
+  in
   (List.fold_left
-     (fun cont rhs names -> convert (fun name -> cont (name :: names)) rhs)
-     conts es)
+     (fun cont (rhs, target_name) names ->
+       convert (fun name -> cont (name :: names)) rhs target_name)
+     conts
+  @@ List.combine es target_names)
     []
 
-and convert (cont : cont) (e : term opttyped) : T.term T.typed =
+and convert (cont : cont) (e : term opttyped) (target_name : string option) :
+    T.term T.typed =
   let ety = get_tp e in
   match e.x with
-  | Const v -> bind_value cont T.{ ty = ety; x = Const v }
+  | Const v ->
+      bind_value_with_name cont
+        T.{ ty = ety; x = Const v }
+        (force_naming target_name)
   | Var id -> cont T.{ ty = ety; x = id }
+  | Tu [] -> _failatwith __FILE__ __LINE__ "wrong tuple"
+  | Tu [ e ] -> convert cont e target_name
   | Tu es ->
       convert_multi
         T.(
           fun args ->
-            let x = freshname () in
-            let tu = { ty = ety; x } in
+            let tu = { ty = ety; x = force_naming target_name } in
             let body = cont tu in
             { ty = body.ty; x = LetTu { tu; args; body } })
-        es
+        es None
   | Lam (ty, x, body) ->
-      bind_value cont T.{ ty = ety; x = Lam ({ ty; x }, to_anormal body) }
+      bind_value_with_name cont
+        T.{ ty = ety; x = Lam ({ ty; x }, to_anormal body None) }
+        (force_naming target_name)
+  | App (e, []) -> convert cont e target_name
   | App (e, es) ->
       convert
         T.(
           fun f ->
             convert_multi
               (fun args ->
-                let x = freshname () in
-                let ret = { ty = ety; x } in
+                let ret = { ty = ety; x = force_naming target_name } in
                 let body = cont ret in
                 { ty = body.ty; x = LetApp { ret; f; args; body } })
-              es)
-        e
-  | Let (false, lhs, rhs, body) ->
+              es None)
+        e None
+  | Let (false, lhs, rhs, body) -> (
+      let body = convert cont body target_name in
       let lhs = List.map T.(fun (ty, x) -> { ty; x }) lhs in
-      convert
-        (fun rhs ->
-          let body = convert cont body in
-          match lhs with
-          | [] -> _failatwith __FILE__ __LINE__ ""
-          | [ lhs ] ->
-              {
-                ty = body.ty;
-                x = LetVal { lhs; rhs = { ty = rhs.ty; x = Var rhs.x }; body };
-              }
-          | _ -> { ty = body.ty; x = LetDeTu { args = lhs; tu = rhs; body } })
-        rhs
+      match lhs with
+      | [] -> _failatwith __FILE__ __LINE__ ""
+      | [ lhs ] ->
+          convert
+            (fun _ ->
+              (* { *)
+              (*   ty = body.ty; *)
+              (*   x = LetVal { lhs; rhs = { ty = rhs.ty; x = Var rhs.x }; body }; *)
+              (* } *)
+              body)
+            rhs (Some lhs.x)
+      | _ ->
+          convert
+            (fun rhs ->
+              { ty = body.ty; x = LetDeTu { args = lhs; tu = rhs; body } })
+            rhs None)
   | Let (true, [ (ty, x) ], rhs, body) ->
+      let body = convert cont body target_name in
       let f = T.{ ty; x } in
       convert
         T.(
           fun rhs ->
-            let body = convert cont body in
             {
               ty = body.ty;
               x =
@@ -111,12 +136,13 @@ and convert (cont : cont) (e : term opttyped) : T.term T.typed =
                     body;
                   };
             })
-        rhs
+        rhs None
   | Let (true, _, _, _) -> _failatwith __FILE__ __LINE__ "invalid term lang"
   | Ite (e1, e2, e3) ->
       convert
-        (fun x -> mk_t_term ety @@ T.Ite (x, to_anormal e2, to_anormal e3))
-        e1
+        (fun x ->
+          mk_t_term ety @@ T.Ite (x, to_anormal e2 None, to_anormal e3 None))
+        e1 None
   | Match (e, cases) ->
       convert
         (fun x ->
@@ -128,10 +154,10 @@ and convert (cont : cont) (e : term opttyped) : T.term T.typed =
                      {
                        T.constructor = case.constructor;
                        T.args = case.args;
-                       T.exp = to_anormal case.exp;
+                       T.exp = to_anormal case.exp None;
                      })
                    cases ))
-        e
+        e None
 
 let id_trans_rev (e : T.id T.typed) = { ty = Some e.T.ty; x = e.T.x }
 
