@@ -4,11 +4,14 @@ module T = struct
   type ty = Smtty.T.t [@@deriving sexp]
   type 'a typed = { ty : ty; x : 'a } [@@deriving sexp]
 
-  type lit = ACint of int | AVar of string typed | AOp2 of string * lit * lit
+  type lit =
+    | ACint of int
+    | AVar of string typed
+    | AOp2 of string * lit * lit
+    | ACbool of bool
   [@@deriving sexp]
 
   type t =
-    | True
     | Lit of lit
     | Implies of t * t
     | Ite of t * t * t
@@ -21,6 +24,9 @@ module T = struct
     | Exists of string typed * t
   [@@deriving sexp]
 
+  let mk_true = Lit (ACbool true)
+  let mk_false = Lit (ACbool false)
+
   let is_op = function
     | "==" | "!=" | "<" | ">" | "<=" | ">=" | "+" | "-" -> true
     | _ -> false
@@ -29,6 +35,7 @@ module T = struct
   let lit_get_ty lit =
     let aux = function
       | ACint _ -> Smtty.T.Int
+      | ACbool _ -> Smtty.T.Bool
       | AVar id -> id.ty
       | AOp2 (mp, _, _) -> (
           match mp with
@@ -50,6 +57,7 @@ module T = struct
     let do_subst x y id = if typed_id_eq x id then y else id in
     let rec aux = function
       | ACint n -> ACint n
+      | ACbool b -> ACbool b
       | AVar id -> AVar (do_subst x y id)
       | AOp2 (op, a, b) -> AOp2 (op, aux a, aux b)
     in
@@ -58,7 +66,6 @@ module T = struct
   let subst_typed_id t x y =
     let rec aux t =
       match t with
-      | True -> True
       | Lit lit -> Lit (subst_lit_typed_id lit x y)
       | Implies (e1, e2) -> Implies (aux e1, aux e2)
       | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
@@ -79,6 +86,7 @@ module T = struct
     in
     let rec aux = function
       | ACint n -> ACint n
+      | ACbool n -> ACbool n
       | AVar id -> AVar (do_subst x y id)
       | AOp2 (op, a, b) -> AOp2 (op, aux a, aux b)
     in
@@ -87,7 +95,6 @@ module T = struct
   let subst_id t x y =
     let rec aux t =
       match t with
-      | True -> t
       | Lit lit -> Lit (subst_lit_id lit x y)
       | Implies (e1, e2) -> Implies (aux e1, aux e2)
       | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
@@ -116,6 +123,7 @@ module T = struct
     let rec aux (l1, l2) =
       match (l1, l2) with
       | ACint n, ACint n' -> n == n'
+      | ACbool n, ACbool n' -> n == n'
       | AVar id, AVar id' -> typed_id_eq id id'
       | AOp2 (mp, a, b), AOp2 (mp', a', b') ->
           String.equal mp mp' && aux (a, a') && aux (b, b')
@@ -126,7 +134,6 @@ module T = struct
   let strict_eq t1 t2 =
     let rec aux (t1, t2) =
       match (t1, t2) with
-      | True, True -> true
       | Lit lit, Lit lit' -> lit_strict_eq lit lit'
       | Implies (e1, e2), Implies (e1', e2') -> aux (e1, e1') && aux (e2, e2')
       | Ite (e1, e2, e3), Ite (e1', e2', e3') ->
@@ -147,4 +154,28 @@ module T = struct
       | _, _ -> false
     in
     aux (t1, t2)
+
+  let instantiate_vars (y, lit) t =
+    let rec aux_lit t =
+      match t with
+      | ACint _ -> t
+      | ACbool _ -> t
+      | AVar id -> if String.equal id.x y then lit else t
+      | AOp2 (op, a, b) -> AOp2 (op, aux_lit a, aux_lit b)
+    in
+    let rec aux t =
+      match t with
+      | Lit lit -> Lit (aux_lit lit)
+      | Implies (e1, e2) -> Implies (aux e1, aux e2)
+      | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+      | Not e -> Not (aux e)
+      | And es -> And (List.map aux es)
+      | Or es -> Or (List.map aux es)
+      | Iff (e1, e2) -> Iff (aux e1, aux e2)
+      | MethodPred (mp, args) ->
+          MethodPred (mp, List.map (fun lit -> aux_lit lit) args)
+      | Forall (u, e) -> if String.equal u.x y then t else Forall (u, aux e)
+      | Exists (u, e) -> if String.equal u.x y then t else Exists (u, aux e)
+    in
+    aux t
 end

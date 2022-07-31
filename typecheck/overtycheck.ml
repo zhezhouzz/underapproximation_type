@@ -13,7 +13,7 @@ let rec infer_lit ctx lit =
   let open Autov.Prop in
   match lit with
   | AVar id -> AVar (infer_id ctx id)
-  | ACint n -> ACint n
+  | ACint _ | ACbool _ -> lit
   | AOp2 (mp, a, b) ->
       let a = infer_lit ctx a in
       let b = infer_lit ctx b in
@@ -25,7 +25,6 @@ let infer_prop ctx t =
   let open Autov.Prop in
   let rec aux ctx t =
     match t with
-    | True -> True
     | Lit lit -> Lit (infer_lit ctx lit)
     | Implies (e1, e2) -> Implies (aux ctx e1, aux ctx e2)
     | Ite (e1, e2, e3) -> Ite (aux ctx e1, aux ctx e2, aux ctx e3)

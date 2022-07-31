@@ -73,7 +73,7 @@ module T = struct
       }
 
   let make_basic_top basename normalty =
-    make_basic basename normalty (fun _ -> P.True)
+    make_basic basename normalty (fun _ -> P.mk_true)
 
   let make_arrow argname normalty argtyf rettyf =
     let id = P.{ ty = Normalty.T.to_smtty normalty; x = argname } in
@@ -187,4 +187,24 @@ module T = struct
           | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
         in
         aux ty
+
+  let instantiate_vars (x, lit) t =
+    let rec aux t =
+      match t with
+      | UnderTy_base { basename; normalty; prop } ->
+          if String.equal basename x then t
+          else
+            UnderTy_base
+              {
+                basename;
+                normalty;
+                prop = Autov.Prop.instantiate_vars (x, lit) prop;
+              }
+      | UnderTy_arrow { argname; argty; retty } ->
+          let argty = aux argty in
+          let retty = if String.equal argname x then retty else aux retty in
+          UnderTy_arrow { argname; argty; retty }
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
+    in
+    aux t
 end

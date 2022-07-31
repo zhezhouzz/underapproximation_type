@@ -23,6 +23,7 @@ let z3func ctx funcname inptps outtp =
 let lit_to_z3 ctx lit =
   let rec aux = function
     | ACint n -> int_to_z3 ctx n
+    | ACbool n -> bool_to_z3 ctx n
     | AVar x -> tpedvar_to_z3 ctx (x.ty, x.x)
     | AOp2 (mp, a, b) -> (
         let a = aux a in
@@ -43,7 +44,6 @@ let lit_to_z3 ctx lit =
 let to_z3 ctx prop =
   let rec aux prop =
     match prop with
-    | True -> bool_to_z3 ctx true
     | Lit lit -> lit_to_z3 ctx lit
     | Implies (p1, p2) -> Z3.Boolean.mk_implies ctx (aux p1) (aux p2)
     | Ite (p1, p2, p3) -> Z3.Boolean.mk_ite ctx (aux p1) (aux p2) (aux p3)

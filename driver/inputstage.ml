@@ -16,6 +16,7 @@ let load_ssa source_file =
     Printf.printf "[Loading typed A-normal from]:\n%s\n"
       (Structure.layout @@ Trans.struc_nan_to_term code)
   in
+  let _ = failwith "end" in
   code
 
 let load_over_refinments refine_file =

@@ -73,8 +73,8 @@ let prop_of_ocamlexpr expr =
     | Pexp_ident _ | Pexp_constant _ -> L.Lit (lit_of_ocamlexpr expr)
     | Pexp_construct (id, None) -> (
         match Longident.last id.txt with
-        | "true" -> L.True
-        | "false" -> L.Not L.True
+        | "true" -> L.mk_true
+        | "false" -> L.mk_false
         | _ -> raise @@ failwith "do not support complicate literal")
     | Pexp_construct (_, Some _) -> raise @@ failwith "Pexp_construct"
     | Pexp_let _ -> failwith "parsing: prop does not have let"
@@ -156,6 +156,12 @@ let rec lit_to_expr lit =
   | ACint n ->
       desc_to_ocamlexpr
       @@ Pexp_constant (Pconst_integer (string_of_int n, None))
+  | ACbool true ->
+      desc_to_ocamlexpr
+        (Pexp_construct (Location.mknoloc @@ Longident.Lident "true", None))
+  | ACbool false ->
+      desc_to_ocamlexpr
+        (Pexp_construct (Location.mknoloc @@ Longident.Lident "false", None))
   | AVar id -> string_to_expr id.x
   | AOp2 (mp, a, b) ->
       let a = lit_to_expr a in
@@ -168,12 +174,6 @@ let prop_to_expr prop =
   let rec aux e =
     let aux' x = (Asttypes.Nolabel, aux x) in
     match e with
-    | P.True ->
-        desc_to_ocamlexpr
-          (Pexp_construct (Location.mknoloc @@ Longident.Lident "true", None))
-    | P.Not P.True ->
-        desc_to_ocamlexpr
-          (Pexp_construct (Location.mknoloc @@ Longident.Lident "false", None))
     | P.Lit lit -> lit_to_expr lit
     | P.MethodPred (mp, args) ->
         desc_to_ocamlexpr
@@ -243,14 +243,14 @@ open Zzdatatype.Datatype
 
 let rec lit_pretty_layout = function
   | ACint n -> string_of_int n
+  | ACbool false -> "⊥"
+  | ACbool true -> "⊤"
   | AVar id -> id.x
   | AOp2 (mp, a, b) ->
       sprintf "(%s %s %s)" (lit_pretty_layout a) mp (lit_pretty_layout b)
 
 let pretty_layout x =
   let rec layout = function
-    | True -> "⊤"
-    | Not True -> "⊥"
     | Lit lit -> lit_pretty_layout lit
     | MethodPred (mp, args) ->
         let args = List.map lit_pretty_layout args in

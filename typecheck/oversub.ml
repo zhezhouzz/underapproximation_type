@@ -29,7 +29,9 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
           String.equal typeself name
           || List.exists (fun (x, _) -> String.equal name x) ctx
         then ()
-        else _failatwith __FILE__ __LINE__ @@ "type context is not well founded")
+        else
+          _failatwith __FILE__ __LINE__
+          @@ spf "type context is not well founded, %s not found" name)
       fv
   in
   let pre = List.map snd ctx in

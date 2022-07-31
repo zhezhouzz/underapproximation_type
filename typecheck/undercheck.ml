@@ -2,11 +2,19 @@ module NL = Languages.NormalAnormal
 module UL = Languages.UnderAnormal
 module NT = Languages.Normalty
 module UT = Languages.Underty
+module P = Autov.Prop
 open Zzdatatype.Datatype
 open Abstraction
 open Sugar
 
 let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
+
+let lit_to_prop_lit (ty, x) =
+  let open UL in
+  match x with
+  | ConstB b -> P.(ACbool b)
+  | ConstI i -> P.(ACint i)
+  | Var id -> P.(AVar { ty; x = id })
 
 let erase_check file line (underfty, normalty) =
   (* let () = *)
@@ -32,17 +40,17 @@ let hide_depedent_var ctx name ty =
       UT.exists_quantify_variable_in_ty name argty ty
   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
-let const_type_infer v =
-  let open Value in
-  match v with
-  | U -> _failatwith __FILE__ __LINE__ ""
-  | I n ->
-      UT.(
-        make_basic "_nu" NT.Ty_int (fun nu ->
-            P.(Lit (AOp2 ("==", AVar nu, ACint n)))))
-  | B true -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Lit (AVar nu)))
-  | B false -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu))))
-  | _ -> _failatwith __FILE__ __LINE__ ""
+(* let const_type_infer v = *)
+(*   let open Value in *)
+(*   match v with *)
+(*   | U -> _failatwith __FILE__ __LINE__ "" *)
+(*   | I n -> *)
+(*       UT.( *)
+(*         make_basic "_nu" NT.Ty_int (fun nu -> *)
+(*             P.(Lit (AOp2 ("==", AVar nu, ACint n))))) *)
+(*   | B true -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Lit (AVar nu))) *)
+(*   | B false -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu)))) *)
+(*   | _ -> _failatwith __FILE__ __LINE__ "" *)
 
 let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
@@ -72,39 +80,69 @@ and id_type_check (ctx : UT.t Typectx.t) (id : NL.id NL.typed) (ty : UT.t) :
   let () = Undersub.subtyping_check ctx id.UL.ty ty in
   id
 
+and lit_type_infer (ctx : UT.t Typectx.t) (lit : NL.smt_lit NL.typed) :
+    UL.smt_lit UL.typed =
+  let open NL in
+  match lit.x with
+  | ConstI n ->
+      UT.
+        {
+          ty =
+            make_basic "_nu" NT.Ty_int (fun nu ->
+                P.(Lit (AOp2 ("==", AVar nu, ACint n))));
+          x = ConstI n;
+        }
+  | ConstB true ->
+      UT.
+        {
+          ty = make_basic "_nu" NT.Ty_int (fun nu -> Lit (AVar nu));
+          x = ConstB true;
+        }
+  | ConstB false ->
+      UT.
+        {
+          ty = make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu)));
+          x = ConstB true;
+        }
+  | Var id ->
+      let id = id_type_infer ctx { ty = lit.ty; x = id } in
+      UL.{ ty = id.ty; x = Var id.x }
+
 and value_type_infer (ctx : UT.t Typectx.t) (a : NL.value NL.typed) :
     UL.value UL.typed =
-  let open NL in
+  let aty = a.ty in
   match a.x with
-  | Const v -> UL.{ ty = const_type_infer v; x = Const v }
-  | Var x ->
-      let x = id_type_infer ctx { ty = a.ty; x } in
-      UL.{ ty = x.ty; x = Var x.x }
-  | Lam (_, _) ->
+  | NL.Lit lit ->
+      let lit = lit_type_infer ctx { ty = aty; x = lit } in
+      UL.{ ty = lit.ty; x = Lit lit.x }
+  | NL.Lam (_, _) ->
       (* NOTE: Can we infer a type of the lambda function without the argment type? *)
       _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
-  | Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
+  | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
 and value_type_check (ctx : UT.t Typectx.t) (a : NL.value NL.typed) (ty : UT.t)
     : UL.value UL.typed =
-  let open NL in
-  match (a.x, ty) with
-  | Const _, _ | Var _, _ ->
+  match (a.NL.x, ty) with
+  | NL.Lit _, _ ->
       let x = value_type_infer ctx a in
       let () = Undersub.subtyping_check ctx x.ty ty in
       x
-  | Lam (id, body), UT.(UnderTy_arrow { argname; argty; retty }) ->
+  | NL.Lam (id, body), UT.(UnderTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = UT.subst_id retty argname id.x in
       let ctx' = Typectx.overlap ctx (argty, id.x) in
       let body = term_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
-  | Fix _, _ -> _failatwith __FILE__ __LINE__ "unimp"
+  | NL.Fix (f, body), ty ->
+      let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
+      let ctx' = Typectx.overlap ctx (ty, f.x) in
+      let body = value_type_check ctx' body ty in
+      { ty; x = Fix ({ ty; x = f.x }, body) }
   | _, _ -> _failatwith __FILE__ __LINE__ ""
 
 and handle_lettu ctx (tu, args, body) self =
   let open UL in
-  let args = List.map (id_type_infer ctx) args in
+  let args = List.map (lit_type_infer ctx) args in
   let tuty = UT.UnderTy_tuple (List.map (fun x -> x.ty) args) in
   let tu = erase_check_mk_id __FILE__ __LINE__ tu tuty in
   let tu = { x = tu.x; ty = tuty } in
@@ -147,13 +185,34 @@ and handle_letdetu ctx (tu, args, body) self =
 and handle_letapp ctx (ret, f, args, body) self =
   let open UL in
   let f = id_type_infer ctx f in
-  let fty' = UT.arrow_args_rename (List.map (fun x -> x.NL.x) args) f.ty in
-  let argsty, retty = UT.destruct_arrow_tp fty' in
-  let args =
-    List.map (fun ((argty, _), arg) -> id_type_check ctx arg argty)
-    @@ List.combine argsty args
+  let args = List.map (lit_type_infer ctx) args in
+  let argsty, retty = UT.destruct_arrow_tp f.ty in
+  let _ =
+    List.fold_left
+      (fun ctx (arg, (ty, id)) ->
+        let () = Undersub.subtyping_check ctx arg.ty ty in
+        let ctx' = Typectx.overlap ctx (ty, id) in
+        ctx')
+      ctx
+    @@ List.combine args argsty
   in
+  (* let fty' = UT.arrow_args_rename (List.map (fun x -> x.NL.x) args) f.ty in *)
   let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
+  let litbindings =
+    List.map
+      (fun arg -> lit_to_prop_lit (NT.to_smtty @@ UT.erase arg.ty, arg.x))
+      args
+  in
+  let ret =
+    {
+      ty =
+        List.fold_left
+          (fun ret ((_, x), lit) -> UT.instantiate_vars (x, lit) ret)
+          ret.ty
+        @@ List.combine argsty litbindings;
+      x = ret.x;
+    }
+  in
   let ctx' = Typectx.overlap ctx (ret.ty, ret.x) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
@@ -189,8 +248,8 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       handle_letapp ctx (ret, f, args, body) term_type_infer
   | LetVal { lhs; rhs; body } ->
       handle_letval ctx (lhs, rhs, body) term_type_infer
-  | Ite (id, e1, e2) ->
-      let id = id_type_infer ctx id in
+  | Ite { cond; e_t; e_f } ->
+      let cond = id_type_infer ctx cond in
       let true_branch_prop x =
         Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
       in
@@ -199,20 +258,20 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       in
       let true_branch_ctx =
         Typectx.overlap ctx
-          ( UT.base_type_add_conjunction_with_selfname true_branch_prop id.ty,
-            id.x )
+          ( UT.base_type_add_conjunction_with_selfname true_branch_prop cond.ty,
+            cond.x )
       in
       let false_branch_ctx =
         Typectx.overlap ctx
-          ( UT.base_type_add_conjunction_with_selfname false_branch_prop id.ty,
-            id.x )
+          ( UT.base_type_add_conjunction_with_selfname false_branch_prop cond.ty,
+            cond.x )
       in
-      let e1 = term_type_infer true_branch_ctx e1 in
-      let e2 = term_type_infer false_branch_ctx e2 in
+      let e_t = term_type_infer true_branch_ctx e_t in
+      let e_f = term_type_infer false_branch_ctx e_f in
       let tys =
         [
-          UT.base_type_add_implication (true_branch_prop id.x) e1.ty;
-          UT.base_type_add_implication (false_branch_prop id.x) e2.ty;
+          UT.base_type_add_implication (true_branch_prop cond.x) e_t.ty;
+          UT.base_type_add_implication (false_branch_prop cond.x) e_f.ty;
         ]
       in
       let () =
@@ -227,9 +286,9 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         @@ Frontend.Undertype.pretty_layout ty
       in
       (* NUTE: underappproximate here *)
-      { ty; x = Ite (id, e1, e2) }
-  | Match (id, cases) ->
-      let id = id_type_infer ctx id in
+      { ty; x = Ite { cond; e_t; e_f } }
+  | Match { matched; cases } ->
+      let matched = id_type_infer ctx matched in
       let handle_case { constructor; args; exp } =
         let constructor_ty = Prim.get_primitive_rev_under_ty constructor in
         let retty, args =
@@ -237,7 +296,7 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
           match constructor_ty with
           | UnderTy_base _ -> (constructor_ty, [])
           | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
-              let ts = List.map (fun t -> UT.subst_id t argname id.x) ts in
+              let ts = List.map (fun t -> UT.subst_id t argname matched.x) ts in
               let tsargs = _safe_combine __FILE__ __LINE__ ts args in
               let args =
                 List.map
@@ -264,8 +323,8 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
                    (fun id ->
                      let basename, prop = base_type_extract_prop retty in
                      P.subst_id prop basename id)
-                   id.ty,
-                 id.x )
+                   matched.ty,
+                 matched.x )
              :: args
         in
         let exp = term_type_infer ctx' exp in
@@ -284,7 +343,7 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         Printf.printf "merged case ty: %s\n"
         @@ Frontend.Undertype.pretty_layout ty
       in
-      { ty; x = Match (id, cases) }
+      { ty; x = Match { matched; cases } }
 
 and term_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed) (ty : UT.t) :
     UL.term UL.typed =
@@ -301,7 +360,7 @@ and term_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed) (ty : UT.t) :
   | LetApp { ret; f; args; body }, _ ->
       handle_letapp ctx (ret, f, args, body) self
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
-  | Ite (_, _, _), _ | Match (_, _), _ ->
+  | Ite _, _ | Match _, _ ->
       let x = term_type_infer ctx x in
       let () = Undersub.subtyping_check ctx x.ty ty in
       (* NOTE: underappproximate here *)
