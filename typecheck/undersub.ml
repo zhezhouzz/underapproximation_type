@@ -39,14 +39,18 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
   let p2 = prop2 in
   let p1 =
     List.fold_right
-      (fun (x, _, xprop) prop ->
-        mk_exists_intqv x (fun _ -> And [ xprop; prop ]))
+      (fun (x, nty, xprop) prop ->
+        mk_exists
+          (Languages.Normalty.to_smtty nty, x)
+          (fun _ -> And [ xprop; prop ]))
       pre_fv1 prop1
   in
   let q =
     List.fold_right
-      (fun (x, _, xprop) prop ->
-        mk_forall_intqv x (fun _ -> Implies (xprop, prop)))
+      (fun (x, nty, xprop) prop ->
+        mk_forall
+          (Languages.Normalty.to_smtty nty, x)
+          (fun _ -> Implies (xprop, prop)))
       pre_common
       (Implies (p2, p1))
   in

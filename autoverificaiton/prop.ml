@@ -111,12 +111,12 @@ module T = struct
 
   let mk_mp_vars mp args = MethodPred (mp, List.map (fun x -> AVar x) args)
 
-  let mk_forall_intqv x prop =
-    let u = { ty = Smtty.T.Int; x } in
+  let mk_forall (ty, x) prop =
+    let u = { ty; x } in
     Forall (u, prop u)
 
-  let mk_exists_intqv x prop =
-    let u = { ty = Smtty.T.Int; x } in
+  let mk_exists (ty, x) prop =
+    let u = { ty; x } in
     Exists (u, prop u)
 
   let lit_strict_eq l1 l2 =

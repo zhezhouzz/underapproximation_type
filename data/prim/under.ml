@@ -1,7 +1,17 @@
-let lt =
+let inteq =
+  let a = (v : int) false in
+  let b = (v : int) false in
+  (v : bool) (iff v (a == b))
+
+let intlt =
   let a = (v : int) false in
   let b = (v : int) false in
   (v : bool) (iff v (a < b))
+
+let intgt =
+  let a = (v : int) false in
+  let b = (v : int) false in
+  (v : bool) (iff v (a > b))
 
 let intadd =
   let a = (v : int) false in

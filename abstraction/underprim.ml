@@ -5,7 +5,9 @@ module T = Autov.Smtty
 
 let tab_names =
   [
-    ("lt", "<");
+    ("intlt", "<");
+    ("intgt", ">");
+    ("inteq", "==");
     ("intlistnil", "[]");
     ("intlistcons", "::");
     ("intadd", "+");

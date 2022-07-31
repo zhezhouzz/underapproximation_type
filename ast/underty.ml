@@ -170,6 +170,10 @@ module T = struct
         let xprop = P.subst_id prop basename xname in
         let smtty = Normalty.T.to_smtty normalty in
         let x = P.{ ty = smtty; x = xname } in
+        (* let _ = *)
+        (*   Printf.printf "make qv: %s --> %s:%s\n" xname xname *)
+        (*     (Autov.Smtty.layout smtty) *)
+        (* in *)
         let rec aux ty =
           match ty with
           | UnderTy_base { basename; normalty; prop } ->
