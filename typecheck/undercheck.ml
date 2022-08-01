@@ -34,11 +34,11 @@ let erase_check_mk_id file line id underfty =
   let _ = _check_equality file line NT.eq (UT.erase underfty) id.NL.ty in
   UL.{ ty = underfty; x = id.x }
 
-let hide_depedent_var ctx name ty =
-  match List.rev ctx with
-  | (name', argty) :: _ when String.equal name name' ->
-      UT.exists_quantify_variable_in_ty name argty ty
-  | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
+(* let hide_depedent_var ctx name ty = *)
+(*   match List.rev ctx with *)
+(*   | (name', argty) :: _ when String.equal name name' -> *)
+(*       UT.hide_quantify_variable_in_ty name argty ty *)
+(*   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error" *)
 
 (* let const_type_infer v = *)
 (*   let open Value in *)
@@ -150,7 +150,7 @@ and handle_lettu ctx (tu, args, body) self =
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
-    ty = UT.exists_quantify_variable_in_ty tu.x tu.ty body.ty;
+    ty = UT.hide_quantify_variable_in_ty tu.x tu.ty body.ty;
     x = LetTu { tu; args; body };
   }
 
@@ -177,7 +177,7 @@ and handle_letdetu ctx (tu, args, body) self =
   (* TODO: sanity check before hide depedent vars *)
   let ty =
     List.fold_right
-      (fun id ty -> UT.exists_quantify_variable_in_ty id.x id.ty ty)
+      (fun id ty -> UT.hide_quantify_variable_in_ty id.x id.ty ty)
       args body.ty
   in
   { ty; x = LetDeTu { tu; args; body } }
@@ -217,7 +217,7 @@ and handle_letapp ctx (ret, f, args, body) self =
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
-    ty = UT.exists_quantify_variable_in_ty ret.x ret.ty body.ty;
+    ty = UT.hide_quantify_variable_in_ty ret.x ret.ty body.ty;
     x = LetApp { ret; f; args; body };
   }
 
@@ -229,7 +229,7 @@ and handle_letval ctx (lhs, rhs, body) self =
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
-    ty = UT.exists_quantify_variable_in_ty lhs.x lhs.ty body.ty;
+    ty = UT.hide_quantify_variable_in_ty lhs.x lhs.ty body.ty;
     x = LetVal { lhs; rhs; body };
   }
 
@@ -270,8 +270,8 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
       let e_f = term_type_infer false_branch_ctx e_f in
       let tys =
         [
-          UT.base_type_add_implication (true_branch_prop cond.x) e_t.ty;
-          UT.base_type_add_implication (false_branch_prop cond.x) e_f.ty;
+          UT.base_type_add_conjunction (true_branch_prop cond.x) e_t.ty;
+          UT.base_type_add_conjunction (false_branch_prop cond.x) e_f.ty;
         ]
       in
       let () =
@@ -316,22 +316,24 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
               (argty, args)
           | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
         in
+        let branch_prop id =
+          let basename, prop = UT.base_type_extract_prop retty in
+          P.subst_id prop basename id
+        in
         let ctx' =
           Typectx.overlaps ctx
           @@ UT.
-               ( base_type_add_conjunction_with_selfname
-                   (fun id ->
-                     let basename, prop = base_type_extract_prop retty in
-                     P.subst_id prop basename id)
-                   matched.ty,
+               ( base_type_add_conjunction_with_selfname branch_prop matched.ty,
                  matched.x )
              :: args
         in
         let exp = term_type_infer ctx' exp in
-        UL.{ constructor; args = List.map snd args; exp }
+        let casety =
+          UT.base_type_add_conjunction (branch_prop matched.x) exp.ty
+        in
+        (casety, UL.{ constructor; args = List.map snd args; exp })
       in
-      let cases = List.map handle_case cases in
-      let tys = List.map UL.(fun x -> x.exp.ty) cases in
+      let tys, cases = List.split @@ List.map handle_case cases in
       let () =
         List.iter
           (fun ty ->

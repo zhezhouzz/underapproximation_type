@@ -38,11 +38,17 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
   let open Autov.Prop in
   let p2 = prop2 in
   let p1 =
+    (* TODO: unify this part *)
     List.fold_right
       (fun (x, nty, xprop) prop ->
-        mk_exists
-          (Languages.Normalty.to_smtty nty, x)
-          (fun _ -> And [ xprop; prop ]))
+        if Normalty.T.is_basic_tp nty then
+          mk_exists
+            (Languages.Normalty.to_smtty nty, x)
+            (fun _ -> And [ xprop; prop ])
+        else
+          mk_forall
+            (Languages.Normalty.to_smtty nty, x)
+            (fun _ -> Implies (xprop, prop)))
       pre_fv1 prop1
   in
   let q =

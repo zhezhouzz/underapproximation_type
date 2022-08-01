@@ -55,6 +55,11 @@ module T = struct
           { basename; normalty; prop = Autov.Prop.(Implies (c, prop)) }
     | _ -> _failatwith __FILE__ __LINE__ ""
 
+  let base_type_add_conjunction c = function
+    | UnderTy_base { basename; normalty; prop } ->
+        UnderTy_base { basename; normalty; prop = Autov.Prop.(And [ c; prop ]) }
+    | _ -> _failatwith __FILE__ __LINE__ ""
+
   let base_type_extract_prop = function
     | UnderTy_base { basename; prop; _ } -> (basename, prop)
     | _ -> _failatwith __FILE__ __LINE__ ""
@@ -162,7 +167,15 @@ module T = struct
     | [ t ] -> t
     | h :: t -> List.fold_left disjunct h t
 
-  let exists_quantify_variable_in_ty xname xty ty =
+  let hide_exists_quantify_variable_in_prop x xprop (basename, normalty, prop) =
+    UnderTy_base
+      { basename; normalty; prop = P.Exists (x, And [ xprop; prop ]) }
+
+  let hide_forall_quantify_variable_in_prop x xprop (basename, normalty, prop) =
+    UnderTy_base
+      { basename; normalty; prop = P.Forall (x, Implies (xprop, prop)) }
+
+  let hide_quantify_variable_in_ty xname xty ty =
     match xty with
     | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "arrow type"
     | UnderTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
@@ -179,12 +192,12 @@ module T = struct
           | UnderTy_base { basename; normalty; prop } ->
               let fv = Autov.prop_fv prop in
               if List.exists (fun x' -> String.equal x.x x') fv then
-                UnderTy_base
-                  {
-                    basename;
-                    normalty;
-                    prop = P.Exists (x, And [ xprop; prop ]);
-                  }
+                if Normalty.T.is_basic_tp normalty then
+                  hide_exists_quantify_variable_in_prop x xprop
+                    (basename, normalty, prop)
+                else
+                  hide_forall_quantify_variable_in_prop x xprop
+                    (basename, normalty, prop)
               else ty
           | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
           (* TODO: what happen when it is a arrow type *)
