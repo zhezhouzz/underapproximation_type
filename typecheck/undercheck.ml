@@ -55,6 +55,8 @@ let erase_check_mk_id file line id underfty =
 (*   | B false -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu)))) *)
 (*   | _ -> _failatwith __FILE__ __LINE__ "" *)
 
+let subtyping_check = Context_conversion.subtyping_check
+
 let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
   let ty =
@@ -78,7 +80,7 @@ let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
 and id_type_check (ctx : UT.t Typectx.t) (id : NL.id NL.typed) (ty : UT.t) :
     NL.id UL.typed =
   let id = id_type_infer ctx id in
-  let () = Undersub.subtyping_check ctx id.UL.ty ty in
+  let () = subtyping_check __FILE__ __LINE__ ctx id.UL.ty ty in
   id
 
 and lit_type_infer (ctx : UT.t Typectx.t) (lit : NL.smt_lit NL.typed) :
@@ -126,7 +128,7 @@ and value_type_check (ctx : UT.t Typectx.t) (a : NL.value NL.typed) (ty : UT.t)
   match (a.NL.x, ty) with
   | NL.Lit _, _ ->
       let x = value_type_infer ctx a in
-      let () = Undersub.subtyping_check ctx x.ty ty in
+      let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
       x
   | NL.Lam (id, body), UT.(UnderTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
@@ -190,7 +192,7 @@ and handle_letapp ctx (ret, fty, args, body) self =
   let _ =
     List.fold_left
       (fun ctx (arg, (ty, id)) ->
-        let () = Undersub.subtyping_check ctx arg.ty ty in
+        let () = subtyping_check __FILE__ __LINE__ ctx arg.ty ty in
         let ctx' = Typectx.overlap ctx (ty, id) in
         ctx')
       ctx
@@ -296,7 +298,7 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         Printf.printf "merged case ty: %s\n"
         @@ Frontend.Undertype.pretty_layout ty
       in
-      (* NUTE: underappproximate here *)
+      (* NOTE: underappproximate here *)
       { ty; x = Ite { cond; e_t; e_f } }
   | Match { matched; cases } ->
       let matched = id_type_infer ctx matched in
@@ -383,7 +385,7 @@ and term_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed) (ty : UT.t) :
   | LetApp { ret; f; args; body }, _ ->
       let f = id_type_infer ctx f in
       let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) term_type_infer
+        handle_letapp ctx (ret, f.ty, args, body) self
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
@@ -392,14 +394,17 @@ and term_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed) (ty : UT.t) :
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) term_type_infer
+      let ty', (ret, args, body) =
+        handle_letapp ctx (ret, opty, args, body) self
       in
-      { ty; x = LetOp { ret; op; args; body } }
+      (* let _ = *)
+      (*   Printf.printf "ret = _:%s\n" @@ Frontend.Undertype.pretty_layout ty' *)
+      (* in *)
+      { ty = ty'; x = LetOp { ret; op; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
   | Ite _, _ | Match _, _ ->
       let x = term_type_infer ctx x in
-      let () = Undersub.subtyping_check ctx x.ty ty in
+      let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
       (* NOTE: underappproximate here *)
       { ty; x = x.x }
 

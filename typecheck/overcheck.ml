@@ -262,13 +262,13 @@ and term_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
       let ty, (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) term_type_infer
+        handle_letapp ctx (ret, opty, args, body) self
       in
       { ty; x = LetOp { ret; op; args; body } }
   | LetApp { ret; f; args; body }, _ ->
       let f = id_type_infer ctx f in
       let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) term_type_infer
+        handle_letapp ctx (ret, f.ty, args, body) self
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
