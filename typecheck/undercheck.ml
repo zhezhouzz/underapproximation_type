@@ -55,7 +55,7 @@ let erase_check_mk_id file line id underfty =
 (*   | B false -> UT.(make_basic "_nu" NT.Ty_int (fun nu -> Not (Lit (AVar nu)))) *)
 (*   | _ -> _failatwith __FILE__ __LINE__ "" *)
 
-let subtyping_check = Context_conversion.subtyping_check
+let subtyping_check = Undersub.subtyping_check
 
 let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =

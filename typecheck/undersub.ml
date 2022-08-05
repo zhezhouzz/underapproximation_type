@@ -2,86 +2,83 @@ module NL = Languages.NormalAnormal
 module UL = Languages.UnderAnormal
 module NT = Languages.Normalty
 module UT = Languages.Underty
+module Op = Languages.Op
+module P = Autov.Prop
 open Zzdatatype.Datatype
 open Sugar
 
 let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
-let simply_ctx ctx fv =
-  let in_fv fv name = List.exists (fun x -> String.equal x name) fv in
+let _assume_basety file line (x, ty) =
   let open UT in
-  let rec aux fv = function
-    | [] -> []
-    | (name, ty) :: ctx ->
-        (* let () = *)
-        (*   Printf.printf "\tfind %s in %s\n" name (StrList.to_string fv) *)
-        (* in *)
-        if in_fv fv name then
-          match ty with
-          | UnderTy_base { basename; prop; normalty } ->
-              let prop = P.subst_id prop basename name in
-              let fv' = Autov.add_prop_to_fv fv prop in
-              (name, normalty, prop) :: aux fv' ctx
-          | _ -> _failatwith __FILE__ __LINE__ "should not happen"
-        else aux fv ctx
-  in
-  List.rev @@ aux fv (List.rev ctx)
+  match ty with
+  | UnderTy_base { basename; prop; normalty } ->
+      let prop = P.subst_id prop basename x in
+      ((NT.to_smtty normalty, x), prop)
+  | _ -> _failatwith file line "should not happen"
 
-(* TODO: well founded check *)
-let subtyping_to_query ctx typeself (prop1, prop2) =
-  let fv_prop2 = Autov.add_prop_to_fv [ typeself ] prop2 in
-  let fv = Autov.add_prop_to_fv fv_prop2 prop1 in
-  let pre_common, pre_fv1 =
-    List.partition (fun (x, _, _) -> List.exists (String.equal x) fv_prop2)
-    @@ simply_ctx ctx fv
-  in
+let context_convert (ctx : UT.t Typectx.t) (name, nt, prop1, prop2) =
+  let nu = (NT.to_smtty nt, name) in
   let open Autov.Prop in
-  let p2 = prop2 in
-  let p1 =
-    (* TODO: unify this part *)
-    List.fold_right
-      (fun (x, nty, xprop) prop ->
-        if Normalty.T.is_basic_tp nty then
-          mk_exists
-            (Languages.Normalty.to_smtty nty, x)
-            (fun _ -> And [ xprop; prop ])
-        else
-          mk_forall
-            (Languages.Normalty.to_smtty nty, x)
-            (fun _ -> Implies (xprop, prop)))
-      pre_fv1 prop1
+  let ctx = List.rev ctx in
+  let rec aux ctx (prop1, prop2) =
+    match ctx with
+    | [] -> mk_forall nu (fun _ -> Implies (prop2, prop1))
+    | (x, xty) :: ctx -> (
+        (* let () = *)
+        (*   Printf.printf "x: %s P1: %s -> (%s)  P2: %s ~> (%s)\n" x *)
+        (*     (Autov.layout_prop prop1) *)
+        (*     (Zzdatatype.Datatype.StrList.to_string @@ Autov.prop_fv prop1) *)
+        (*     (Autov.layout_prop prop2) *)
+        (*     (Zzdatatype.Datatype.StrList.to_string @@ Autov.prop_fv prop2) *)
+        (* in *)
+        match
+          ( List.exists (String.equal x) @@ Autov.prop_fv prop1,
+            List.exists (String.equal x) @@ Autov.prop_fv prop2 )
+        with
+        | false, false -> aux ctx (prop1, prop2)
+        | true, false ->
+            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+            aux ctx (mk_exists x (fun _ -> And [ xprop; prop1 ]), prop2)
+        | false, true ->
+            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+            aux ctx (prop1, mk_forall x (fun _ -> Implies (xprop, prop2)))
+        | true, true ->
+            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+            mk_forall x (fun _ -> Implies (xprop, aux ctx (prop1, prop2))))
   in
-  let q =
-    List.fold_right
-      (fun (x, nty, xprop) prop ->
-        mk_forall
-          (Languages.Normalty.to_smtty nty, x)
-          (fun _ -> Implies (xprop, prop)))
-      pre_common
-      (Implies (p2, p1))
-  in
-  let () = Printf.printf "SMT check:\n%s\n" (Autov.pretty_layout_prop q) in
-  q
+  let q = aux ctx (prop1, prop2) in
+  (* closing check *)
+  match Autov.prop_fv q with
+  | [] -> q
+  | fv ->
+      _failatwith __FILE__ __LINE__
+        (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
-let subtyping_check (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
+let subtyping_check file line (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
   let open UT in
   let rec aux ctx (t1, t2) =
     let () = Printf.printf "Subtype: %s\n" @@ layout_subtyping ctx (t1, t2) in
     match (t1, t2) with
-    | ( UnderTy_base { basename = name1; prop = prop1; _ },
-        UnderTy_base { basename = name2; prop = prop2; _ } ) ->
+    | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
+        UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
+        (* let typeself, prop1, prop2 = *)
+        (*   match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with *)
+        (*   | true, true -> *)
+        (*       ( _check_equality __FILE__ __LINE__ String.equal name1 name2, *)
+        (*         prop1, *)
+        (*         prop2 ) *)
+        (*   | false, true -> (name2, P.subst_id prop1 name1 name2, prop2) *)
+        (*   | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1) *)
+        (* in *)
+        let nt = _check_equality __FILE__ __LINE__ NT.eq nt1 nt2 in
         let typeself, prop1, prop2 =
-          match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
-          | true, true ->
-              ( _check_equality __FILE__ __LINE__ String.equal name1 name2,
-                prop1,
-                prop2 )
-          | false, true -> (name2, P.subst_id prop1 name1 name2, prop2)
-          | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
+          if String.equal name1 name2 then (name1, prop1, prop2)
+          else (name1, prop1, P.subst_id prop2 name2 name1)
         in
-        let q = subtyping_to_query ctx typeself (prop1, prop2) in
+        let q = context_convert ctx (typeself, nt, prop1, prop2) in
         if Autov.check q then ()
-        else failwith "Subtyping check: rejected by the verifier"
+        else _failatwith file line "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2
     | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
