@@ -12,11 +12,12 @@ module T = struct
     | Tu of term opttyped list
     | Lam of ty * id * term opttyped
     | App of term opttyped * term opttyped list
+    | Op of Op.T.t * term opttyped list
     | Let of if_rec * (ty * id) list * term opttyped * term opttyped
     | Ite of term opttyped * term opttyped * term opttyped
     | Match of term opttyped * case list
 
-  and case = { constructor : id; args : id list; exp : term opttyped }
+  and case = { constructor : id opttyped; args : id list; exp : term opttyped }
   [@@deriving sexp]
 
   let make_untyped x = { ty = None; x }
@@ -50,6 +51,7 @@ module T = struct
         | Tu es -> Tu (List.map aux es)
         | Lam (ty, id, e) -> Lam (ty, id, aux e)
         | App (e, es) -> App (aux e, List.map aux es)
+        | Op (op, es) -> Op (op, List.map aux es)
         | Let (if_rec, lhs, rhs, body) -> Let (if_rec, lhs, aux rhs, aux body)
         | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
         | Match (e, cases) ->

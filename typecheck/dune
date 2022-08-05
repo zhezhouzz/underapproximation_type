@@ -4,6 +4,7 @@
  (libraries utils ast core frontend translate abstraction)
  (modules
    ; primitive
+   opcheck
    typectx
    termcheck
    oversub

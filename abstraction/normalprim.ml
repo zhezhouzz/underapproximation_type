@@ -1,17 +1,18 @@
 open Zzdatatype.Datatype
 module NT = Languages.Normalty
+module Op = Languages.Op
 
-let tab =
-  let open Languages.Normalty in
-  [
-    ("::", Ty_arrow (Ty_int, Ty_arrow (Ty_list Ty_int, Ty_list Ty_int)));
-    ("[]", Ty_list Ty_int);
-    ("<", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool)));
-    (">", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool)));
-    ("==", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool)));
-    ("+", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int)));
-    ("-", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int)));
-  ]
+(* let tab = *)
+(*   let open Languages.Normalty in *)
+(*   [ *)
+(*     ("::", Ty_arrow (Ty_int, Ty_arrow (Ty_list Ty_int, Ty_list Ty_int))); *)
+(*     ("[]", Ty_list Ty_int); *)
+(*     ("<", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool))); *)
+(*     (">", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool))); *)
+(*     ("==", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_bool))); *)
+(*     ("+", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int))); *)
+(*     ("-", Ty_arrow (Ty_int, Ty_arrow (Ty_int, Ty_int))); *)
+(*   ] *)
 
 (* let m = StrMap.from_kv_list tab *)
 

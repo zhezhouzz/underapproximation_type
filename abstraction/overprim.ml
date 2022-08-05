@@ -1,21 +1,41 @@
 open Zzdatatype.Datatype
 module NT = Languages.Normalty
+module OT = Languages.Overty
 module P = Autov.Prop
+module Op = Languages.Op
 module T = Autov.Smtty
 
-let tab_names = [ ("lt", "<"); ("intlistnil", "[]"); ("intlistcons", "::") ]
-let m = ref None
+let m : Languages.Overty.t StrMap.t option ref = ref None
 
-let make_m (refinements : (string * Languages.Overty.t) list) =
-  let get_tab tab =
-    List.map
-      (fun (idx, name) ->
-        match List.find_opt (fun (x, _) -> String.equal idx x) refinements with
-        | None -> failwith "die: get over prim tab"
-        | Some (_, ty) -> (name, ty))
-      tab
-  in
-  m := Some (StrMap.from_kv_list @@ get_tab tab_names)
+let make_key (name, ty) =
+  try
+    let op = Op.op_of_alias name in
+    let ty = OT.erase ty in
+    Op.PrimOp (op, ty)
+  with _ -> Op.External name
+
+let make_m m (refinements : (string * Languages.Overty.t) list) =
+  let l = List.map (fun (name, ty) -> (make_key (name, ty), ty)) refinements in
+  m :=
+    Some
+      (StrMap.from_kv_list
+      @@ List.map
+           (fun (k, v) -> (Core.Sexp.to_string @@ Op.sexp_of_prim k, v))
+           l)
+
+(* let tab_names = [ ("lt", "<"); ("intlistnil", "[]"); ("intlistcons", "::") ] *)
+(* let m = ref None *)
+
+(* let make_m (refinements : (string * Languages.Overty.t) list) = *)
+(*   let get_tab tab = *)
+(*     List.map *)
+(*       (fun (idx, name) -> *)
+(*         match List.find_opt (fun (x, _) -> String.equal idx x) refinements with *)
+(*         | None -> failwith "die: get over prim tab" *)
+(*         | Some (_, ty) -> (name, ty)) *)
+(*       tab *)
+(*   in *)
+(*   m := Some (StrMap.from_kv_list @@ get_tab tab_names) *)
 
 (* let over_tab = *)
 (*   let open Languages.Overty in *)

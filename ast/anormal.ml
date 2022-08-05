@@ -22,6 +22,12 @@ module F (Type : Type.T) = struct
         args : smt_lit typed list;
         body : term typed;
       }
+    | LetOp of {
+        ret : id typed;
+        op : Op.T.t;
+        args : smt_lit typed list;
+        body : term typed;
+      }
     | LetTu of { tu : id typed; args : smt_lit typed list; body : term typed }
     | LetDeTu of { tu : id typed; args : id typed list; body : term typed }
     | LetVal of { lhs : id typed; rhs : value typed; body : term typed }
@@ -29,7 +35,7 @@ module F (Type : Type.T) = struct
     | Ite of { cond : id typed; e_t : term typed; e_f : term typed }
     | Match of { matched : id typed; cases : case list }
 
-  and case = { constructor : id; args : id list; exp : term typed }
+  and case = { constructor : id typed; args : id list; exp : term typed }
   [@@deriving sexp]
 
   let make_letval x rhs body =
@@ -78,6 +84,9 @@ module F (Type : Type.T) = struct
             let body = if String.equal ret.x y then aux body else body in
             LetApp
               { ret; f = subst_tid f; args = List.map subst_tlit args; body }
+        | LetOp { ret; op; args; body } ->
+            let body = if String.equal ret.x y then aux body else body in
+            LetOp { ret; op; args = List.map subst_tlit args; body }
         | LetVal { lhs; rhs; body } ->
             let body = if String.equal lhs.x y then aux body else body in
             LetVal { lhs; rhs = aux_value rhs; body }

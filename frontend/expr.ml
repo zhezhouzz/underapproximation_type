@@ -63,6 +63,14 @@ and expr_to_ocamlexpr_desc expr =
           List.map (fun x -> (Asttypes.Nolabel, expr_to_ocamlexpr x)) args
         in
         Pexp_apply (func, args)
+    | L.Op (op, args) ->
+        let func =
+          expr_to_ocamlexpr L.{ ty = None; x = Var (Op.T.op_to_string op) }
+        in
+        let args =
+          List.map (fun x -> (Asttypes.Nolabel, expr_to_ocamlexpr x)) args
+        in
+        Pexp_apply (func, args)
     | L.Ite (e1, e2, e3) ->
         let e1, e2, e3 = Sugar.map3 expr_to_ocamlexpr (e1, e2, e3) in
         Pexp_ifthenelse (e1, e2, Some e3)
@@ -74,7 +82,7 @@ and expr_to_ocamlexpr_desc expr =
               {
                 pc_lhs =
                   Pat.slang_to_pattern
-                    L.(make_untyped_id_app (case.L.constructor, case.L.args));
+                    L.(make_untyped_id_app (case.L.constructor.x, case.L.args));
                 pc_guard = None;
                 pc_rhs = expr_to_ocamlexpr case.L.exp;
               })
@@ -138,14 +146,17 @@ let expr_of_ocamlexpr expr =
           | Some _ -> failwith "multi typed"))
     | Pexp_ident id -> id_to_var id
     | Pexp_construct (c, args) -> (
+        (* let () = *)
+        (*   Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr) *)
+        (* in *)
         let c = id_to_var c in
         match args with
-        | None -> L.(make_untyped @@ App (c, []))
+        | None -> handle_app c []
         | Some args -> (
             let args = aux args in
             match args.x with
-            | L.Var _ -> L.(make_untyped @@ App (c, [ args ]))
-            | L.Tu es -> L.(make_untyped @@ App (c, es))
+            | L.Var _ -> handle_app c [ args ]
+            | L.Tu es -> handle_app c es
             | _ -> failwith "die"))
     | Pexp_constant _ -> L.(make_untyped @@ Const (Value.expr_to_value expr))
     | Pexp_let (flag, vbs, e) ->
@@ -179,9 +190,8 @@ let expr_of_ocamlexpr expr =
               @@ Let (get_if_rec flag, leftvars, aux vb.pvb_expr, body)))
           vbs (aux e)
     | Pexp_apply (func, args) ->
-        let func = aux func in
         let args = List.map (fun x -> aux @@ snd x) args in
-        L.(make_untyped @@ App (func, args))
+        handle_app (aux func) args
     | Pexp_ifthenelse (e1, e2, Some e3) ->
         L.(make_untyped @@ Ite (aux e1, aux e2, aux e3))
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
@@ -216,7 +226,7 @@ let expr_of_ocamlexpr expr =
               let exp = aux case.pc_rhs in
               let pat = Pat.pattern_to_slang case.pc_lhs in
               let constructor, args = get_constructor pat in
-              L.{ constructor; args; exp })
+              L.{ constructor = { ty = None; x = constructor }; args; exp })
             cases
         in
         L.(make_untyped @@ Match (aux case_target, cs))
@@ -240,6 +250,15 @@ let expr_of_ocamlexpr expr =
         @@ failwith
              (Sugar.spf "not imp client parsing:%s"
              @@ Pprintast.string_of_expression expr)
+  and handle_app func args =
+    let op =
+      match func.L.x with
+      | L.Var op -> Languages.Op.op_of_string_opt op
+      | _ -> None
+    in
+    match op with
+    | Some op -> L.(make_untyped @@ Op (op, args))
+    | None -> L.(make_untyped @@ App (func, args))
   in
   aux expr
 

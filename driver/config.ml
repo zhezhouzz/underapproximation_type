@@ -15,18 +15,18 @@ let load fname =
   let p = j |> member "prim_path" in
   let prim_path =
     {
+      normalp = p |> member "normalp" |> to_string;
       overp = p |> member "overp" |> to_string;
       underp = p |> member "underp" |> to_string;
-      normalp = p |> member "normalp" |> to_string;
+      rev_underp = p |> member "rev_underp" |> to_string;
     }
   in
   let open Abstraction in
   let () =
-    Prim.init_under_and_normla_prim
-      (Inputstage.load_under_refinments prim_path.underp)
-  in
-  let () =
-    Prim.init_over_prim (Inputstage.load_over_refinments prim_path.overp)
+    Prim.init
+      ( Inputstage.load_over_refinments prim_path.overp,
+        Inputstage.load_under_refinments prim_path.underp,
+        Inputstage.load_under_refinments prim_path.rev_underp )
   in
   config := Some { mode; prim_path }
 

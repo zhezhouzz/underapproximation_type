@@ -98,6 +98,13 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
       cont { ty = ety; x = Lam ({ ty; x }, to_anormal body None) }
   (* NOTE: zero arguments applicaition is still need a name *)
   (* | App (e, []) -> convert cont e target_name *)
+  | Op (op, es) ->
+      convert_multi
+        (fun args ->
+          let ret = { ty = ety; x = force_naming ename } in
+          let body = cont @@ id_to_value ret in
+          { ty = body.ty; x = LetOp { ret; op; args; body } })
+        es
   | App (e, es) ->
       convert
         ( id_cont_to_value_cont @@ fun f ->
@@ -140,9 +147,15 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         ( id_cont_to_value_cont @@ fun matched ->
           let cases =
             List.map
-              (fun case ->
+              (fun (case : S.case) ->
+                let constructor_ty =
+                  match case.S.constructor.ty with
+                  | None -> _failatwith __FILE__ __LINE__ "die"
+                  | Some ty -> ty
+                in
                 {
-                  constructor = case.S.constructor;
+                  constructor =
+                    { ty = constructor_ty; x = case.S.constructor.x };
                   args = case.S.args;
                   exp = convert cont case.S.exp ename;
                 })
@@ -211,6 +224,18 @@ let to_term e =
                 x = App (to_var f, List.map lit_to_var args);
               },
               aux body )
+      | T.LetOp { ret; op; args; body } ->
+          Let
+            ( false,
+              [ to_tid ret ],
+              {
+                ty = Some ret.T.ty;
+                x =
+                  App
+                    ( { ty = None; x = Var (Languages.Op.op_to_string op) },
+                      List.map lit_to_var args );
+              },
+              aux body )
       | T.LetVal { lhs; rhs; body } ->
           Let (false, [ to_tid lhs ], aux_value rhs, aux body)
       | T.Ite { cond; e_t; e_f } -> Ite (to_var cond, aux e_t, aux e_f)
@@ -220,7 +245,11 @@ let to_term e =
               List.map
                 (fun case ->
                   {
-                    constructor = case.T.constructor;
+                    constructor =
+                      {
+                        ty = Some case.T.constructor.ty;
+                        x = case.T.constructor.x;
+                      };
                     args = case.T.args;
                     exp = aux case.T.exp;
                   })

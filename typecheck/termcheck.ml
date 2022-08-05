@@ -57,7 +57,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
     Exp.term Exp.opttyped =
   let open Exp in
   match (x, ty) with
-  | Const _, _ | Var _, _ ->
+  | Const _, _ | Var _, _ | Op (_, _), _ ->
       let x, ty' = type_infer ctx x in
       let _ = _check_equality __FILE__ __LINE__ eq ty ty' in
       x
@@ -101,39 +101,30 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       let e2 = bidirect_type_check ctx e2 ty in
       let e3 = bidirect_type_check ctx e3 ty in
       { ty = Some ty; x = Ite (e1, e2, e3) }
-  | Match (e, cases), ty -> (
-      match cases with
-      | [] ->
-          _failatwith __FILE__ __LINE__
-            "type_infer: pattern matching branch is empty"
-      | { constructor; args; exp } :: cases ->
-          let argsty, bodyty =
-            destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
-          in
-          let ctx' =
-            List.fold_left Typectx.overlap ctx (List.combine argsty args)
-          in
-          let exp = bidirect_type_check ctx' exp ty in
-          let case = { constructor; args; exp } in
-          let ety = bodyty in
-          let cases =
-            List.map
-              (fun { constructor; args; exp } ->
-                let argsty, bodyty =
-                  destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
-                in
-                let _ = _check_equality __FILE__ __LINE__ eq ety bodyty in
-                let ctx' =
-                  List.fold_left Typectx.overlap ctx (List.combine argsty args)
-                in
-                let exp = bidirect_type_check ctx' exp ty in
-                { constructor; args; exp })
-              cases
-          in
-          let e = bidirect_type_check ctx e ety in
-          { ty = Some ty; x = Match (e, case :: cases) })
-  | _, _ ->
-      _failatwith __FILE__ __LINE__ "type_check: inconsistent term and type"
+  | Match (_, []), _ ->
+      _failatwith __FILE__ __LINE__
+        "type_infer: pattern matching branch is empty"
+  | Match (e, cases), ty ->
+      let e, ety = bidirect_type_infer ctx e in
+      let handle_case { constructor; args; exp } =
+        let constructor_ty =
+          Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
+        in
+        let constructor = { ty = Some constructor_ty; x = constructor.x } in
+        let argsty, _ = destruct_arrow_tp constructor_ty in
+        let ctx' =
+          List.fold_left Typectx.overlap ctx (List.combine argsty args)
+        in
+        let exp = bidirect_type_check ctx' exp ty in
+        let case = { constructor; args; exp } in
+        case
+      in
+      { ty = Some ty; x = Match (e, List.map handle_case cases) }
+  | e, ty ->
+      _failatwith __FILE__ __LINE__
+        (spf "type_check: inconsistent term (%s) and type (%s)"
+           (Frontend.Expr.layout { ty = None; x = e })
+           (Frontend.Type.layout ty))
 
 and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
@@ -143,7 +134,8 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       ({ ty = Some ty; x }, ty)
   | Var id ->
       let ty =
-        try Prim.get_primitive_normal_ty id with _ -> Typectx.get_ty ctx id
+        try Typectx.get_ty ctx id
+        with _ -> Prim.get_primitive_normal_ty (External id)
       in
       ({ ty = Some ty; x }, ty)
   | Tu es ->
@@ -155,6 +147,12 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = Ty_arrow (idty, bodyty) in
       ({ ty = Some ty; x = Lam (idty, id, body) }, ty)
+  | Op (op, args) ->
+      let args, argsty =
+        List.split @@ List.map (bidirect_type_infer ctx) args
+      in
+      let ty = Opcheck.check (op, argsty) in
+      ({ ty = Some ty; x = Op (op, args) }, ty)
   | App (f, args) ->
       let f, fty = bidirect_type_infer ctx f in
       let rec aux (fty, args) =
@@ -197,38 +195,34 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let e2, ty = bidirect_type_infer ctx e2 in
       let e3 = bidirect_type_check ctx e3 ty in
       ({ ty = Some ty; x = Ite (e1, e2, e3) }, ty)
-  | Match (e, cases) -> (
-      match cases with
-      | [] ->
-          _failatwith __FILE__ __LINE__
-            "type_infer: pattern matching branch is empty"
-      | { constructor; args; exp } :: cases ->
-          let argsty, bodyty =
-            destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
-          in
-          let ctx' =
-            List.fold_left Typectx.overlap ctx (List.combine argsty args)
-          in
-          let exp, ty = bidirect_type_infer ctx' exp in
-          let case = { constructor; args; exp } in
-          let ety = bodyty in
-          let cases =
-            List.map
-              (fun { constructor; args; exp } ->
-                let argsty, bodyty =
-                  destruct_arrow_tp @@ Prim.get_primitive_normal_ty constructor
-                in
-                let _ = _check_equality __FILE__ __LINE__ eq ety bodyty in
-                let ctx' =
-                  List.fold_left Typectx.overlap ctx
-                    (_safe_combine __FILE__ __LINE__ argsty args)
-                in
-                let exp = bidirect_type_check ctx' exp ty in
-                { constructor; args; exp })
-              cases
-          in
-          let e = bidirect_type_check ctx e ety in
-          ({ ty = Some ty; x = Match (e, case :: cases) }, ty))
+  | Match (_, []) ->
+      _failatwith __FILE__ __LINE__
+        "type_infer: pattern matching branch is empty"
+  | Match (e, cases) ->
+      let e, ety = bidirect_type_infer ctx e in
+      let handle_case { constructor; args; exp } =
+        let constructor_ty =
+          Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
+        in
+        let constructor = { ty = Some constructor_ty; x = constructor.x } in
+        let argsty, _ = destruct_arrow_tp constructor_ty in
+        let ctx' =
+          List.fold_left Typectx.overlap ctx (List.combine argsty args)
+        in
+        let exp, expty = bidirect_type_infer ctx' exp in
+        let case = { constructor; args; exp } in
+        (case, expty)
+      in
+      let cases, exptys = List.split @@ List.map handle_case cases in
+      let ty =
+        match exptys with
+        | [] -> _failatwith __FILE__ __LINE__ "die"
+        | ty :: t ->
+            List.fold_left
+              (fun ty ty' -> _check_equality __FILE__ __LINE__ eq ty ty')
+              ty t
+      in
+      ({ ty = Some ty; x = Match (e, cases) }, ty)
 
 let check e = fst @@ bidirect_type_infer [] e
 

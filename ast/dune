@@ -6,6 +6,7 @@
    type
    ; ast
    strid
+   op
    normalty
    termlang
    overty

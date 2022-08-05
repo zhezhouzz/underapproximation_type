@@ -4,28 +4,6 @@ module StrucNA = Languages.StrucNA
 module Struc = Languages.Struc
 open Zzdatatype.Datatype
 
-(* let remove_tuple e = *)
-(*   let open NA in *)
-(*   let rec aux e = *)
-(*     match e.x with *)
-(*     | Const _ | Var _ | App _ -> e *)
-(*     | Tu [ x ] -> aux { ty = x.ty; x = Var x.x } *)
-(*     | Tu _ -> e *)
-(*     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) } *)
-(*     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux body) } *)
-(*     | Let (ids, rhs, body) -> { ty = e.ty; x = Let (ids, aux rhs, aux body) } *)
-(*     | Ite (id, e1, e2) -> { ty = e.ty; x = Ite (id, aux e1, aux e2) } *)
-(*     | Match (id, cases) -> *)
-(*         { *)
-(*           ty = e.ty; *)
-(*           x = *)
-(*             Match *)
-(*               (id, List.map (fun case -> { case with exp = aux case.exp }) cases); *)
-(*         } *)
-(*   in *)
-(*   aux e *)
-
-(* TODO: Fix renaming *)
 let remove_dummy_eq e =
   let open NA in
   let rec aux_value e =
@@ -42,6 +20,8 @@ let remove_dummy_eq e =
           V v.x
       | LetApp { ret; f; args; body } ->
           LetApp { ret; f; args; body = aux body }
+      | LetOp { ret; op; args; body } ->
+          LetOp { ret; op; args; body = aux body }
       | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
       | LetDeTu { tu; args; body } -> LetDeTu { tu; args; body = aux body }
       | LetVal { lhs; rhs; body } -> (
@@ -81,16 +61,12 @@ let remove_dummy_let e =
           let v = aux_value { ty = e.ty; x = v } in
           V v.x
       | LetApp { ret; f; args; body } ->
-          (* let () = Printf.printf "letapp branch\n" in *)
           LetApp { ret; f; args; body = aux body }
-      | LetTu { tu; args; body } ->
-          (* let () = Printf.printf "lettu branch\n" in *)
-          LetTu { tu; args; body = aux body }
-      | LetDeTu { tu; args; body } ->
-          (* let () = Printf.printf "letdetu branch\n" in *)
-          LetDeTu { tu; args; body = aux body }
+      | LetOp { ret; op; args; body } ->
+          LetOp { ret; op; args; body = aux body }
+      | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
+      | LetDeTu { tu; args; body } -> LetDeTu { tu; args; body = aux body }
       | LetVal { lhs; rhs; body } -> (
-          (* let () = Printf.printf "letval branch\n" in *)
           let body = aux body in
           match body.x with
           | V (Lit (Var id')) when String.equal lhs.x id' ->

@@ -3,6 +3,7 @@ module OL = Languages.OverAnormal
 module NT = Languages.Normalty
 module OT = Languages.Overty
 module P = Autov.Prop
+module Op = Languages.Op
 open Zzdatatype.Datatype
 open Abstraction
 open Sugar
@@ -43,22 +44,16 @@ let hide_depedent_var ctx name ty =
 let rec id_type_infer (ctx : OT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id OL.typed =
   let ty =
-    try Prim.get_primitive_over_ty id.x
-    with _ ->
-      let ty = Typectx.get_ty ctx id.x in
-      let ty =
-        OT.(
-          match ty with
-          | OverTy_base { basename; normalty; prop } ->
-              OverTy_base
-                {
-                  basename = id.x;
-                  normalty;
-                  prop = P.subst_id prop basename id.x;
-                }
-          | _ -> ty)
-      in
-      ty
+    try Typectx.get_ty ctx id.x
+    with _ -> Prim.get_primitive_over_ty (External id.x)
+  in
+  let ty =
+    OT.(
+      match ty with
+      | OverTy_base { basename; normalty; prop } ->
+          OverTy_base
+            { basename = id.x; normalty; prop = P.subst_id prop basename id.x }
+      | _ -> ty)
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
@@ -170,11 +165,10 @@ and handle_letdetu ctx (tu, args, body) self =
   in
   { ty; x = LetDeTu { tu; args; body } }
 
-and handle_letapp ctx (ret, f, args, body) self =
+and handle_letapp ctx (ret, fty, args, body) self =
   let open OL in
-  let f = id_type_infer ctx f in
   let args = List.map (lit_type_infer ctx) args in
-  let argsty, retty = OT.destruct_arrow_tp f.ty in
+  let argsty, retty = OT.destruct_arrow_tp fty in
   let _ =
     List.fold_left
       (fun ctx (arg, (ty, id)) ->
@@ -203,10 +197,7 @@ and handle_letapp ctx (ret, f, args, body) self =
   let ctx' = Typectx.overlap ctx (ret.ty, ret.x) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
-  {
-    ty = OT.forall_quantify_variable_in_ty ret.x ret.ty body.ty;
-    x = LetApp { ret; f; args; body };
-  }
+  (OT.forall_quantify_variable_in_ty ret.x ret.ty body.ty, (ret, args, body))
 
 and handle_letval ctx (lhs, rhs, body) self =
   let open OL in
@@ -231,8 +222,22 @@ and term_type_infer (ctx : OT.t Typectx.t) (a : NL.term NL.typed) :
       handle_lettu ctx (tu, args, body) term_type_infer
   | LetDeTu { tu; args; body } ->
       handle_letdetu ctx (tu, args, body) term_type_infer
+  | LetOp { ret; op; args; body } ->
+      let argsty = List.map (fun x -> x.ty) args in
+      let opty =
+        Prim.get_primitive_over_ty
+          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+      in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, opty, args, body) term_type_infer
+      in
+      { ty; x = LetOp { ret; op; args; body } }
   | LetApp { ret; f; args; body } ->
-      handle_letapp ctx (ret, f, args, body) term_type_infer
+      let f = id_type_infer ctx f in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, f.ty, args, body) term_type_infer
+      in
+      { ty; x = LetApp { ret; f; args; body } }
   | LetVal { lhs; rhs; body } ->
       handle_letval ctx (lhs, rhs, body) term_type_infer
   | Ite _ -> _failatwith __FILE__ __LINE__ "should not infer ite"
@@ -250,8 +255,22 @@ and term_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
       { ty = v.ty; x = V v.x }
   | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) self
   | LetDeTu { tu; args; body }, _ -> handle_letdetu ctx (tu, args, body) self
+  | LetOp { ret; op; args; body }, _ ->
+      let argsty = List.map (fun x -> x.ty) args in
+      let opty =
+        Prim.get_primitive_over_ty
+          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+      in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, opty, args, body) term_type_infer
+      in
+      { ty; x = LetOp { ret; op; args; body } }
   | LetApp { ret; f; args; body }, _ ->
-      handle_letapp ctx (ret, f, args, body) self
+      let f = id_type_infer ctx f in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, f.ty, args, body) term_type_infer
+      in
+      { ty; x = LetApp { ret; f; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
   | Ite { cond; e_t; e_f }, _ ->
       let cond = id_type_infer ctx cond in
@@ -276,7 +295,11 @@ and term_type_check (ctx : OT.t Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
   | Match { matched; cases }, _ ->
       let matched = id_type_infer ctx matched in
       let handle_case { constructor; args; exp } =
-        let constructor_ty = Prim.get_primitive_over_ty constructor in
+        let constructor_ty =
+          Prim.get_primitive_over_ty
+            Op.(PrimOp (Dt constructor.x, constructor.ty))
+        in
+        let constructor = OL.{ ty = constructor_ty; x = constructor.x } in
         let constructor_ty = OT.arrow_args_rename args constructor_ty in
         let args, retty = OT.destruct_arrow_tp constructor_ty in
         let retty_prop id =

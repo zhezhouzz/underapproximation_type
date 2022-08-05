@@ -4,6 +4,7 @@
     "prim_path": {
         "overp": "data/prim/over.ml",
         "underp": "data/prim/under.ml",
+        "rev_underp": "data/prim/rev_under.ml",
         "normalp": "data/prim/normal.ml"
     }
 }

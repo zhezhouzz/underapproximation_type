@@ -1,4 +1,5 @@
 module Id = Strid.T
+module Op = Op.T
 module Value = Value
 module Normalty = Normalty.T
 module Overty = Overty.T
