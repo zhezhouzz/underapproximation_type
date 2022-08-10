@@ -31,6 +31,21 @@ module T = struct
     | "==" | "!=" | "<" | ">" | "<=" | ">=" | "+" | "-" -> true
     | _ -> false
 
+  let negate prop =
+    let rec aux t =
+      match t with
+      | Lit _ | MethodPred (_, _) -> Not t
+      | Implies (e1, e2) -> And [ e1; aux e2 ]
+      | Ite (e1, e2, e3) -> Ite (e1, aux e2, aux e3)
+      | Not e -> e
+      | And es -> Or (List.map aux es)
+      | Or es -> And (List.map aux es)
+      | Iff (e1, e2) -> Iff (e1, aux e2)
+      | Forall (u, e) -> Exists (u, aux e)
+      | Exists (u, e) -> Forall (u, aux e)
+    in
+    aux prop
+
   (* TODO: type check *)
   let lit_get_ty lit =
     let aux = function

@@ -4,6 +4,7 @@ module T = struct
 
   type id = Strid.T.t [@@deriving sexp]
   type normalty = Normalty.T.t [@@deriving sexp]
+  type 'a typed = { ty : normalty; x : 'a } [@@deriving sexp]
 
   type t =
     | UnderTy_base of {
@@ -14,6 +15,8 @@ module T = struct
     | UnderTy_arrow of { argname : id; argty : t; retty : t }
     | UnderTy_tuple of t list
   [@@deriving sexp]
+
+  type qt = id typed list * id typed list * t
 
   let rec destruct_arrow_tp = function
     | UnderTy_arrow { argname; argty; retty } ->

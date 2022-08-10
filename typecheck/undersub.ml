@@ -77,6 +77,7 @@ let subtyping_check file line (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let q = context_convert ctx (typeself, nt, prop1, prop2) in
+        let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in
         if Autov.check q then ()
         else _failatwith file line "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->

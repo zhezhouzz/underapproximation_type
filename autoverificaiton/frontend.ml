@@ -229,11 +229,19 @@ let layout prop = Pprintast.string_of_expression @@ prop_to_expr prop
 
 open P
 
-let sym_and = " ∧ "
-let sym_or = " ∨ "
-let sym_not = "¬"
-let sym_implies = "=>"
-let sym_iff = "<=>"
+type layout_setting = {
+  sym_true : string;
+  sym_false : string;
+  sym_and : string;
+  sym_or : string;
+  sym_not : string;
+  sym_implies : string;
+  sym_iff : string;
+  sym_forall : string;
+  sym_exists : string;
+  layout_typedid : string typed -> string;
+  layout_mp : string -> string;
+}
 
 let is_op op =
   match op with "==" | "<" | ">" | "<=" | ">=" -> true | _ -> false
@@ -241,29 +249,85 @@ let is_op op =
 open Printf
 open Zzdatatype.Datatype
 
-let rec lit_pretty_layout = function
-  | ACint n -> string_of_int n
-  | ACbool false -> "⊥"
-  | ACbool true -> "⊤"
-  | AVar id -> id.x
-  | AOp2 (mp, a, b) ->
-      sprintf "(%s %s %s)" (lit_pretty_layout a) mp (lit_pretty_layout b)
+let psetting =
+  {
+    sym_true = "⊤";
+    sym_false = "⊥";
+    sym_and = " ∧ ";
+    sym_or = " ∨ ";
+    sym_not = "¬";
+    sym_implies = "=>";
+    sym_iff = "<=>";
+    sym_forall = "∀";
+    sym_exists = "∃";
+    layout_typedid = (fun x -> x.x);
+    layout_mp = (fun x -> x);
+  }
 
-let pretty_layout x =
-  let rec layout = function
-    | Lit lit -> lit_pretty_layout lit
-    | MethodPred (mp, args) ->
-        let args = List.map lit_pretty_layout args in
-        sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
-    | Implies (p1, p2) ->
-        sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
-    | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps
-    | Or ps -> sprintf "(%s)" @@ List.split_by sym_or layout ps
-    | Not p -> sprintf "(%s %s)" sym_not @@ layout p
-    | Iff (p1, p2) -> sprintf "(%s %s %s)" (layout p1) sym_iff (layout p2)
-    | Ite (p1, p2, p3) ->
-        sprintf "(if %s then %s else %s)" (layout p1) (layout p2) (layout p3)
-    | Forall (u, body) -> sprintf "(∀ %s, %s)" u.x (layout body)
-    | Exists (u, body) -> sprintf "(∃ %s, %s)" u.x (layout body)
+let coqsetting =
+  {
+    sym_true = "True";
+    sym_false = "False";
+    sym_and = "/\\ ";
+    sym_or = " \\/ ";
+    sym_not = "~";
+    sym_implies = "->";
+    sym_iff = "<->";
+    sym_forall = "forall";
+    sym_exists = "exists";
+    layout_typedid =
+      (fun x ->
+        match x.ty with
+        | Bool -> sprintf "(%s:bool)" x.x
+        | Int -> sprintf "(%s:nat)" x.x);
+    layout_mp = (function "==" -> "=" | x -> x);
+  }
+
+let _pretty_layout
+    {
+      sym_true;
+      sym_false;
+      sym_and;
+      sym_or;
+      sym_not;
+      sym_implies;
+      sym_iff;
+      sym_forall;
+      sym_exists;
+      layout_typedid;
+      layout_mp;
+    } =
+  let rec lit_pretty_layout = function
+    | ACint n -> string_of_int n
+    | ACbool false -> sym_false
+    | ACbool true -> sym_true
+    | AVar id -> layout_typedid id
+    | AOp2 (mp, a, b) ->
+        sprintf "(%s %s %s)" (lit_pretty_layout a) (layout_mp mp)
+          (lit_pretty_layout b)
   in
-  layout x
+  let pretty_layout x =
+    let rec layout = function
+      | Lit lit -> lit_pretty_layout lit
+      | MethodPred (mp, args) ->
+          let args = List.map lit_pretty_layout args in
+          sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
+      | Implies (p1, p2) ->
+          sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
+      | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps
+      | Or ps -> sprintf "(%s)" @@ List.split_by sym_or layout ps
+      | Not p -> sprintf "(%s %s)" sym_not @@ layout p
+      | Iff (p1, p2) -> sprintf "(%s %s %s)" (layout p1) sym_iff (layout p2)
+      | Ite (p1, p2, p3) ->
+          sprintf "(if %s then %s else %s)" (layout p1) (layout p2) (layout p3)
+      | Forall (u, body) ->
+          sprintf "(%s %s, %s)" sym_forall (layout_typedid u) (layout body)
+      | Exists (u, body) ->
+          sprintf "(%s %s, %s)" sym_exists (layout_typedid u) (layout body)
+    in
+    layout x
+  in
+  pretty_layout
+
+let pretty_layout = _pretty_layout psetting
+let coq_layout = _pretty_layout coqsetting

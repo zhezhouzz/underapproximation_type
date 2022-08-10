@@ -49,10 +49,14 @@ let smt_solve ctx vc =
   (* let _ = printf "check\n" in *)
   let solver = mk_solver ctx None in
   let g = mk_goal ctx true false false in
-  let () = Printf.printf "Q: %s\n" @@ Frontend.pretty_layout vc in
+  (* let () = Printf.printf "Q: %s\n" @@ Frontend.pretty_layout vc in *)
+  let () = Printf.printf "Q: %s\n" @@ Frontend.coq_layout vc in
   let q = Query.to_z3 ctx vc in
   let _ = Goal.add g [ q ] in
-  let g = Z3.Goal.simplify g None in
+  (* let g = Z3.Goal.simplify g None in *)
+  (* let g = *)
+  (*   Z3.Tactic.(ApplyResult.get_subgoal (apply (mk_tactic ctx "snf") g None) 0) *)
+  (* in *)
   let () =
     Printf.printf "Goal: %s\n"
     @@ Zzdatatype.Datatype.List.split_by "\n" Z3.Expr.to_string
