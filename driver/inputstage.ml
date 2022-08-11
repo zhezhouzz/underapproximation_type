@@ -35,14 +35,21 @@ let load_over_refinments refine_file =
 
 let load_under_refinments refine_file =
   let refinements =
-    Structure.refinement_of_ocamlstruct Undertype.undertype_of_ocamlexpr
+    Structure.refinement_of_ocamlstruct
+      Undertype.quantified_undertype_of_ocamlexpr
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
-  let refinements =
-    List.map ~f:(fun (name, ty) -> (name, Undertycheck.infer ty)) refinements
-  in
+  (* NOTE: we do not infer the type of the quantified variables any more *)
+  (* let refinements = *)
+  (*   List.map *)
+  (*     ~f: *)
+  (*       Languages.Underty.( *)
+  (*         fun (name, { uqvs; eqvs; t }) -> *)
+  (*           (name, { uqvs; eqvs; t = Undertycheck.infer t })) *)
+  (*     refinements *)
+  (* in *)
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
-      (Structure.layout_refinements Undertype.pretty_layout refinements)
+      (Structure.layout_refinements Undertype.pretty_layout_q refinements)
   in
   refinements

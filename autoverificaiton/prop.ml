@@ -46,6 +46,21 @@ module T = struct
     in
     aux prop
 
+  let has_qv prop =
+    let rec aux t =
+      match t with
+      | Lit _ | MethodPred (_, _) -> false
+      | Implies (e1, e2) -> aux e1 || aux e2
+      | Ite (e1, e2, e3) -> aux e1 || aux e2 || aux e3
+      | Not e -> aux e
+      | And es -> List.exists aux es
+      | Or es -> List.exists aux es
+      | Iff (e1, e2) -> aux e1 || aux e2
+      | Forall (_, _) -> true
+      | Exists (_, _) -> true
+    in
+    aux prop
+
   (* TODO: type check *)
   let lit_get_ty lit =
     let aux = function

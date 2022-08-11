@@ -116,7 +116,16 @@ let under_type_check =
         let () = Config.load_default () in
         let code = Inputstage.load_ssa source_file in
         let refinements = Inputstage.load_under_refinments refine_file in
-        let code = Typecheck.Undercheck.struc_check code refinements in
+        (* let code = Typecheck.Undercheck.struc_check code refinements in *)
+        ())
+
+let init =
+  Command.basic ~summary:"init"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source file" %: regular_file)
+      and refine_file = anon ("refine_file" %: regular_file) in
+      fun () ->
+        let () = Config.load_default () in
         ())
 
 let test =
@@ -129,6 +138,7 @@ let test =
       ("parse-under-refinements", parsing_under_refinements);
       ("over-type-check", over_type_check);
       ("under-type-check", under_type_check);
+      ("init", init);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]

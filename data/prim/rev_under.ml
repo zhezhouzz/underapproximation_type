@@ -1,9 +1,5 @@
-let nil = (v : int list) (fun (u : 'fa) -> not (mem v u))
+let nil (u : 'forall * int) = (v : int list) (not (mem v u))
 
-let cons =
-  let l =
-    (v : int list) (fun (u : 'ex) ->
-        mem v u && fun (w : 'fa) -> implies (mem v w) (w == u))
-  in
-  ( (h : int) (mem l h),
-    (t : int list) (fun (u : 'fa) -> implies (mem t u) (mem l u)) )
+let cons (u : 'forall * int) (w : 'forall * int) (z : 'exists * int) =
+  let l = (v : int list) (implies (mem v u && mem v w) (u == w) && mem v z) in
+  ((h : int) (mem l h), (t : int list) (implies (mem t u) (mem l u)))

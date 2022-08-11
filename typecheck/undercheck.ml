@@ -61,7 +61,8 @@ let rec id_type_infer (ctx : UT.t Typectx.t) (id : NL.id NL.typed) :
     NL.id UL.typed =
   let ty =
     try Typectx.get_ty ctx id.x
-    with _ -> Prim.get_primitive_under_ty (External id.x)
+    with _ -> (* TODO: fix *)
+              (Prim.get_primitive_under_ty (External id.x)).t
   in
   (* let ty = *)
   (*   UT.( *)
@@ -249,6 +250,8 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
+      (* TODO: fix *)
+      let opty = opty.t in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) term_type_infer
       in
@@ -313,11 +316,13 @@ and term_type_infer (ctx : UT.t Typectx.t) (a : NL.term NL.typed) :
           Prim.get_primitive_rev_under_ty
             Op.(PrimOp (Dt constructor.x, rev_constructor_nt))
         in
-        let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
+        (* TODO: fix *)
+        let constructor = UL.{ ty = constructor_ty.t; x = constructor.x } in
         let retty, args =
           let open UT in
-          match constructor_ty with
-          | UnderTy_base _ -> (constructor_ty, [])
+          (* TODO: fix *)
+          match constructor_ty.t with
+          | UnderTy_base _ -> (constructor_ty.t, [])
           | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
               let ts = List.map (fun t -> UT.subst_id t argname matched.x) ts in
               let tsargs = _safe_combine __FILE__ __LINE__ ts args in
@@ -394,6 +399,8 @@ and term_type_check (ctx : UT.t Typectx.t) (x : NL.term NL.typed) (ty : UT.t) :
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
+      (* TODO: fix *)
+      let opty = opty.t in
       let ty', (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) self
       in

@@ -16,7 +16,8 @@ module T = struct
     | UnderTy_tuple of t list
   [@@deriving sexp]
 
-  type qt = id typed list * id typed list * t
+  type qt = { uqvs : id typed list; eqvs : id typed list; t : t }
+  [@@deriving sexp]
 
   let rec destruct_arrow_tp = function
     | UnderTy_arrow { argname; argty; retty } ->

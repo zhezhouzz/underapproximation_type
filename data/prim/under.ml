@@ -1,50 +1,49 @@
-let eq =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let eq (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a == b))
 
-let neq =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let neq (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a != b))
 
-let lt =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let lt (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a < b))
 
-let gt =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let gt (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a > b))
 
-let le =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let le (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a <= b))
 
-let ge =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let ge (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : bool) (iff v (a => b))
 
-let plus =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let plus (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : int) (v == a + b)
 
-let minus =
-  let a = (v : int) false in
-  let b = (v : int) false in
+let minus (x : 'forall * int) (y : 'forall * int) =
+  let a = (v : int) (v == x) in
+  let b = (v : int) (v == y) in
   (v : int) (v == a - b)
 
-let nil = (v : int list) (fun (u : 'fa) -> not (mem v u))
+let nil (u : 'forall * int) = (v : int list) (not (mem v u))
 
-let cons =
+let cons (u : 'forall * int) =
   let h = (v : int) false in
-  let t = (v : int list) (fun (u : 'fa) -> implies (mem v u) (u == h)) in
-  (v : int list)
-    ((fun (u : 'ex) -> mem v u) && fun (u : 'fa) -> implies (mem v u) (u == h))
+  let t = (v : int list) (implies (mem v u) (u == h)) in
+  (v : int list) (implies (mem v u) (u == h) && mem v h && not (mem v u))
 
 let _ret_two_value =
   let x = (v : int) (v > 0) in
