@@ -5,7 +5,8 @@
  (modules
    ; primitive
    opcheck
-   typectx
+   ; typectx
+   ; qtypectx
    termcheck
    oversub
    undersub

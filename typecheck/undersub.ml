@@ -17,37 +17,38 @@ let _assume_basety file line (x, ty) =
       ((NT.to_smtty normalty, x), prop)
   | _ -> _failatwith file line "should not happen"
 
-let context_convert (ctx : UT.t Typectx.t) (name, nt, prop1, prop2) =
+let context_convert (ctx : UT.bodyt Typectx.t) uqvs (name, nt, prop1, prop2) =
+  let top_uq prop =
+    List.fold_right
+      UT.(
+        fun { ty; x } prop ->
+          Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop))
+      uqvs prop
+  in
   let nu = (NT.to_smtty nt, name) in
   let open Autov.Prop in
-  let ctx = List.rev ctx in
-  let rec aux ctx (prop1, prop2) =
-    match ctx with
-    | [] -> mk_forall nu (fun _ -> Implies (prop2, prop1))
-    | (x, xty) :: ctx -> (
-        (* let () = *)
-        (*   Printf.printf "x: %s P1: %s -> (%s)  P2: %s ~> (%s)\n" x *)
-        (*     (Autov.layout_prop prop1) *)
-        (*     (Zzdatatype.Datatype.StrList.to_string @@ Autov.prop_fv prop1) *)
-        (*     (Autov.layout_prop prop2) *)
-        (*     (Zzdatatype.Datatype.StrList.to_string @@ Autov.prop_fv prop2) *)
-        (* in *)
-        match
-          ( List.exists (String.equal x) @@ Autov.prop_fv prop1,
-            List.exists (String.equal x) @@ Autov.prop_fv prop2 )
-        with
-        | false, false -> aux ctx (prop1, prop2)
-        | true, false ->
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            aux ctx (mk_exists x (fun _ -> And [ xprop; prop1 ]), prop2)
-        | false, true ->
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            aux ctx (prop1, mk_forall x (fun _ -> Implies (xprop, prop2)))
-        | true, true ->
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            mk_forall x (fun _ -> Implies (xprop, aux ctx (prop1, prop2))))
+  let aux (x, xty) (outter, prop1, prop2) =
+    match
+      ( List.exists (String.equal x) @@ Autov.prop_fv prop1,
+        List.exists (String.equal x) @@ Autov.prop_fv prop2 )
+    with
+    | false, false -> (outter, prop1, prop2)
+    | true, false ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+        (outter, mk_exists x (fun _ -> And [ xprop; prop1 ]), prop2)
+    | false, true ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+        (outter, prop1, mk_forall x (fun _ -> Implies (xprop, prop2)))
+    | true, true ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+        ( (fun prop -> outter (mk_forall x (fun _ -> Implies (xprop, prop)))),
+          prop1,
+          prop2 )
   in
-  let q = aux ctx (prop1, prop2) in
+  let top_uq, prop1, prop2 =
+    Typectx.fold_right aux ctx (top_uq, prop1, prop2)
+  in
+  let q = top_uq @@ mk_forall nu (fun _ -> Implies (prop2, prop1)) in
   (* closing check *)
   match Autov.prop_fv q with
   | [] -> q
@@ -55,8 +56,16 @@ let context_convert (ctx : UT.t Typectx.t) (name, nt, prop1, prop2) =
       _failatwith __FILE__ __LINE__
         (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
-let subtyping_check file line (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
+let subtyping_check file line (ctx : UT.bodyt Typectx.t UT.qted) (t1 : UT.t)
+    (t2 : UT.t) =
   let open UT in
+  let t1, ctx = unify_qv_to t1 ctx in
+  let t2, { uqvs; eqvs; k = ctx } = unify_qv_to t2 ctx in
+  let ctx =
+    List.fold_right
+      (fun qv ctx -> Typectx.add_to_left (eqv_to_bodyt qv, qv.x) ctx)
+      eqvs ctx
+  in
   let rec aux ctx (t1, t2) =
     let () = Printf.printf "Subtype: %s\n" @@ layout_subtyping ctx (t1, t2) in
     match (t1, t2) with
@@ -76,7 +85,7 @@ let subtyping_check file line (ctx : UT.t Typectx.t) (t1 : UT.t) (t2 : UT.t) =
           if String.equal name1 name2 then (name1, prop1, prop2)
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
-        let q = context_convert ctx (typeself, nt, prop1, prop2) in
+        let q = context_convert ctx uqvs (typeself, nt, prop1, prop2) in
         let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in
         if Autov.check q then ()
         else _failatwith file line "Subtyping check: rejected by the verifier"

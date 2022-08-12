@@ -6,18 +6,23 @@ module T = struct
   type normalty = Normalty.T.t [@@deriving sexp]
   type 'a typed = { ty : normalty; x : 'a } [@@deriving sexp]
 
-  type t =
+  type 'a qted = { uqvs : id typed list; eqvs : id typed list; k : 'a }
+  [@@deriving sexp]
+
+  type bodyt =
     | UnderTy_base of {
         basename : id;
         normalty : normalty;
         prop : Autov.Prop.t;
       }
-    | UnderTy_arrow of { argname : id; argty : t; retty : t }
-    | UnderTy_tuple of t list
+    | UnderTy_arrow of { argname : id; argty : bodyt; retty : bodyt }
+    | UnderTy_tuple of bodyt list
   [@@deriving sexp]
 
-  type qt = { uqvs : id typed list; eqvs : id typed list; t : t }
-  [@@deriving sexp]
+  type t = bodyt qted [@@deriving sexp]
+
+  let without_qv k = { uqvs = []; eqvs = []; k }
+  let map_qv f { uqvs; eqvs; k } = { uqvs; eqvs; k = f k }
 
   let rec destruct_arrow_tp = function
     | UnderTy_arrow { argname; argty; retty } ->
@@ -179,7 +184,7 @@ module T = struct
     UnderTy_base
       { basename; normalty; prop = P.Forall (x, Implies (xprop, prop)) }
 
-  let hide_quantify_variable_in_ty xname xty ty =
+  let hide_quantify_variable_in_bodyt xname xty ty =
     match xty with
     | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "arrow type"
     | UnderTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
@@ -209,6 +214,37 @@ module T = struct
         in
         aux ty
 
+  let bodyt_fv bodyt =
+    let rec aux = function
+      | UnderTy_base { basename; prop; _ } ->
+          let fv = Autov.prop_fv prop in
+          List.filter (fun x -> not @@ String.equal basename x) fv
+      | UnderTy_tuple ts -> List.concat (List.map aux ts)
+      | UnderTy_arrow { argname; argty; retty } ->
+          let fv = aux retty in
+          let fv = List.filter (fun x -> not @@ String.equal argname x) fv in
+          Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv @ aux argty)
+    in
+    aux bodyt
+
+  let check_close { uqvs; eqvs; k = tbody } =
+    let fv = bodyt_fv tbody in
+    match
+      Zzdatatype.Datatype.List.substract String.equal
+        (List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs)
+        fv
+    with
+    | [] -> true
+    | _ -> false
+
+  (* let hide_quantify_variable_in_ty xname xty { uqvs; eqvs; k } = *)
+  (*   (\* let _ = *\) *)
+  (*   (\*   if check_close { uqvs; eqvs; k = xty.k } then () *\) *)
+  (*   (\*   else _failatwith __FILE__ __LINE__ "" *\) *)
+  (*   (\* in *\) *)
+  (*   let k = hide_quantify_variable_in_bodyt xname xty k in *)
+  (*   { uqvs; eqvs; k } *)
+
   let instantiate_vars (x, lit) t =
     let rec aux t =
       match t with
@@ -228,4 +264,60 @@ module T = struct
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
     in
     aux t
+
+  let unify_qv_to { uqvs = uqvs1; eqvs = eqvs1; k = tbody1 }
+      { uqvs = uqvs2; eqvs = eqvs2; k = tbody2 } =
+    let eqvs1, tbody1 =
+      List.fold_right
+        (fun { ty; x } (eqvs1, tbody1) ->
+          if List.exists (fun y -> String.equal y.x x) eqvs2 then
+            let x' = Rename.unique x in
+            ({ ty; x = x' } :: eqvs1, subst_id tbody1 x x')
+          else ({ ty; x } :: eqvs1, tbody1))
+        eqvs1 ([], tbody1)
+    in
+    let eqvs = eqvs2 @ eqvs1 in
+    let rec aux (uqvs, diff, tbody1) = function
+      | uqvs1, [] -> (uqvs @ uqvs1, diff @ uqvs1, tbody1)
+      | [], uqvs2 -> (uqvs @ uqvs2, diff, tbody1)
+      | qv1 :: uqvs1, uqvs2 -> (
+          match List.find_opt (fun x -> Normalty.T.eq x.ty qv1.ty) uqvs2 with
+          | None -> aux (uqvs @ [ qv1 ], diff @ [ qv1 ], tbody1) (uqvs1, uqvs2)
+          | Some qv2 ->
+              let uqvs2 =
+                List.filter
+                  (fun qv ->
+                    not (String.equal qv.x qv2.x && Normalty.T.eq qv.ty qv2.ty))
+                  uqvs2
+              in
+              aux
+                (uqvs @ [ qv2 ], diff, subst_id tbody1 qv1.x qv2.x)
+                (uqvs1, uqvs2))
+    in
+    let uqvs, _, tbody1 = aux ([], [], tbody1) (uqvs1, uqvs2) in
+    ( (* (fun { uqvs; eqvs; k } -> { uqvs = uqvs @ udiff; eqvs = eqvs @ eqvs1; k }), *)
+      tbody1,
+      { uqvs; eqvs; k = tbody2 } )
+
+  let eqv_to_bodyt { ty; x } =
+    UnderTy_base { basename = x; normalty = ty; prop = Autov.Prop.mk_true }
+
+  let join_tuple_t t = function
+    | UnderTy_tuple ts -> UnderTy_tuple (ts @ [ t ])
+    | _ -> _failatwith __FILE__ __LINE__ ""
+
+  let distruct_tuple_t_opt = function
+    | { uqvs; eqvs; k = UnderTy_tuple ts } ->
+        Some (List.map (fun k -> { uqvs; eqvs; k }) ts)
+    | _ -> None
+
+  let t_to_tuple_t = function
+    | [] -> _failatwith __FILE__ __LINE__ ""
+    | { uqvs; eqvs; k } :: t ->
+        List.fold_left
+          (fun res t_new ->
+            let bodyt_new, { uqvs; eqvs; k } = unify_qv_to t_new res in
+            { uqvs; eqvs; k = join_tuple_t bodyt_new k })
+          { uqvs; eqvs; k = UnderTy_tuple [ k ] }
+          t
 end

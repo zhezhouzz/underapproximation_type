@@ -67,7 +67,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
       { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
       let idty = _check_equality __FILE__ __LINE__ eq idty t1 in
-      let ctx' = Typectx.overlap ctx (idty, id) in
+      let ctx' = Typectx.add_to_right ctx (idty, id) in
       let body = bidirect_type_check ctx' body t2 in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
@@ -89,9 +89,10 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
         | l -> Ty_tuple l
       in
       let rhs = bidirect_type_check ctx rhs rhsty in
-      let ctx' = List.fold_left Typectx.overlap ctx args in
+      let ctx' = List.fold_left Typectx.add_to_right ctx args in
       let ctx' =
-        if if_rec then Typectx.overlap ctx (construct_arrow_tp (xsty, ty), "f")
+        if if_rec then
+          Typectx.add_to_right ctx (construct_arrow_tp (xsty, ty), "f")
         else ctx'
       in
       let body = bidirect_type_check ctx' body ty in
@@ -113,7 +114,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
         let constructor = { ty = Some constructor_ty; x = constructor.x } in
         let argsty, _ = destruct_arrow_tp constructor_ty in
         let ctx' =
-          List.fold_left Typectx.overlap ctx (List.combine argsty args)
+          List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
         in
         let exp = bidirect_type_check ctx' exp ty in
         let case = { constructor; args; exp } in
@@ -143,7 +144,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = Ty_tuple esty in
       ({ ty = Some ty; x = Tu es }, ty)
   | Lam (idty, id, body) ->
-      let ctx' = Typectx.overlap ctx (idty, id) in
+      let ctx' = Typectx.add_to_right ctx (idty, id) in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = Ty_arrow (idty, bodyty) in
       ({ ty = Some ty; x = Lam (idty, id, body) }, ty)
@@ -186,7 +187,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         | l -> Ty_tuple l
       in
       let rhs = bidirect_type_check ctx rhs rhsty in
-      let ctx' = List.fold_left Typectx.overlap ctx args in
+      let ctx' = List.fold_left Typectx.add_to_right ctx args in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = bodyty in
       ({ ty = Some ty; x = Let (if_rec, args, rhs, body) }, ty)
@@ -207,7 +208,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         let constructor = { ty = Some constructor_ty; x = constructor.x } in
         let argsty, _ = destruct_arrow_tp constructor_ty in
         let ctx' =
-          List.fold_left Typectx.overlap ctx (List.combine argsty args)
+          List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
         in
         let exp, expty = bidirect_type_infer ctx' exp in
         let case = { constructor; args; exp } in
@@ -224,7 +225,7 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       in
       ({ ty = Some ty; x = Match (e, cases) }, ty)
 
-let check e = fst @@ bidirect_type_infer [] e
+let check e = fst @@ bidirect_type_infer Typectx.empty e
 
 module LS = Languages.Struc
 
@@ -247,6 +248,8 @@ let struc_check l =
           _failatwith __FILE__ __LINE__
             "cannot infer ret type of recursive function"
       | true, Some ty ->
-          let body = bidirect_type_check [ (name, ty) ] body ty in
+          let body =
+            bidirect_type_check Typectx.(add_to_right empty (ty, name)) body ty
+          in
           { if_rec; name; body })
     l

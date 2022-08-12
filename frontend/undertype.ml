@@ -125,11 +125,11 @@ let quantified_undertype_of_ocamlexpr e =
           | Ex -> (uqvs, eqvs @ [ id ])
         in
         aux (uqvs, eqvs) expr
-    | _ -> { uqvs; eqvs; t = undertype_of_ocamlexpr expr }
+    | _ -> { uqvs; eqvs; k = undertype_of_ocamlexpr expr }
   in
   aux ([], []) e
 
-let quantified_undertype_to_ocamlexpr L.{ uqvs; eqvs; t } =
+let quantified_undertype_to_ocamlexpr L.{ uqvs; eqvs; k = t } =
   let open L in
   let mk_lam (x, qt, e) =
     Expr.desc_to_ocamlexpr
@@ -168,7 +168,7 @@ let pretty_layout x =
 let layout_q x =
   Pprintast.string_of_expression @@ quantified_undertype_to_ocamlexpr x
 
-let pretty_layout_q L.{ uqvs; eqvs; t } =
+let pretty_layout_q L.{ uqvs; eqvs; k = t } =
   let open L in
   let mk_q (q, x, _, e) =
     let q = match q with Fa -> "∀" | Ex -> "∃" in

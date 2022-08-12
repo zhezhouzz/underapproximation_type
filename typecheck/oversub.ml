@@ -12,7 +12,7 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
   let fv2 = Autov.prop_fv prop2 in
   let fv = fv1 @ fv2 in
   let ctx =
-    List.filter_map
+    Typectx.filter_map
       (fun (x, ty) ->
         OT.(
           match ty with
@@ -25,17 +25,16 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
   let () =
     List.iter
       (fun name ->
-        if
-          String.equal typeself name
-          || List.exists (fun (x, _) -> String.equal name x) ctx
-        then ()
+        if String.equal typeself name || Typectx.exists ctx name then ()
         else
           _failatwith __FILE__ __LINE__
           @@ spf "type context is not well founded, %s not found" name)
       fv
   in
-  let pre = List.map snd ctx in
-  (pre @ [ prop1 ], prop2)
+  let pre =
+    Typectx.fold_right (fun (_, p) pres -> pres @ [ p ]) ctx [ prop1 ]
+  in
+  (pre, prop2)
 
 let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let open OT in
@@ -45,7 +44,7 @@ let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
     | ( OverTy_base { basename = name1; prop = prop1; _ },
         OverTy_base { basename = name2; prop = prop2; _ } ) ->
         let typeself, prop1, prop2 =
-          match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with
+          match (Typectx.exists ctx name1, Typectx.exists ctx name2) with
           | true, true ->
               ( _check_equality __FILE__ __LINE__ String.equal name1 name2,
                 prop1,

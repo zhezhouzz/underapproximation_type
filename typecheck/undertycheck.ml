@@ -5,7 +5,7 @@ open Sugar
 
 let infer_id ctx name =
   let open Autov.Prop in
-  match Typectx.find_opt ctx name.x with
+  match Typectx.get_opt ctx name.x with
   | None -> failwith "free variable in refinement type"
   | Some ty -> { ty; x = name.x }
 
@@ -34,10 +34,10 @@ let infer_prop ctx t =
     | Iff (e1, e2) -> Iff (aux ctx e1, aux ctx e2)
     | MethodPred (mp, args) -> MethodPred (mp, List.map (infer_lit ctx) args)
     | Forall (u, e) ->
-        let ctx = Typectx.overlap ctx (u.ty, u.x) in
+        let ctx = Typectx.add_to_right ctx (u.ty, u.x) in
         Forall (u, aux ctx e)
     | Exists (u, e) ->
-        let ctx = Typectx.overlap ctx (u.ty, u.x) in
+        let ctx = Typectx.add_to_right ctx (u.ty, u.x) in
         Exists (u, aux ctx e)
   in
   aux ctx t
@@ -45,12 +45,14 @@ let infer_prop ctx t =
 let infer t =
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
-        let ctx = Typectx.overlap ctx (NT.to_smtty normalty, basename) in
+        let ctx = Typectx.add_to_right ctx (NT.to_smtty normalty, basename) in
         UnderTy_base { basename; normalty; prop = infer_prop ctx prop }
     | UnderTy_arrow { argname; argty; retty } ->
         let argty = aux ctx argty in
-        let ctx = Typectx.overlap ctx (NT.to_smtty @@ erase argty, argname) in
+        let ctx =
+          Typectx.add_to_right ctx (NT.to_smtty @@ erase argty, argname)
+        in
         UnderTy_arrow { argname; argty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
-  aux [] t
+  aux Typectx.empty t

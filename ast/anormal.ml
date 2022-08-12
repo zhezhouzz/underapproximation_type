@@ -9,6 +9,7 @@ module F (Type : Type.T) = struct
 
   type smt_lit = ConstB of bool | ConstI of int | Var of id [@@deriving sexp]
 
+  (* NOTE: the function arguments have no quantified types *)
   type value =
     | Lam of id typed * term typed
     | Fix of id typed * value typed

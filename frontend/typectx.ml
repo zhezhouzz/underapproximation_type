@@ -1,7 +1,4 @@
-open Zzdatatype.Datatype
-
-let pretty_layout f ctx =
-  List.split_by ";\n" (fun (name, ty) -> Printf.sprintf "%s:%s" name (f ty)) ctx
+let pretty_layout = Languages.Typectx.pretty_layout
 
 let pretty_layout_judge f ctx (e, r) =
   Printf.sprintf "%s⊢\n%s :\n%s\n" (pretty_layout f ctx) (Expr.layout e) (f r)
