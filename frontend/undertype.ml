@@ -168,7 +168,7 @@ let pretty_layout x =
 let layout_q x =
   Pprintast.string_of_expression @@ quantified_undertype_to_ocamlexpr x
 
-let pretty_layout_q L.{ uqvs; eqvs; k = t } =
+let layout_qt f L.{ uqvs; eqvs; k = t } =
   let open L in
   let mk_q (q, x, _, e) =
     let q = match q with Fa -> "∀" | Ex -> "∃" in
@@ -177,6 +177,6 @@ let pretty_layout_q L.{ uqvs; eqvs; k = t } =
   List.fold_right
     (fun { x; ty } e -> mk_q (Fa, x, ty, e))
     uqvs
-    (List.fold_right
-       (fun { x; ty } e -> mk_q (Ex, x, ty, e))
-       eqvs (pretty_layout t))
+    (List.fold_right (fun { x; ty } e -> mk_q (Ex, x, ty, e)) eqvs (f t))
+
+let pretty_layout_q x = layout_qt pretty_layout x

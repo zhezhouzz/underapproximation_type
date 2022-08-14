@@ -49,6 +49,10 @@ let context_convert (ctx : UT.bodyt Typectx.t) uqvs (name, nt, prop1, prop2) =
     Typectx.fold_right aux ctx (top_uq, prop1, prop2)
   in
   let q = top_uq @@ mk_forall nu (fun _ -> Implies (prop2, prop1)) in
+  (* let _ = *)
+  (*   Printf.printf "uqvs: %s\n" *)
+  (*     (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.UT.x) uqvs) *)
+  (* in *)
   (* closing check *)
   match Autov.prop_fv q with
   | [] -> q
@@ -67,7 +71,11 @@ let subtyping_check file line (ctx : UT.bodyt Typectx.t UT.qted) (t1 : UT.t)
       eqvs ctx
   in
   let rec aux ctx (t1, t2) =
-    let () = Printf.printf "Subtype: %s\n" @@ layout_subtyping ctx (t1, t2) in
+    let () =
+      Printf.printf "Subtype: ∀(%s) %s\n"
+        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.UT.x) uqvs)
+      @@ layout_subtyping ctx (t1, t2)
+    in
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
         UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->

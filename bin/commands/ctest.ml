@@ -116,7 +116,7 @@ let under_type_check =
         let () = Config.load_default () in
         let code = Inputstage.load_ssa source_file in
         let refinements = Inputstage.load_under_refinments refine_file in
-        (* let code = Typecheck.Undercheck.struc_check code refinements in *)
+        let code = Typecheck.Undercheck.struc_check code refinements in
         ())
 
 let init =

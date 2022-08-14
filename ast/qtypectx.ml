@@ -32,6 +32,8 @@ let subtract ctx ctx' =
 let add_to_right ctx (ty, x) =
   { ctx with k = Typectx.add_to_right ctx.k (ty, x) }
 
+let add_to_rights ctx l = List.fold_left add_to_right ctx l
+
 let close_qv_by_diff ctx ctx' { uqvs; eqvs; k } =
   let ctx'' = subtract ctx ctx' in
   { uqvs = uqvs @ ctx''.uqvs; eqvs = eqvs @ ctx''.eqvs; k }
@@ -46,3 +48,5 @@ let hide_vars_in_ctx ctx vars ty =
       in
       { uqvs; eqvs; k = hide_quantify_variable_in_bodyt id idty k })
     vars ty
+
+let empty : ctx = without_qv Typectx.empty

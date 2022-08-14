@@ -299,6 +299,13 @@ module T = struct
       tbody1,
       { uqvs; eqvs; k = tbody2 } )
 
+  let unify_qvs_to ts target =
+    List.fold_right
+      (fun t (ts, target) ->
+        let t', target = unify_qv_to t target in
+        (t' :: ts, target))
+      ts ([], target)
+
   let eqv_to_bodyt { ty; x } =
     UnderTy_base { basename = x; normalty = ty; prop = Autov.Prop.mk_true }
 
@@ -320,4 +327,11 @@ module T = struct
             { uqvs; eqvs; k = join_tuple_t bodyt_new k })
           { uqvs; eqvs; k = UnderTy_tuple [ k ] }
           t
+
+  let disjunct_list_q = function
+    | [] -> _failatwith __FILE__ __LINE__ ""
+    | [ h ] -> h
+    | h :: t ->
+        let t, { uqvs; eqvs; k } = unify_qvs_to t h in
+        { uqvs; eqvs; k = disjunct_list (k :: t) }
 end

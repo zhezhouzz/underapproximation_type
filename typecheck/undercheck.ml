@@ -10,9 +10,24 @@ open Sugar
 open UT
 
 type ctx = Qtypectx.ctx
-(* type 'a bodytyped = { ty : UT.bodyt; x : string } *)
+type 'a bodyttyped = { bodyt_ty : bodyt; bodyt_x : 'a }
 
-let layout_judge = Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term
+let unify_to_ctx x ctx =
+  let bodyt_ty, ctx = unify_qv_to x.UL.ty ctx in
+  ({ bodyt_ty; bodyt_x = x.UL.x }, ctx)
+
+let unify_to_ctxs xs ctx =
+  List.fold_right
+    (fun x (xs, ctx) ->
+      let x, ctx = unify_to_ctx x ctx in
+      (x :: xs, ctx))
+    xs ([], ctx)
+
+let layout_judge ctx (e, ty) =
+  Frontend.Undertype.layout_qt
+    (fun ctx ->
+      Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term ctx (e, ty))
+    ctx
 
 let lit_to_prop_lit (ty, x) =
   let open UL in
@@ -45,6 +60,20 @@ let subtyping_check = Undersub.subtyping_check
 
 let close_qv_by_ctx_diff (ctx, UL.{ ty; x }) ctx' =
   UL.{ ty = Qtypectx.close_qv_by_diff ctx ctx' ty; x }
+
+let add_qv_by_ctx_diff (ctx, { bodyt_ty; bodyt_x }) ctx' =
+  UL.
+    {
+      ty = Qtypectx.close_qv_by_diff ctx ctx' (without_qv bodyt_ty);
+      x = bodyt_x;
+    }
+
+let hide_vars_in_ctx ctx ty vars =
+  List.fold_right
+    (fun id { uqvs; eqvs; k } ->
+      let idty = Typectx.get_ty ctx id in
+      { uqvs; eqvs; k = hide_quantify_variable_in_bodyt id idty k })
+    vars ty
 
 let rec id_type_infer (ctx : ctx) (id : NL.id NL.typed) : UL.id UL.typed =
   let open UT in
@@ -150,19 +179,23 @@ and handle_lettu ctx (tu, args, body) target_type =
     erase_check_mk_id __FILE__ __LINE__ tu
       (UT.t_to_tuple_t (List.map (fun x -> x.ty) args))
   in
-  let retqtf, tuty, ctx = unify_qv_to tu.ty ctx in
-  let ctx' = Qtypectx.add_to_right ctx (tuty, tu.x) in
+  let tu, ctx' = unify_to_ctx tu ctx in
+  let ctx' = Qtypectx.add_to_right ctx' (tu.bodyt_ty, tu.bodyt_x) in
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
     | Some ty -> term_type_check ctx' body ty
   in
   (* TODO: sanity check before hide depedent vars *)
-  UL.
-    {
-      ty = retqtf @@ hide_vars_in_ctx ctx' [ tu.x ] body.ty;
-      x = LetTu { tu; args; body };
-    }
+  let tu = add_qv_by_ctx_diff (ctx', tu) ctx in
+  close_qv_by_ctx_diff
+    ( ctx',
+      UL.
+        {
+          ty = hide_vars_in_ctx ctx.k body.ty [ tu.x ];
+          x = LetTu { tu; args; body };
+        } )
+    ctx
 
 and handle_letdetu ctx (tu, args, body) target_type =
   let open UL in
@@ -177,14 +210,13 @@ and handle_letdetu ctx (tu, args, body) target_type =
     List.map (fun (x, ty) -> erase_check_mk_id __FILE__ __LINE__ x ty)
     @@ List.combine args argsty
   in
-  let retqtfs, ctx' =
+  let args, ctx' =
     List.fold_right
-      (fun x (retqtf, ctx) ->
-        let f, xty, ctx = unify_qv_to x.UL.ty ctx in
-        let ctx = Qtypectx.add_to_right ctx (xty, x.x) in
-        ((fun x -> f @@ retqtf x), ctx))
-      args
-      ((fun x -> x), ctx)
+      (fun x (args, ctx) ->
+        let x, ctx' = unify_to_ctx x ctx in
+        let ctx' = Qtypectx.add_to_right ctx' (x.bodyt_ty, x.bodyt_x) in
+        (x :: args, ctx'))
+      args ([], ctx)
   in
   let body =
     match target_type with
@@ -193,65 +225,84 @@ and handle_letdetu ctx (tu, args, body) target_type =
   in
   (* TODO: sanity check before hide depedent vars *)
   let ty =
-    retqtfs @@ hide_vars_in_ctx ctx' (List.map (fun x -> x.UL.x) args) body.ty
+    hide_vars_in_ctx ctx'.k body.ty (List.map (fun x -> x.bodyt_x) args)
   in
-  UL.{ ty; x = LetDeTu { tu; args; body } }
+  let args = List.map (fun x -> add_qv_by_ctx_diff (ctx', x) ctx) args in
+  close_qv_by_ctx_diff (ctx', UL.{ ty; x = LetDeTu { tu; args; body } }) ctx
 
-and handle_letapp ctx (ret, fty, args, body) self =
+and handle_letapp ctx (ret, fty, args, body) target_type =
   let open UL in
   let args = List.map (lit_type_infer ctx) args in
-  let argsty, retty = UT.destruct_arrow_tp fty in
+  let args, ctx' = unify_to_ctxs args ctx in
+  let fty', ctx' = unify_qv_to fty ctx' in
+  (* let () = Printf.printf "fty': %s\n" (Frontend.Undertype.layout fty') in *)
+  (* let () = Printf.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
+  let argsty, retty = UT.destruct_arrow_tp fty' in
+  let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
+  let () = Printf.printf "before handel let (%s)\n" ret.NL.x in
   let _ =
     List.fold_left
-      (fun ctx (arg, (ty, id)) ->
-        let () = subtyping_check __FILE__ __LINE__ ctx arg.ty (without_qv ty) in
-        let ctx' = Qtypectx.add_to_right ctx (ty, id) in
+      (fun ctx' (arg, (ty, id)) ->
+        let () =
+          subtyping_check __FILE__ __LINE__ ctx' (without_qv arg.bodyt_ty)
+            (without_qv ty)
+        in
+        let ctx' = Qtypectx.add_to_right ctx' (ty, id) in
         ctx')
-      ctx
+      ctx'
     @@ List.combine args argsty
   in
-  (* let fty' = UT.arrow_args_rename (List.map (fun x -> x.NL.x) args) f.ty in *)
-  let ret = erase_check_mk_id __FILE__ __LINE__ ret (without_qv retty) in
-  (* let retqtfs, ctx' = *)
-  (*   List.fold_right *)
-  (*     (fun x (retqtf, ctx) -> *)
-  (*       let f, xty, ctx = unify_qv_to x.UL.ty ctx in *)
-  (*       let ctx = Qtypectx.add_to_right ctx (xty, x.x) in *)
-  (*       ((fun x -> f @@ retqtf x), ctx)) *)
-  (*     args *)
-  (*     ((fun x -> x), ctx) *)
-  (* in *)
+  let () = Printf.printf "before handel let (%s)\n" ret.NL.x in
   let litbindings =
     List.map
-      (fun arg -> lit_to_prop_lit (NT.to_smtty @@ UT.erase arg.ty, arg.x))
+      (fun arg ->
+        lit_to_prop_lit (NT.to_smtty @@ UT.erase arg.bodyt_ty, arg.bodyt_x))
       args
   in
-  let ret =
-    {
-      ty =
-        List.fold_left
-          (fun ret ((_, x), lit) -> UT.instantiate_vars (x, lit) ret)
-          ret.ty
-        @@ List.combine argsty litbindings;
-      x = ret.x;
-    }
+  let retty =
+    List.fold_left
+      (fun ret ((_, x), lit) -> UT.instantiate_vars (x, lit) ret)
+      retty
+    @@ List.combine argsty litbindings
   in
-  let ctx' = Qtypectx.add_to_right ctx (ret.ty, ret.x) in
-  let body = self ctx' body in
+  let args = List.map (fun arg -> add_qv_by_ctx_diff (ctx', arg) ctx) args in
+  let () = Printf.printf "let bind var: %s\n" ret.x in
+  let ctx' = Qtypectx.add_to_right ctx (retty, ret.x) in
+  let ret =
+    close_qv_by_ctx_diff
+      (ctx', erase_check_mk_id __FILE__ __LINE__ ret @@ without_qv retty)
+      ctx
+  in
+  let body =
+    match target_type with
+    | None -> term_type_infer ctx' body
+    | Some ty -> term_type_check ctx' body ty
+  in
   (* TODO: sanity check before hide depedent vars *)
-  (UT.hide_quantify_variable_in_ty ret.x ret.ty body.ty, (ret, args, body))
+  let ty = hide_vars_in_ctx ctx'.k body.ty [ ret.x ] in
+  (ret, args, close_qv_by_ctx_diff (ctx', UL.{ ty; x = body.x }) ctx)
 
-and handle_letval ctx (lhs, rhs, body) self =
+(* (hide_quantify_variable_in_bodyt ret.x ret.ty body.ty, (ret, args, body)) *)
+
+and handle_letval ctx (lhs, rhs, body) target_type =
   let open UL in
   let rhs = value_type_infer ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let ctx' = Qtypectx.add_to_right ctx (lhs.ty, lhs.x) in
-  let body = self ctx' body in
+  let lhsty, ctx' = unify_qv_to lhs.ty ctx in
+  let ctx' = Qtypectx.add_to_right ctx' (lhsty, lhs.x) in
+  let body =
+    match target_type with
+    | None -> term_type_infer ctx' body
+    | Some ty -> term_type_check ctx' body ty
+  in
   (* TODO: sanity check before hide depedent vars *)
-  {
-    ty = UT.hide_quantify_variable_in_ty lhs.x lhs.ty body.ty;
-    x = LetVal { lhs; rhs; body };
-  }
+  close_qv_by_ctx_diff
+    ( ctx',
+      {
+        ty = hide_vars_in_ctx ctx'.k body.ty [ lhs.x ];
+        x = LetVal { lhs; rhs; body };
+      } )
+    ctx
 
 and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
   let open NL in
@@ -259,32 +310,24 @@ and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
   | V v ->
       let v = value_type_infer ctx { ty = a.ty; x = v } in
       { ty = v.ty; x = V v.x }
-  | LetTu { tu; args; body } ->
-      handle_lettu ctx (tu, args, body) term_type_infer
-  | LetDeTu { tu; args; body } ->
-      handle_letdetu ctx (tu, args, body) term_type_infer
+  | LetTu { tu; args; body } -> handle_lettu ctx (tu, args, body) None
+  | LetDeTu { tu; args; body } -> handle_letdetu ctx (tu, args, body) None
   | LetOp { ret; op; args; body } ->
       let argsty = List.map (fun x -> x.ty) args in
       let opty =
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
-      (* TODO: fix *)
-      let opty = opty.t in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) term_type_infer
-      in
-      { ty; x = LetOp { ret; op; args; body } }
+      let ret, args, body = handle_letapp ctx (ret, opty, args, body) None in
+      { ty = body.ty; x = LetOp { ret; op; args; body } }
   | LetApp { ret; f; args; body } ->
       let f = id_type_infer ctx f in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) term_type_infer
-      in
-      { ty; x = LetApp { ret; f; args; body } }
-  | LetVal { lhs; rhs; body } ->
-      handle_letval ctx (lhs, rhs, body) term_type_infer
+      let ret, args, body = handle_letapp ctx (ret, f.ty, args, body) None in
+      { ty = body.ty; x = LetApp { ret; f; args; body } }
+  | LetVal { lhs; rhs; body } -> handle_letval ctx (lhs, rhs, body) None
   | Ite { cond; e_t; e_f } ->
       let cond = id_type_infer ctx cond in
+      let cond, ctx' = unify_to_ctx cond ctx in
       let true_branch_prop x =
         Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
       in
@@ -292,21 +335,29 @@ and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
         Autov.(Prop.(Not (Lit (AVar { ty = Smtty.Bool; x }))))
       in
       let true_branch_ctx =
-        Qtypectx.add_to_right ctx
-          ( UT.base_type_add_conjunction_with_selfname true_branch_prop cond.ty,
-            cond.x )
+        Qtypectx.add_to_right ctx'
+          ( UT.base_type_add_conjunction_with_selfname true_branch_prop
+              cond.bodyt_ty,
+            cond.bodyt_x )
       in
       let false_branch_ctx =
-        Qtypectx.add_to_right ctx
-          ( UT.base_type_add_conjunction_with_selfname false_branch_prop cond.ty,
-            cond.x )
+        Qtypectx.add_to_right ctx'
+          ( UT.base_type_add_conjunction_with_selfname false_branch_prop
+              cond.bodyt_ty,
+            cond.bodyt_x )
       in
-      let e_t = term_type_infer true_branch_ctx e_t in
-      let e_f = term_type_infer false_branch_ctx e_f in
+      let e_t, ctx' = unify_to_ctx (term_type_infer true_branch_ctx e_t) ctx' in
+      let e_f, ctx' =
+        unify_to_ctx (term_type_infer false_branch_ctx e_f) ctx'
+      in
       let tys =
         [
-          UT.base_type_add_conjunction (true_branch_prop cond.x) e_t.ty;
-          UT.base_type_add_conjunction (false_branch_prop cond.x) e_f.ty;
+          UT.base_type_add_conjunction
+            (true_branch_prop cond.bodyt_x)
+            e_t.bodyt_ty;
+          UT.base_type_add_conjunction
+            (false_branch_prop cond.bodyt_x)
+            e_f.bodyt_ty;
         ]
       in
       let () =
@@ -320,10 +371,17 @@ and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
         Printf.printf "merged case ty: %s\n"
         @@ Frontend.Undertype.pretty_layout ty
       in
+      let cond = add_qv_by_ctx_diff (ctx', cond) ctx in
+      let e_t, e_f =
+        Sugar.map2 (fun x -> add_qv_by_ctx_diff (ctx', x) ctx) (e_t, e_f)
+      in
       (* NOTE: underappproximate here *)
-      { ty; x = Ite { cond; e_t; e_f } }
+      add_qv_by_ctx_diff
+        (ctx', { bodyt_ty = ty; bodyt_x = UL.Ite { cond; e_t; e_f } })
+        ctx
   | Match { matched; cases } ->
       let matched = id_type_infer ctx matched in
+      let matched, ctx' = unify_to_ctx matched ctx in
       let handle_case { constructor; args; exp } =
         let rev_constructor_nt =
           let argsty, retty = NT.destruct_arrow_tp constructor.ty in
@@ -335,15 +393,16 @@ and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
           Prim.get_primitive_rev_under_ty
             Op.(PrimOp (Dt constructor.x, rev_constructor_nt))
         in
-        (* TODO: fix *)
-        let constructor = UL.{ ty = constructor_ty.t; x = constructor.x } in
+        let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
+        let constructor, ctx' = unify_to_ctx constructor ctx' in
         let retty, args =
           let open UT in
-          (* TODO: fix *)
-          match constructor_ty.t with
-          | UnderTy_base _ -> (constructor_ty.t, [])
+          match constructor.bodyt_ty with
+          | UnderTy_base _ -> (constructor.bodyt_ty, [])
           | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
-              let ts = List.map (fun t -> UT.subst_id t argname matched.x) ts in
+              let ts =
+                List.map (fun t -> UT.subst_id t argname matched.bodyt_x) ts
+              in
               let tsargs = _safe_combine __FILE__ __LINE__ ts args in
               let args =
                 List.map
@@ -368,73 +427,85 @@ and term_type_infer (ctx : ctx) (a : NL.term NL.typed) : UL.term UL.typed =
           P.subst_id prop basename id
         in
         let ctx' =
-          Qtypectx.add_to_rights ctx
-          @@ UT.
-               ( base_type_add_conjunction_with_selfname branch_prop matched.ty,
-                 matched.x )
-             :: args
+          Qtypectx.add_to_rights ctx'
+            (( base_type_add_conjunction_with_selfname branch_prop
+                 matched.bodyt_ty,
+               matched.bodyt_x )
+            :: args)
         in
         let exp = term_type_infer ctx' exp in
+        let exp, ctx' = unify_to_ctx exp ctx' in
         let casety =
-          UT.base_type_add_conjunction (branch_prop matched.x) exp.ty
+          UT.base_type_add_conjunction
+            (branch_prop matched.bodyt_x)
+            exp.bodyt_ty
         in
-        (casety, UL.{ constructor; args = List.map snd args; exp })
+        ( Qtypectx.close_qv_by_diff ctx ctx' (without_qv casety),
+          UL.
+            {
+              constructor = add_qv_by_ctx_diff (ctx', constructor) ctx;
+              args = List.map snd args;
+              exp = add_qv_by_ctx_diff (ctx', exp) ctx;
+            } )
       in
       let tys, cases = List.split @@ List.map handle_case cases in
       let () =
         List.iter
           (fun ty ->
-            Printf.printf "case ty: %s\n" @@ Frontend.Undertype.pretty_layout ty)
+            Printf.printf "case ty: %s\n"
+            @@ Frontend.Undertype.pretty_layout_q ty)
           tys
       in
-      let ty = UT.disjunct_list tys in
+      let ty = UT.disjunct_list_q tys in
       let () =
         Printf.printf "merged case ty: %s\n"
-        @@ Frontend.Undertype.pretty_layout ty
+        @@ Frontend.Undertype.pretty_layout_q ty
       in
-      { ty; x = Match { matched; cases } }
+      {
+        ty;
+        x = Match { matched = add_qv_by_ctx_diff (ctx', matched) ctx; cases };
+      }
 
 and term_type_check (ctx : ctx) (x : NL.term NL.typed) (ty : UT.t) :
     UL.term UL.typed =
   let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
-  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
-  let self ctx e = term_type_check ctx e ty in
+  let () = erase_check __FILE__ __LINE__ (ty.k, x.ty) in
   let open NL in
   match (x.x, ty) with
   | V v, _ ->
       let v = value_type_check ctx { ty = x.ty; x = v } ty in
       { ty = v.ty; x = V v.x }
-  | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) self
-  | LetDeTu { tu; args; body }, _ -> handle_letdetu ctx (tu, args, body) self
+  | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) (Some ty)
+  | LetDeTu { tu; args; body }, _ ->
+      handle_letdetu ctx (tu, args, body) (Some ty)
   | LetApp { ret; f; args; body }, _ ->
       let f = id_type_infer ctx f in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) self
+      let ret, args, body =
+        handle_letapp ctx (ret, f.ty, args, body) (Some ty)
       in
-      { ty; x = LetApp { ret; f; args; body } }
+      { ty = body.ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
       let argsty = List.map (fun x -> x.ty) args in
       let opty =
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
-      (* TODO: fix *)
-      let opty = opty.t in
-      let ty', (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) self
+      let () = Printf.printf "before handel let (%s)\n" ret.x in
+      let ret, args, body =
+        handle_letapp ctx (ret, opty, args, body) (Some ty)
       in
       (* let _ = *)
       (*   Printf.printf "ret = _:%s\n" @@ Frontend.Undertype.pretty_layout ty' *)
       (* in *)
-      { ty = ty'; x = LetOp { ret; op; args; body } }
-  | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
+      { ty = body.ty; x = LetOp { ret; op; args; body } }
+  | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) (Some ty)
   | Ite _, _ | Match _, _ ->
       let x = term_type_infer ctx x in
       let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
       (* NOTE: underappproximate here *)
       { ty; x = x.x }
 
-let type_check x ty = term_type_check [] x ty
+let type_check x ty = term_type_check Qtypectx.empty x ty
 
 module SNA = Languages.StrucNA
 module SOA = Languages.StrucOA
