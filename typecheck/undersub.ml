@@ -63,8 +63,8 @@ let context_convert (ctx : UT.bodyt Typectx.t) uqvs (name, nt, prop1, prop2) =
 let subtyping_check file line (ctx : UT.bodyt Typectx.t UT.qted) (t1 : UT.t)
     (t2 : UT.t) =
   let open UT in
-  let t1, ctx = unify_qv_to t1 ctx in
-  let t2, { uqvs; eqvs; k = ctx } = unify_qv_to t2 ctx in
+  let t1, ctx = Qtypectx.unify t1 ctx in
+  let t2, { uqvs; eqvs; k = ctx } = Qtypectx.unify t2 ctx in
   let ctx =
     List.fold_right
       (fun qv ctx -> Typectx.add_to_left (eqv_to_bodyt qv, qv.x) ctx)

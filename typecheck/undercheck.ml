@@ -13,7 +13,7 @@ type ctx = Qtypectx.ctx
 type 'a bodyttyped = { bodyt_ty : bodyt; bodyt_x : 'a }
 
 let unify_to_ctx x ctx =
-  let bodyt_ty, ctx = unify_qv_to x.UL.ty ctx in
+  let bodyt_ty, ctx = Qtypectx.unify x.UL.ty ctx in
   ({ bodyt_ty; bodyt_x = x.UL.x }, ctx)
 
 let unify_to_ctxs xs ctx =
@@ -144,7 +144,7 @@ and value_type_infer (ctx : ctx) (a : NL.value NL.typed) : UL.value UL.typed =
 and value_type_check (ctx_ori : ctx) (a : NL.value NL.typed) (ty : UT.t) :
     UL.value UL.typed =
   let open UT in
-  let ty, ctx = unify_qv_to ty ctx_ori in
+  let ty, ctx = Qtypectx.unify ty ctx_ori in
   let result =
     match (a.NL.x, ty) with
     | NL.Lit _, _ ->
@@ -174,7 +174,7 @@ and value_type_check (ctx_ori : ctx) (a : NL.value NL.typed) (ty : UT.t) :
 
 and handle_lettu ctx (tu, args, body) target_type =
   let open UL in
-  let args = List.map (lit_type_infer ctx) args in
+  let args = List.map (id_type_infer ctx) args in
   let tu =
     erase_check_mk_id __FILE__ __LINE__ tu
       (UT.t_to_tuple_t (List.map (fun x -> x.ty) args))
@@ -232,47 +232,64 @@ and handle_letdetu ctx (tu, args, body) target_type =
 
 and handle_letapp ctx (ret, fty, args, body) target_type =
   let open UL in
-  let args = List.map (lit_type_infer ctx) args in
+  let args = List.map (id_type_infer ctx) args in
   let args, ctx' = unify_to_ctxs args ctx in
-  let fty', ctx' = unify_qv_to fty ctx' in
-  (* let () = Printf.printf "fty': %s\n" (Frontend.Undertype.layout fty') in *)
+  (* let fty = { fty with uqvs = []; eqvs = fty.uqvs @ fty.eqvs } in *)
+  let fty', ctx' = Qtypectx.unify fty ctx' in
+  let () = Printf.printf "fty': %s\n" (Frontend.Undertype.pretty_layout fty') in
   (* let () = Printf.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
-  let argsty, retty = UT.destruct_arrow_tp fty' in
-  let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
-  let () = Printf.printf "before handel let (%s)\n" ret.NL.x in
-  let _ =
-    List.fold_left
-      (fun ctx' (arg, (ty, id)) ->
+  (* let argsty, retty = UT.destruct_arrow_tp fty' in *)
+  let () = Printf.printf "start type check for let %s\n" ret.NL.x in
+  let rec aux ctx' = function
+    | [], ty -> (ctx', ty)
+    | arg :: args, UnderTy_arrow { argname; argty; retty } ->
         let () =
           subtyping_check __FILE__ __LINE__ ctx' (without_qv arg.bodyt_ty)
-            (without_qv ty)
+            (without_qv argty)
         in
-        let ctx' = Qtypectx.add_to_right ctx' (ty, id) in
-        ctx')
-      ctx'
-    @@ List.combine args argsty
+        let retty = subst_id retty argname arg.bodyt_x in
+        let ctx' =
+          { ctx' with k = Typectx.update ctx'.k (arg.bodyt_x, conjunct argty) }
+        in
+        aux ctx' (args, retty)
+    | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
+  let ctx', retty = aux ctx' (args, fty') in
+  let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
   let () = Printf.printf "before handel let (%s)\n" ret.NL.x in
-  let litbindings =
-    List.map
-      (fun arg ->
-        lit_to_prop_lit (NT.to_smtty @@ UT.erase arg.bodyt_ty, arg.bodyt_x))
-      args
-  in
-  let retty =
-    List.fold_left
-      (fun ret ((_, x), lit) -> UT.instantiate_vars (x, lit) ret)
-      retty
-    @@ List.combine argsty litbindings
-  in
+  (* let retty = *)
+  (*   List.fold_left *)
+  (*     (fun ret ((_, x), arg) -> UT.subst_id ret arg.bodyt_x x) *)
+  (*     retty *)
+  (*   @@ List.combine argsty args *)
+  (* in *)
   let args = List.map (fun arg -> add_qv_by_ctx_diff (ctx', arg) ctx) args in
   let () = Printf.printf "let bind var: %s\n" ret.x in
+  let () =
+    Printf.printf "ctx': %s\n"
+      (Frontend.Undertype.layout_qt
+         (Frontend.Typectx.pretty_layout Frontend.Undertype.layout)
+         ctx')
+  in
   let ctx' = Qtypectx.add_to_right ctx (retty, ret.x) in
+  let () =
+    Printf.printf "ctx': %s\n"
+      (Frontend.Undertype.layout_qt
+         (Frontend.Typectx.pretty_layout Frontend.Undertype.layout)
+         ctx')
+  in
+  let () =
+    Printf.printf "ctx: %s\n"
+      (Frontend.Undertype.layout_qt
+         (Frontend.Typectx.pretty_layout Frontend.Undertype.layout)
+         ctx)
+  in
   let ret =
     close_qv_by_ctx_diff
       (ctx', erase_check_mk_id __FILE__ __LINE__ ret @@ without_qv retty)
       ctx
   in
+  let () = Printf.printf "ret.ty: %s\n" (Frontend.Undertype.layout_q ret.ty) in
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
@@ -288,7 +305,7 @@ and handle_letval ctx (lhs, rhs, body) target_type =
   let open UL in
   let rhs = value_type_infer ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let lhsty, ctx' = unify_qv_to lhs.ty ctx in
+  let lhsty, ctx' = Qtypectx.unify lhs.ty ctx in
   let ctx' = Qtypectx.add_to_right ctx' (lhsty, lhs.x) in
   let body =
     match target_type with

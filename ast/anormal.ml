@@ -20,16 +20,16 @@ module F (Type : Type.T) = struct
     | LetApp of {
         ret : id typed;
         f : id typed;
-        args : smt_lit typed list;
+        args : id typed list;
         body : term typed;
       }
     | LetOp of {
         ret : id typed;
         op : Op.T.t;
-        args : smt_lit typed list;
+        args : id typed list;
         body : term typed;
       }
-    | LetTu of { tu : id typed; args : smt_lit typed list; body : term typed }
+    | LetTu of { tu : id typed; args : id typed list; body : term typed }
     | LetDeTu of { tu : id typed; args : id typed list; body : term typed }
     | LetVal of { lhs : id typed; rhs : value typed; body : term typed }
       (* branches, we will copy the continuations for branches *)
@@ -63,7 +63,7 @@ module F (Type : Type.T) = struct
       | ConstI _ | ConstB _ -> x
       | Var id -> if String.equal id y then Var y' else x
     in
-    let subst_tlit e = { ty = e.ty; x = aux_lit e.x } in
+    (* let subst_tlit e = { ty = e.ty; x = aux_lit e.x } in *)
     (* let in_tlits name tlits = *)
     (*   List.exists (function Var id -> String.equal id name | _ -> false) tlits *)
     (* in *)
@@ -84,16 +84,16 @@ module F (Type : Type.T) = struct
         | LetApp { ret; f; args; body } ->
             let body = if String.equal ret.x y then aux body else body in
             LetApp
-              { ret; f = subst_tid f; args = List.map subst_tlit args; body }
+              { ret; f = subst_tid f; args = List.map subst_tid args; body }
         | LetOp { ret; op; args; body } ->
             let body = if String.equal ret.x y then aux body else body in
-            LetOp { ret; op; args = List.map subst_tlit args; body }
+            LetOp { ret; op; args = List.map subst_tid args; body }
         | LetVal { lhs; rhs; body } ->
             let body = if String.equal lhs.x y then aux body else body in
             LetVal { lhs; rhs = aux_value rhs; body }
         | LetTu { tu; args; body } ->
             let body = if String.equal tu.x y then aux body else body in
-            LetTu { tu; args = List.map subst_tlit args; body }
+            LetTu { tu; args = List.map subst_tid args; body }
         | LetDeTu { tu; args; body } ->
             let body =
               if List.exists (fun x -> String.equal x.x y) args then aux body

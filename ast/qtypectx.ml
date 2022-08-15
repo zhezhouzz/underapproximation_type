@@ -6,9 +6,9 @@ type ctx = bodyt Typectx.t qted
 
 open Typectx
 
-let unify ctx ty =
-  let ctx, ty = unify_qv_to ty ctx in
-  (ctx, ty)
+let unify ty ctx =
+  let ty, ctx = unify_qv_to (fv bodyt_fv) ty ctx in
+  (ty, ctx)
 
 let subtract ctx ctx' =
   let rec aux eq = function
@@ -50,3 +50,6 @@ let hide_vars_in_ctx ctx vars ty =
     vars ty
 
 let empty : ctx = without_qv Typectx.empty
+
+let fv f { uqvs; eqvs; k } =
+  List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs @ Typectx.fv f k

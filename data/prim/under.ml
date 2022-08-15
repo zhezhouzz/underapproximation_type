@@ -1,39 +1,39 @@
-let eq (x : 'forall * int) (y : 'forall * int) =
+let eq (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a == b))
 
-let neq (x : 'forall * int) (y : 'forall * int) =
+let neq (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a != b))
 
-let lt (x : 'forall * int) (y : 'forall * int) =
+let lt (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a < b))
 
-let gt (x : 'forall * int) (y : 'forall * int) =
+let gt (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a > b))
 
-let le (x : 'forall * int) (y : 'forall * int) =
+let le (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a <= b))
 
-let ge (x : 'forall * int) (y : 'forall * int) =
+let ge (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : bool) (iff v (a => b))
 
-let plus (x : 'forall * int) (y : 'forall * int) =
+let plus (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : int) (v == a + b)
 
-let minus (x : 'forall * int) (y : 'forall * int) =
+let minus (x : 'exists * int) (y : 'exists * int) =
   let a = (v : int) (v == x) in
   let b = (v : int) (v == y) in
   (v : int) (v == a - b)

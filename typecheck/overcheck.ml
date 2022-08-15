@@ -125,7 +125,7 @@ and value_type_check (ctx : OT.t Typectx.t) (a : NL.value NL.typed) (ty : OT.t)
 
 and handle_lettu ctx (tu, args, body) self =
   let open OL in
-  let args = List.map (lit_type_infer ctx) args in
+  let args = List.map (id_type_infer ctx) args in
   let tuty = OT.OverTy_tuple (List.map (fun x -> x.ty) args) in
   let tu = erase_check_mk_id __FILE__ __LINE__ tu tuty in
   let tu = { x = tu.x; ty = tuty } in
@@ -167,7 +167,7 @@ and handle_letdetu ctx (tu, args, body) self =
 
 and handle_letapp ctx (ret, fty, args, body) self =
   let open OL in
-  let args = List.map (lit_type_infer ctx) args in
+  let args = List.map (id_type_infer ctx) args in
   let argsty, retty = OT.destruct_arrow_tp fty in
   let _ =
     List.fold_left
@@ -179,18 +179,11 @@ and handle_letapp ctx (ret, fty, args, body) self =
     @@ List.combine args argsty
   in
   let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
-  let litbindings =
-    List.map
-      (fun arg -> lit_to_prop_lit (NT.to_smtty @@ OT.erase arg.ty, arg.x))
-      args
-  in
   let ret =
     {
       ty =
-        List.fold_left
-          (fun ret ((_, x), lit) -> OT.instantiate_vars (x, lit) ret)
-          ret.ty
-        @@ List.combine argsty litbindings;
+        List.fold_left (fun ret ((_, x), arg) -> OT.subst_id ret arg.x x) ret.ty
+        @@ List.combine argsty args;
       x = ret.x;
     }
   in

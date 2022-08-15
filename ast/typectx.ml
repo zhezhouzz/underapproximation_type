@@ -17,12 +17,13 @@ let get_ty (ctx : 'a t) id : 'a =
   | Some ty -> ty
 
 let add_to_right ctx (ty, id) =
-  let rec aux = function
-    | [] -> [ (id, ty) ]
-    | (id', ty') :: t ->
-        if String.equal id id' then (id', ty) :: t else aux t @ [ (id', ty') ]
-  in
-  aux ctx
+  if exists ctx id then _failatwith __FILE__ __LINE__ "" else ctx @ [ (id, ty) ]
+(* let rec aux = function *)
+(*   | [] -> [ (id, ty) ] *)
+(*   | (id', ty') :: t -> *)
+(*       if String.equal id id' then (id', ty) :: t else aux t @ [ (id', ty') ] *)
+(* in *)
+(* aux ctx *)
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l
 
@@ -40,3 +41,20 @@ let subtract ctx ctx' =
 
 let fold_right = List.fold_right
 let filter_map = List.filter_map
+
+let fv f l =
+  let fv = List.concat @@ List.map (fun (id, t) -> id :: f t) l in
+  List.slow_rm_dup String.equal fv
+
+let update ctx (id, f) =
+  let counter = ref 0 in
+  let ctx =
+    List.map
+      (fun (x, ty) ->
+        if String.equal x id then (
+          counter := !counter + 1;
+          (x, f ty))
+        else (x, ty))
+      ctx
+  in
+  if !counter != 1 then failwith "type ctx update error" else ctx

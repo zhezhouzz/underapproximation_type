@@ -170,11 +170,44 @@ module T = struct
     in
     aux (t1, t2)
 
+  let conjunct_basetype = function
+    | ( UnderTy_base { basename = basename1; normalty = normalty1; prop = prop1 },
+        UnderTy_base
+          { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
+        let normalty =
+          _check_equality __FILE__ __LINE__ Normalty.T.eq normalty1 normalty2
+        in
+        let prop2 =
+          if String.equal basename1 basename2 then prop2
+          else P.subst_id prop2 basename2 basename1
+        in
+        UnderTy_base
+          { basename = basename1; normalty; prop = P.And [ prop1; prop2 ] }
+    | _, _ -> _failatwith __FILE__ __LINE__ ""
+
+  let conjunct t1 t2 =
+    let rec aux (t1, t2) =
+      match (t1, t2) with
+      | UnderTy_base _, UnderTy_base _ -> conjunct_basetype (t1, t2)
+      | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
+          UnderTy_tuple (List.map aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2)
+      | UnderTy_arrow _, UnderTy_arrow _ ->
+          failwith "conjunct function is unimp"
+      | _, _ -> _failatwith __FILE__ __LINE__ ""
+    in
+    aux (t1, t2)
+
   let disjunct_list ts =
     match ts with
     | [] -> _failatwith __FILE__ __LINE__ "disjunct no types"
     | [ t ] -> t
     | h :: t -> List.fold_left disjunct h t
+
+  let conjunct_list ts =
+    match ts with
+    | [] -> _failatwith __FILE__ __LINE__ "conjunct no types"
+    | [ t ] -> t
+    | h :: t -> List.fold_left conjunct h t
 
   let hide_exists_quantify_variable_in_prop x xprop (basename, normalty, prop) =
     UnderTy_base
@@ -265,44 +298,68 @@ module T = struct
     in
     aux t
 
-  let unify_qv_to { uqvs = uqvs1; eqvs = eqvs1; k = tbody1 }
-      { uqvs = uqvs2; eqvs = eqvs2; k = tbody2 } =
+  let qt_fv { uqvs; eqvs; k } =
+    List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs @ bodyt_fv k
+
+  let unify_qv_to _ { uqvs = uqvs1; eqvs = eqvs1; k = tbody1 } target =
+    let to_unique { ty; x } _ =
+      let x = Rename.unique ("^" ^ x) in
+      { ty; x }
+      (* let target_vars = *)
+      (*   List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs @ f k *)
+      (* in *)
+      (* if List.exists (String.equal x) target_vars then *)
+      (*   { ty; x = Rename.unique x } *)
+      (* else { ty; x } *)
+    in
+    let qty_to_unique (qv, bodyt) target =
+      let qv' = to_unique qv target in
+      (qv', subst_id bodyt qv.x qv'.x)
+      (* ( qv', *)
+      (*   if String.equal qv.x qv'.x then bodyt else subst_id tbody1 qv.x qv'.x ) *)
+    in
     let eqvs1, tbody1 =
       List.fold_right
-        (fun { ty; x } (eqvs1, tbody1) ->
-          if List.exists (fun y -> String.equal y.x x) eqvs2 then
-            let x' = Rename.unique x in
-            ({ ty; x = x' } :: eqvs1, subst_id tbody1 x x')
-          else ({ ty; x } :: eqvs1, tbody1))
+        (fun eqv (eqvs1, tbody1) ->
+          let eqv', tbody1' = qty_to_unique (eqv, tbody1) target in
+          (eqv' :: eqvs1, tbody1'))
         eqvs1 ([], tbody1)
     in
-    let eqvs = eqvs2 @ eqvs1 in
-    let rec aux (uqvs, diff, tbody1) = function
-      | uqvs1, [] -> (uqvs @ uqvs1, diff @ uqvs1, tbody1)
-      | [], uqvs2 -> (uqvs @ uqvs2, diff, tbody1)
-      | qv1 :: uqvs1, uqvs2 -> (
-          match List.find_opt (fun x -> Normalty.T.eq x.ty qv1.ty) uqvs2 with
-          | None -> aux (uqvs @ [ qv1 ], diff @ [ qv1 ], tbody1) (uqvs1, uqvs2)
-          | Some qv2 ->
+    let target = { target with eqvs = target.eqvs @ eqvs1 } in
+    let rec aux tbody1 { uqvs; eqvs; k } = function
+      | [], [] -> (tbody1, { uqvs; eqvs; k })
+      | uqv1 :: uqv1s, [] ->
+          let uqv1', tbody1' = qty_to_unique (uqv1, tbody1) { uqvs; eqvs; k } in
+          aux tbody1' { uqvs = uqvs @ [ uqv1' ]; eqvs; k } (uqv1s, [])
+      | [], uqvs2 -> (tbody1, { uqvs = uqvs @ uqvs2; eqvs; k })
+      | uqv1 :: uqvs1, uqvs2 -> (
+          match List.find_opt (fun x -> Normalty.T.eq x.ty uqv1.ty) uqvs2 with
+          | None ->
+              let uqv1', tbody1' =
+                qty_to_unique (uqv1, tbody1) { uqvs; eqvs; k }
+              in
+              aux tbody1' { uqvs = uqvs @ [ uqv1' ]; eqvs; k } (uqvs1, uqvs2)
+          | Some uqv2 ->
               let uqvs2 =
                 List.filter
                   (fun qv ->
-                    not (String.equal qv.x qv2.x && Normalty.T.eq qv.ty qv2.ty))
+                    not (String.equal qv.x uqv2.x && Normalty.T.eq qv.ty uqv2.ty))
                   uqvs2
               in
               aux
-                (uqvs @ [ qv2 ], diff, subst_id tbody1 qv1.x qv2.x)
+                (subst_id tbody1 uqv1.x uqv2.x)
+                { uqvs = uqvs @ [ uqv2 ]; eqvs; k }
                 (uqvs1, uqvs2))
     in
-    let uqvs, _, tbody1 = aux ([], [], tbody1) (uqvs1, uqvs2) in
-    ( (* (fun { uqvs; eqvs; k } -> { uqvs = uqvs @ udiff; eqvs = eqvs @ eqvs1; k }), *)
-      tbody1,
-      { uqvs; eqvs; k = tbody2 } )
+    let tbody1, target =
+      aux tbody1 { target with uqvs = [] } (uqvs1, target.uqvs)
+    in
+    (tbody1, target)
 
-  let unify_qvs_to ts target =
+  let unify_qvs_to f ts target =
     List.fold_right
       (fun t (ts, target) ->
-        let t', target = unify_qv_to t target in
+        let t', target = unify_qv_to f t target in
         (t' :: ts, target))
       ts ([], target)
 
@@ -323,7 +380,7 @@ module T = struct
     | { uqvs; eqvs; k } :: t ->
         List.fold_left
           (fun res t_new ->
-            let bodyt_new, { uqvs; eqvs; k } = unify_qv_to t_new res in
+            let bodyt_new, { uqvs; eqvs; k } = unify_qv_to bodyt_fv t_new res in
             { uqvs; eqvs; k = join_tuple_t bodyt_new k })
           { uqvs; eqvs; k = UnderTy_tuple [ k ] }
           t
@@ -332,6 +389,13 @@ module T = struct
     | [] -> _failatwith __FILE__ __LINE__ ""
     | [ h ] -> h
     | h :: t ->
-        let t, { uqvs; eqvs; k } = unify_qvs_to t h in
+        let t, { uqvs; eqvs; k } = unify_qvs_to bodyt_fv t h in
         { uqvs; eqvs; k = disjunct_list (k :: t) }
+
+  let conjunct_list_q = function
+    | [] -> _failatwith __FILE__ __LINE__ ""
+    | [ h ] -> h
+    | h :: t ->
+        let t, { uqvs; eqvs; k } = unify_qvs_to bodyt_fv t h in
+        { uqvs; eqvs; k = conjunct_list (k :: t) }
 end

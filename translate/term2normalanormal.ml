@@ -25,7 +25,7 @@ let id_trans (e : id opttyped) = T.{ ty = id_get_tp e; x = e.x }
 let mk_t_term ty x = T.{ ty; x }
 
 type cont = T.value T.typed -> T.term T.typed
-type conts = T.smt_lit T.typed list -> T.term T.typed
+type conts = T.id T.typed list -> T.term T.typed
 
 let freshname () = Rename.unique "x"
 let ret () x = T.{ ty = x.ty; x = V x.x }
@@ -173,12 +173,9 @@ and convert_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
      (fun (conts : conts) rhs vs ->
        convert
          (fun v ->
-           match v.x with
-           | Lit lit -> conts ({ ty = v.ty; x = lit } :: vs)
-           | _ ->
-               let x = freshname () in
-               let body = conts ({ ty = v.ty; x = Var x } :: vs) in
-               make_letval x v body)
+           let x = freshname () in
+           let body = conts ({ ty = v.ty; x } :: vs) in
+           make_letval x v body)
          rhs None)
      conts es)
     []
@@ -194,7 +191,7 @@ let to_term e =
     | T.ConstB b -> Const (Value.B b)
     | T.Var id -> Var id
   in
-  let lit_to_var lit = { ty = Some lit.T.ty; x = aux_lit lit.x } in
+  (* let lit_to_var lit = { ty = Some lit.T.ty; x = aux_lit lit.x } in *)
   let rec aux_value e =
     let x =
       match e.T.x with
@@ -211,7 +208,7 @@ let to_term e =
           Let
             ( false,
               [ to_tid tu ],
-              { ty = Some tu.T.ty; x = Tu (List.map lit_to_var args) },
+              { ty = Some tu.T.ty; x = Tu (List.map to_var args) },
               aux body )
       | T.LetDeTu { tu; args; body } ->
           Let (false, List.map to_tid args, to_var tu, aux body)
@@ -219,10 +216,7 @@ let to_term e =
           Let
             ( false,
               [ to_tid ret ],
-              {
-                ty = Some ret.T.ty;
-                x = App (to_var f, List.map lit_to_var args);
-              },
+              { ty = Some ret.T.ty; x = App (to_var f, List.map to_var args) },
               aux body )
       | T.LetOp { ret; op; args; body } ->
           Let
@@ -233,7 +227,7 @@ let to_term e =
                 x =
                   App
                     ( { ty = None; x = Var (Languages.Op.op_to_string op) },
-                      List.map lit_to_var args );
+                      List.map to_var args );
               },
               aux body )
       | T.LetVal { lhs; rhs; body } ->

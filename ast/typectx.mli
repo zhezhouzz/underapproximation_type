@@ -11,3 +11,5 @@ val pretty_layout : ('a -> string) -> 'a t -> string
 val subtract : 'a t -> 'a t -> 'a t
 val fold_right : (string * 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
 val filter_map : (string * 'a -> (string * 'b) option) -> 'a t -> 'b t
+val fv : ('a -> string list) -> 'a t -> string list
+val update : 'a t -> string * ('a -> 'a) -> 'a t
