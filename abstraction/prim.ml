@@ -5,7 +5,7 @@ let init (overs, unders, rev_unders) =
   Overprim.(make_m m overs);
   Underprim.(make_m m unders);
   Underprim.(make_m rev_m rev_unders);
-  Normalprim.make_m Underprim.m
+  Normalprim.make_m Overprim.m
 
 let get m prim =
   let name = Core.Sexp.to_string @@ Op.sexp_of_prim prim in
