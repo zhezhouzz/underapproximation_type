@@ -1,7 +1,8 @@
 module T = struct
   type t = Bool | Int [@@deriving sexp]
 
-  let eq = function Bool, Bool | Int, Int -> true | _ -> false
+  let smtty_eq = function Bool, Bool | Int, Int -> true | _ -> false
+  let eq a b = smtty_eq (a, b)
   let layout = function Bool -> "B" | Int -> "I"
 
   let pretty_typed_layout str = function

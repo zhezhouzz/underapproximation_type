@@ -46,6 +46,29 @@ module T = struct
     in
     aux prop
 
+  let var_space prop =
+    let open Zzdatatype.Datatype in
+    let rec aux_lit s = function
+      | ACint _ | ACbool _ -> s
+      | AVar x -> StrMap.add x.x () s
+      | AOp2 (_, arg1, arg2) -> aux_lit (aux_lit s arg1) arg2
+    in
+    let rec aux s t =
+      match t with
+      | Lit lit -> aux_lit s lit
+      | MethodPred (_, args) -> List.fold_left aux_lit s args
+      | Implies (e1, e2) -> aux (aux s e1) e2
+      | Ite (e1, e2, e3) -> aux (aux (aux s e1) e2) e3
+      | Not e -> aux s e
+      | And es -> List.fold_left aux s es
+      | Or es -> List.fold_left aux s es
+      | Iff (e1, e2) -> aux (aux s e1) e2
+      | Forall (x, e) -> StrMap.add x.x () (aux s e)
+      | Exists (x, e) -> StrMap.add x.x () (aux s e)
+    in
+    let m = aux StrMap.empty prop in
+    StrMap.to_key_list m
+
   let has_qv prop =
     let rec aux t =
       match t with
@@ -78,7 +101,8 @@ module T = struct
   let typed_id_eq x y =
     if String.equal x.x y.x then
       let () =
-        if Smtty.T.eq (x.ty, y.ty) then () else failwith "prop naming error"
+        if Smtty.T.smtty_eq (x.ty, y.ty) then ()
+        else failwith "prop naming error"
       in
       true
     else false

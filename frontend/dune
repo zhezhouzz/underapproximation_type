@@ -10,10 +10,13 @@
    expr
    ; signature
    structure
-   overtype
-   undertype
+   overty
+   underty
+   quantified
+   qunderty
    anormal
    typectx
+   qtypectx
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
 )

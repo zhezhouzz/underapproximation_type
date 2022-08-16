@@ -1,60 +1,102 @@
-open Zzdatatype.Datatype
-open Sugar
+module F (R : Refinement.T) = struct
+  open Zzdatatype.Datatype
+  open Sexplib.Std
+  open Sugar
 
-type 'a t = (string * 'a) list
+  type t = (string * R.t list) list [@@deriving sexp]
 
-let empty = []
-let add_to_left (ty, name) ctx = (name, ty) :: ctx
-let exists ctx name = List.exists (fun (x, _) -> String.equal x name) ctx
+  let empty = []
+  let add_to_left (ty, name) ctx = (name, [ ty ]) :: ctx
+  let exists ctx name = List.exists (fun (x, _) -> String.equal x name) ctx
 
-let get_opt (ctx : 'a t) id : 'a option =
-  let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in
-  Some t
+  let get_opt (ctx : t) id : 'a option =
+    let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in
+    Some (R.conjunct_list t)
 
-let get_ty (ctx : 'a t) id : 'a =
-  match get_opt ctx id with
-  | None -> failwith @@ Sugar.spf "no such name (%s) in the type context" id
-  | Some ty -> ty
+  let get_ty (ctx : t) id : 'a =
+    match get_opt ctx id with
+    | None -> failwith @@ Sugar.spf "no such name (%s) in the type context" id
+    | Some ty -> ty
 
-let add_to_right ctx (ty, id) =
-  if exists ctx id then _failatwith __FILE__ __LINE__ "" else ctx @ [ (id, ty) ]
-(* let rec aux = function *)
-(*   | [] -> [ (id, ty) ] *)
-(*   | (id', ty') :: t -> *)
-(*       if String.equal id id' then (id', ty) :: t else aux t @ [ (id', ty') ] *)
-(* in *)
-(* aux ctx *)
+  let add_to_right ctx (ty, id) =
+    if exists ctx id then _failatwith __FILE__ __LINE__ ""
+    else ctx @ [ (id, [ ty ]) ]
 
-let add_to_rights ctx l = List.fold_left add_to_right ctx l
+  let add_to_rights ctx l = List.fold_left add_to_right ctx l
 
-let pretty_layout f ctx =
-  List.split_by ";\n" (fun (name, ty) -> Printf.sprintf "%s:%s" name (f ty)) ctx
-
-let subtract ctx ctx' =
-  let rec aux eq = function
+  let rec subtract_inner = function
     | l, [] -> l
     | [], _ -> _failatwith __FILE__ __LINE__ ""
-    | h1 :: t1, h2 :: t2 ->
-        if eq h1 h2 then aux eq (t1, t2) else aux eq (t1, h2 :: t2)
-  in
-  aux (fun (x, _) (y, _) -> String.equal x y) (ctx, ctx')
+    | x1 :: t1, x2 :: t2 ->
+        if R.eq x1 x2 then subtract_inner (t1, t2)
+        else _failatwith __FILE__ __LINE__ ""
 
-let fold_right = List.fold_right
-let filter_map = List.filter_map
+  let subtract ctx ctx' =
+    let rec aux : t * t -> t = function
+      | l, [] -> l
+      | [], _ -> _failatwith __FILE__ __LINE__ ""
+      | (x1, ys1) :: t1, (x2, ys2) :: t2 ->
+          if String.equal x1 x2 then
+            let diff = subtract_inner (ys1, ys2) in
+            match diff with
+            | [] -> aux (t1, t2)
+            | diff -> (x1, diff) :: aux (t1, t2)
+          else _failatwith __FILE__ __LINE__ ""
+    in
+    aux (ctx, ctx')
 
-let fv f l =
-  let fv = List.concat @@ List.map (fun (id, t) -> id :: f t) l in
-  List.slow_rm_dup String.equal fv
+  let fold_right = List.fold_right
+  let filter_map = List.filter_map
 
-let update ctx (id, f) =
-  let counter = ref 0 in
-  let ctx =
+  let fv l =
+    let fv =
+      List.concat @@ List.map (fun (id, t) -> id :: List.concat_map R.fv t) l
+    in
+    List.slow_rm_dup String.equal fv
+
+  let var_space (l : t) =
+    let fv =
+      List.concat
+      @@ List.map (fun (id, t) -> id :: List.concat_map R.var_space t) l
+    in
+    List.slow_rm_dup String.equal fv
+
+  let conjunct ctx (id, ty) =
+    let counter = ref 0 in
+    let ctx =
+      List.map
+        (fun (x, tys) ->
+          if String.equal x id then (
+            counter := !counter + 1;
+            (x, tys @ [ ty ]))
+          else (x, tys))
+        ctx
+    in
+    if !counter != 1 then failwith "type ctx update error" else ctx
+
+  (* let update ctx (id, f) = *)
+  (*   let counter = ref 0 in *)
+  (*   let ctx = *)
+  (*     List.map *)
+  (*       (fun (x, ty) -> *)
+  (*         if String.equal x id then ( *)
+  (*           counter := !counter + 1; *)
+  (*           (x, f ty)) *)
+  (*         else (x, ty)) *)
+  (*       ctx *)
+  (*   in *)
+  (*   if !counter != 1 then failwith "type ctx update error" else ctx *)
+
+  let subst_id ctx id id' =
     List.map
-      (fun (x, ty) ->
-        if String.equal x id then (
-          counter := !counter + 1;
-          (x, f ty))
-        else (x, ty))
+      (fun (x, tys) ->
+        let x = if String.equal x id then id' else x in
+        (x, List.map (fun ty -> R.subst_id ty id id') tys))
       ctx
-  in
-  if !counter != 1 then failwith "type ctx update error" else ctx
+
+  let eq ctx ctx' =
+    try match subtract ctx ctx' with [] -> true | _ -> false with _ -> false
+end
+
+module UnderTypectx = F (Underty.T)
+module OverTypectx = F (Overty.T)

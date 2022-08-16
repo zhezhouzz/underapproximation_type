@@ -2,11 +2,12 @@ module S = Languages.Struc
 module SN = Languages.StrucNA
 module N = Languages.NormalAnormal
 module T = Languages.Termlang
+open Languages.Ntyped
 
 (* let term_to_nan code = Na.simplify @@ Term2normalanormal.to_anormal code *)
 let nan_to_term = Term2normalanormal.to_term
 
-let to_anormal_with_name x if_rec (e : T.term T.opttyped) : N.term N.typed =
+let to_anormal_with_name x if_rec (e : T.term T.opttyped) : N.term typed =
   let open N in
   let e = Na.simplify @@ Term2normalanormal.to_anormal e (Some x) in
   if if_rec then

@@ -1,22 +1,23 @@
 open Zzdatatype.Datatype
 module NT = Languages.Normalty
 module UT = Languages.Underty
+module QUT = Languages.Qunderty
 module Op = Languages.Op
 module P = Autov.Prop
 module T = Autov.Smtty
 
 (* let rev_tab_names = [ ("rev_intlistnil", "[]"); ("rev_intlistcons", "::") ] *)
-let m : Languages.Underty.t StrMap.t option ref = ref None
-let rev_m : Languages.Underty.t StrMap.t option ref = ref None
+let m : Languages.Qunderty.t StrMap.t option ref = ref None
+let rev_m : Languages.Qunderty.t StrMap.t option ref = ref None
 
-let make_key (name, UT.{ k = t; _ }) =
+let make_key (name, QUT.{ qbody = t; _ }) =
   try
     let op = Op.op_of_alias name in
     let ty = UT.erase t in
     Op.PrimOp (op, ty)
   with _ -> Op.External name
 
-let make_m m (refinements : (string * Languages.Underty.t) list) =
+let make_m m (refinements : (string * Languages.Qunderty.t) list) =
   let l = List.map (fun (name, ty) -> (make_key (name, ty), ty)) refinements in
   m :=
     Some

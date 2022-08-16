@@ -21,7 +21,7 @@ let load_ssa source_file =
 
 let load_over_refinments refine_file =
   let refinements =
-    Structure.refinement_of_ocamlstruct Overtype.overtype_of_ocamlexpr
+    Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
   let refinements =
@@ -29,14 +29,14 @@ let load_over_refinments refine_file =
   in
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
-      (Structure.layout_refinements Overtype.pretty_layout refinements)
+      (Structure.layout_refinements Overty.pretty_layout refinements)
   in
   refinements
 
 let load_under_refinments refine_file =
   let refinements =
     Structure.refinement_of_ocamlstruct
-      Undertype.quantified_undertype_of_ocamlexpr
+      Qunderty.quantified_undertype_of_ocamlexpr
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
   (* NOTE: we do not infer the type of the quantified variables any more *)
@@ -50,6 +50,6 @@ let load_under_refinments refine_file =
   (* in *)
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
-      (Structure.layout_refinements Undertype.pretty_layout_q refinements)
+      (Structure.layout_refinements Qunderty.pretty_layout refinements)
   in
   refinements

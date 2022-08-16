@@ -19,11 +19,12 @@ module Op = Languages.Op
 let m = ref None
 
 let make_m under_m =
-  let open Languages.Underty in
+  let open Languages.Qunderty in
   m :=
     match !under_m with
     | None -> failwith "uninit under prim"
-    | Some m -> Some (StrMap.map (fun { k = t; _ } -> erase t) m)
+    | Some m ->
+        Some (StrMap.map (fun { qbody = t; _ } -> Languages.Underty.erase t) m)
 
 (* let get_primitive_ty name = *)
 (*   match !m with *)

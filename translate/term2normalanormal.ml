@@ -1,6 +1,7 @@
 module S = Languages.Termlang
 module T = Languages.NormalAnormal
 module Type = Languages.Normalty
+module Typed = Languages.Ntyped
 open S
 open Sugar
 
@@ -21,11 +22,13 @@ let id_get_tp e =
         (spf "Never happen: untyped %s in the term language expr" e.x)
   | Some ty -> ty
 
-let id_trans (e : id opttyped) = T.{ ty = id_get_tp e; x = e.x }
-let mk_t_term ty x = T.{ ty; x }
+open Typed
 
-type cont = T.value T.typed -> T.term T.typed
-type conts = T.id T.typed list -> T.term T.typed
+let id_trans (e : id opttyped) = Typed.{ ty = id_get_tp e; x = e.x }
+let mk_t_term ty x = { ty; x }
+
+type cont = T.value Typed.typed -> T.term Typed.typed
+type conts = T.id Typed.typed list -> T.term Typed.typed
 
 let freshname () = Rename.unique "x"
 let ret () x = T.{ ty = x.ty; x = V x.x }
@@ -66,7 +69,7 @@ let lit_cont_to_value_cont cont value =
 
 (* TODO: alpha renaming *)
 let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
-    T.term T.typed =
+    T.term typed =
   let ety = get_tp e in
   let open T in
   match e.x with
@@ -117,7 +120,7 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         e None
   | Let (false, lhs, rhs, body) -> (
       let body = convert cont body ename in
-      let lhs = List.map T.(fun (ty, x) -> { ty; x }) lhs in
+      let lhs = List.map (fun (ty, x) -> { ty; x }) lhs in
       match lhs with
       | [] -> _failatwith __FILE__ __LINE__ ""
       | [ lhs ] -> convert (fun _ -> body) rhs (Some lhs.x)
@@ -128,7 +131,7 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
             rhs None)
   | Let (true, [ (ty, x) ], rhs, body) ->
       let body = convert cont body ename in
-      let f = T.{ ty; x } in
+      let f = { ty; x } in
       convert
         (fun rhs ->
           let rhs = { ty = f.ty; x = Fix (f, rhs) } in
@@ -164,10 +167,10 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
           mk_t_term ety @@ Match { matched; cases } )
         e None
 
-and to_anormal (e : term opttyped) ename : T.term T.typed =
+and to_anormal (e : term opttyped) ename : T.term typed =
   convert (ret ()) e ename
 
-and convert_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
+and convert_multi (conts : conts) (es : term opttyped list) : T.term typed =
   let open T in
   (List.fold_left
      (fun (conts : conts) rhs vs ->
@@ -180,35 +183,36 @@ and convert_multi (conts : conts) (es : term opttyped list) : T.term T.typed =
      conts es)
     []
 
-let id_trans_rev (e : T.id T.typed) = { ty = Some e.T.ty; x = e.T.x }
+let id_trans_rev (e : T.id typed) = S.{ ty = Some e.ty; x = e.x }
 
 let to_term e =
-  let to_var id = { ty = Some id.T.ty; x = Var id.T.x } in
-  let to_tid id = (id.T.ty, id.T.x) in
+  let open S in
+  let to_var id = S.{ ty = Some id.Typed.ty; x = Var id.x } in
+  let to_tid id = (id.Typed.ty, id.Typed.x) in
   let aux_lit x =
     match x with
     | T.ConstI i -> Const (Value.I i)
     | T.ConstB b -> Const (Value.B b)
     | T.Var id -> Var id
   in
-  (* let lit_to_var lit = { ty = Some lit.T.ty; x = aux_lit lit.x } in *)
+  (* let lit_to_var lit = { ty = Some lit.Typed.ty; x = aux_lit lit.x } in *)
   let rec aux_value e =
     let x =
-      match e.T.x with
+      match e.Typed.x with
       | T.Lit lit -> aux_lit lit
       | T.Lam (x, body) -> Lam (x.ty, x.x, aux body)
       | T.Fix (_, body) -> (aux_value body).x
     in
-    { ty = Some e.T.ty; x }
+    { ty = Some e.Typed.ty; x }
   and aux e =
     let x =
-      match e.T.x with
-      | V x -> (aux_value T.{ ty = e.ty; x }).x
+      match e.Typed.x with
+      | V x -> (aux_value { ty = e.ty; x }).x
       | T.LetTu { tu; args; body } ->
           Let
             ( false,
               [ to_tid tu ],
-              { ty = Some tu.T.ty; x = Tu (List.map to_var args) },
+              { ty = Some tu.Typed.ty; x = Tu (List.map to_var args) },
               aux body )
       | T.LetDeTu { tu; args; body } ->
           Let (false, List.map to_tid args, to_var tu, aux body)
@@ -216,14 +220,17 @@ let to_term e =
           Let
             ( false,
               [ to_tid ret ],
-              { ty = Some ret.T.ty; x = App (to_var f, List.map to_var args) },
+              {
+                ty = Some ret.Typed.ty;
+                x = App (to_var f, List.map to_var args);
+              },
               aux body )
       | T.LetOp { ret; op; args; body } ->
           Let
             ( false,
               [ to_tid ret ],
               {
-                ty = Some ret.T.ty;
+                ty = Some ret.Typed.ty;
                 x =
                   App
                     ( { ty = None; x = Var (Languages.Op.op_to_string op) },
@@ -249,6 +256,6 @@ let to_term e =
                   })
                 cases )
     in
-    { ty = Some e.T.ty; x }
+    { ty = Some e.Typed.ty; x }
   in
   aux e

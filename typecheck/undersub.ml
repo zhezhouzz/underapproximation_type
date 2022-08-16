@@ -2,10 +2,14 @@ module NL = Languages.NormalAnormal
 module UL = Languages.UnderAnormal
 module NT = Languages.Normalty
 module UT = Languages.Underty
+module QUT = Languages.Qunderty
 module Op = Languages.Op
 module P = Autov.Prop
+module Typectx = Languages.UnderTypectx
+module Qtypectx = Languages.Qtypectx
 open Zzdatatype.Datatype
 open Sugar
+open Languages.Ntyped
 
 let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
 
@@ -17,17 +21,17 @@ let _assume_basety file line (x, ty) =
       ((NT.to_smtty normalty, x), prop)
   | _ -> _failatwith file line "should not happen"
 
-let context_convert (ctx : UT.bodyt Typectx.t) uqvs (name, nt, prop1, prop2) =
+let context_convert (ctx : Typectx.t) uqvs (name, nt, prop1, prop2) =
   let top_uq prop =
     List.fold_right
-      UT.(
-        fun { ty; x } prop ->
-          Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop))
+      (fun { ty; x } prop ->
+        Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop))
       uqvs prop
   in
   let nu = (NT.to_smtty nt, name) in
   let open Autov.Prop in
   let aux (x, xty) (outter, prop1, prop2) =
+    let xty = UT.conjunct_list xty in
     match
       ( List.exists (String.equal x) @@ Autov.prop_fv prop1,
         List.exists (String.equal x) @@ Autov.prop_fv prop2 )
@@ -60,11 +64,12 @@ let context_convert (ctx : UT.bodyt Typectx.t) uqvs (name, nt, prop1, prop2) =
       _failatwith __FILE__ __LINE__
         (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
-let subtyping_check file line (ctx : UT.bodyt Typectx.t UT.qted) (t1 : UT.t)
-    (t2 : UT.t) =
+let subtyping_check file line (ctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
   let open UT in
   let t1, ctx = Qtypectx.unify t1 ctx in
-  let t2, { uqvs; eqvs; k = ctx } = Qtypectx.unify t2 ctx in
+  let t1 = t1.QUT.qbody in
+  let t2, Qtypectx.{ uqvs; eqvs; qbody = ctx } = Qtypectx.unify t2 ctx in
+  let t2 = t2.QUT.qbody in
   let ctx =
     List.fold_right
       (fun qv ctx -> Typectx.add_to_left (eqv_to_bodyt qv, qv.x) ctx)
@@ -73,7 +78,7 @@ let subtyping_check file line (ctx : UT.bodyt Typectx.t UT.qted) (t1 : UT.t)
   let rec aux ctx (t1, t2) =
     let () =
       Printf.printf "Subtype: ∀(%s) %s\n"
-        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.UT.x) uqvs)
+        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) uqvs)
       @@ layout_subtyping ctx (t1, t2)
     in
     match (t1, t2) with

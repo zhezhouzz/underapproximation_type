@@ -1,9 +1,10 @@
 module F (Type : Type.T) = struct
   open Sexplib.Std
+  include Typed.F (Type)
 
   type ty = Type.t [@@deriving sexp]
   type id = Strid.T.t [@@deriving sexp]
-  type 'a typed = { ty : ty; x : 'a } [@@deriving sexp]
+  (* type 'a typed = { ty : ty; x : 'a } [@@deriving sexp] *)
 
   let tupleC = "tuple"
 

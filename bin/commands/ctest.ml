@@ -69,11 +69,11 @@ let parsing_over_refinements =
         let () = Config.load_default () in
         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
         let refinements =
-          Structure.refinement_of_ocamlstruct Overtype.overtype_of_ocamlexpr x
+          Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x
         in
         let () =
           Printf.printf "%s"
-            (Structure.layout_refinements Overtype.pretty_layout refinements)
+            (Structure.layout_refinements Overty.pretty_layout refinements)
         in
         ())
 
@@ -85,11 +85,11 @@ let parsing_under_refinements =
         let () = Config.load_default () in
         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
         let refinements =
-          Structure.refinement_of_ocamlstruct Undertype.undertype_of_ocamlexpr x
+          Structure.refinement_of_ocamlstruct Underty.undertype_of_ocamlexpr x
         in
         let () =
           Printf.printf "%s"
-            (Structure.layout_refinements Undertype.pretty_layout refinements)
+            (Structure.layout_refinements Underty.pretty_layout refinements)
         in
         ())
 

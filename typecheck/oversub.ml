@@ -1,19 +1,22 @@
-module NL = Languages.NormalAnormal
-module OL = Languages.OverAnormal
-module NT = Languages.Normalty
-module OT = Languages.Overty
+open Languages
+module Typectx = OverTypectx
+module NL = NormalAnormal
+module OL = OverAnormal
+module NT = Normalty
+module OT = Overty
 open Zzdatatype.Datatype
 open Sugar
 
 let layout_subtyping = Frontend.Typectx.pretty_layout_over_subtyping
 
-let subtyping_to_query ctx typeself (prop1, prop2) =
+let subtyping_to_query (ctx : Typectx.t) typeself (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in
   let fv2 = Autov.prop_fv prop2 in
   let fv = fv1 @ fv2 in
   let ctx =
     Typectx.filter_map
       (fun (x, ty) ->
+        let ty = OT.conjunct_list ty in
         OT.(
           match ty with
           | OverTy_base { basename; prop; _ } ->
@@ -36,7 +39,7 @@ let subtyping_to_query ctx typeself (prop1, prop2) =
   in
   (pre, prop2)
 
-let subtyping_check (ctx : OT.t Typectx.t) (t1 : OT.t) (t2 : OT.t) =
+let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let open OT in
   let rec aux ctx (t1, t2) =
     let () = Printf.printf "Subtype: \n%s\n" @@ layout_subtyping ctx (t1, t2) in

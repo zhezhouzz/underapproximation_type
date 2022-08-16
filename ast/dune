@@ -1,9 +1,11 @@
 (library
  (name ast)
  (wrapped false)
- (modules_without_implementation type)
+ (modules_without_implementation type quantifiable refinement)
  (modules
    type
+   quantifiable
+   refinement
    ; ast
    strid
    op
@@ -17,7 +19,11 @@
    modu
    languages
    typectx
+   simpletypectx
+   quantified
+   qunder
    qtypectx
+   typed
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
   (libraries zzdatatype autov utils)

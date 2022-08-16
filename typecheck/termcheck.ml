@@ -1,6 +1,7 @@
 module Exp = Languages.Termlang
 module V = Languages.Value
 module Type = Languages.Normalty
+module Typectx = Languages.NSimpleTypectx
 open Zzdatatype.Datatype
 open Type
 open Sugar
@@ -39,22 +40,22 @@ let rec check_against_value (c : Value.t) ty =
 (*   fail_as (eq t1 t2) *)
 (*     (spf "%stype %s is not equal to type %s" str (layout t1) (layout t2)) *)
 
-let rec bidirect_type_infer (ctx : t Typectx.t) (x : Exp.term Exp.opttyped) :
+let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
   match x.ty with
   | None -> type_infer ctx x.x
   | Some ty -> (type_check ctx x.x ty, ty)
 
-and bidirect_type_check (ctx : t Typectx.t) (x : Exp.term Exp.opttyped) (ty : t)
-    : Exp.term Exp.opttyped =
+and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped) (ty : t) :
+    Exp.term Exp.opttyped =
   match x.ty with
   | None -> type_check ctx x.x ty
   | Some ty' ->
       let ty = _check_equality __FILE__ __LINE__ eq ty ty' in
       type_check ctx x.x ty
 
-and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
-    Exp.term Exp.opttyped =
+and type_check (ctx : Typectx.t) (x : Exp.term) (ty : t) : Exp.term Exp.opttyped
+    =
   let open Exp in
   match (x, ty) with
   | Const _, _ | Var _, _ | Op (_, _), _ ->
@@ -127,7 +128,7 @@ and type_check (ctx : t Typectx.t) (x : Exp.term) (ty : t) :
            (Frontend.Expr.layout { ty = None; x = e })
            (Frontend.Type.layout ty))
 
-and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
+and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
   match x with
   | Const c ->
@@ -135,8 +136,9 @@ and type_infer (ctx : t Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       ({ ty = Some ty; x }, ty)
   | Var id ->
       let ty =
-        try Typectx.get_ty ctx id
-        with _ -> Prim.get_primitive_normal_ty (External id)
+        match Typectx.get_opt ctx id with
+        | None -> Prim.get_primitive_normal_ty (External id)
+        | Some (_, x) -> x
       in
       ({ ty = Some ty; x }, ty)
   | Tu es ->

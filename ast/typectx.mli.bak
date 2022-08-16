@@ -1,0 +1,15 @@
+type t = (string * Type.Refinement.t list) list
+
+val empty : t
+val exists : t -> string -> bool
+val get_opt : t -> string -> 'a option
+val get_ty : t -> string -> 'a
+val add_to_left : 'a * string -> t -> t
+val add_to_right : t -> 'a * string -> t
+val add_to_rights : t -> ('a * string) list -> t
+val pretty_layout : ('a -> string) -> t -> string
+val subtract : t -> t -> t
+val fold_right : (string * 'a -> 'b -> 'b) -> t -> 'b -> 'b
+val filter_map : (string * 'a -> (string * 'b) option) -> t -> 'b t
+val fv : ('a -> string list) -> t -> string list
+val update : t -> string * ('a -> 'a) -> t
