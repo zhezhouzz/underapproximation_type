@@ -19,7 +19,7 @@ module F (R : Refinement.T) = struct
     | Some ty -> ty
 
   let add_to_right ctx (ty, id) =
-    if exists ctx id then _failatwith __FILE__ __LINE__ ""
+    if exists ctx id then _failatwith __FILE__ __LINE__ (spf "Add %s" id)
     else ctx @ [ (id, [ ty ]) ]
 
   let add_to_rights ctx l = List.fold_left add_to_right ctx l
@@ -32,15 +32,15 @@ module F (R : Refinement.T) = struct
         else _failatwith __FILE__ __LINE__ ""
 
   let subtract ctx ctx' =
-    let rec aux : t * t -> t = function
-      | l, [] -> l
+    let rec aux = function
+      | l, [] -> List.map (fun x -> (true, x)) l
       | [], _ -> _failatwith __FILE__ __LINE__ ""
       | (x1, ys1) :: t1, (x2, ys2) :: t2 ->
           if String.equal x1 x2 then
             let diff = subtract_inner (ys1, ys2) in
             match diff with
             | [] -> aux (t1, t2)
-            | diff -> (x1, diff) :: aux (t1, t2)
+            | diff -> (false, (x1, diff)) :: aux (t1, t2)
           else _failatwith __FILE__ __LINE__ ""
     in
     aux (ctx, ctx')

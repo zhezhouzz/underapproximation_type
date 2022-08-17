@@ -72,6 +72,7 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
     T.term typed =
   let ety = get_tp e in
   let open T in
+  (* let () = Printf.printf "W: %s\n" @@ Frontend.Expr.layout e in *)
   match e.x with
   | Const v ->
       let lit =

@@ -21,55 +21,79 @@ let _assume_basety file line (x, ty) =
       ((NT.to_smtty normalty, x), prop)
   | _ -> _failatwith file line "should not happen"
 
-let context_convert (ctx : Typectx.t) uqvs (name, nt, prop1, prop2) =
-  let top_uq prop =
-    List.fold_right
-      (fun { ty; x } prop ->
-        Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop))
-      uqvs prop
+type mode = InIn | InNotin | NotinIn | NotinNotin
+
+let context_convert (ctx : Typectx.t)
+    (uqvs : string Languages.Ntyped.typed list) (name, nt, prop1, prop2) =
+  (* let top_uq prop = *)
+  (*   List.fold_right *)
+  (*     (fun { ty; x } prop -> *)
+  (*       Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop)) *)
+  (*     uqvs prop *)
+  (* in *)
+  let to_qvs =
+    List.map (fun Languages.Ntyped.{ ty; x } -> (NT.to_smtty ty, x))
   in
   let nu = (NT.to_smtty nt, name) in
   let open Autov.Prop in
-  let aux (x, xty) (outter, prop1, prop2) =
+  let mk_q (uqs, eqs, pre, prop1, prop2) =
+    List.fold_right (fun x prop -> mk_forall x (fun _ -> prop)) uqs
+    @@ List.fold_right (fun x prop -> mk_exists x (fun _ -> prop)) eqs
+    @@ Implies (pre, Implies (prop2, prop1))
+  in
+  let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
+  let aux (x, xty) (uqvs, eqvs, pre, prop1, prop2) =
     let xty = UT.conjunct_list xty in
-    match
-      ( List.exists (String.equal x) @@ Autov.prop_fv prop1,
-        List.exists (String.equal x) @@ Autov.prop_fv prop2 )
-    with
-    | false, false -> (outter, prop1, prop2)
-    | true, false ->
+    let () =
+      Printf.printf "WORK ON... %s: %s |- (%s ==> \n\t%s ==> \t%s) \n" x
+        (Frontend.Underty.pretty_layout xty)
+        (Autov.pretty_layout_prop pre)
+        (Autov.pretty_layout_prop prop2)
+        (Autov.pretty_layout_prop prop1)
+    in
+    let mode =
+      if check_in x pre then InIn
+      else
+        match (check_in x prop1, check_in x prop2) with
+        | true, true -> InIn
+        | true, false -> InNotin
+        | false, true -> NotinIn
+        | false, false -> NotinNotin
+    in
+    match mode with
+    | NotinNotin -> (uqvs, eqvs, pre, prop1, prop2)
+    | InNotin ->
         let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        (outter, mk_exists x (fun _ -> And [ xprop; prop1 ]), prop2)
-    | false, true ->
+        (uqvs, eqvs @ [ x ], pre, And [ xprop; prop1 ], prop2)
+    | NotinIn ->
         let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        (outter, prop1, mk_forall x (fun _ -> Implies (xprop, prop2)))
-    | true, true ->
+        (uqvs, eqvs @ [ x ], pre, prop1, And [ xprop; prop2 ])
+    | InIn ->
         let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        ( (fun prop -> outter (mk_forall x (fun _ -> Implies (xprop, prop)))),
-          prop1,
-          prop2 )
+        (uqvs @ [ x ], eqvs, And [ pre; xprop ], prop1, prop2)
   in
-  let top_uq, prop1, prop2 =
-    Typectx.fold_right aux ctx (top_uq, prop1, prop2)
+  let uqs, eqs, pre, prop1, prop2 =
+    Typectx.fold_right aux ctx
+      (to_qvs uqvs @ [ nu ], [], P.mk_true, prop1, prop2)
   in
-  let q = top_uq @@ mk_forall nu (fun _ -> Implies (prop2, prop1)) in
-  (* let _ = *)
-  (*   Printf.printf "uqvs: %s\n" *)
-  (*     (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.UT.x) uqvs) *)
-  (* in *)
+  let q = mk_q (uqs, eqs, pre, prop1, prop2) in
+  let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
+  let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
+  let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
   (* closing check *)
   match Autov.prop_fv q with
   | [] -> q
   | fv ->
+      let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
+      let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
+      let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
       _failatwith __FILE__ __LINE__
         (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
-let subtyping_check file line (ctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
+let subtyping_check file line (qctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
   let open UT in
-  let t1, ctx = Qtypectx.unify t1 ctx in
-  let t1 = t1.QUT.qbody in
-  let t2, Qtypectx.{ uqvs; eqvs; qbody = ctx } = Qtypectx.unify t2 ctx in
-  let t2 = t2.QUT.qbody in
+  let t1, qctx' = Qtypectx.unify_raw t1 qctx in
+  let t2, Qtypectx.{ uqvs; eqvs; qbody = ctx } = Qtypectx.unify_raw t2 qctx' in
   let ctx =
     List.fold_right
       (fun qv ctx -> Typectx.add_to_left (eqv_to_bodyt qv, qv.x) ctx)
@@ -77,8 +101,9 @@ let subtyping_check file line (ctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
   in
   let rec aux ctx (t1, t2) =
     let () =
-      Printf.printf "Subtype: ∀(%s) %s\n"
+      Printf.printf "Subtype: ∀(%s)∃(%s),%s\n"
         (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) uqvs)
+        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) eqvs)
       @@ layout_subtyping ctx (t1, t2)
     in
     match (t1, t2) with
@@ -99,7 +124,8 @@ let subtyping_check file line (ctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let q = context_convert ctx uqvs (typeself, nt, prop1, prop2) in
-        let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in
+        (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
+        let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in
         if Autov.check q then ()
         else _failatwith file line "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->

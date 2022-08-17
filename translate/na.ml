@@ -27,7 +27,9 @@ let remove_dummy_eq e =
       | LetVal { lhs; rhs; body } -> (
           let rhs = aux_value rhs in
           match rhs.x with
-          | Lit (Var id') -> (aux (subst (lhs.x, id') body)).x
+          | Lit (Var id') ->
+              (* let () = Printf.printf "subst: %s -> %s\n" lhs.x id' in *)
+              (aux (subst (lhs.x, id') body)).x
           | _ -> LetVal { lhs; rhs; body = aux body })
       | Ite { cond; e_t; e_f } -> Ite { cond; e_t = aux e_t; e_f = aux e_f }
       | Match { matched; cases } ->
@@ -87,4 +89,4 @@ let remove_dummy_let e =
   (* aux e *)
   aux (remove_dummy_eq e)
 
-let simplify = remove_dummy_let
+let simplify e = remove_dummy_let e

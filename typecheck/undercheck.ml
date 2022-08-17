@@ -284,7 +284,7 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   (* in *)
   let () = Printf.printf "let bind var: %s\n" ret.x in
   let () = Printf.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in
-  let ctx' = Qtypectx.add_to_right ctx (retty, ret.x) in
+  let ctx' = Qtypectx.add_to_right ctx' (retty, ret.x) in
   let ret =
     close_qterm_by_diff ctx' ctx
       (erase_check_mk_id __FILE__ __LINE__ ret @@ without_qv retty)
@@ -341,56 +341,44 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
   | Ite { cond; e_t; e_f } ->
       let cond = id_type_infer ctx cond in
       let cond, ctx' = unify_to_ctx cond ctx in
-      let true_branch_prop x =
-        Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
-      in
-      let false_branch_prop x =
-        Autov.(Prop.(Not (Lit (AVar { ty = Smtty.Bool; x }))))
-      in
+      let true_branch_prop x = P.(Lit (AVar x)) in
+      let false_branch_prop x = P.(Not (Lit (AVar x))) in
       let true_branch_ctx =
-        Qtypectx.add_to_right ctx'
-          ( UT.base_type_add_conjunction_with_selfname true_branch_prop
-              cond.bodyt_ty,
-            cond.bodyt_x )
+        Qtypectx.map
+          (fun ctx ->
+            Typectx.conjunct ctx
+              (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool true_branch_prop))
+          ctx
       in
       let false_branch_ctx =
-        Qtypectx.add_to_right ctx'
-          ( UT.base_type_add_conjunction_with_selfname false_branch_prop
-              cond.bodyt_ty,
-            cond.bodyt_x )
+        Qtypectx.map
+          (fun ctx ->
+            Typectx.conjunct ctx
+              (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool false_branch_prop))
+          ctx
       in
-      let e_t, ctx' = unify_to_ctx (term_type_infer true_branch_ctx e_t) ctx' in
-      let e_f, ctx' =
+      let e_t, ctx_t =
+        unify_to_ctx (term_type_infer true_branch_ctx e_t) ctx'
+      in
+      let e_t = close_term_by_diff ctx_t ctx e_t in
+      let e_f, ctx_f =
         unify_to_ctx (term_type_infer false_branch_ctx e_f) ctx'
       in
-      let tys =
-        [
-          UT.base_type_add_conjunction
-            (true_branch_prop cond.bodyt_x)
-            e_t.bodyt_ty;
-          UT.base_type_add_conjunction
-            (false_branch_prop cond.bodyt_x)
-            e_f.bodyt_ty;
-        ]
-      in
+      let e_f = close_term_by_diff ctx_f ctx e_f in
       let () =
         List.iter
           (fun ty ->
-            Printf.printf "case ty: %s\n" @@ Frontend.Underty.pretty_layout ty)
-          tys
+            Printf.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
+          [ e_t.ty; e_f.ty ]
       in
-      let ty = UT.disjunct_list tys in
+      let ty = QUT.disjunct_list_q [ e_t.ty; e_f.ty ] in
       let () =
         Printf.printf "merged case ty: %s\n"
-        @@ Frontend.Underty.pretty_layout ty
+        @@ Frontend.Qunderty.pretty_layout ty
       in
       let cond = close_term_by_diff ctx' ctx cond in
-      let e_t, e_f =
-        Sugar.map2 (fun x -> close_term_by_diff ctx' ctx x) (e_t, e_f)
-      in
       (* NOTE: underappproximate here *)
-      close_term_by_diff ctx' ctx
-        { bodyt_ty = ty; bodyt_x = UL.Ite { cond; e_t; e_f } }
+      { ty; x = UL.Ite { cond; e_t; e_f } }
   | Match { matched; cases } ->
       let matched = id_type_infer ctx matched in
       let matched, ctx' = unify_to_ctx matched ctx in

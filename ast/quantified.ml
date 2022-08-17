@@ -19,9 +19,10 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
 
   let unify (uqvs, eqvs, (qbody : 'a), (subst : 'a -> string -> string -> 'a))
       (target : t) =
-    let var_space = uqids target @ eqids target @ Qb.var_space target.qbody in
+    (* let var_space = uqids target @ eqids target @ Qb.var_space target.qbody in *)
     let to_unique ({ ty; x }, qbody) =
-      if List.exists (String.equal x) var_space then
+      (* if List.exists (String.equal x) var_space then *)
+      if true then
         let x' = fresh_name_from_old x in
         ({ ty; x = x' }, subst qbody x x')
       else ({ ty; x }, qbody)

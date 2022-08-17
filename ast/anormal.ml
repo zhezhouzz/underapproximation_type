@@ -83,22 +83,31 @@ module F (Type : Type.T) = struct
             let v = aux_value { ty = e.ty; x = v } in
             V v.x
         | LetApp { ret; f; args; body } ->
-            let body = if String.equal ret.x y then aux body else body in
+            let body = if String.equal ret.x y then body else aux body in
             LetApp
               { ret; f = subst_tid f; args = List.map subst_tid args; body }
         | LetOp { ret; op; args; body } ->
-            let body = if String.equal ret.x y then aux body else body in
+            (* let () = *)
+            (*   Printf.printf "subst_op (%s) %s -> %s\n" *)
+            (*     (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) args) *)
+            (*     y y' *)
+            (* in *)
+            let body = if String.equal ret.x y then body else aux body in
             LetOp { ret; op; args = List.map subst_tid args; body }
         | LetVal { lhs; rhs; body } ->
-            let body = if String.equal lhs.x y then aux body else body in
+            (* let () = *)
+            (*   Printf.printf "subst_val (V) %s -> %s | %b\n" y y' *)
+            (*     (String.equal lhs.x y) *)
+            (* in *)
+            let body = if String.equal lhs.x y then body else aux body in
             LetVal { lhs; rhs = aux_value rhs; body }
         | LetTu { tu; args; body } ->
-            let body = if String.equal tu.x y then aux body else body in
+            let body = if String.equal tu.x y then body else aux body in
             LetTu { tu; args = List.map subst_tid args; body }
         | LetDeTu { tu; args; body } ->
             let body =
-              if List.exists (fun x -> String.equal x.x y) args then aux body
-              else body
+              if List.exists (fun x -> String.equal x.x y) args then body
+              else aux body
             in
             LetDeTu { tu = subst_tid tu; args; body }
         | Ite { cond; e_t; e_f } ->

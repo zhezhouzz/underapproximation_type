@@ -29,19 +29,23 @@ let close_qv_by_diff ctx ctx' ({ uqvs; eqvs; qbody } : Quantified.Qunderty.t) :
     Quantified.Qunderty.t =
   let uqvs', eqvs' = subtract ctx ctx' in
   let ctx'' =
-    List.map (fun (id, tys) -> (id, Underty.T.conjunct_list tys))
+    List.map (fun (ifq, (id, tys)) ->
+        let ty = Underty.T.conjunct_list tys in
+        (ifq, (id, ty)))
     @@ Typectx.UnderTypectx.subtract ctx.qbody ctx'.qbody
   in
   let eqvs'', props =
     List.split
     @@ List.filter_map
-         (fun (x, ty) ->
+         (fun (ifq, (x, ty)) ->
            match Underty.T.assume_base_destruct_opt ty with
            | None -> None
            | Some (x', ty, prop) ->
-               Some ({ ty; x }, Autov.Prop.subst_id prop x' x))
+               let prop = Autov.Prop.subst_id prop x' x in
+               Some ((if ifq then [ { ty; x } ] else []), prop))
          ctx''
   in
+  let eqvs'' = List.concat eqvs'' in
   {
     uqvs = uqvs @ uqvs';
     eqvs = eqvs @ eqvs' @ eqvs'';
