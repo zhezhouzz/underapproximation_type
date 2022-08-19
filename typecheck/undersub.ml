@@ -44,13 +44,13 @@ let context_convert (ctx : Typectx.t)
   let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
   let aux (x, xty) (uqvs, eqvs, pre, prop1, prop2) =
     let xty = UT.conjunct_list xty in
-    let () =
-      Printf.printf "WORK ON... %s: %s |- (%s ==> \n\t%s ==> \t%s) \n" x
-        (Frontend.Underty.pretty_layout xty)
-        (Autov.pretty_layout_prop pre)
-        (Autov.pretty_layout_prop prop2)
-        (Autov.pretty_layout_prop prop1)
-    in
+    (* let () = *)
+    (*   Printf.printf "WORK ON... %s: %s |- (%s ==> \n\t%s ==> \t%s) \n" x *)
+    (*     (Frontend.Underty.pretty_layout xty) *)
+    (*     (Autov.pretty_layout_prop pre) *)
+    (*     (Autov.pretty_layout_prop prop2) *)
+    (*     (Autov.pretty_layout_prop prop1) *)
+    (* in *)
     let mode =
       if check_in x pre then InIn
       else

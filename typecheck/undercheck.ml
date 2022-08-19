@@ -248,6 +248,9 @@ and handle_letdetu ctx (tu, args, body) target_type =
 and handle_letapp ctx (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
+  let () =
+    Printf.printf "let ctx: %s\n" (Frontend.Qtypectx.pretty_layout ctx)
+  in
   let args = List.map (id_type_infer ctx) args in
   let args, ctx' = unify_to_ctxs args ctx in
   let qargs = List.map (fun arg -> close_term_by_diff ctx' ctx arg) args in
@@ -275,7 +278,7 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   in
   let ctx', retty = aux ctx' (args, fty'.qbody) in
   let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
-  let () = Printf.printf "before handel let (%s)\n" ret.NL.x in
+  let () = Printf.printf "before handel let-- (%s)\n" ret.NL.x in
   (* let retty = *)
   (*   List.fold_left *)
   (*     (fun ret ((_, x), arg) -> UT.subst_id ret arg.bodyt_x x) *)
@@ -304,6 +307,10 @@ and handle_letval ctx (lhs, rhs, body) target_type =
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
   let lhsty, ctx' = Qtypectx.unify_raw lhs.ty ctx in
   let ctx' = Qtypectx.add_to_right ctx' (lhsty, lhs.x) in
+  let () =
+    Printf.printf "after let value ctx: %s\n"
+      (Frontend.Qtypectx.pretty_layout ctx')
+  in
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
@@ -495,7 +502,6 @@ and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : QUT.t) :
         Prim.get_primitive_under_ty
           (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
       in
-      let () = Printf.printf "before handel let (%s)\n" ret.x in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) (Some ty)
       in

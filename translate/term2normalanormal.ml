@@ -27,11 +27,11 @@ open Typed
 let id_trans (e : id opttyped) = Typed.{ ty = id_get_tp e; x = e.x }
 let mk_t_term ty x = { ty; x }
 
-type cont = T.value Typed.typed -> T.term Typed.typed
+type cont = T.id Typed.typed -> T.term Typed.typed
 type conts = T.id Typed.typed list -> T.term Typed.typed
 
 let freshname () = Rename.unique "x"
-let ret () x = T.{ ty = x.ty; x = V x.x }
+let ret_cont x = T.{ ty = x.ty; x = V (Lit (Var x.x)) }
 let force_naming name = match name with None -> freshname () | Some x -> x
 
 (* let bind_value cont lit = *)
@@ -81,13 +81,15 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         | B b -> ConstB b
         | _ -> _failatwith __FILE__ __LINE__ "unimp complex const"
       in
-      cont { ty = ety; x = Lit lit }
+      let rhs = T.{ ty = ety; x = Lit lit } in
+      let lhs = { ty = ety; x = force_naming ename } in
+      T.make_letval lhs.x rhs (cont lhs)
   | Var id -> (
       match ename with
-      | None -> cont T.{ ty = ety; x = Lit (Var id) }
+      | None -> cont T.{ ty = ety; x = id }
       | Some ename ->
           let value = T.{ ty = ety; x = Lit (Var id) } in
-          T.make_letval ename value (cont value))
+          T.make_letval ename value (cont T.{ ty = ety; x = id }))
   | Tu [] -> _failatwith __FILE__ __LINE__ "wrong tuple"
   | Tu [ e ] -> convert cont e ename
   | Tu es ->
@@ -95,29 +97,31 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         T.(
           fun args ->
             let tu = { ty = ety; x = force_naming ename } in
-            let body = cont @@ id_to_value tu in
+            let body = cont tu in
             { ty = body.ty; x = LetTu { tu; args; body } })
         es
   | Lam (ty, x, body) ->
-      cont { ty = ety; x = Lam ({ ty; x }, to_anormal body None) }
+      let rhs = { ty = ety; x = Lam ({ ty; x }, to_anormal body None) } in
+      let lhs = { ty = ety; x = force_naming ename } in
+      T.make_letval lhs.x rhs (cont lhs)
   (* NOTE: zero arguments applicaition is still need a name *)
   (* | App (e, []) -> convert cont e target_name *)
   | Op (op, es) ->
       convert_multi
         (fun args ->
           let ret = { ty = ety; x = force_naming ename } in
-          let body = cont @@ id_to_value ret in
+          let body = cont ret in
           { ty = body.ty; x = LetOp { ret; op; args; body } })
         es
   | App (e, es) ->
       convert
-        ( id_cont_to_value_cont @@ fun f ->
+        (fun f ->
           convert_multi
             (fun args ->
               let ret = { ty = ety; x = force_naming ename } in
-              let body = cont @@ id_to_value ret in
+              let body = cont ret in
               { ty = body.ty; x = LetApp { ret; f; args; body } })
-            es )
+            es)
         e None
   | Let (false, lhs, rhs, body) -> (
       let body = convert cont body ename in
@@ -127,28 +131,29 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
       | [ lhs ] -> convert (fun _ -> body) rhs (Some lhs.x)
       | _ ->
           convert
-            ( id_cont_to_value_cont @@ fun tu ->
-              { ty = body.ty; x = LetDeTu { args = lhs; tu; body } } )
+            (fun tu -> { ty = body.ty; x = LetDeTu { args = lhs; tu; body } })
             rhs None)
   | Let (true, [ (ty, x) ], rhs, body) ->
       let body = convert cont body ename in
       let f = { ty; x } in
-      convert
-        (fun rhs ->
-          let rhs = { ty = f.ty; x = Fix (f, rhs) } in
-          make_letval f.x rhs body)
-        rhs None
+      let func = convert ret_cont rhs None in
+      let rhs =
+        match func.x with
+        | LetVal { rhs; _ } -> { ty = rhs.ty; x = Fix (f, rhs) }
+        | _ -> _failatwith __FILE__ __LINE__ ""
+      in
+      make_letval f.x rhs body
   | Let (true, _, _, _) -> _failatwith __FILE__ __LINE__ "invalid term lang"
   | Ite (e1, e2, e3) ->
       convert
-        ( id_cont_to_value_cont @@ fun cond ->
+        (fun cond ->
           let e_t = convert cont e2 ename in
           let e_f = convert cont e3 ename in
-          mk_t_term ety @@ Ite { cond; e_t; e_f } )
+          mk_t_term ety @@ Ite { cond; e_t; e_f })
         e1 None
   | Match (e, cases) ->
       convert
-        ( id_cont_to_value_cont @@ fun matched ->
+        (fun matched ->
           let cases =
             List.map
               (fun (case : S.case) ->
@@ -165,22 +170,17 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
                 })
               cases
           in
-          mk_t_term ety @@ Match { matched; cases } )
+          mk_t_term ety @@ Match { matched; cases })
         e None
 
 and to_anormal (e : term opttyped) ename : T.term typed =
-  convert (ret ()) e ename
+  convert ret_cont e ename
 
 and convert_multi (conts : conts) (es : term opttyped list) : T.term typed =
-  let open T in
+  (* let open T in *)
   (List.fold_left
-     (fun (conts : conts) rhs vs ->
-       convert
-         (fun v ->
-           let x = freshname () in
-           let body = conts ({ ty = v.ty; x } :: vs) in
-           make_letval x v body)
-         rhs None)
+     (fun (conts : conts) rhs rest ->
+       convert (fun id -> conts (id :: rest)) rhs None)
      conts es)
     []
 
