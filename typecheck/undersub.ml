@@ -11,7 +11,7 @@ open Zzdatatype.Datatype
 open Sugar
 open Languages.Ntyped
 
-let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping
+(* let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping *)
 
 let _assume_basety file line (x, ty) =
   let open UT in
@@ -76,10 +76,14 @@ let context_convert (ctx : Typectx.t)
     Typectx.fold_right aux ctx
       (to_qvs uqvs @ [ nu ], [], P.mk_true, prop1, prop2)
   in
+  let () =
+    Frontend.Qtypectx.pretty_print_q (List.map snd uqs) (List.map snd eqs) pre
+      (prop1, prop2)
+  in
   let q = mk_q (uqs, eqs, pre, prop1, prop2) in
-  let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
-  let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
-  let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
+  (* let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in *)
+  (* let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in *)
+  (* let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in *)
   (* closing check *)
   match Autov.prop_fv q with
   | [] -> q
@@ -92,6 +96,7 @@ let context_convert (ctx : Typectx.t)
 
 let subtyping_check file line (qctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
   let open UT in
+  let () = Frontend.Qtypectx.pretty_print_subtyping qctx (t1, t2) in
   let t1, qctx' = Qtypectx.unify_raw t1 qctx in
   let t2, Qtypectx.{ uqvs; eqvs; qbody = ctx } = Qtypectx.unify_raw t2 qctx' in
   let ctx =
@@ -100,12 +105,6 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
       eqvs ctx
   in
   let rec aux ctx (t1, t2) =
-    let () =
-      Printf.printf "Subtype: ∀(%s)∃(%s),%s\n"
-        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) uqvs)
-        (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) eqvs)
-      @@ layout_subtyping ctx (t1, t2)
-    in
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
         UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
@@ -125,7 +124,7 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : QUT.t) (t2 : QUT.t) =
         in
         let q = context_convert ctx uqvs (typeself, nt, prop1, prop2) in
         (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
-        let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in
+        (* let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in *)
         if Autov.check q then ()
         else _failatwith file line "Subtyping check: rejected by the verifier"
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->

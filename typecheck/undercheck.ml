@@ -45,7 +45,7 @@ let lit_to_prop_lit (ty, x) =
 
 let erase_check file line (underfty, normalty) =
   (* let () = *)
-  (*   Printf.printf "|_ %s _| ~> %s = %s\n" *)
+  (*   Pp.printf "|_ %s _| ~> %s = %s\n" *)
   (*     (Frontend.Underty.layout underfty) *)
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (*     (Frontend.Type.layout normalty) *)
@@ -55,7 +55,7 @@ let erase_check file line (underfty, normalty) =
 
 let erase_check_mk_id file line id underfty =
   (* let () = *)
-  (*   Printf.printf "|_ %s _| ~> %s = %s\n" *)
+  (*   Pp.printf "|_ %s _| ~> %s = %s\n" *)
   (*     (Frontend.Underty.layout underfty) *)
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (*     (Frontend.Type.layout id.NL.ty) *)
@@ -248,18 +248,16 @@ and handle_letdetu ctx (tu, args, body) target_type =
 and handle_letapp ctx (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
-  let () =
-    Printf.printf "let ctx: %s\n" (Frontend.Qtypectx.pretty_layout ctx)
-  in
+  let () = Frontend.Qtypectx.pretty_print ctx in
   let args = List.map (id_type_infer ctx) args in
   let args, ctx' = unify_to_ctxs args ctx in
   let qargs = List.map (fun arg -> close_term_by_diff ctx' ctx arg) args in
   (* let fty = { fty with uqvs = []; eqvs = fty.uqvs @ fty.eqvs } in *)
   let fty', ctx' = Qtypectx.unify fty ctx' in
-  let () = Printf.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in
-  (* let () = Printf.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
+  let () = Pp.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in
+  (* let () = Pp.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
   (* let argsty, retty = UT.destruct_arrow_tp fty' in *)
-  let () = Printf.printf "start type check for let %s\n" ret.NL.x in
+  let () = Pp.printf "start type check for let %s\n" ret.NL.x in
   let rec aux ctx' = function
     | [], ty -> (ctx', ty)
     | arg :: args, UnderTy_arrow { argname; argty; retty } ->
@@ -278,21 +276,21 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   in
   let ctx', retty = aux ctx' (args, fty'.qbody) in
   let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
-  let () = Printf.printf "before handel let-- (%s)\n" ret.NL.x in
+  let () = Pp.printf "before handel let-- (%s)\n" ret.NL.x in
   (* let retty = *)
   (*   List.fold_left *)
   (*     (fun ret ((_, x), arg) -> UT.subst_id ret arg.bodyt_x x) *)
   (*     retty *)
   (*   @@ List.combine argsty args *)
   (* in *)
-  let () = Printf.printf "let bind var: %s\n" ret.x in
-  let () = Printf.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in
+  let () = Pp.printf "let bind var: %s\n" ret.x in
+  let () = Pp.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in
   let ctx' = Qtypectx.add_to_right ctx' (retty, ret.x) in
   let ret =
     close_qterm_by_diff ctx' ctx
       (erase_check_mk_id __FILE__ __LINE__ ret @@ without_qv retty)
   in
-  let () = Printf.printf "ret.ty: %s\n" (Frontend.Qunderty.layout ret.ty) in
+  let () = Pp.printf "ret.ty: %s\n" (Frontend.Qunderty.layout ret.ty) in
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
@@ -307,10 +305,10 @@ and handle_letval ctx (lhs, rhs, body) target_type =
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
   let lhsty, ctx' = Qtypectx.unify_raw lhs.ty ctx in
   let ctx' = Qtypectx.add_to_right ctx' (lhsty, lhs.x) in
-  let () =
-    Printf.printf "after let value ctx: %s\n"
-      (Frontend.Qtypectx.pretty_layout ctx')
-  in
+  (* let () = *)
+  (*   Pp.printf "after let value ctx: %s\n" *)
+  (*     (Frontend.Qtypectx.pretty_layout ctx') *)
+  (* in *)
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
@@ -375,13 +373,12 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
       let () =
         List.iter
           (fun ty ->
-            Printf.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
+            Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
           [ e_t.ty; e_f.ty ]
       in
       let ty = QUT.disjunct_list_q [ e_t.ty; e_f.ty ] in
       let () =
-        Printf.printf "merged case ty: %s\n"
-        @@ Frontend.Qunderty.pretty_layout ty
+        Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
       in
       let cond = close_term_by_diff ctx' ctx cond in
       (* NOTE: underappproximate here *)
@@ -465,22 +462,18 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
       let () =
         List.iter
           (fun ty ->
-            Printf.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
+            Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
           tys
       in
       let ty = QUT.disjunct_list_q tys in
       let () =
-        Printf.printf "merged case ty: %s\n"
-        @@ Frontend.Qunderty.pretty_layout ty
+        Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
       in
       { ty; x = Match { matched = close_term_by_diff ctx' ctx matched; cases } }
 
 and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : QUT.t) :
     UL.term UL.typed =
-  let () =
-    Printf.printf "%s\n"
-      (Frontend.Qtypectx.pretty_layout_judge ctx (layout_term x, ty))
-  in
+  let () = Frontend.Qtypectx.pretty_print_judge ctx (layout_term x, ty) in
   let () = erase_check __FILE__ __LINE__ (ty.qbody, x.ty) in
   let open NL in
   match (x.x, ty) with
@@ -506,7 +499,7 @@ and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : QUT.t) :
         handle_letapp ctx (ret, opty, args, body) (Some ty)
       in
       (* let _ = *)
-      (*   Printf.printf "ret = _:%s\n" @@ Frontend.Underty.pretty_layout ty' *)
+      (*   Pp.printf "ret = _:%s\n" @@ Frontend.Underty.pretty_layout ty' *)
       (* in *)
       { ty; x = LetOp { ret; op; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) (Some ty)

@@ -2,7 +2,15 @@ open Zzdatatype.Datatype
 
 let pretty_layout f ctx =
   List.split_by ";\n"
-    (fun (name, ty) -> Printf.sprintf "%s:%s" name (List.split_by "/\\" f ty))
+    (fun (name, ty) ->
+      Printf.sprintf "%s:%s" name
+        (List.split_by "∧" (fun x -> f x |> Pp.mk_red) ty))
+    ctx
+
+let pretty_print f ctx =
+  List.iter
+    (fun (name, ty) ->
+      Pp.printf "%s:@{<green>%s@}," name (List.split_by "∧" f ty))
     ctx
 
 let pretty_layout_over = pretty_layout Overty.pretty_layout
