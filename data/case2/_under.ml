@@ -12,4 +12,8 @@ let abs (u : 'exists * int) =
 
 let abs =
   let x = (v : int) (v > 0) in
-  (v : int) (v >= 0)
+  (v : int) (v > 0)
+
+(* let abs = *)
+(*   let x = (v : int) (v > 0) in *)
+(*   (v : int) (v >= 0) *)

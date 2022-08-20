@@ -134,6 +134,35 @@ module T = struct
     in
     aux t
 
+  let subst_id_with_lit t x l =
+    let rec aux_lit = function
+      | ACint n -> ACint n
+      | ACbool n -> ACbool n
+      | AVar id when String.equal id.x x -> l
+      | AVar id -> AVar id
+      (* | AOp2 (op, AVar a, AVar b) -> *)
+      (*     let () = *)
+      (*       Printf.printf ">>>>>>>> %s %s %s -> %s %s %s\n" op a.x b.x op a.x *)
+      (*         (match aux_lit (AVar b) with AVar b -> b.x | _ -> "unknown") *)
+      (*     in *)
+      (*     AOp2 (op, aux_lit (AVar a), aux_lit (AVar b)) *)
+      | AOp2 (op, a, b) -> AOp2 (op, aux_lit a, aux_lit b)
+    in
+    let rec aux t =
+      match t with
+      | Lit lit -> Lit (aux_lit lit)
+      | Implies (e1, e2) -> Implies (aux e1, aux e2)
+      | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+      | Not e -> Not (aux e)
+      | And es -> And (List.map aux es)
+      | Or es -> Or (List.map aux es)
+      | Iff (e1, e2) -> Iff (aux e1, aux e2)
+      | MethodPred (mp, args) -> MethodPred (mp, List.map aux_lit args)
+      | Forall (u, e) -> if String.equal u.x x then t else Forall (u, aux e)
+      | Exists (u, e) -> if String.equal u.x x then t else Exists (u, aux e)
+    in
+    aux t
+
   let subst_lit_id lit x y =
     let do_subst x y id =
       if String.equal x id.x then { ty = id.ty; x = y } else id
@@ -232,4 +261,91 @@ module T = struct
       | Exists (u, e) -> if String.equal u.x y then t else Exists (u, aux e)
     in
     aux t
+
+  let simp_conj_disj t =
+    let is_bool b' = function Lit (ACbool b) -> b == b' | _ -> false in
+    let rec aux t =
+      match t with
+      | Lit _ | MethodPred (_, _) -> t
+      | Implies (e1, e2) -> Implies (aux e1, aux e2)
+      | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+      | Not (Lit (ACbool b)) -> Lit (ACbool (not b))
+      | Not e -> Not (aux e)
+      | And es -> (
+          let es = List.map aux es in
+          if List.exists (is_bool false) es then Lit (ACbool false)
+          else
+            let es = List.filter (fun x -> not (is_bool true x)) es in
+            match es with [] -> Lit (ACbool true) | _ -> And es)
+      | Or es -> (
+          let es = List.map aux es in
+          if List.exists (is_bool true) es then Lit (ACbool true)
+          else
+            let es = List.filter (fun x -> not (is_bool false x)) es in
+            match es with [] -> Lit (ACbool false) | _ -> Or es)
+      | Iff (e1, e2) -> Iff (aux e1, aux e2)
+      | Forall (u, e) -> Forall (u, aux e)
+      | Exists (u, e) -> Exists (u, aux e)
+    in
+    aux t
+
+  let simp_exists eqv t =
+    let is_eq = function
+      | Lit (AOp2 ("==", AVar x, lit)) when String.equal x.x eqv -> Some lit
+      | Lit (AOp2 ("==", lit, AVar x)) when String.equal x.x eqv -> Some lit
+      | _ -> None
+    in
+    match t with
+    | And es -> (
+        let res = List.filter_map is_eq es in
+        match res with
+        | [] -> (true, t)
+        | lit :: _ -> (false, subst_id_with_lit t eqv lit))
+    | _ -> (true, t)
+
+  let rec simp_lit_lit t =
+    match t with
+    | ACint _ -> t
+    | ACbool _ -> t
+    | AVar _ -> t
+    | AOp2 (op, a, b) -> (
+        match (op, simp_lit_lit a, simp_lit_lit b) with
+        | "==", AVar id, AVar id' when String.equal id.x id'.x -> ACbool true
+        | "==", ACint i, ACint i' -> ACbool (i == i')
+        | "==", ACbool i, ACbool i' -> ACbool (i == i')
+        | "==", a, b when lit_strict_eq a b -> ACbool true
+        | op, a, b -> AOp2 (op, a, b))
+
+  let simp_lit t =
+    let rec aux t =
+      match t with
+      | Lit lit -> Lit (simp_lit_lit lit)
+      | MethodPred (mp, args) -> MethodPred (mp, List.map simp_lit_lit args)
+      | Implies (e1, e2) -> Implies (aux e1, aux e2)
+      | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+      | Not e -> Not (aux e)
+      | And es -> And (List.map aux es)
+      | Or es -> Or (List.map aux es)
+      | Iff (e1, e2) -> Iff (aux e1, aux e2)
+      | Forall (u, e) -> Forall (u, aux e)
+      | Exists (u, e) -> Exists (u, aux e)
+    in
+    aux t
+
+  let simp t = simp_conj_disj @@ simp_lit t
+
+  let to_uni_conjs t =
+    let rec aux t =
+      match t with And es -> List.concat @@ List.map aux es | _ -> [ t ]
+    in
+    aux t
+
+  let simp_exists_and qvs qv xprop prop =
+    let props = to_uni_conjs (And prop) in
+    match xprop with
+    | Lit (ACbool true) ->
+        let if_keep, prop = simp_exists (snd qv) (And props) in
+        let props = to_uni_conjs prop in
+        if if_keep then (qvs @ [ qv ], props) else (qvs, props)
+    | _ -> (qvs @ [ qv ], xprop :: props)
 end

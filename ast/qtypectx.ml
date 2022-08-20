@@ -25,6 +25,38 @@ let add_to_right ctx (ty, x) =
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l
 
+let simp_retty eqvs props retty =
+  (eqvs, Underty.T.map_on_retty (fun q -> And (props @ [ q ])) retty)
+
+(* let final_eqvs = ref [] in *)
+(* let mk q = *)
+(*   List.fold_left *)
+(*     (fun (eqvs, qbody) qv -> *)
+(*       (\* let () = *\) *)
+(*       (\*   Printf.printf "WORK ON %s in %s\n" qv.x *\) *)
+(*       (\*     (Autov.pretty_layout_prop qbody) *\) *)
+(*       (\* in *\) *)
+(*       match Autov.Prop.simp_exists qv.x qbody with *)
+(*       | false, qbody -> *)
+(*           (\* let () = *\) *)
+(*           (\*   Printf.printf "Drop %s and get %s\n" qv.x *\) *)
+(*           (\*     (Autov.pretty_layout_prop qbody) *\) *)
+(*           (\* in *\) *)
+(*           (eqvs, qbody) *)
+(*       | true, qbody -> (eqvs @ [ qv ], qbody)) *)
+(*     ([], And (props @ [ q ])) *)
+(*     eqvs *)
+(* in *)
+(* let retty = *)
+(*   Underty.T.map_on_retty *)
+(*     (fun q -> *)
+(*       let eqvs, q = mk q in *)
+(*       let () = final_eqvs := eqvs in *)
+(*       q) *)
+(*     retty *)
+(* in *)
+(* (!final_eqvs, retty) *)
+
 let close_qv_by_diff ctx ctx' ({ uqvs; eqvs; qbody } : Quantified.Qunderty.t) :
     Quantified.Qunderty.t =
   let uqvs', eqvs' = subtract ctx ctx' in
@@ -46,11 +78,9 @@ let close_qv_by_diff ctx ctx' ({ uqvs; eqvs; qbody } : Quantified.Qunderty.t) :
          ctx''
   in
   let eqvs'' = List.concat eqvs'' in
-  {
-    uqvs = uqvs @ uqvs';
-    eqvs = eqvs @ eqvs' @ eqvs'';
-    qbody = Underty.T.map_on_retty (fun q -> And (props @ [ q ])) qbody;
-  }
+  let eqvs = eqvs @ eqvs' @ eqvs'' in
+  let eqvs, qbody = simp_retty eqvs props qbody in
+  { uqvs = uqvs @ uqvs'; eqvs; qbody }
 
 (* let hide_vars_in_ctx ctx vars ty = *)
 (*   List.fold_right *)

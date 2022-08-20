@@ -52,35 +52,45 @@ let context_convert (ctx : Typectx.t)
     (*     (Autov.pretty_layout_prop prop1) *)
     (* in *)
     let mode =
-      if check_in x pre then InIn
+      if check_in x P.(And pre) then InIn
       else
-        match (check_in x prop1, check_in x prop2) with
+        match (check_in x P.(And prop1), check_in x P.(And prop2)) with
         | true, true -> InIn
         | true, false -> InNotin
         | false, true -> NotinIn
         | false, false -> NotinNotin
     in
+    let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
     match mode with
     | NotinNotin -> (uqvs, eqvs, pre, prop1, prop2)
     | InNotin ->
-        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        (uqvs, eqvs @ [ x ], pre, And [ xprop; prop1 ], prop2)
+        let eqvs', prop1' = simp_exists_and eqvs x xprop prop1 in
+        (* let () = *)
+        (*   Printf.printf "(%s:%s) |> %s | prop %s -> %s\n" (snd x) *)
+        (*     (Autov.pretty_layout_prop xprop) *)
+        (*     (List.split_by_comma snd eqvs') *)
+        (*     (Autov.pretty_layout_prop (And prop1)) *)
+        (*     (Autov.pretty_layout_prop (And prop1')) *)
+        (* in *)
+        (uqvs, eqvs', pre, prop1', prop2)
+        (* (uqvs, eqvs @ [ x ], pre, xprop :: prop1, prop2) *)
     | NotinIn ->
-        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        (uqvs, eqvs @ [ x ], pre, prop1, And [ xprop; prop2 ])
-    | InIn ->
-        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-        (uqvs @ [ x ], eqvs, And [ pre; xprop ], prop1, prop2)
+        (* let eqvs', prop2' = simp_exists_and eqvs x xprop prop2 in *)
+        (* (uqvs, eqvs', pre, prop1, prop2') *)
+        (uqvs, eqvs @ [ x ], pre, prop1, xprop :: prop2)
+    | InIn -> (uqvs @ [ x ], eqvs, pre @ [ xprop ], prop1, prop2)
   in
   let uqs, eqs, pre, prop1, prop2 =
     Typectx.fold_right aux ctx
-      (to_qvs uqvs @ [ nu ], [], P.mk_true, prop1, prop2)
+      (to_qvs uqvs @ [ nu ], [], [ P.mk_true ], [ prop1 ], [ prop2 ])
   in
+  let pre, prop1, prop2 = P.(map3 simp (And pre, And prop1, And prop2)) in
   let () =
     Frontend.Qtypectx.pretty_print_q (List.map snd uqs) (List.map snd eqs) pre
       (prop1, prop2)
   in
   let q = mk_q (uqs, eqs, pre, prop1, prop2) in
+  (* let q = P.simp_conj_disj q in *)
   (* let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in *)
   (* let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in *)
   (* let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in *)
