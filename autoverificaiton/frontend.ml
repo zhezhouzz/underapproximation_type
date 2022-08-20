@@ -261,6 +261,7 @@ let psetting =
     sym_forall = "∀";
     sym_exists = "∃";
     layout_typedid = (fun x -> x.x);
+    (* (fun x ->          Printf.sprintf "(%s:%s)" x.x (Smtty.T.layout x.ty)); *)
     layout_mp = (fun x -> x);
   }
 
@@ -283,34 +284,35 @@ let coqsetting =
     layout_mp = (function "==" -> "=" | x -> x);
   }
 
-let _pretty_layout
-    {
-      sym_true;
-      sym_false;
-      sym_and;
-      sym_or;
-      sym_not;
-      sym_implies;
-      sym_iff;
-      sym_forall;
-      sym_exists;
-      layout_typedid;
-      layout_mp;
-    } =
-  let rec lit_pretty_layout = function
+let lit_pretty_layout_ { sym_true; sym_false; layout_typedid; layout_mp; _ } =
+  let rec aux = function
     | ACint n -> string_of_int n
     | ACbool false -> sym_false
     | ACbool true -> sym_true
     | AVar id -> layout_typedid id
-    | AOp2 (mp, a, b) ->
-        sprintf "(%s %s %s)" (lit_pretty_layout a) (layout_mp mp)
-          (lit_pretty_layout b)
+    | AOp2 (mp, a, b) -> sprintf "(%s %s %s)" (aux a) (layout_mp mp) (aux b)
+  in
+  aux
+
+let _pretty_layout s =
+  let {
+    sym_and;
+    sym_or;
+    sym_not;
+    sym_implies;
+    sym_iff;
+    sym_forall;
+    sym_exists;
+    layout_typedid;
+    _;
+  } =
+    s
   in
   let pretty_layout x =
     let rec layout = function
-      | Lit lit -> lit_pretty_layout lit
+      | Lit lit -> lit_pretty_layout_ s lit
       | MethodPred (mp, args) ->
-          let args = List.map lit_pretty_layout args in
+          let args = List.map (lit_pretty_layout_ s) args in
           sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
       | Implies (p1, p2) ->
           sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
@@ -330,4 +332,5 @@ let _pretty_layout
   pretty_layout
 
 let pretty_layout = _pretty_layout psetting
+let pretty_layout_lit = lit_pretty_layout_ psetting
 let coq_layout = _pretty_layout coqsetting

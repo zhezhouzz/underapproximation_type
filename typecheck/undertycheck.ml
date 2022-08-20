@@ -43,7 +43,7 @@ let infer_prop ctx t =
   in
   aux ctx t
 
-let infer t =
+let infer uqvs eqvs t =
   let open Languages.Underty in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
@@ -55,4 +55,7 @@ let infer t =
         UnderTy_arrow { argname; argty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
-  aux [] t
+  let to_ctx qvs =
+    List.map Languages.Ntyped.(fun x -> (x.x, Normalty.T.to_smtty x.ty)) qvs
+  in
+  aux (to_ctx uqvs @ to_ctx eqvs) t

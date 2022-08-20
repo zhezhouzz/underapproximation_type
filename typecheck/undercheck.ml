@@ -254,10 +254,10 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   let qargs = List.map (fun arg -> close_term_by_diff ctx' ctx arg) args in
   (* let fty = { fty with uqvs = []; eqvs = fty.uqvs @ fty.eqvs } in *)
   let fty', ctx' = Qtypectx.unify fty ctx' in
-  let () = Pp.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in
+  (* let () = Pp.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in *)
   (* let () = Pp.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
   (* let argsty, retty = UT.destruct_arrow_tp fty' in *)
-  let () = Pp.printf "start type check for let %s\n" ret.NL.x in
+  (* let () = Pp.printf "start type check for let %s\n" ret.NL.x in *)
   let rec aux ctx' = function
     | [], ty -> (ctx', ty)
     | arg :: args, UnderTy_arrow { argname; argty; retty } ->
@@ -276,21 +276,21 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   in
   let ctx', retty = aux ctx' (args, fty'.qbody) in
   let _ = erase_check __FILE__ __LINE__ (retty, ret.NL.ty) in
-  let () = Pp.printf "before handel let-- (%s)\n" ret.NL.x in
+  (* let () = Pp.printf "before handel let-- (%s)\n" ret.NL.x in *)
   (* let retty = *)
   (*   List.fold_left *)
   (*     (fun ret ((_, x), arg) -> UT.subst_id ret arg.bodyt_x x) *)
   (*     retty *)
   (*   @@ List.combine argsty args *)
   (* in *)
-  let () = Pp.printf "let bind var: %s\n" ret.x in
-  let () = Pp.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in
+  (* let () = Pp.printf "let bind var: %s\n" ret.x in *)
+  (* let () = Pp.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in *)
   let ctx' = Qtypectx.add_to_right ctx' (retty, ret.x) in
   let ret =
     close_qterm_by_diff ctx' ctx
       (erase_check_mk_id __FILE__ __LINE__ ret @@ without_qv retty)
   in
-  let () = Pp.printf "ret.ty: %s\n" (Frontend.Qunderty.layout ret.ty) in
+  (* let () = Pp.printf "ret.ty: %s\n" (Frontend.Qunderty.layout ret.ty) in *)
   let body =
     match target_type with
     | None -> term_type_infer ctx' body
@@ -344,6 +344,10 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
       { ty; x = LetApp { ret; f; args; body } }
   | LetVal { lhs; rhs; body } -> handle_letval ctx (lhs, rhs, body) None
   | Ite { cond; e_t; e_f } ->
+      let () =
+        Pp.printf "@{<bold>Before If@}\n";
+        Frontend.Qtypectx.pretty_print ctx
+      in
       let cond = id_type_infer ctx cond in
       let cond, ctx' = unify_to_ctx cond ctx in
       let true_branch_prop x = P.(Lit (AVar x)) in
@@ -353,23 +357,28 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
           (fun ctx ->
             Typectx.conjunct ctx
               (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool true_branch_prop))
-          ctx
+          ctx'
       in
       let false_branch_ctx =
         Qtypectx.map
           (fun ctx ->
             Typectx.conjunct ctx
               (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool false_branch_prop))
-          ctx
+          ctx'
       in
-      let e_t, ctx_t =
-        unify_to_ctx (term_type_infer true_branch_ctx e_t) ctx'
+      let e_t =
+        close_qterm_by_diff true_branch_ctx ctx
+          (term_type_infer true_branch_ctx e_t)
       in
-      let e_t = close_term_by_diff ctx_t ctx e_t in
-      let e_f, ctx_f =
-        unify_to_ctx (term_type_infer false_branch_ctx e_f) ctx'
+      (* let () = *)
+      (*   Pp.printf "@{<bold>Compare@}\n"; *)
+      (*   Frontend.Qtypectx.pretty_print ctx; *)
+      (*   Frontend.Qtypectx.pretty_print true_branch_ctx *)
+      (* in *)
+      let e_f =
+        close_qterm_by_diff false_branch_ctx ctx
+        @@ term_type_infer false_branch_ctx e_f
       in
-      let e_f = close_term_by_diff ctx_f ctx e_f in
       let () =
         List.iter
           (fun ty ->
@@ -516,8 +525,9 @@ module SOA = Languages.StrucOA
 
 let struc_check l r =
   let open SNA in
-  List.iter
-    (fun (name', ty) ->
+  List.iteri
+    (fun id (name', ty) ->
+      let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
       | Some { body; _ } ->

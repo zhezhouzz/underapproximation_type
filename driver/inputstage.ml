@@ -40,14 +40,14 @@ let load_under_refinments refine_file =
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
   (* NOTE: we do not infer the type of the quantified variables any more *)
-  (* let refinements = *)
-  (*   List.map *)
-  (*     ~f: *)
-  (*       Languages.Underty.( *)
-  (*         fun (name, { uqvs; eqvs; t }) -> *)
-  (*           (name, { uqvs; eqvs; t = Undertycheck.infer t })) *)
-  (*     refinements *)
-  (* in *)
+  let refinements =
+    List.map
+      ~f:
+        Languages.Qunderty.(
+          fun (name, { uqvs; eqvs; qbody }) ->
+            (name, { uqvs; eqvs; qbody = Undertycheck.infer uqvs eqvs qbody }))
+      refinements
+  in
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
       (Structure.layout_refinements Qunderty.pretty_layout refinements)

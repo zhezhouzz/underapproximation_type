@@ -12,6 +12,6 @@
    undersub
    overcheck
    undercheck
-   ; undertycheck
+   undertycheck
    overtycheck
  ))

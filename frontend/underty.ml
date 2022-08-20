@@ -86,6 +86,18 @@ let pretty_layout x =
   let open L in
   let rec aux x =
     match x with
+    | UnderTy_base
+        { basename; prop = Autov.Prop.(Lit (AOp2 ("==", AVar id, ACint i))); _ }
+      when String.equal basename id.x ->
+        Sugar.spf "[%i]" i
+    | UnderTy_base
+        {
+          basename;
+          prop = Autov.Prop.(Lit (AOp2 ("==", AVar id, ACbool b)));
+          _;
+        }
+      when String.equal basename id.x ->
+        Sugar.spf "[%b]" b
     | UnderTy_base { basename; normalty; prop } ->
         Sugar.spf "[%s:%s | %s]" basename (Type.layout normalty)
           (Autov.pretty_layout_prop prop)
