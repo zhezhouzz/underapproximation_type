@@ -453,18 +453,18 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
         (*     :: args) *)
         (* in *)
         let exp = term_type_infer ctx' exp in
-        let exp, ctx' = unify_to_ctx exp ctx' in
         (* let casety = *)
         (*   UT.base_type_add_conjunction *)
         (*     (branch_prop matched.bodyt_x) *)
         (*     exp.bodyt_ty *)
         (* in *)
-        ( Qtypectx.close_qv_by_diff ctx' ctx (without_qv exp.bodyt_ty),
+        let exp = close_qterm_by_diff ctx' ctx exp in
+        ( exp.ty,
           UL.
             {
               constructor = close_term_by_diff ctx' ctx constructor;
               args = List.map snd args;
-              exp = close_term_by_diff ctx' ctx exp;
+              exp;
             } )
       in
       let tys, cases = List.split @@ List.map handle_case cases in
