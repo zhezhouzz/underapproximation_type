@@ -15,9 +15,15 @@ let pretty_layout_judge ctx (e, (r : Languages.Qunderty.t)) =
   Typectx.pretty_layout_judge (pretty_layout ctx) (e, Qunderty.pretty_layout r)
 
 let pretty_print_judge ctx (e, (r : Languages.Qunderty.t)) =
-  let () = Pp.printf "@{<bold>Type Judgement:@}\n" in
+  let () = Pp.printf "@{<bold>Type Check:@}\n" in
   pretty_print ctx;
-  Pp.printf "⊢@{<magenta>%s@}: " e;
+  Pp.printf "⊢@{<magenta>%s@} ⇦ " e;
+  Pp.printf "@{<cyan>%s@}\n\n" @@ Qunderty.pretty_layout r
+
+let pretty_print_infer ctx (e, (r : Languages.Qunderty.t)) =
+  let () = Pp.printf "@{<bold>Type Infer:@}\n" in
+  pretty_print ctx;
+  Pp.printf "⊢@{<magenta>%s@} ⇨ " e;
   Pp.printf "@{<cyan>%s@}\n\n" @@ Qunderty.pretty_layout r
 
 let pretty_layout_subtyping ctx (r1, r2) =

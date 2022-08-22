@@ -8,7 +8,7 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
   type t = { uqvs : id typed list; eqvs : id typed list; qbody : Qb.t }
   [@@deriving sexp]
 
-  let fresh_name_from_old name = Rename.unique ("q_" ^ name)
+  let fresh_name_from_old name = Rename.unique_with_prefix "q" name
 
   open Sugar
 
@@ -17,9 +17,32 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
 
   open Zzdatatype.Datatype
 
+  let unify_uqvs (uqvs1, qbody1, subst) target =
+    let uqvs =
+      if List.length target.uqvs >= List.length uqvs1 then target.uqvs
+      else
+        let sub =
+          List.sublist uqvs1 ~start_included:(List.length target.uqvs)
+            ~end_excluded:(List.length uqvs1)
+        in
+        (* let _ = Printf.printf "len: %i" @@ List.length sub in *)
+        target.uqvs @ sub
+    in
+    (* let () = *)
+    (*   Printf.printf "uqvs1: %i, target.uqvs:%i, uqvs:%i\n" (List.length uqvs1) *)
+    (*     (List.length target.uqvs) (List.length uqvs) *)
+    (* in *)
+    let qbody1 =
+      List.fold_left (fun qbody (x, y) -> subst qbody x.x y.x) qbody1
+      @@ List.combine uqvs1
+      @@ List.sublist uqvs ~start_included:0 ~end_excluded:(List.length uqvs1)
+    in
+    (uqvs, qbody1)
+
   let unify (uqvs, eqvs, (qbody : 'a), (subst : 'a -> string -> string -> 'a))
       (target : t) =
     (* let var_space = uqids target @ eqids target @ Qb.var_space target.qbody in *)
+    let uqvs, qbody = unify_uqvs (uqvs, qbody, subst) target in
     let to_unique ({ ty; x }, qbody) =
       (* if List.exists (String.equal x) var_space then *)
       if true then
@@ -34,14 +57,14 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
           (eqvs @ [ x ], qbody))
         ([], qbody) eqvs
     in
-    let uqvs, qbody =
-      List.fold_left
-        (fun (eqvs, qbody) x ->
-          let x, qbody = to_unique (x, qbody) in
-          (eqvs @ [ x ], qbody))
-        ([], qbody) uqvs
-    in
-    let uqvs = target.uqvs @ uqvs in
+    (* let uqvs, qbody = *)
+    (*   List.fold_left *)
+    (*     (fun (eqvs, qbody) x -> *)
+    (*       let x, qbody = to_unique (x, qbody) in *)
+    (*       (eqvs @ [ x ], qbody)) *)
+    (*     ([], qbody) uqvs *)
+    (* in *)
+    (* let uqvs = target.uqvs @ uqvs in *)
     let eqvs = target.eqvs @ eqvs in
     (qbody, { uqvs; eqvs; qbody = target.qbody })
 

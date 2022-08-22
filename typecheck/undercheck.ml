@@ -320,165 +320,175 @@ and handle_letval ctx (lhs, rhs, body) target_type =
 and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
     =
   let open NL in
-  match a.x with
-  | V v ->
-      let v = value_type_infer ctx { ty = a.ty; x = v } in
-      { ty = v.ty; x = V v.x }
-  | LetTu { tu; args; body } -> handle_lettu ctx (tu, args, body) None
-  | LetDeTu { tu; args; body } -> handle_letdetu ctx (tu, args, body) None
-  | LetOp { ret; op; args; body } ->
-      let argsty = List.map (fun x -> x.ty) args in
-      let opty =
-        Prim.get_primitive_under_ty
-          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
-      in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) None
-      in
-      { ty; x = LetOp { ret; op; args; body } }
-  | LetApp { ret; f; args; body } ->
-      let f = id_type_infer ctx f in
-      let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) None
-      in
-      { ty; x = LetApp { ret; f; args; body } }
-  | LetVal { lhs; rhs; body } -> handle_letval ctx (lhs, rhs, body) None
-  | Ite { cond; e_t; e_f } ->
-      let () =
-        Pp.printf "@{<bold>Before If@}\n";
-        Frontend.Qtypectx.pretty_print ctx
-      in
-      let cond = id_type_infer ctx cond in
-      let cond, ctx' = unify_to_ctx cond ctx in
-      let true_branch_prop x = P.(Lit (AVar x)) in
-      let false_branch_prop x = P.(Not (Lit (AVar x))) in
-      let true_branch_ctx =
-        Qtypectx.map
-          (fun ctx ->
-            Typectx.conjunct ctx
-              (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool true_branch_prop))
-          ctx'
-      in
-      let false_branch_ctx =
-        Qtypectx.map
-          (fun ctx ->
-            Typectx.conjunct ctx
-              (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool false_branch_prop))
-          ctx'
-      in
-      let e_t =
-        close_qterm_by_diff true_branch_ctx ctx
-          (term_type_infer true_branch_ctx e_t)
-      in
-      (* let () = *)
-      (*   Pp.printf "@{<bold>Compare@}\n"; *)
-      (*   Frontend.Qtypectx.pretty_print ctx; *)
-      (*   Frontend.Qtypectx.pretty_print true_branch_ctx *)
-      (* in *)
-      let e_f =
-        close_qterm_by_diff false_branch_ctx ctx
-        @@ term_type_infer false_branch_ctx e_f
-      in
-      let () =
-        List.iter
-          (fun ty ->
-            Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
-          [ e_t.ty; e_f.ty ]
-      in
-      let ty = QUT.disjunct_list_q [ e_t.ty; e_f.ty ] in
-      let () =
-        Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
-      in
-      let cond = close_term_by_diff ctx' ctx cond in
-      (* NOTE: underappproximate here *)
-      { ty; x = UL.Ite { cond; e_t; e_f } }
-  | Match { matched; cases } ->
-      let matched = id_type_infer ctx matched in
-      let matched, ctx' = unify_to_ctx matched ctx in
-      let handle_case { constructor; args; exp } =
-        let rev_constructor_nt =
-          let argsty, retty = NT.destruct_arrow_tp constructor.ty in
-          match argsty with
-          | [] -> retty
-          | _ -> NT.(Ty_arrow (retty, Ty_tuple argsty))
+  let res =
+    match a.x with
+    | V v ->
+        let v = value_type_infer ctx { ty = a.ty; x = v } in
+        UL.{ ty = v.ty; x = V v.x }
+    | LetTu { tu; args; body } -> handle_lettu ctx (tu, args, body) None
+    | LetDeTu { tu; args; body } -> handle_letdetu ctx (tu, args, body) None
+    | LetOp { ret; op; args; body } ->
+        let argsty = List.map (fun x -> x.ty) args in
+        let opty =
+          Prim.get_primitive_under_ty
+            (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
         in
-        let constructor_ty =
-          Prim.get_primitive_rev_under_ty
-            Op.(PrimOp (Dt constructor.x, rev_constructor_nt))
+        let ty, (ret, args, body) =
+          handle_letapp ctx (ret, opty, args, body) None
         in
-        let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
-        let constructor, ctx' = unify_to_ctx constructor ctx' in
-        let retty, args =
-          let open UT in
-          match constructor.bodyt_ty with
-          | UnderTy_base _ -> (constructor.bodyt_ty, [])
-          | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
-              let ts =
-                List.map (fun t -> UT.subst_id t argname matched.bodyt_x) ts
-              in
-              let tsargs = _safe_combine __FILE__ __LINE__ ts args in
-              let args =
-                List.map
-                  (fun (t, id) ->
-                    match t with
-                    | UnderTy_base { basename; normalty; prop } ->
-                        ( UnderTy_base
-                            {
-                              basename = id;
-                              normalty;
-                              prop = P.subst_id prop basename id;
-                            },
-                          id )
-                    | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim")
-                  tsargs
-              in
-              (argty, args)
-          | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
+        { ty; x = LetOp { ret; op; args; body } }
+    | LetApp { ret; f; args; body } ->
+        let f = id_type_infer ctx f in
+        let ty, (ret, args, body) =
+          handle_letapp ctx (ret, f.ty, args, body) None
         in
-        let ctx' =
+        { ty; x = LetApp { ret; f; args; body } }
+    | LetVal { lhs; rhs; body } -> handle_letval ctx (lhs, rhs, body) None
+    | Ite { cond; e_t; e_f } ->
+        let () =
+          Pp.printf "@{<bold>Before If@}\n";
+          Frontend.Qtypectx.pretty_print ctx
+        in
+        let cond = id_type_infer ctx cond in
+        let cond, ctx' = unify_to_ctx cond ctx in
+        let true_branch_prop x = P.(Lit (AVar x)) in
+        let false_branch_prop x = P.(Not (Lit (AVar x))) in
+        let true_branch_ctx =
           Qtypectx.map
-            (fun ctx -> Typectx.conjunct ctx (matched.bodyt_x, retty))
+            (fun ctx ->
+              Typectx.conjunct ctx
+                (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool true_branch_prop))
             ctx'
         in
-        let ctx' = Qtypectx.add_to_rights ctx' args in
-        (* let branch_prop id = *)
-        (*   let basename, prop = UT.base_type_extract_prop retty in *)
-        (*   P.subst_id prop basename id *)
+        let false_branch_ctx =
+          Qtypectx.map
+            (fun ctx ->
+              Typectx.conjunct ctx
+                (cond.bodyt_x, UT.make_basic "nu" NT.Ty_bool false_branch_prop))
+            ctx'
+        in
+        let e_t =
+          close_qterm_by_diff true_branch_ctx ctx
+            (term_type_infer true_branch_ctx e_t)
+        in
+        (* let () = *)
+        (*   Pp.printf "@{<bold>Compare@}\n"; *)
+        (*   Frontend.Qtypectx.pretty_print ctx; *)
+        (*   Frontend.Qtypectx.pretty_print true_branch_ctx *)
         (* in *)
-        (* let ctx' = *)
-        (*   Qtypectx.add_to_rights ctx' *)
-        (*     (( base_type_add_conjunction_with_selfname branch_prop *)
-        (*          matched.bodyt_ty, *)
-        (*        matched.bodyt_x ) *)
-        (*     :: args) *)
-        (* in *)
-        let exp = term_type_infer ctx' exp in
-        (* let casety = *)
-        (*   UT.base_type_add_conjunction *)
-        (*     (branch_prop matched.bodyt_x) *)
-        (*     exp.bodyt_ty *)
-        (* in *)
-        let exp = close_qterm_by_diff ctx' ctx exp in
-        ( exp.ty,
-          UL.
-            {
-              constructor = close_term_by_diff ctx' ctx constructor;
-              args = List.map snd args;
-              exp;
-            } )
-      in
-      let tys, cases = List.split @@ List.map handle_case cases in
-      let () =
-        List.iter
-          (fun ty ->
-            Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
-          tys
-      in
-      let ty = QUT.disjunct_list_q tys in
-      let () =
-        Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
-      in
-      { ty; x = Match { matched = close_term_by_diff ctx' ctx matched; cases } }
+        let e_f =
+          close_qterm_by_diff false_branch_ctx ctx
+          @@ term_type_infer false_branch_ctx e_f
+        in
+        let () =
+          List.iter
+            (fun ty ->
+              Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
+            [ e_t.ty; e_f.ty ]
+        in
+        let ty = QUT.disjunct_list_q [ e_t.ty; e_f.ty ] in
+        let () =
+          Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
+        in
+        let cond = close_term_by_diff ctx' ctx cond in
+        (* NOTE: underappproximate here *)
+        { ty; x = UL.Ite { cond; e_t; e_f } }
+    | Match { matched; cases } ->
+        let matched = id_type_infer ctx matched in
+        let matched, ctx' = unify_to_ctx matched ctx in
+        let handle_case { constructor; args; exp } =
+          let rev_constructor_nt =
+            let argsty, retty = NT.destruct_arrow_tp constructor.ty in
+            match argsty with
+            | [] -> retty
+            | _ -> NT.(Ty_arrow (retty, Ty_tuple argsty))
+          in
+          let constructor_ty =
+            Prim.get_primitive_rev_under_ty
+              Op.(PrimOp (Dt constructor.x, rev_constructor_nt))
+          in
+          let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
+          let constructor, ctx' = unify_to_ctx constructor ctx' in
+          let retty, args =
+            let open UT in
+            match constructor.bodyt_ty with
+            | UnderTy_base _ -> (constructor.bodyt_ty, [])
+            | UnderTy_arrow { argty; retty = UnderTy_tuple ts; argname } ->
+                let ts =
+                  List.map (fun t -> UT.subst_id t argname matched.bodyt_x) ts
+                in
+                let tsargs = _safe_combine __FILE__ __LINE__ ts args in
+                let args =
+                  List.map
+                    (fun (t, id) ->
+                      match t with
+                      | UnderTy_base { basename; normalty; prop } ->
+                          ( UnderTy_base
+                              {
+                                basename = id;
+                                normalty;
+                                prop = P.subst_id prop basename id;
+                              },
+                            id )
+                      | _ ->
+                          _failatwith __FILE__ __LINE__ "wrong rev under prim")
+                    tsargs
+                in
+                (argty, args)
+            | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
+          in
+          let ctx' =
+            Qtypectx.map
+              (fun ctx -> Typectx.conjunct ctx (matched.bodyt_x, retty))
+              ctx'
+          in
+          let ctx' = Qtypectx.add_to_rights ctx' args in
+          (* let branch_prop id = *)
+          (*   let basename, prop = UT.base_type_extract_prop retty in *)
+          (*   P.subst_id prop basename id *)
+          (* in *)
+          (* let ctx' = *)
+          (*   Qtypectx.add_to_rights ctx' *)
+          (*     (( base_type_add_conjunction_with_selfname branch_prop *)
+          (*          matched.bodyt_ty, *)
+          (*        matched.bodyt_x ) *)
+          (*     :: args) *)
+          (* in *)
+          let exp = term_type_infer ctx' exp in
+          (* let casety = *)
+          (*   UT.base_type_add_conjunction *)
+          (*     (branch_prop matched.bodyt_x) *)
+          (*     exp.bodyt_ty *)
+          (* in *)
+          let exp = close_qterm_by_diff ctx' ctx exp in
+          ( exp.ty,
+            UL.
+              {
+                constructor = close_term_by_diff ctx' ctx constructor;
+                args = List.map snd args;
+                exp;
+              } )
+        in
+        let tys, cases = List.split @@ List.map handle_case cases in
+        let () =
+          List.iter
+            (fun ty ->
+              Pp.printf "case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty)
+            tys
+        in
+        let ty = QUT.disjunct_list_q tys in
+        let () =
+          Pp.printf "merged case ty: %s\n" @@ Frontend.Qunderty.pretty_layout ty
+        in
+        {
+          ty;
+          x = Match { matched = close_term_by_diff ctx' ctx matched; cases };
+        }
+  in
+  let () =
+    Frontend.Qtypectx.pretty_print_infer ctx (layout_term a, res.UL.ty)
+  in
+  res
 
 and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : QUT.t) :
     UL.term UL.typed =

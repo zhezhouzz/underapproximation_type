@@ -40,10 +40,10 @@ let minus (x : 'exists * int) (y : 'exists * int) =
 
 let nil (u : 'forall * int) = (v : int list) (not (mem v u))
 
-let cons (u : 'forall * int) =
-  let h = (v : int) false in
+let cons (u : 'forall * int) (w : 'exists * int) =
+  let h = (v : int) (v == w) in
   let t = (v : int list) (implies (mem v u) (u == h)) in
-  (v : int list) (implies (mem v u) (u == h) && mem v h && not (mem v u))
+  (v : int list) (implies (mem v u) (u == h) && mem v h)
 
 let _ret_two_value =
   let x = (v : int) (v > 0) in

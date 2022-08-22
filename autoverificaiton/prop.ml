@@ -340,12 +340,12 @@ module T = struct
     in
     aux t
 
-  let simp_exists_and qvs qv xprop prop =
+  let simp_exists_and qv xprop prop =
     let props = to_uni_conjs (And prop) in
     match xprop with
     | Lit (ACbool true) ->
-        let if_keep, prop = simp_exists (snd qv) (And props) in
+        let if_keep, prop = simp_exists qv (And props) in
         let props = to_uni_conjs prop in
-        if if_keep then (qvs @ [ qv ], props) else (qvs, props)
-    | _ -> (qvs @ [ qv ], xprop :: props)
+        if if_keep then (true, props) else (false, props)
+    | _ -> (true, xprop :: props)
 end

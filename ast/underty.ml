@@ -26,10 +26,17 @@ module T = struct
     let add xs s = List.fold_left (fun s x -> StrMap.add x () s) s xs in
     let rec aux s = function
       | UnderTy_base { basename; prop; _ } ->
-          StrMap.add basename () @@ add (Autov.Prop.var_space prop) s
+          let space =
+            List.filter (String.equal basename) (Autov.Prop.var_space prop)
+          in
+          add space s
       | UnderTy_tuple ts -> List.fold_left aux s ts
       | UnderTy_arrow { argname; argty; retty } ->
-          aux (aux (StrMap.add argname () s) argty) retty
+          let space =
+            StrMap.to_key_list @@ aux (aux StrMap.empty argty) retty
+          in
+          let space = List.filter (String.equal argname) space in
+          add space s
     in
     StrMap.to_key_list @@ aux StrMap.empty t
 

@@ -18,8 +18,10 @@ let _assume_basety file line (x, ty) =
   match ty with
   | UnderTy_base { basename; prop; normalty } ->
       let prop = P.subst_id prop basename x in
-      ((NT.to_smtty normalty, x), prop)
+      ({ ty = normalty; x }, prop)
   | _ -> _failatwith file line "should not happen"
+
+let typed_to_smttyped { ty; x } = P.{ ty = NT.to_smtty ty; x }
 
 type mode = InIn | InNotin | NotinIn | NotinNotin
 
@@ -31,16 +33,25 @@ let context_convert (ctx : Typectx.t)
   (*       Autov.Prop.mk_forall (NT.to_smtty ty, x) (fun _ -> prop)) *)
   (*     uqvs prop *)
   (* in *)
-  let to_qvs =
-    List.map (fun Languages.Ntyped.{ ty; x } -> (NT.to_smtty ty, x))
-  in
-  let nu = (NT.to_smtty nt, name) in
-  let open Autov.Prop in
+  (* let to_qvs = *)
+  (*   List.map (fun Languages.Ntyped.{ ty; x } -> (NT.to_smtty ty, x)) *)
+  (* in *)
+  let nu = { ty = nt; x = name } in
   let mk_q (uqs, eqs, pre, prop1, prop2) =
-    List.fold_right (fun x prop -> mk_forall x (fun _ -> prop)) uqs
-    @@ List.fold_right (fun x prop -> mk_exists x (fun _ -> prop)) eqs
-    @@ Implies (pre, Implies (prop2, prop1))
+    let basic_eqs, dt_eqs = List.partition (fun x -> NT.is_basic_tp x.ty) eqs in
+    let prop = P.(Implies (pre, Implies (prop2, prop1))) in
+    let dt_eqs, prop =
+      Autov.uqv_encoding (List.map (fun x -> x.x) dt_eqs) prop
+    in
+    let prop =
+      List.fold_right (fun qv prop -> P.(Exists (qv, prop))) dt_eqs prop
+    in
+    List.fold_right (fun x prop -> P.Forall (typed_to_smttyped x, prop)) uqs
+    @@ List.fold_right
+         (fun x prop -> P.Exists (typed_to_smttyped x, prop))
+         basic_eqs prop
   in
+  let open Autov.Prop in
   let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
   let aux (x, xty) (uqvs, eqvs, pre, prop1, prop2) =
     let xty = UT.conjunct_list xty in
@@ -64,7 +75,8 @@ let context_convert (ctx : Typectx.t)
     match mode with
     | NotinNotin -> (uqvs, eqvs, pre, prop1, prop2)
     | InNotin ->
-        let eqvs', prop1' = simp_exists_and eqvs x xprop prop1 in
+        let if_keep, prop1' = simp_exists_and x.x xprop prop1 in
+        let eqvs' = if if_keep then eqvs @ [ x ] else eqvs in
         (* let () = *)
         (*   Printf.printf "(%s:%s) |> %s | prop %s -> %s\n" (snd x) *)
         (*     (Autov.pretty_layout_prop xprop) *)
@@ -82,12 +94,14 @@ let context_convert (ctx : Typectx.t)
   in
   let uqs, eqs, pre, prop1, prop2 =
     Typectx.fold_right aux ctx
-      (to_qvs uqvs @ [ nu ], [], [ P.mk_true ], [ prop1 ], [ prop2 ])
+      (uqvs @ [ nu ], [], [ P.mk_true ], [ prop1 ], [ prop2 ])
   in
   let pre, prop1, prop2 = P.(map3 simp (And pre, And prop1, And prop2)) in
   let () =
-    Frontend.Qtypectx.pretty_print_q (List.map snd uqs) (List.map snd eqs) pre
-      (prop1, prop2)
+    Frontend.Qtypectx.pretty_print_q
+      (List.map (fun x -> x.NL.x) uqs)
+      (List.map (fun x -> x.NL.x) eqs)
+      pre (prop1, prop2)
   in
   let q = mk_q (uqs, eqs, pre, prop1, prop2) in
   (* let q = P.simp_conj_disj q in *)

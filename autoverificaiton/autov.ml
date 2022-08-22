@@ -40,3 +40,4 @@ let pretty_layout_lit = Frontend.pretty_layout_lit
 let coq_layout_prop = Frontend.coq_layout
 let prop_fv = Fv.fv
 let add_prop_to_fv = Fv.add_fv
+let uqv_encoding = Encoding.uqv_encoding
