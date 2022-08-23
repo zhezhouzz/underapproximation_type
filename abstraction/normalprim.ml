@@ -17,14 +17,22 @@ module Op = Languages.Op
 (* let m = StrMap.from_kv_list tab *)
 
 let m = ref None
+let mk_external_name name = Core.Sexp.to_string @@ Op.sexp_of_prim name
 
-let make_m under_m =
+let make_m type_decls under_m =
+  let kvs =
+    List.map (fun (name, ty) -> (mk_external_name (Op.External name), ty))
+    @@ Languages.NSimpleTypectx.of_type_decls type_decls
+  in
   let open Languages.Qunderty in
   m :=
     match !under_m with
     | None -> failwith "uninit under prim"
     | Some m ->
-        Some (StrMap.map (fun { qbody = t; _ } -> Languages.Underty.erase t) m)
+        let m =
+          StrMap.map (fun { qbody = t; _ } -> Languages.Underty.erase t) m
+        in
+        Some (StrMap.add_seq (List.to_seq kvs) m)
 
 (* let get_primitive_ty name = *)
 (*   match !m with *)

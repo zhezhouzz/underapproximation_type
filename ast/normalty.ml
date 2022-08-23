@@ -6,6 +6,7 @@ module T = struct
 
   type t =
     | Ty_unknown
+    | Ty_var of string
     | Ty_unit
     | Ty_int
     | Ty_bool
@@ -13,9 +14,8 @@ module T = struct
     | Ty_tree of t
     | Ty_arrow of t * t
     | Ty_tuple of t list
-    | Ty_constructor of (id * constructor list)
-
-  and constructor = { dname : id; dargs : t } [@@deriving sexp]
+    | Ty_constructor of (id * t list)
+  [@@deriving sexp]
 
   let is_basic_tp = function Ty_unit | Ty_int | Ty_bool -> true | _ -> false
 
@@ -23,6 +23,7 @@ module T = struct
     let rec aux (x, y) =
       match (x, y) with
       | Ty_unknown, Ty_unknown -> true
+      | Ty_var x, Ty_var y -> String.equal x y
       | Ty_unit, Ty_unit -> true
       | Ty_int, Ty_int -> true
       | Ty_bool, Ty_bool -> true
@@ -33,8 +34,10 @@ module T = struct
           if List.length xs == List.length ys then
             List.for_all aux @@ List.combine xs ys
           else false
-      | Ty_constructor _, Ty_constructor _ ->
-          _failatwith __FILE__ __LINE__ "unimp"
+      | Ty_constructor (id1, args1), Ty_constructor (id2, args2) ->
+          String.equal id1 id2
+          && List.length args1 == List.length args2
+          && List.for_all2 (fun a b -> aux (a, b)) args1 args2
       | _ -> false
     in
     aux (x, y)

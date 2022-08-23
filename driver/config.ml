@@ -19,12 +19,14 @@ let load fname =
       overp = p |> member "overp" |> to_string;
       underp = p |> member "underp" |> to_string;
       rev_underp = p |> member "rev_underp" |> to_string;
+      type_decls = p |> member "type_decls" |> to_string;
     }
   in
   let open Abstraction in
   let () =
     Prim.init
-      ( Inputstage.load_over_refinments prim_path.overp,
+      ( Inputstage.load_type_decls prim_path.type_decls,
+        Inputstage.load_over_refinments prim_path.overp,
         Inputstage.load_under_refinments prim_path.underp,
         Inputstage.load_under_refinments prim_path.rev_underp )
   in

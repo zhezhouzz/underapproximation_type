@@ -8,5 +8,10 @@ module F (Type : Type.T) = struct
   let empty = []
 end
 
-module NSimpleTypectx = F (Normalty.T)
+module NSimpleTypectx = struct
+  include F (Normalty.T)
+
+  let of_type_decls e : t = Type_dec.T.mk_ctx e
+end
+
 module SMTSimpleTypectx = F (Autov.Smtty)

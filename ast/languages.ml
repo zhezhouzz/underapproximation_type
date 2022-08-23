@@ -21,3 +21,4 @@ module SMTSimpleTypectx = Simpletypectx.SMTSimpleTypectx
 module Qtypectx = Qtypectx
 module Qunderty = Qunder
 module QunderAnormal = Anormal.F (Qunderty)
+module Typedec = Type_dec.T

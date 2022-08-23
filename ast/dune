@@ -24,6 +24,7 @@
    qunder
    qtypectx
    typed
+   type_dec
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
   (libraries zzdatatype autov utils)

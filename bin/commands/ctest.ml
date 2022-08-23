@@ -36,7 +36,9 @@ let parse_to_typed_term =
         in
         let code = Structure.client_of_ocamlstruct code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
-        let code = Typecheck.Termcheck.struc_check code in
+        let code =
+          Typecheck.Termcheck.struc_check Languages.NSimpleTypectx.empty code
+        in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
         ())
 
@@ -53,7 +55,9 @@ let parse_to_anormal =
         in
         let code = Structure.client_of_ocamlstruct code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
-        let code = Typecheck.Termcheck.struc_check code in
+        let code =
+          Typecheck.Termcheck.struc_check Languages.NSimpleTypectx.empty code
+        in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
         let code = Trans.struc_term_to_nan code in
         let () =
@@ -91,6 +95,17 @@ let parsing_under_refinements =
           Printf.printf "%s"
             (Structure.layout_refinements Underty.pretty_layout refinements)
         in
+        ())
+
+let parsing_type_decls =
+  Command.basic ~summary:"parsing_type_decls"
+    Command.Let_syntax.(
+      let%map_open refine_file = anon ("source file" %: regular_file) in
+      fun () ->
+        let () = Config.load_default () in
+        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
+        let type_decls = Structure.type_decl_of_ocamlstruct x in
+        let () = Printf.printf "%s\n" (Typedec.layout type_decls) in
         ())
 
 let over_type_check =
@@ -136,6 +151,7 @@ let test =
       ("parse-structure", parsing_structure);
       ("parse-over-refinements", parsing_over_refinements);
       ("parse-under-refinements", parsing_under_refinements);
+      ("parsing-type-decls", parsing_type_decls);
       ("over-type-check", over_type_check);
       ("under-type-check", under_type_check);
       ("init", init);

@@ -227,11 +227,11 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       in
       ({ ty = Some ty; x = Match (e, cases) }, ty)
 
-let check e = fst @@ bidirect_type_infer Typectx.empty e
+let check ctx e = fst @@ bidirect_type_infer ctx e
 
 module LS = Languages.Struc
 
-let struc_check l =
+let struc_check ctx l =
   let open LS in
   List.map
     (fun { if_rec; name; body } ->
@@ -245,13 +245,13 @@ let struc_check l =
         | _ -> e.ty
       in
       match (if_rec, get_fty body) with
-      | false, _ -> { if_rec; name; body = check body }
+      | false, _ -> { if_rec; name; body = check ctx body }
       | true, None ->
           _failatwith __FILE__ __LINE__
             "cannot infer ret type of recursive function"
       | true, Some ty ->
           let body =
-            bidirect_type_check Typectx.(add_to_right empty (ty, name)) body ty
+            bidirect_type_check Typectx.(add_to_right ctx (ty, name)) body ty
           in
           { if_rec; name; body })
     l

@@ -3,13 +3,14 @@ open Frontend
 open Typecheck
 
 let load_ssa source_file =
+  let ctx = Languages.NSimpleTypectx.empty in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
   let () =
     Printf.printf "%s\n\n" @@ Ocaml_parser.Pprintast.string_of_structure code
   in
   let code = Structure.client_of_ocamlstruct code in
   let () = Printf.printf "%s\n" @@ Structure.layout code in
-  let code = Termcheck.struc_check code in
+  let code = Termcheck.struc_check ctx code in
   let () = Printf.printf "%s\n" @@ Structure.layout code in
   let code = Trans.struc_term_to_nan code in
   let () =
@@ -53,3 +54,11 @@ let load_under_refinments refine_file =
       (Structure.layout_refinements Qunderty.pretty_layout refinements)
   in
   refinements
+
+let load_type_decls refine_file =
+  let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
+  let type_decls = Structure.type_decl_of_ocamlstruct x in
+  let () =
+    Printf.printf "[Loading type decls]:\n%s\n" (Typedec.layout type_decls)
+  in
+  type_decls

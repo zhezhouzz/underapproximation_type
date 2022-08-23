@@ -3,6 +3,14 @@ open Parsetree
 module L = Languages.Termlang
 module S = Languages.Struc
 
+let type_decl_of_ocamlstruct_one structure =
+  match structure.pstr_desc with
+  | Pstr_type (_, [ type_dec ]) -> Typedec.of_ocamltypedec type_dec
+  | _ -> raise @@ failwith "translate not a type decl"
+
+let type_decl_of_ocamlstruct structures =
+  List.map type_decl_of_ocamlstruct_one structures
+
 let client_of_ocamlstruct_one structure =
   match structure.pstr_desc with
   | Pstr_value (flag, [ value_binding ]) ->
