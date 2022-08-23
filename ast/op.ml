@@ -1,25 +1,13 @@
 module T = struct
   open Sexplib.Std
 
-  type t =
-    | Plus
-    | Minus
-    | Gt
-    | Ge
-    | Lt
-    | Le
-    | Eq
-    | Neq
-    | And
-    | Or
-    | Dt of string
+  type op = Plus | Minus | Gt | Ge | Lt | Le | Eq | Neq | And | Or
   [@@deriving sexp]
 
-  type prim = PrimOp of t * Normalty.T.t | External of string
+  type t = PrimOp of op | DtConstructor of string | External of string
   [@@deriving sexp]
 
-  let prim_dt = [ "[]"; "::" ]
-  let is_prim_dt x = List.exists (String.equal x) prim_dt
+  let compare a b = Sexplib.Sexp.compare (sexp_of_t a) (sexp_of_t b)
 
   let op_of_string = function
     | "+" -> Plus
@@ -32,10 +20,9 @@ module T = struct
     | "!=" -> Neq
     | "&&" -> And
     | "||" -> Or
-    | x when is_prim_dt x -> Dt x
-    | x ->
-        Printf.printf "%s is not op\n" x;
-        failwith "not a op"
+    | _ -> failwith "not a op"
+  (* | "[]" -> Dt "[]" *)
+  (* | "::" -> Dt "::" *)
 
   let op_of_string_opt x = try Some (op_of_string x) with _ -> None
 
@@ -50,7 +37,7 @@ module T = struct
     | Neq -> "!="
     | And -> "&&"
     | Or -> "||"
-    | Dt dt -> dt
+  (* | Dt dt -> dt *)
 
   let op_to_alias = function
     | Plus -> "plus"
@@ -63,9 +50,9 @@ module T = struct
     | Neq -> "neq"
     | And -> "and"
     | Or -> "or"
-    | Dt "[]" -> "nil"
-    | Dt "::" -> "cons"
-    | Dt dt -> dt
+  (* | Dt "[]" -> "nil" *)
+  (* | Dt "::" -> "cons" *)
+  (* | Dt dt -> dt *)
 
   let op_of_alias = function
     | "plus" -> Plus
@@ -78,7 +65,21 @@ module T = struct
     | "neq" -> Neq
     | "and" -> And
     | "or" -> Or
-    | "cons" -> Dt "::"
-    | "nil" -> Dt "[]"
+    (* | "cons" -> Dt "::" *)
+    (* | "nil" -> Dt "[]" *)
     | _ -> failwith "unknown primitive operators"
+
+  let op_of_alias_opt name = try Some (op_of_alias name) with _ -> None
+
+  let t_to_string_for_load = function
+    | PrimOp op -> op_to_alias op
+    | DtConstructor dt -> dt
+    | External f -> f
+
+  let t_to_string = function
+    | PrimOp op -> op_to_string op
+    | DtConstructor "cons" -> "::"
+    | DtConstructor "nil" -> "[]"
+    | DtConstructor dt -> dt
+    | External f -> f
 end

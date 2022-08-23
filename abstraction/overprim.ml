@@ -10,8 +10,8 @@ let m : Languages.Overty.t StrMap.t option ref = ref None
 let make_key (name, ty) =
   try
     let op = Op.op_of_alias name in
-    let ty = OT.erase ty in
-    Op.PrimOp (op, ty)
+    let _ = OT.erase ty in
+    Op.PrimOp op
   with _ -> Op.External name
 
 let make_m m (refinements : (string * Languages.Overty.t) list) =

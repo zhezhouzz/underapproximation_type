@@ -3,6 +3,15 @@ open Parsetree
 module L = Languages.Termlang
 module S = Languages.Struc
 
+let func_decl_of_ocamlstruct_one structure =
+  match structure.pstr_desc with
+  | Pstr_primitive { pval_name; pval_type; _ } ->
+      (pval_name.txt, Type.core_type_to_t pval_type)
+  | _ -> raise @@ failwith "translate not a func_decl"
+
+let func_decl_of_ocamlstruct structures =
+  List.map func_decl_of_ocamlstruct_one structures
+
 let type_decl_of_ocamlstruct_one structure =
   match structure.pstr_desc with
   | Pstr_type (_, [ type_dec ]) -> Typedec.of_ocamltypedec type_dec
@@ -54,3 +63,8 @@ let layout_one_refinement f (name, r) = spf "⊢ %s : %s\n" name @@ f r
 
 let layout_refinements f l =
   spf "%s\n" (List.split_by "\n" (layout_one_refinement f) l)
+
+let layout_normals l =
+  List.split_by "\n"
+    (fun (name, ty) -> spf "val %s: %s" name @@ Type.layout ty)
+    l

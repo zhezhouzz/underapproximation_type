@@ -15,9 +15,6 @@ let check = function
   | Neq, [ Ty_bool; Ty_bool ] -> Ty_bool
   | And, [ Ty_bool; Ty_bool ] -> Ty_bool
   | Or, [ Ty_bool; Ty_bool ] -> Ty_bool
-  | Dt dt, argsty ->
-      let ty = Prim.get_primitive_dt_normal_ty (dt, argsty) in
-      snd @@ destruct_arrow_tp ty
   | op, argsty ->
       failwith
         (Sugar.spf "unknown primitive operators (%s) and arg types (%s)"

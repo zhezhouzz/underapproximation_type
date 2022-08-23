@@ -13,8 +13,8 @@ let rev_m : Languages.Qunderty.t StrMap.t option ref = ref None
 let make_key (name, QUT.{ qbody = t; _ }) =
   try
     let op = Op.op_of_alias name in
-    let ty = UT.erase t in
-    Op.PrimOp (op, ty)
+    let _ = UT.erase t in
+    Op.PrimOp op
   with _ -> Op.External name
 
 let make_m m (refinements : (string * Languages.Qunderty.t) list) =

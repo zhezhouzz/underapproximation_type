@@ -1,62 +1,40 @@
-open Zzdatatype.Datatype
-module Op = Languages.Op
+open Sugar
+open Prim_map
 
-let init (type_decls, overs, unders, rev_unders) =
-  Overprim.(make_m m overs);
-  Underprim.(make_m m unders);
-  Underprim.(make_m rev_m rev_unders);
-  Normalprim.make_m type_decls Underprim.m
+let init (type_decls, normals, overs, unders, rev_unders) =
+  let nm = make_normal type_decls normals in
+  normal_m := Some nm;
+  notation_m := Some (make_m nm overs unders rev_unders)
 
-let get m prim =
-  let name = Core.Sexp.to_string @@ Op.sexp_of_prim prim in
-  match !m with
-  | None -> failwith "uninited get_primitive_rev_under_ty"
-  | Some m ->
-      (* let _ = StrMap.iter (fun prim _ -> Printf.printf "prim: %s\n" prim) m in *)
-      let ty =
-        StrMap.find (Sugar.spf "cannot find primitive type of %s" name) m name
-      in
-      (* let _ = Printf.printf "end\n" in *)
-      ty
+let get_primitive_normal_ty name =
+  let _, ty = get_by_name (get_normal_m ()) name in
+  ty
 
-let get_primitive_normal_ty = get Normalprim.m
+let get_primitive_dt_normal_ty (name, _) =
+  let _, ty = get_by_name (get_normal_m ()) name in
+  ty
 
-let _get_primitive_dt_normal_ty (name, tyeq) =
-  match !Normalprim.m with
-  | None -> failwith "uninited get_primitive_rev_under_ty"
-  | Some m -> (
-      let l =
-        List.map (fun (str, v) ->
-            (Op.prim_of_sexp @@ Core.Sexp.of_string str, v))
-        @@ StrMap.to_kv_list m
-      in
-      match
-        List.find_opt
-          (function
-           | Op.(PrimOp (Dt name', nt), _) -> String.equal name name' && tyeq nt
-           | _ -> false
-            : Op.prim * Normalty.T.t -> bool)
-          (l : (Op.prim * Normalty.T.t) list)
-      with
-      | None -> failwith (Sugar.spf "cannot find primitive type of %s" name)
-      | Some (_, nt) -> nt)
+let get_primitive_dt_rev_normal_ty (name, _) =
+  let _, ty = get_by_name (get_normal_m ()) name in
+  ty
 
-let get_primitive_dt_normal_ty (name, argsty) =
-  let open Normalty.T in
-  _get_primitive_dt_normal_ty
-    ( name,
-      fun nt ->
-        let argsty', _ = destruct_arrow_tp nt in
-        List.for_all2 eq argsty argsty' )
+let get_primitive_over_ty name =
+  let _, entry = get_by_name (get_notation_m ()) name in
+  match entry.overty with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some x -> x
 
-let get_primitive_dt_rev_normal_ty (name, retty) =
-  let open Normalty.T in
-  _get_primitive_dt_normal_ty
-    ( name,
-      fun nt ->
-        let _, retty' = destruct_arrow_tp nt in
-        eq retty retty' )
+let get_primitive_under_ty name =
+  let _, entry = get_by_name (get_notation_m ()) name in
+  match entry.qunderty with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some x -> x
 
-let get_primitive_over_ty = get Overprim.m
-let get_primitive_under_ty = get Underprim.m
-let get_primitive_rev_under_ty = get Underprim.rev_m
+let get_primitive_rev_under_ty name =
+  let _, entry = get_by_name (get_notation_m ()) name in
+  match entry.rev_qunderty with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some x -> x
+
+let normal_check_if_is_known_prims name =
+  try Some (get_by_name (get_normal_m ()) name) with _ -> None

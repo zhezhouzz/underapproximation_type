@@ -6,19 +6,33 @@ let load_ssa source_file =
   let ctx = Languages.NSimpleTypectx.empty in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
   let () =
-    Printf.printf "%s\n\n" @@ Ocaml_parser.Pprintast.string_of_structure code
+    Printf.printf "\n[Load ocaml program]:\n%s\n\n"
+    @@ Ocaml_parser.Pprintast.string_of_structure code
   in
   let code = Structure.client_of_ocamlstruct code in
-  let () = Printf.printf "%s\n" @@ Structure.layout code in
+  let () =
+    Printf.printf "[Before type check]:\n%s\n\n" @@ Structure.layout code
+  in
   let code = Termcheck.struc_check ctx code in
-  let () = Printf.printf "%s\n" @@ Structure.layout code in
+  let () = Printf.printf "[Typed program]:\n%s\n\n" @@ Structure.layout code in
   let code = Trans.struc_term_to_nan code in
   let () =
-    Printf.printf "[Loading typed A-normal from]:\n%s\n"
+    Printf.printf "[Typed A-normal from]:\n%s\n\n"
       (Structure.layout @@ Trans.struc_nan_to_term code)
   in
   (* let _ = failwith "end" in *)
   code
+
+let load_normal_refinements refine_file =
+  let refinements =
+    Structure.func_decl_of_ocamlstruct
+      (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+  in
+  let () =
+    Printf.printf "[Loading normal type]:\n%s\n\n"
+      (Structure.layout_normals refinements)
+  in
+  refinements
 
 let load_over_refinments refine_file =
   let refinements =

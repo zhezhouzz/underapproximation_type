@@ -47,8 +47,7 @@ let hide_depedent_var ctx name ty =
 
 let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
   let ty =
-    try Typectx.get_ty ctx id.x
-    with _ -> Prim.get_primitive_over_ty (External id.x)
+    try Typectx.get_ty ctx id.x with _ -> Prim.get_primitive_over_ty id.x
   in
   let ty =
     OT.(
@@ -219,10 +218,11 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
   | LetDeTu { tu; args; body } ->
       handle_letdetu ctx (tu, args, body) term_type_infer
   | LetOp { ret; op; args; body } ->
-      let argsty = List.map (fun x -> x.ty) args in
+      (* let argsty = List.map (fun x -> x.ty) args in *)
       let opty =
         Prim.get_primitive_over_ty
-          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+          (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
+          (Op.op_to_string op)
       in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) term_type_infer
@@ -252,10 +252,11 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
   | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) self
   | LetDeTu { tu; args; body }, _ -> handle_letdetu ctx (tu, args, body) self
   | LetOp { ret; op; args; body }, _ ->
-      let argsty = List.map (fun x -> x.ty) args in
+      (* let argsty = List.map (fun x -> x.ty) args in *)
       let opty =
         Prim.get_primitive_over_ty
-          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+          (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
+          (Op.op_to_string op)
       in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) self
@@ -293,7 +294,8 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
       let handle_case { constructor; args; exp } =
         let constructor_ty =
           Prim.get_primitive_over_ty
-            Op.(PrimOp (Dt constructor.x, constructor.ty))
+            (* Op.(PrimOp (Dt constructor.x, constructor.ty)) *)
+            constructor.x
         in
         let constructor = OL.{ ty = constructor_ty; x = constructor.x } in
         let constructor_ty = OT.arrow_args_rename args constructor_ty in

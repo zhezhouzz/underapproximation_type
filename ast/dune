@@ -25,6 +25,7 @@
    qtypectx
    typed
    type_dec
+   prim
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
   (libraries zzdatatype autov utils)

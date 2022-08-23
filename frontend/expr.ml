@@ -251,15 +251,22 @@ let expr_of_ocamlexpr expr =
              (Sugar.spf "not imp client parsing:%s"
              @@ Pprintast.string_of_expression expr)
   and handle_app func args =
-    let op =
+    let prim =
       match func.L.x with
-      | L.Var op -> Languages.Op.op_of_string_opt op
+      | L.Var prim -> Abstraction.Prim.normal_check_if_is_known_prims prim
       | _ -> None
     in
-    match op with
-    | Some op -> L.(make_untyped @@ Op (op, args))
+    match prim with
+    | Some (Op.T.PrimOp op, _) -> L.(make_untyped @@ Op (op, args))
+    | Some (Op.T.DtConstructor f, ty) | Some (Op.T.External f, ty) ->
+        L.(make_untyped @@ App ({ x = Var f; ty = Some ty }, args))
     | None -> L.(make_untyped @@ App (func, args))
   in
   aux expr
 
 let layout x = Pprintast.string_of_expression @@ expr_to_ocamlexpr x
+
+(* let prim_dt = [ "[]"; "::" ] *)
+(* let is_prim_dt x = List.exists (String.equal x) prim_dt *)
+
+(* let op_of_string_opt x = try Some (op_of_string x) with _ -> None *)

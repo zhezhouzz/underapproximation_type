@@ -26,7 +26,7 @@ module F (Type : Type.T) = struct
       }
     | LetOp of {
         ret : id typed;
-        op : Op.T.t;
+        op : Op.T.op;
         args : id typed list;
         body : term typed;
       }

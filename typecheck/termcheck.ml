@@ -137,7 +137,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   | Var id ->
       let ty =
         match Typectx.get_opt ctx id with
-        | None -> Prim.get_primitive_normal_ty (External id)
+        | None -> Prim.get_primitive_normal_ty id
         | Some (_, x) -> x
       in
       ({ ty = Some ty; x }, ty)

@@ -12,7 +12,7 @@ module T = struct
     | Tu of term opttyped list
     | Lam of ty * id * term opttyped
     | App of term opttyped * term opttyped list
-    | Op of Op.T.t * term opttyped list
+    | Op of Op.T.op * term opttyped list
     | Let of if_rec * (ty * id) list * term opttyped * term opttyped
     | Ite of term opttyped * term opttyped * term opttyped
     | Match of term opttyped * case list

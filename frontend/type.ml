@@ -1,6 +1,7 @@
 module T = Languages.Normalty
 open Ocaml_parser
 open Parsetree
+open Sugar
 
 let layout_ t =
   let _ = Format.flush_str_formatter () in
@@ -23,10 +24,12 @@ and core_type_desc_to_t t =
   | Ptyp_class (_, _)
   | Ptyp_alias (_, _)
   | Ptyp_variant (_, _, _)
-  | Ptyp_poly (_, _)
   | Ptyp_package _ | Ptyp_extension _ ->
-      failwith "die"
-  | Ptyp_var name -> T.Ty_var name
+      _failatwith __FILE__ __LINE__ "die"
+  | Ptyp_poly (_, _) -> _failatwith __FILE__ __LINE__ "unimp: poly"
+  | Ptyp_var name ->
+      (* let () = Printf.printf "parsing type var: %s\n" name in *)
+      T.Ty_var name
   | Ptyp_arrow (_, t1, t2) -> T.Ty_arrow (core_type_to_t t1, core_type_to_t t2)
   | Ptyp_tuple ts -> T.Ty_tuple (List.map core_type_to_t ts)
   | Ptyp_constr (lc, ts) -> (
@@ -53,7 +56,12 @@ and t_to_core_type_desc t =
   let mk1 name t = Ptyp_constr (mknoloc @@ Lident name, [ t ]) in
   let aux = function
     | T.Ty_unknown -> failwith "ty_unknown die"
-    | T.Ty_var name -> mk0 name
+    | T.Ty_var name ->
+        let res = Ptyp_var name in
+        (* let () = *)
+        (*   Printf.printf "output res: %s\n" @@ layout_ @@ desc_to_ct res *)
+        (* in *)
+        res
     | T.Ty_unit -> mk0 "unit"
     | T.Ty_bool -> mk0 "bool"
     | T.Ty_int -> mk0 "int"
@@ -80,7 +88,7 @@ and t_to_core_type_desc t =
           ( (Location.mknoloc
             @@
             match Longident.unflatten [ id ] with
-            | None -> failwith "die"
+            | None -> _failatwith __FILE__ __LINE__ "die"
             | Some x -> x),
             List.map t_to_core_type args )
   in

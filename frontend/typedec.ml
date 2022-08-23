@@ -23,17 +23,46 @@ let constructor_declaration_to_ocaml { constr_name; argsty } =
 let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
     =
   match (ptype_params, ptype_kind, ptype_manifest) with
-  | [], Ptype_variant cds, None ->
+  | params, Ptype_variant cds, None ->
+      let type_params =
+        List.map
+          (fun (ct, (_, _)) ->
+            (* let a = *)
+            (*   Asttypes.( *)
+            (*     match a with *)
+            (*     | Covariant -> "Covariant" *)
+            (*     | Contravariant -> "Contravariant" *)
+            (*     | NoVariance -> "NoVariance") *)
+            (* in *)
+            (* let b = *)
+            (*   Asttypes.( *)
+            (*     match b with *)
+            (*     | Injective -> "Injective" *)
+            (*     | NoInjectivity -> "NoInjectivity") *)
+            (* in *)
+            (* let () = *)
+            (*   Printf.printf "parsing: %s %s %s %i %b\n" a b (Type.layout_ ct) *)
+            (*     (List.length ct.ptyp_attributes) *)
+            (*     (match ct.ptyp_desc with Ptyp_var "a" -> true | _ -> false) *)
+            (* in *)
+            Type.core_type_to_t ct)
+          params
+      in
       {
         type_name = ptype_name.txt;
+        type_params;
         type_decls = List.map constructor_declaration_of_ocaml cds;
       }
   | _ -> failwith "unimp complex type decl"
 
-let to_ocamltypedec { type_name; type_decls } =
+let to_ocamltypedec { type_name; type_params; type_decls } =
   {
     ptype_name = Location.mknoloc type_name;
-    ptype_params = [];
+    ptype_params =
+      List.map
+        (fun t ->
+          (Type.t_to_core_type t, (Asttypes.NoVariance, Asttypes.NoInjectivity)))
+        type_params;
     ptype_cstrs = [];
     ptype_kind =
       Ptype_variant (List.map constructor_declaration_to_ocaml type_decls);

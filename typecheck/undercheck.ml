@@ -98,7 +98,7 @@ let rec id_type_infer (ctx : Qtypectx.t) (id : NL.id NL.typed) : UL.id UL.typed
     =
   let ty =
     try without_qv (Typectx.get_ty ctx.qbody id.x)
-    with _ -> Prim.get_primitive_under_ty (External id.x)
+    with _ -> Prim.get_primitive_under_ty id.x
   in
   (* let ty = *)
   (*   UT.( *)
@@ -328,10 +328,11 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
     | LetTu { tu; args; body } -> handle_lettu ctx (tu, args, body) None
     | LetDeTu { tu; args; body } -> handle_letdetu ctx (tu, args, body) None
     | LetOp { ret; op; args; body } ->
-        let argsty = List.map (fun x -> x.ty) args in
+        (* let argsty = List.map (fun x -> x.ty) args in *)
         let opty =
           Prim.get_primitive_under_ty
-            (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+            (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
+            (Op.op_to_string op)
         in
         let ty, (ret, args, body) =
           handle_letapp ctx (ret, opty, args, body) None
@@ -397,15 +398,16 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
         let matched = id_type_infer ctx matched in
         let matched, ctx' = unify_to_ctx matched ctx in
         let handle_case { constructor; args; exp } =
-          let rev_constructor_nt =
-            let argsty, retty = NT.destruct_arrow_tp constructor.ty in
-            match argsty with
-            | [] -> retty
-            | _ -> NT.(Ty_arrow (retty, Ty_tuple argsty))
-          in
+          (* let rev_constructor_nt = *)
+          (*   let argsty, retty = NT.destruct_arrow_tp constructor.ty in *)
+          (*   match argsty with *)
+          (*   | [] -> retty *)
+          (*   | _ -> NT.(Ty_arrow (retty, Ty_tuple argsty)) *)
+          (* in *)
           let constructor_ty =
             Prim.get_primitive_rev_under_ty
-              Op.(PrimOp (Dt constructor.x, rev_constructor_nt))
+              (* Op.(PrimOp (Dt constructor.x, rev_constructor_nt)) *)
+              constructor.x
           in
           let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
           let constructor, ctx' = unify_to_ctx constructor ctx' in
@@ -509,10 +511,11 @@ and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : QUT.t) :
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
-      let argsty = List.map (fun x -> x.ty) args in
+      (* let argsty = List.map (fun x -> x.ty) args in *)
       let opty =
         Prim.get_primitive_under_ty
-          (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty)))
+          (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
+          (Op.op_to_string op)
       in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) (Some ty)

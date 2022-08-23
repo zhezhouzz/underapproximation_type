@@ -1,12 +1,13 @@
 (library
  (name abstraction)
  (wrapped true)
- (libraries utils ast core frontend)
+ (libraries utils ast core)
  (modules
-   normalprim
-   overprim
-   underprim
+   ; normalprim
+   ; overprim
+   ; underprim
    prim
+   prim_map
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
 )

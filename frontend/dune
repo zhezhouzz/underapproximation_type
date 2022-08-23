@@ -1,7 +1,7 @@
 (library
  (name frontend)
  (wrapped true)
- (libraries utils ast core ocaml_parser)
+ (libraries utils ast core ocaml_parser abstraction)
  (modules
    type
    value
