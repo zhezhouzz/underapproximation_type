@@ -19,7 +19,11 @@ let _assume_basety file line (x, ty) =
   | UnderTy_base { basename; prop; normalty } ->
       let prop = P.subst_id prop basename x in
       ({ ty = normalty; x }, prop)
-  | _ -> _failatwith file line "should not happen"
+  | _ ->
+      let () =
+        Printf.printf " %s: %s\n" x (Frontend.Underty.pretty_layout ty)
+      in
+      _failatwith file line "should not happen"
 
 let typed_to_smttyped { ty; x } = P.{ ty = NT.to_smtty ty; x }
 
@@ -71,10 +75,10 @@ let context_convert (ctx : Typectx.t)
         | false, true -> NotinIn
         | false, false -> NotinNotin
     in
-    let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
     match mode with
     | NotinNotin -> (uqvs, eqvs, pre, prop1, prop2)
     | InNotin ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
         let if_keep, prop1' = simp_exists_and x.x xprop prop1 in
         let eqvs' = if if_keep then eqvs @ [ x ] else eqvs in
         (* let () = *)
@@ -87,10 +91,13 @@ let context_convert (ctx : Typectx.t)
         (uqvs, eqvs', pre, prop1', prop2)
         (* (uqvs, eqvs @ [ x ], pre, xprop :: prop1, prop2) *)
     | NotinIn ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
         (* let eqvs', prop2' = simp_exists_and eqvs x xprop prop2 in *)
         (* (uqvs, eqvs', pre, prop1, prop2') *)
         (uqvs, eqvs @ [ x ], pre, prop1, xprop :: prop2)
-    | InIn -> (uqvs @ [ x ], eqvs, pre @ [ xprop ], prop1, prop2)
+    | InIn ->
+        let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+        (uqvs @ [ x ], eqvs, pre @ [ xprop ], prop1, prop2)
   in
   let uqs, eqs, pre, prop1, prop2 =
     Typectx.fold_right aux ctx

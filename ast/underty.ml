@@ -7,9 +7,6 @@ module T = struct
 
   open Typed.F (Normalty.T)
 
-  (* type 'a qted = { uqvs : id typed list; eqvs : id typed list; k : 'a } *)
-  (* [@@deriving sexp] *)
-
   type t =
     | UnderTy_base of {
         basename : id;
@@ -67,23 +64,6 @@ module T = struct
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
     in
     aux t
-
-  let base_type_add_conjunction_with_selfname f = function
-    | UnderTy_base { basename; normalty; prop } ->
-        UnderTy_base
-          { basename; normalty; prop = Autov.Prop.(And [ prop; f basename ]) }
-    | _ -> _failatwith __FILE__ __LINE__ ""
-
-  let base_type_add_implication c = function
-    | UnderTy_base { basename; normalty; prop } ->
-        UnderTy_base
-          { basename; normalty; prop = Autov.Prop.(Implies (c, prop)) }
-    | _ -> _failatwith __FILE__ __LINE__ ""
-
-  let base_type_add_conjunction c = function
-    | UnderTy_base { basename; normalty; prop } ->
-        UnderTy_base { basename; normalty; prop = Autov.Prop.(And [ c; prop ]) }
-    | _ -> _failatwith __FILE__ __LINE__ ""
 
   let assume_base_destruct_opt = function
     | UnderTy_base { basename; normalty; prop } ->
@@ -203,44 +183,6 @@ module T = struct
     | [ t ] -> t
     | h :: t -> List.fold_left conjunct h t
 
-  let hide_exists_quantify_variable_in_prop x xprop (basename, normalty, prop) =
-    UnderTy_base
-      { basename; normalty; prop = P.Exists (x, And [ xprop; prop ]) }
-
-  let hide_forall_quantify_variable_in_prop x xprop (basename, normalty, prop) =
-    UnderTy_base
-      { basename; normalty; prop = P.Forall (x, Implies (xprop, prop)) }
-
-  let hide_quantify_variable_in_bodyt xname xty ty =
-    match xty with
-    | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "arrow type"
-    | UnderTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
-    | UnderTy_base { basename; normalty; prop } ->
-        let xprop = P.subst_id prop basename xname in
-        let smtty = Normalty.T.to_smtty normalty in
-        let x = P.{ ty = smtty; x = xname } in
-        (* let _ = *)
-        (*   Printf.printf "make qv: %s --> %s:%s\n" xname xname *)
-        (*     (Autov.Smtty.layout smtty) *)
-        (* in *)
-        let rec aux ty =
-          match ty with
-          | UnderTy_base { basename; normalty; prop } ->
-              let fv = Autov.prop_fv prop in
-              if List.exists (fun x' -> String.equal x.x x') fv then
-                if Normalty.T.is_basic_tp normalty then
-                  hide_exists_quantify_variable_in_prop x xprop
-                    (basename, normalty, prop)
-                else
-                  hide_forall_quantify_variable_in_prop x xprop
-                    (basename, normalty, prop)
-              else ty
-          | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
-          (* TODO: what happen when it is a arrow type *)
-          | UnderTy_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
-        in
-        aux ty
-
   let fv bodyt =
     let rec aux = function
       | UnderTy_base { basename; prop; _ } ->
@@ -264,99 +206,6 @@ module T = struct
           UnderTy_arrow { argname; argty; retty = aux retty }
     in
     aux t
-
-  (* let hide_quantify_variable_in_ty xname xty { uqvs; eqvs; k } = *)
-  (*   (\* let _ = *\) *)
-  (*   (\*   if check_close { uqvs; eqvs; k = xty.k } then () *\) *)
-  (*   (\*   else _failatwith __FILE__ __LINE__ "" *\) *)
-  (*   (\* in *\) *)
-  (*   let k = hide_quantify_variable_in_bodyt xname xty k in *)
-  (*   { uqvs; eqvs; k } *)
-
-  (* let instantiate_vars (x, lit) t = *)
-  (*   let rec aux t = *)
-  (*     match t with *)
-  (*     | UnderTy_base { basename; normalty; prop } -> *)
-  (*         if String.equal basename x then t *)
-  (*         else *)
-  (*           UnderTy_base *)
-  (*             { *)
-  (*               basename; *)
-  (*               normalty; *)
-  (*               prop = Autov.Prop.instantiate_vars (x, lit) prop; *)
-  (*             } *)
-  (*     | UnderTy_arrow { argname; argty; retty } -> *)
-  (*         let argty = aux argty in *)
-  (*         let retty = if String.equal argname x then retty else aux retty in *)
-  (*         UnderTy_arrow { argname; argty; retty } *)
-  (*     | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts) *)
-  (*   in *)
-  (*   aux t *)
-
-  (* let qt_fv { uqvs; eqvs; k } = *)
-  (*   List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs @ bodyt_fv k *)
-
-  (* let unify_qv_to _ { uqvs = uqvs1; eqvs = eqvs1; k = tbody1 } target = *)
-  (*   let to_unique { ty; x } _ = *)
-  (*     let x = Rename.unique ("^" ^ x) in *)
-  (*     { ty; x } *)
-  (*     (\* let target_vars = *\) *)
-  (*     (\*   List.map (fun x -> x.x) uqvs @ List.map (fun x -> x.x) eqvs @ f k *\) *)
-  (*     (\* in *\) *)
-  (*     (\* if List.exists (String.equal x) target_vars then *\) *)
-  (*     (\*   { ty; x = Rename.unique x } *\) *)
-  (*     (\* else { ty; x } *\) *)
-  (*   in *)
-  (*   let qty_to_unique (qv, bodyt) target = *)
-  (*     let qv' = to_unique qv target in *)
-  (*     (qv', subst_id bodyt qv.x qv'.x) *)
-  (*     (\* ( qv', *\) *)
-  (*     (\*   if String.equal qv.x qv'.x then bodyt else subst_id tbody1 qv.x qv'.x ) *\) *)
-  (*   in *)
-  (*   let eqvs1, tbody1 = *)
-  (*     List.fold_right *)
-  (*       (fun eqv (eqvs1, tbody1) -> *)
-  (*         let eqv', tbody1' = qty_to_unique (eqv, tbody1) target in *)
-  (*         (eqv' :: eqvs1, tbody1')) *)
-  (*       eqvs1 ([], tbody1) *)
-  (*   in *)
-  (*   let target = { target with eqvs = target.eqvs @ eqvs1 } in *)
-  (*   let rec aux tbody1 { uqvs; eqvs; k } = function *)
-  (*     | [], [] -> (tbody1, { uqvs; eqvs; k }) *)
-  (*     | uqv1 :: uqv1s, [] -> *)
-  (*         let uqv1', tbody1' = qty_to_unique (uqv1, tbody1) { uqvs; eqvs; k } in *)
-  (*         aux tbody1' { uqvs = uqvs @ [ uqv1' ]; eqvs; k } (uqv1s, []) *)
-  (*     | [], uqvs2 -> (tbody1, { uqvs = uqvs @ uqvs2; eqvs; k }) *)
-  (*     | uqv1 :: uqvs1, uqvs2 -> ( *)
-  (*         match List.find_opt (fun x -> Normalty.T.eq x.ty uqv1.ty) uqvs2 with *)
-  (*         | None -> *)
-  (*             let uqv1', tbody1' = *)
-  (*               qty_to_unique (uqv1, tbody1) { uqvs; eqvs; k } *)
-  (*             in *)
-  (*             aux tbody1' { uqvs = uqvs @ [ uqv1' ]; eqvs; k } (uqvs1, uqvs2) *)
-  (*         | Some uqv2 -> *)
-  (*             let uqvs2 = *)
-  (*               List.filter *)
-  (*                 (fun qv -> *)
-  (*                   not (String.equal qv.x uqv2.x && Normalty.T.eq qv.ty uqv2.ty)) *)
-  (*                 uqvs2 *)
-  (*             in *)
-  (*             aux *)
-  (*               (subst_id tbody1 uqv1.x uqv2.x) *)
-  (*               { uqvs = uqvs @ [ uqv2 ]; eqvs; k } *)
-  (*               (uqvs1, uqvs2)) *)
-  (*   in *)
-  (*   let tbody1, target = *)
-  (*     aux tbody1 { target with uqvs = [] } (uqvs1, target.uqvs) *)
-  (*   in *)
-  (*   (tbody1, target) *)
-
-  (* let unify_qvs_to f ts target = *)
-  (*   List.fold_right *)
-  (*     (fun t (ts, target) -> *)
-  (*       let t', target = unify_qv_to f t target in *)
-  (*       (t' :: ts, target)) *)
-  (*     ts ([], target) *)
 
   let eqv_to_bodyt { ty; x } =
     UnderTy_base { basename = x; normalty = ty; prop = Autov.Prop.mk_true }

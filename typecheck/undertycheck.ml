@@ -7,7 +7,7 @@ open Languages.SMTSimpleTypectx
 let infer_id ctx name =
   let open Autov.Prop in
   match get_opt ctx name.x with
-  | None -> failwith "free variable in refinement type"
+  | None -> failwith @@ spf "free variable (%s) in refinement type" name.x
   | Some (_, ty) -> { ty; x = name.x }
 
 let rec infer_lit ctx lit =

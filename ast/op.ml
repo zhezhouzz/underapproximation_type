@@ -73,7 +73,7 @@ module T = struct
 
   let t_to_string_for_load = function
     | PrimOp op -> op_to_alias op
-    | DtConstructor dt -> dt
+    | DtConstructor dt -> String.lowercase_ascii dt
     | External f -> f
 
   let t_to_string = function

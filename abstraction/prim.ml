@@ -21,19 +21,25 @@ let get_primitive_dt_rev_normal_ty (name, _) =
 let get_primitive_over_ty name =
   let _, entry = get_by_name (get_notation_m ()) name in
   match entry.overty with
-  | None -> _failatwith __FILE__ __LINE__ ""
+  | None ->
+      _failatwith __FILE__ __LINE__
+      @@ spf "cannot find built-in refinement type (%s)" name
   | Some x -> x
 
 let get_primitive_under_ty name =
   let _, entry = get_by_name (get_notation_m ()) name in
   match entry.qunderty with
-  | None -> _failatwith __FILE__ __LINE__ ""
+  | None ->
+      _failatwith __FILE__ __LINE__
+      @@ spf "cannot find built-in under type (%s)" name
   | Some x -> x
 
 let get_primitive_rev_under_ty name =
   let _, entry = get_by_name (get_notation_m ()) name in
   match entry.rev_qunderty with
-  | None -> _failatwith __FILE__ __LINE__ ""
+  | None ->
+      _failatwith __FILE__ __LINE__
+      @@ spf "cannot find built-in rev under type (%s)" name
   | Some x -> x
 
 let normal_check_if_is_known_prims name =

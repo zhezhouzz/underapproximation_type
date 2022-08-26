@@ -88,6 +88,8 @@ let prop_of_ocamlexpr expr =
         match (f, args) with
         | "not", [ e1 ] -> L.Not (aux e1)
         | "not", _ -> failwith "parsing: prop wrong not"
+        | "ite", [ e1; e2; e3 ] -> L.Ite (aux e1, aux e2, aux e3)
+        | "ite", _ -> failwith "parsing: prop wrong ite"
         | "implies", [ e1; e2 ] -> L.Implies (aux e1, aux e2)
         | "implies", _ -> failwith "parsing: prop wrong implies"
         | "iff", [ e1; e2 ] -> L.Iff (aux e1, aux e2)

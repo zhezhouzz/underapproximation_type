@@ -45,6 +45,8 @@ let cons (u : 'forall * int) (w : 'exists * int) =
   let t = (v : int list) (implies (mem v u) (u == h)) in
   (v : int list) (implies (mem v u) (u == h) && mem v h)
 
+let ileaf (u : 'forall * int) = (v : int_tree) (not (mem v u))
+
 let _ret_two_value =
   let x = (v : int) (v > 0) in
   (v : int) (v == 1 || v == x)
