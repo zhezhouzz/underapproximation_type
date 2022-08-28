@@ -3,8 +3,12 @@ module NT = Languages.Normalty
 open Sugar
 module P = Autov.Prop
 open Languages.SMTSimpleTypectx
+open Zzdatatype.Datatype
 
 let infer_id ctx name =
+  (* let () = *)
+  (*   Printf.printf "[infer_id] ctx: %s\n" @@ List.split_by_comma fst ctx *)
+  (* in *)
   let open Autov.Prop in
   match get_opt ctx name.x with
   | None -> failwith @@ spf "free variable (%s) in refinement type" name.x
@@ -38,24 +42,39 @@ let infer_prop ctx t =
         let ctx = add_to_right ctx (u.ty, u.x) in
         Forall (u, aux ctx e)
     | Exists (u, e) ->
+        (* let () = Printf.printf "ADD %s\n" u.x in *)
         let ctx = add_to_right ctx (u.ty, u.x) in
         Exists (u, aux ctx e)
   in
   aux ctx t
 
-let infer uqvs eqvs t =
+module Ntyped = Languages.Ntyped
+
+let infer uqvs t =
+  (* let () = Printf.printf "infer: %s\n" @@ Frontend.Underty.pretty_layout t in *)
   let open Languages.Underty in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
         let ctx = add_to_right ctx (NT.to_smtty normalty, basename) in
         UnderTy_base { basename; normalty; prop = infer_prop ctx prop }
-    | UnderTy_arrow { argname; argty; retty } ->
-        let argty = aux ctx argty in
+    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+        (* let () = Printf.printf "do arrow\n" in *)
+        let argty =
+          aux
+            (List.fold_left add_to_right ctx
+            @@ List.map
+                 (fun x -> (NT.to_smtty x.Ntyped.ty, x.Ntyped.x))
+                 hidden_vars)
+            argty
+        in
         let ctx = add_to_right ctx (NT.to_smtty @@ erase argty, argname) in
-        UnderTy_arrow { argname; argty; retty = aux ctx retty }
+        (* let () = *)
+        (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
+        (* in *)
+        UnderTy_arrow { argname; hidden_vars; argty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
   let to_ctx qvs =
-    List.map Languages.Ntyped.(fun x -> (x.x, Normalty.T.to_smtty x.ty)) qvs
+    List.map Ntyped.(fun x -> (x.x, Normalty.T.to_smtty x.ty)) qvs
   in
-  aux (to_ctx uqvs @ to_ctx eqvs) t
+  aux (to_ctx uqvs) t

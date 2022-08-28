@@ -2,34 +2,53 @@ open Ocaml_parser
 open Parsetree
 module L = Prop.T
 
-type label = Fa | Ex
+type label = Fa of Smtty.T.t | Ex of Smtty.T.t
 
 let layout_ct t =
   let _ = Format.flush_str_formatter () in
   Pprintast.core_type Format.str_formatter t;
   Format.flush_str_formatter ()
 
-let core_type_to_label ct =
-  match ct.ptyp_desc with
-  (* | Ptyp_constr (name, []) -> ( *)
-  (*     match Longident.last name.txt with *)
-  (*     | "forall" -> Fa *)
-  (*     | "exists" -> Ex *)
-  (*     | _ -> *)
-  (*         failwith *)
-  (*           (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))) *)
-  | Ptyp_var "fa" -> Fa
-  | Ptyp_var "ex" -> Ex
-  | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
-
-let label_to_core_type x =
-  let ct = match x with Fa -> Ptyp_var "fa" | Ex -> Ptyp_var "ex" in
+let ptyp_desc_to_ct ct =
   {
     ptyp_desc = ct;
     ptyp_loc = Location.none;
     ptyp_loc_stack = [];
     ptyp_attributes = [];
   }
+
+let core_type_to_ty ct =
+  match ct.ptyp_desc with
+  | Ptyp_constr (name, []) -> (
+      match Longident.last name.txt with
+      | "int" -> Smtty.T.Int
+      | "bool" -> Smtty.T.Bool
+      | "dt" -> Smtty.T.Dt
+      | _ ->
+          failwith
+            (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct)))
+  | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
+
+let ty_to_core_type ty =
+  match Longident.unflatten [ Smtty.T.layout ty ] with
+  | Some id -> ptyp_desc_to_ct @@ Ptyp_constr (Location.mknoloc id, [])
+  | _ -> failwith "die"
+
+let core_type_to_label ct =
+  match ct.ptyp_desc with
+  | Ptyp_tuple [ { ptyp_desc = Ptyp_var "fa"; _ }; t ] -> Fa (core_type_to_ty t)
+  | Ptyp_tuple [ { ptyp_desc = Ptyp_var "ex"; _ }; t ] -> Ex (core_type_to_ty t)
+  | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
+
+let label_to_core_type x =
+  let ct =
+    match x with
+    | Fa ct ->
+        Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "fa"; ty_to_core_type ct ]
+    | Ex ct ->
+        Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "ex"; ty_to_core_type ct ]
+  in
+  ptyp_desc_to_ct ct
 
 (* NOTE: should we parse type here? or is the prop is typed? *)
 let default_type = Smtty.T.Int
@@ -107,7 +126,7 @@ let prop_of_ocamlexpr expr =
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_match _ -> failwith "parsing: prop does not have match"
     | Pexp_fun (_, _, arg, expr) -> (
-        let label, (uty, u) =
+        let label, u =
           match arg.ppat_desc with
           | Ppat_constraint (arg, core_type) ->
               let label = core_type_to_label core_type in
@@ -116,13 +135,13 @@ let prop_of_ocamlexpr expr =
                 | Ppat_var arg -> arg.txt
                 | _ -> failwith "parsing: prop function"
               in
-              (label, (default_type, arg))
+              (label, arg)
           | _ -> failwith "parsing: prop function"
         in
         let body = aux expr in
         match label with
-        | Fa -> L.Forall ({ ty = uty; x = u }, body)
-        | Ex -> L.Exists ({ ty = uty; x = u }, body))
+        | Fa uty -> L.Forall ({ ty = uty; x = u }, body)
+        | Ex uty -> L.Exists ({ ty = uty; x = u }, body))
     | _ ->
         raise
         @@ failwith
@@ -211,7 +230,7 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      label_to_core_type Fa )),
+                      label_to_core_type (Fa u.ty) )),
                aux body ))
     | P.Exists (u, body) ->
         desc_to_ocamlexpr
@@ -221,7 +240,7 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      label_to_core_type Ex )),
+                      label_to_core_type (Ex u.ty) )),
                aux body ))
   in
 
@@ -282,7 +301,8 @@ let coqsetting =
       (fun x ->
         match x.ty with
         | Bool -> sprintf "(%s:bool)" x.x
-        | Int -> sprintf "(%s:nat)" x.x);
+        | Int -> sprintf "(%s:nat)" x.x
+        | Dt -> sprintf "(%s:dt)" x.x);
     layout_mp = (function "==" -> "=" | x -> x);
   }
 

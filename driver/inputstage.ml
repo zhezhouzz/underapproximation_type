@@ -59,8 +59,8 @@ let load_under_refinments refine_file =
     List.map
       ~f:
         Languages.Qunderty.(
-          fun (name, { uqvs; eqvs; qbody }) ->
-            (name, { uqvs; eqvs; qbody = Undertycheck.infer uqvs eqvs qbody }))
+          fun (name, { qvs; qbody }) ->
+            (name, { qvs; qbody = Undertycheck.infer qvs qbody }))
       refinements
   in
   let () =

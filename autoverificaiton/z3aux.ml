@@ -8,7 +8,7 @@ let int_to_z3 ctx i = mk_numeral_int ctx i (Integer.mk_sort ctx)
 let bool_to_z3 ctx b = if b then mk_true ctx else mk_false ctx
 
 let tp_to_sort ctx =
-  T.(function Int -> Integer.mk_sort ctx | Bool -> Boolean.mk_sort ctx)
+  T.(function Int | Dt -> Integer.mk_sort ctx | Bool -> Boolean.mk_sort ctx)
 
 let z3func ctx funcname inptps outtp =
   FuncDecl.mk_func_decl ctx
@@ -34,7 +34,7 @@ let array_head ctx (arrname, idxname) =
 let tpedvar_to_z3 ctx (tp, name) =
   T.(
     match tp with
-    | Int -> Integer.mk_const_s ctx name
+    | Dt | Int -> Integer.mk_const_s ctx name
     | Bool -> Boolean.mk_const_s ctx name)
 
 type imp_version = V1 | V2

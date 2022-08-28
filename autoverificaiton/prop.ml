@@ -289,6 +289,16 @@ module T = struct
     in
     aux t
 
+  let add_with_simp_eq_prop id xprop prop =
+    let is_eq = function
+      | Lit (AOp2 ("==", AVar x, lit)) when String.equal x.x id.x -> Some lit
+      | Lit (AOp2 ("==", lit, AVar x)) when String.equal x.x id.x -> Some lit
+      | _ -> None
+    in
+    match is_eq xprop with
+    | None -> (true, And [ xprop; prop ])
+    | Some y -> (false, subst_id_with_lit prop id.x y)
+
   let simp_exists eqv t =
     let is_eq = function
       | Lit (AOp2 ("==", AVar x, lit)) when String.equal x.x eqv -> Some lit
@@ -348,4 +358,240 @@ module T = struct
         let props = to_uni_conjs prop in
         if if_keep then (true, props) else (false, props)
     | _ -> (true, xprop :: props)
+
+  let lift_exists prop =
+    let unique_add (eqvs, e) u =
+      if List.exists (fun x -> String.equal u.x x.x) eqvs then
+        let u' = { ty = u.ty; x = Unique.unique u.x } in
+        (u' :: eqvs, subst_id e u.x u'.x)
+      else (u :: eqvs, e)
+    in
+    let print l =
+      List.fold_left (fun str x -> Printf.sprintf "%s, %s" str x.x) "" l
+    in
+    let unique_merge2 eqvs1 (eqvs2, e2) =
+      let eqvs, e2 = List.fold_left unique_add (eqvs1, e2) eqvs2 in
+      let () =
+        Printf.printf "MERGE: [%s] ++ [%s] = [%s]\n" (print eqvs1) (print eqvs2)
+          (print eqvs)
+      in
+      (eqvs, e2)
+    in
+    let rec unique_merges = function
+      | [] -> failwith "die"
+      | [ (eqvs, e) ] -> (eqvs, [ e ])
+      | h :: t ->
+          let eqvs, es = unique_merges t in
+          let eqvs, e = unique_merge2 eqvs h in
+          (eqvs, e :: es)
+    in
+    let rec aux_e prop =
+      match prop with
+      | Lit _ | MethodPred (_, _) -> ([], prop)
+      | Implies (e1, e2) ->
+          let eqv1, e1 = aux_f e1 in
+          let eqv2, e2 = aux_e e2 in
+          let eqv, e2 = unique_merge2 eqv1 (eqv2, e2) in
+          (eqv, Implies (e1, e2))
+      | Ite (e1, e2, e3) ->
+          let eqv1, e1 = aux_f e1 in
+          let eqv2, e2 = aux_e e2 in
+          let eqv3, e3 = aux_e e3 in
+          let eqv, e2 = unique_merge2 eqv1 (eqv2, e2) in
+          let eqv, e3 = unique_merge2 eqv (eqv3, e3) in
+          (eqv, Ite (e1, e2, e3))
+      | Not e ->
+          let eqv, e = aux_f e in
+          (eqv, Not e)
+      | And es ->
+          let eqvs, es = unique_merges @@ List.map aux_e es in
+          (eqvs, And es)
+      | Or es ->
+          let eqvs, es = unique_merges @@ List.map aux_e es in
+          (eqvs, Or es)
+      | Iff (e1, e2) ->
+          let e1 =
+            match aux_e e1 with
+            | [], e1 -> e1
+            | _ -> failwith "not a existential quantified term"
+          in
+          let e2 =
+            match aux_e e2 with
+            | [], e2 -> e2
+            | _ -> failwith "not a existential quantified term"
+          in
+          ([], Iff (e1, e2))
+      | Forall (_, _) -> failwith "not a existential quantified term"
+      | Exists (u, e) ->
+          let eqvs, e = aux_e e in
+          unique_add (eqvs, e) u
+    and aux_f prop =
+      match prop with
+      | Lit _ | MethodPred (_, _) -> ([], prop)
+      | Implies (e1, e2) ->
+          let eqv1, e1 = aux_e e1 in
+          let eqv2, e2 = aux_f e2 in
+          let eqv, e2 = unique_merge2 eqv1 (eqv2, e2) in
+          (eqv, Implies (e1, e2))
+      | Ite (e1, e2, e3) ->
+          let eqv1, e1 = aux_e e1 in
+          let eqv2, e2 = aux_f e2 in
+          let eqv3, e3 = aux_f e3 in
+          let eqv, e2 = unique_merge2 eqv1 (eqv2, e2) in
+          let eqv, e3 = unique_merge2 eqv (eqv3, e3) in
+          (eqv, Ite (e1, e2, e3))
+      | Not e ->
+          let eqv, e = aux_e e in
+          (eqv, Not e)
+      | And es ->
+          let eqvs, es = unique_merges @@ List.map aux_f es in
+          (eqvs, And es)
+      | Or es ->
+          let eqvs, es = unique_merges @@ List.map aux_f es in
+          (eqvs, Or es)
+      | Iff (e1, e2) ->
+          let e1 =
+            match aux_f e1 with
+            | [], e1 -> e1
+            | _ -> failwith "not a existential quantified term"
+          in
+          let e2 =
+            match aux_f e2 with
+            | [], e2 -> e2
+            | _ -> failwith "not a existential quantified term"
+          in
+          ([], Iff (e1, e2))
+      | Exists (_, _) -> failwith "not a existential quantified term"
+      | Forall (u, e) ->
+          let eqvs, e = aux_f e in
+          unique_add (eqvs, e) u
+    in
+    aux_e prop
+
+  type prefix = Uqv of string typed | Eqv of string typed
+  type ord = FE | EF
+
+  let flip (l, e) = (List.map (function Uqv a -> Eqv a | Eqv a -> Uqv a) l, e)
+  let prefix_to_string = function Uqv a -> a.x | Eqv a -> a.x
+
+  let to_pnf prop =
+    let unique l (u, e) =
+      if
+        List.exists
+          (String.equal (prefix_to_string u))
+          (List.map prefix_to_string l)
+      then
+        match u with
+        | Uqv u ->
+            let u' = { ty = u.ty; x = Unique.unique u.x } in
+            (Uqv u', subst_id e u.x u'.x)
+        | Eqv u ->
+            let u' = { ty = u.ty; x = Unique.unique u.x } in
+            (Eqv u', subst_id e u.x u'.x)
+      else (u, e)
+    in
+    let uniques l (us, e) =
+      List.fold_left
+        (fun (us, e) u ->
+          let u, e = unique (l @ us) (u, e) in
+          (us @ [ u ], e))
+        ([], e) us
+    in
+    let unique_add l (u, e) =
+      let u, e = unique l (u, e) in
+      (l @ [ u ], e)
+    in
+    (* let print l = *)
+    (*   List.fold_left (fun str x -> Printf.sprintf "%s, %s" str x.x) "" l *)
+    (* in *)
+    let rec aux_f = function
+      | [], a -> a
+      | a, [] -> a
+      | Uqv a :: t1, t2 -> Uqv a :: aux_f (t1, t2)
+      | t1, Uqv a :: t2 -> Uqv a :: aux_f (t1, t2)
+      | t1, t2 -> aux_e (t1, t2)
+    and aux_e = function
+      | [], a -> a
+      | a, [] -> a
+      | Eqv a :: t1, t2 -> Eqv a :: aux_e (t1, t2)
+      | t1, Eqv a :: t2 -> Eqv a :: aux_e (t1, t2)
+      | t1, t2 -> aux_f (t1, t2)
+    in
+    let merge_prefix ord l1 l2 =
+      match ord with FE -> aux_f (l1, l2) | EF -> aux_e (l1, l2)
+    in
+    (* let merge_prefix_from_ex l1 l2 = aux_e (l1, l2) in *)
+    let unique_merge2 ord eqvs1 (eqvs2, e2) =
+      let eqvs2, e2 = uniques eqvs1 (eqvs2, e2) in
+      let eqvs = merge_prefix ord eqvs1 eqvs2 in
+      (* let () = *)
+      (*   Printf.printf "MERGE: [%s] ++ [%s] = [%s]\n" (print eqvs1) (print eqvs2) *)
+      (*     (print eqvs) *)
+      (* in *)
+      (eqvs, e2)
+    in
+    let rec unique_merges ord = function
+      | [] -> failwith "die"
+      | [ (eqvs, e) ] -> (eqvs, [ e ])
+      | h :: t ->
+          let eqvs, es = unique_merges ord t in
+          let eqvs, e = unique_merge2 ord eqvs h in
+          (eqvs, e :: es)
+    in
+    let flip_ord = function FE -> EF | EF -> FE in
+    let rec aux ord prop =
+      match prop with
+      | Lit _ | MethodPred (_, _) -> ([], prop)
+      | Implies (e1, e2) ->
+          let prefix1, e1 = flip @@ aux (flip_ord ord) e1 in
+          let prefix2, e2 = aux ord e2 in
+          let eqv, e2 = unique_merge2 ord prefix1 (prefix2, e2) in
+          (eqv, Implies (e1, e2))
+      | Ite (e1, e2, e3) ->
+          let eqv1, e1 = flip @@ aux (flip_ord ord) e1 in
+          let eqv2, e2 = aux ord e2 in
+          let eqv3, e3 = aux ord e3 in
+          let eqv, e2 = unique_merge2 ord eqv1 (eqv2, e2) in
+          let eqv, e3 = unique_merge2 ord eqv (eqv3, e3) in
+          (eqv, Ite (e1, e2, e3))
+      | Not e ->
+          let eqv, e = flip @@ aux (flip_ord ord) e in
+          (eqv, Not e)
+      | And es ->
+          let eqvs, es = unique_merges ord @@ List.map (aux ord) es in
+          (eqvs, And es)
+      | Or es ->
+          let eqvs, es =
+            unique_merges ord
+            @@ List.map (fun e -> flip @@ aux (flip_ord ord) e) es
+          in
+          (eqvs, Or es)
+      | Iff (e1, e2) -> aux ord (And [ Implies (e1, e2); Implies (e2, e1) ])
+      | Forall (u, e) ->
+          let prefix, e = aux ord e in
+          unique_add prefix (Uqv u, e)
+      | Exists (u, e) ->
+          let prefix, e = aux ord e in
+          unique_add prefix (Eqv u, e)
+    in
+    aux FE prop
+
+  let to_fe_nf prop =
+    let l, prop = to_pnf prop in
+    let rec get_ex eqvs = function
+      | [] -> eqvs
+      | Eqv u :: t -> get_ex (eqvs @ [ u ]) t
+      | Uqv _ :: _ -> failwith "not a EPR"
+    in
+    let rec get_fa uqvs = function
+      | [] -> (uqvs, [])
+      | Eqv u :: t -> (uqvs, get_ex [] (Eqv u :: t))
+      | Uqv u :: t -> get_fa (uqvs @ [ u ]) t
+    in
+    let uqvs, eqvs = get_fa [] l in
+    (uqvs, eqvs, prop)
+
+  let to_e_nf prop =
+    let uqvs, eqvs, prop = to_fe_nf prop in
+    match uqvs with [] -> (eqvs, prop) | _ -> failwith "not a eq form"
 end

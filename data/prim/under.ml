@@ -1,47 +1,47 @@
-let eq (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let eq =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a == b))
 
-let neq (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let neq =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a != b))
 
-let lt (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let lt =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a < b))
 
-let gt (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let gt =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a > b))
 
-let le (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let le =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a <= b))
 
-let ge (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let ge =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : bool) (iff v (a => b))
 
-let plus (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let plus =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : int) (v == a + b)
 
-let minus (x : 'exists * int) (y : 'exists * int) =
-  let a = (v : int) (v == x) in
-  let b = (v : int) (v == y) in
+let minus =
+  let a (x : int) = (v : int) (v == x) in
+  let b (y : int) = (v : int) (v == y) in
   (v : int) (v == a - b)
 
 let nil (u : 'forall * int) = (v : int list) (not (mem v u))
 
-let cons (u : 'forall * int) (w : 'exists * int) =
-  let h = (v : int) (v == w) in
+let cons (u : 'forall * int) =
+  let h (w : int) = (v : int) (v == w) in
   let t = (v : int list) (implies (mem v u) (u == h)) in
   (v : int list) (implies (mem v u) (u == h) && mem v h)
 

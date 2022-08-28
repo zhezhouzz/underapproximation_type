@@ -96,3 +96,16 @@ let to_typed_slang x =
     | _ -> failwith "not a patten"
   in
   aux [] x
+
+let patten_to_typed_ids pattern = to_typed_slang @@ pattern_to_slang pattern
+
+let typed_ids_to_pattens ids =
+  let open L in
+  let l = List.map (fun x -> { x = Var x.x; ty = x.ty }) ids in
+  let e =
+    match l with
+    | [] -> failwith "die"
+    | [ a ] -> a
+    | l -> { x = Tu l; ty = None }
+  in
+  slang_to_pattern e

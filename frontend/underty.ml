@@ -3,16 +3,18 @@ open Parsetree
 open Zzdatatype.Datatype
 module T = Languages.Termlang
 module L = Languages.Underty
+module Ntyped = Languages.Ntyped
 
 type mode = Under | Tuple
 
 let prop_of_ocamlexpr e =
   let prop = Autov.prop_of_ocamlexpr e in
-  if Autov.Prop.has_qv prop then
+  let uqvs, _, _ = Autov.Prop.to_fe_nf prop in
+  if List.length uqvs != 0 then
     failwith
       (Sugar.spf
-         "Syntax error: refinement proposition cannot contain quantified \
-          variables: %s"
+         "Syntax error: refinement proposition cannot contain universial \
+          quantified variables: %s"
       @@ Autov.pretty_layout_prop prop)
   else prop
 
@@ -24,7 +26,19 @@ let mode_of_ocamlexpr e =
 
 let undertype_of_ocamlexpr expr =
   let open T in
-  let rec aux expr =
+  let rec parse_hidden expr =
+    match expr.pexp_desc with
+    | Pexp_fun (_, _, var, e) ->
+        let hidden_vars =
+          List.map (fun x ->
+              match x.ty with
+              | None -> failwith "undertype_of_ocamlexpr"
+              | Some ty -> Ntyped.{ x = x.x; ty })
+          @@ Pat.patten_to_typed_ids var
+        in
+        (hidden_vars, aux e)
+    | _ -> ([], aux expr)
+  and aux expr =
     match expr.pexp_desc with
     | Pexp_apply (x, [ prop ]) ->
         let x = Expr.expr_of_ocamlexpr x in
@@ -37,14 +51,14 @@ let undertype_of_ocamlexpr expr =
         L.(UnderTy_base { basename; normalty; prop })
     | Pexp_tuple es -> L.UnderTy_tuple (List.map aux es)
     | Pexp_let (_, [ vb ], body) ->
-        let id = Pat.pattern_to_slang vb.pvb_pat in
+        let id = Pat.patten_to_typed_ids vb.pvb_pat in
         let argname =
-          match id.x with
-          | Var name -> name
+          match id with
+          | [ id ] -> id.x
           | _ -> failwith "undertype_of_ocamlexpr"
         in
-        let argty = aux vb.pvb_expr in
-        L.(UnderTy_arrow { argname; argty; retty = aux body })
+        let hidden_vars, argty = parse_hidden vb.pvb_expr in
+        L.(UnderTy_arrow { argname; hidden_vars; argty; retty = aux body })
     | _ -> failwith "wrong refinement type"
   in
   aux expr
@@ -62,7 +76,14 @@ let undertype_to_ocamlexpr x =
         Expr.desc_to_ocamlexpr
         @@ Pexp_apply
              (mode, List.map (fun x -> (Asttypes.Nolabel, x)) [ x; prop ])
-    | UnderTy_arrow { argname; argty; retty } ->
+    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+        let patten =
+          Pat.typed_ids_to_pattens
+          @@ List.map
+               (fun x ->
+                 Languages.Termlang.{ x = x.Ntyped.x; ty = Some x.Ntyped.ty })
+               hidden_vars
+        in
         Expr.desc_to_ocamlexpr
         @@ Pexp_let
              ( Asttypes.Nonrecursive,
@@ -70,7 +91,9 @@ let undertype_to_ocamlexpr x =
                  {
                    pvb_pat =
                      Pat.dest_to_pat @@ Ppat_var (Location.mknoloc argname);
-                   pvb_expr = aux argty;
+                   pvb_expr =
+                     Expr.desc_to_ocamlexpr
+                     @@ Pexp_fun (Asttypes.Nolabel, None, patten, aux argty);
                    pvb_attributes = [];
                    pvb_loc = Location.none;
                  };
@@ -101,8 +124,21 @@ let pretty_layout x =
     | UnderTy_base { basename; normalty; prop } ->
         Sugar.spf "[%s:%s | %s]" basename (Type.layout normalty)
           (Autov.pretty_layout_prop prop)
-    | UnderTy_arrow { argname; argty; retty } ->
-        Sugar.spf "(%s:%s) → %s" argname (aux argty) (aux retty)
+    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+        let argname_f ty =
+          if L.is_fv_in argname retty then Sugar.spf "%s:%s" argname ty else ty
+        in
+        let hidden_vars_f ty =
+          match hidden_vars with
+          | [] -> ty
+          | _ ->
+              Sugar.spf "|%s ▷%s|"
+                (List.split_by_comma (fun x -> x.Ntyped.x) hidden_vars)
+                ty
+        in
+        Sugar.spf "%s → %s"
+          (argname_f @@ hidden_vars_f @@ aux argty)
+          (aux retty)
     | UnderTy_tuple ts ->
         Sugar.spf "(%s)" @@ Zzdatatype.Datatype.List.split_by_comma aux ts
   in

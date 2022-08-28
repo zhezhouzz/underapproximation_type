@@ -58,8 +58,8 @@ module T = struct
   let to_smtty t =
     let aux = function
       | Ty_bool -> Autov.Smtty.Bool
-      | Ty_list _ | Ty_tree _ | Ty_int -> Autov.Smtty.Int
-      | Ty_constructor _ -> Autov.Smtty.Int
+      | Ty_int -> Autov.Smtty.Int
+      | Ty_list _ | Ty_tree _ | Ty_constructor _ -> Autov.Smtty.Dt
       | _ -> _failatwith __FILE__ __LINE__ "not a basic type"
     in
     aux t

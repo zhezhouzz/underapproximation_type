@@ -6,8 +6,8 @@ let abs (u : 'forall * int) =
   let x = (v : int) (u < v) in
   (v : int) (0 <= v && u < v)
 
-let abs (u : 'exists * int) =
-  let x = (v : int) (v == u) in
+let abs =
+  let x (u : int) = (v : int) (v == u) in
   (v : int) (if x < 0 then v == 0 else v == x)
 
 let abs =

@@ -98,5 +98,42 @@ module F (R : Refinement.T) = struct
     try match subtract ctx ctx' with [] -> true | _ -> false with _ -> false
 end
 
-module UnderTypectx = F (Underty.T)
+module UnderTypectx = struct
+  include F (Underty.T)
+  open Underty.T
+  open Typed.Ntyped
+  open Sugar
+  module UL = Anormal.UnderAnormal
+
+  let add_to_right ctx UL.{ ty; x } = add_to_right ctx (ty, x)
+
+  let add_hidden_vars_to_right ctx (hvs, ty) =
+    let hvs, ty =
+      List.fold_left
+        (fun (hvs, ty) x ->
+          let x' = { x = Rename.unique x.x; ty = x.ty } in
+          (hvs @ [ x' ], subst_id ty x.x x'.x))
+        ([], ty) hvs
+    in
+    let hvs = List.map (fun x -> (make_basic_top x.ty, x.x)) hvs in
+    (add_to_rights ctx hvs, ty)
+
+  let add_to_rights ctx l = List.fold_left add_to_right ctx l
+
+  let add_arrow_arg_to_right ctx (hidden_vars, id) =
+    let ctx, idty = add_hidden_vars_to_right ctx (hidden_vars, id.UL.ty) in
+    add_to_right ctx { x = id.x; ty = idty }
+
+  let get_nt = function
+    | [] -> _failatwith __FILE__ __LINE__ "never happen"
+    | h :: _ -> erase h
+
+  let extract_vars_by_nt ctx nt =
+    List.filter_map
+      (fun (x, tys) ->
+        let nt' = get_nt tys in
+        if Normalty.T.eq nt nt' then Some x else None)
+      ctx
+end
+
 module OverTypectx = F (Overty.T)
