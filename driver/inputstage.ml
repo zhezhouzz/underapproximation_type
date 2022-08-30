@@ -54,7 +54,6 @@ let load_under_refinments refine_file =
       Qunderty.quantified_undertype_of_ocamlexpr
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
-  (* NOTE: we do not infer the type of the quantified variables any more *)
   let refinements =
     List.map
       ~f:

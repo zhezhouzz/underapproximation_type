@@ -134,6 +134,9 @@ module UnderTypectx = struct
         let nt' = get_nt tys in
         if Normalty.T.eq nt nt' then Some x else None)
       ctx
+
+  let destrct_right ctx =
+    match List.rev ctx with [] -> None | h :: t -> Some (List.rev t, h)
 end
 
 module OverTypectx = F (Overty.T)

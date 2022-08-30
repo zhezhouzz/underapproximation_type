@@ -64,6 +64,9 @@ let erase_check_mk_id file line id underfty =
 
 let subtyping_check = Undersub.subtyping_check
 
+let subtyping_check__with_hidden_vars =
+  Undersub.subtyping_check_with_hidden_vars
+
 let close_term_by_diff ctx' ctx UL.{ ty; x } =
   UL.{ x; ty = Qtypectx.close_by_diff ctx' ctx ty }
 
@@ -183,20 +186,23 @@ and handle_letdetu ctx (tu, args, body) target_type =
 and handle_letapp ctx (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
-  let () = Frontend.Qtypectx.pretty_print ctx in
+  (* let () = Frontend.Qtypectx.pretty_print ctx in *)
   let args = List.map (id_type_infer ctx) args in
   (* let () = Pp.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in *)
   (* let () = Pp.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
   (* let argsty, retty = UT.destruct_arrow_tp fty' in *)
-  (* let () = Pp.printf "start type check for let %s\n" ret.NL.x in *)
+  let () = Frontend.Qtypectx.pretty_print_app_judge ctx (args, fty) in
   (* arguments type check *)
   let rec aux = function
     | [], ty -> ty
     | arg :: args, UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-        let ctx', argty =
-          Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, argty)
+        let hidden_vars, argty =
+          Qtypectx.rename_hidden_vars ctx (hidden_vars, argty)
         in
-        let () = subtyping_check __FILE__ __LINE__ ctx' arg.ty argty in
+        let () =
+          subtyping_check__with_hidden_vars __FILE__ __LINE__ ctx arg.ty
+            hidden_vars argty
+        in
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -347,10 +353,12 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
                 (hidden_vars, argty, args)
             | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
           in
-          let ctx', retty =
-            Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, retty)
+          (* let ctx', retty =  *)
+          (*   Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, retty) *)
+          (* in *)
+          let ctx' =
+            Qtypectx.conjunct ctx (matched.x, UT.add_ex_vars hidden_vars retty)
           in
-          let ctx' = Qtypectx.conjunct ctx' (matched.x, retty) in
           let ctx' = Qtypectx.add_to_rights ctx' args in
           let exp = term_type_infer ctx' exp in
           ( Qtypectx.close_by_diff ctx' ctx exp.ty,

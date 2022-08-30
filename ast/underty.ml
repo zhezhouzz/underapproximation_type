@@ -329,6 +329,8 @@ module T = struct
     let f_apply prop = P.Exists (NTyped.to_q_typed id, prop) in
     work_on_retty if_apply (t_apply, f_apply) t
 
+  let add_ex_vars ids t = List.fold_right add_ex_var ids t
+
   let instantiate_universial m t =
     let mk_conj prop m =
       P.And

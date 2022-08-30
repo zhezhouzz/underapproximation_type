@@ -20,7 +20,7 @@ let layout_qt uqvs eqvs qbody = mk_uqs uqvs ^ mk_eqs eqvs ^ qbody
 (*   (List.fold_right (fun x e -> mk_q (Ex, x, e)) eqvs qbody) *)
 
 let print_qt uqvs eqvs =
-  Pp.printf "@{<yellow>%s@}@{<blue>%s@}" (mk_uqs uqvs) (mk_eqs eqvs)
+  Pp.printf "@{<yellow>%s@}@{<green>%s@}" (mk_uqs uqvs) (mk_eqs eqvs)
 
 let print_qt_ uqvs eqvs =
-  Pp.printf "@{<yellow>%s@}@{<blue>%s@}" (mk_uqs_ uqvs) (mk_eqs_ eqvs)
+  Pp.printf "@{<yellow>%s@}@{<green>%s@}" (mk_uqs_ uqvs) (mk_eqs_ eqvs)

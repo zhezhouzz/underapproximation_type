@@ -9,14 +9,26 @@ type mode = Under | Tuple
 
 let prop_of_ocamlexpr e =
   let prop = Autov.prop_of_ocamlexpr e in
-  let uqvs, _, _ = Autov.Prop.to_fe_nf prop in
-  if List.length uqvs != 0 then
-    failwith
-      (Sugar.spf
-         "Syntax error: refinement proposition cannot contain universial \
-          quantified variables: %s"
-      @@ Autov.pretty_layout_prop prop)
-  else prop
+  let uqvs, eqvs, _ = Autov.Prop.to_fe_nf prop in
+  let () =
+    if List.length uqvs != 0 then
+      failwith
+        (Sugar.spf
+           "Syntax error: refinement proposition cannot contain universial \
+            quantified variables: %s"
+        @@ Autov.pretty_layout_prop prop)
+    else ()
+  in
+  let () =
+    if List.length eqvs != 0 then
+      failwith
+        (Sugar.spf
+           "Syntax error: refinement proposition cannot contain existential \
+            quantified variables: %s"
+        @@ Autov.pretty_layout_prop prop)
+    else ()
+  in
+  prop
 
 let mode_of_ocamlexpr e =
   match (Expr.expr_of_ocamlexpr e).x with

@@ -366,15 +366,15 @@ module T = struct
         (u' :: eqvs, subst_id e u.x u'.x)
       else (u :: eqvs, e)
     in
-    let print l =
-      List.fold_left (fun str x -> Printf.sprintf "%s, %s" str x.x) "" l
-    in
+    (* let print l = *)
+    (*   List.fold_left (fun str x -> Printf.sprintf "%s, %s" str x.x) "" l *)
+    (* in *)
     let unique_merge2 eqvs1 (eqvs2, e2) =
       let eqvs, e2 = List.fold_left unique_add (eqvs1, e2) eqvs2 in
-      let () =
-        Printf.printf "MERGE: [%s] ++ [%s] = [%s]\n" (print eqvs1) (print eqvs2)
-          (print eqvs)
-      in
+      (* let () = *)
+      (*   Printf.printf "MERGE: [%s] ++ [%s] = [%s]\n" (print eqvs1) (print eqvs2) *)
+      (*     (print eqvs) *)
+      (* in *)
       (eqvs, e2)
     in
     let rec unique_merges = function
