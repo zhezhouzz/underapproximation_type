@@ -1,5 +1,6 @@
 module Exp = Languages.Termlang
 module V = Languages.Value
+module NType = Languages.NNormalty
 module Type = Languages.Normalty
 module Typectx = Languages.NSimpleTypectx
 open Zzdatatype.Datatype
@@ -43,33 +44,39 @@ let rec check_against_value (c : Value.t) ty =
 let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
   match x.ty with
-  | None -> type_infer ctx x.x
-  | Some ty -> (type_check ctx x.x ty, ty)
+  | None ->
+      let e, ty = type_infer ctx x.x in
+      (e, ty)
+  | Some ty -> (type_check ctx x.x ty, snd ty)
 
-and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped) (ty : t) :
-    Exp.term Exp.opttyped =
+and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
+    (ty : NType.t) : Exp.term Exp.opttyped =
   match x.ty with
   | None -> type_check ctx x.x ty
   | Some ty' ->
-      let ty = _check_equality __FILE__ __LINE__ eq ty ty' in
-      type_check ctx x.x ty
+      let sndty = _check_equality __FILE__ __LINE__ eq (snd ty) (snd ty') in
+      type_check ctx x.x (fst ty, sndty)
 
-and type_check (ctx : Typectx.t) (x : Exp.term) (ty : t) : Exp.term Exp.opttyped
-    =
+and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
+    Exp.term Exp.opttyped =
   let open Exp in
-  match (x, ty) with
+  match (x, snd ty) with
   | Const _, _ | Var _, _ | Op (_, _), _ ->
       let x, ty' = type_infer ctx x in
-      let _ = _check_equality __FILE__ __LINE__ eq ty ty' in
+      let _ = _check_equality __FILE__ __LINE__ eq (snd ty) ty' in
       x
   | Tu es, Ty_tuple tys ->
       let estys = _safe_combine __FILE__ __LINE__ es tys in
-      let es = List.map (fun (e, ty) -> bidirect_type_check ctx e ty) estys in
+      let es =
+        List.map (fun (e, ty) -> bidirect_type_check ctx e (None, ty)) estys
+      in
       { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
-      let idty = _check_equality __FILE__ __LINE__ eq idty t1 in
-      let ctx' = Typectx.add_to_right ctx (idty, id) in
-      let body = bidirect_type_check ctx' body t2 in
+      let idty =
+        (fst idty, _check_equality __FILE__ __LINE__ eq (snd idty) t1)
+      in
+      let ctx' = Typectx.add_to_right ctx (snd idty, id) in
+      let body = bidirect_type_check ctx' body (None, t2) in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
       let f, fty = bidirect_type_infer ctx f in
@@ -77,42 +84,50 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : t) : Exp.term Exp.opttyped
       let ty = _check_equality __FILE__ __LINE__ eq bodyty ty in
       let argsargsty = _safe_combine __FILE__ __LINE__ args argsty in
       let args =
-        List.map (fun (e, ty) -> bidirect_type_check ctx e ty) argsargsty
+        List.map
+          (fun (e, ty) -> bidirect_type_check ctx e (None, ty))
+          argsargsty
       in
-      { ty = Some ty; x = App (f, args) }
-  | Let (if_rec, args, rhs, body), ty ->
+      { ty = Some (None, ty); x = App (f, args) }
+  | Let (if_rec, args, rhs, body), _ ->
       let xsty = List.map fst args in
       let rhsty =
         match xsty with
         | [] ->
             _failatwith __FILE__ __LINE__ "type_infer: let binding lhs is empty"
         | [ tp ] -> tp
-        | l -> Ty_tuple l
+        | l -> (None, Ty_tuple (List.map snd l))
       in
       let rhs = bidirect_type_check ctx rhs rhsty in
-      let ctx' = List.fold_left Typectx.add_to_right ctx args in
+      let ctx' =
+        List.fold_left Typectx.add_to_right ctx
+          (List.map (fun ((_, ty), id) -> (ty, id)) args)
+      in
       let ctx' =
         if if_rec then
-          Typectx.add_to_right ctx (construct_arrow_tp (xsty, ty), "f")
+          Typectx.add_to_right ctx
+            (construct_arrow_tp (List.map snd xsty, snd ty), "f")
         else ctx'
       in
       let body = bidirect_type_check ctx' body ty in
       { ty = Some ty; x = Let (if_rec, args, rhs, body) }
-  | Ite (e1, e2, e3), ty ->
-      let e1 = bidirect_type_check ctx e1 Ty_bool in
+  | Ite (e1, e2, e3), _ ->
+      let e1 = bidirect_type_check ctx e1 (None, Ty_bool) in
       let e2 = bidirect_type_check ctx e2 ty in
       let e3 = bidirect_type_check ctx e3 ty in
       { ty = Some ty; x = Ite (e1, e2, e3) }
   | Match (_, []), _ ->
       _failatwith __FILE__ __LINE__
         "type_infer: pattern matching branch is empty"
-  | Match (e, cases), ty ->
+  | Match (e, cases), _ ->
       let e, ety = bidirect_type_infer ctx e in
       let handle_case { constructor; args; exp } =
         let constructor_ty =
           Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
         in
-        let constructor = { ty = Some constructor_ty; x = constructor.x } in
+        let constructor =
+          { ty = Some (None, constructor_ty); x = constructor.x }
+        in
         let argsty, _ = destruct_arrow_tp constructor_ty in
         let ctx' =
           List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
@@ -133,36 +148,36 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   match x with
   | Const c ->
       let ty = infer_value c in
-      ({ ty = Some ty; x }, ty)
+      ({ ty = Some (None, ty); x }, ty)
   | Var id ->
       let ty =
         match Typectx.get_opt ctx id with
         | None -> Prim.get_primitive_normal_ty id
         | Some (_, x) -> x
       in
-      ({ ty = Some ty; x }, ty)
+      ({ ty = Some (None, ty); x }, ty)
   | Tu es ->
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in
       let ty = Ty_tuple esty in
-      ({ ty = Some ty; x = Tu es }, ty)
+      ({ ty = Some (None, ty); x = Tu es }, ty)
   | Lam (idty, id, body) ->
-      let ctx' = Typectx.add_to_right ctx (idty, id) in
+      let ctx' = Typectx.add_to_right ctx (snd idty, id) in
       let body, bodyty = bidirect_type_infer ctx' body in
-      let ty = Ty_arrow (idty, bodyty) in
-      ({ ty = Some ty; x = Lam (idty, id, body) }, ty)
+      let ty = Ty_arrow (snd idty, bodyty) in
+      ({ ty = Some (None, ty); x = Lam (idty, id, body) }, ty)
   | Op (op, args) ->
       let args, argsty =
         List.split @@ List.map (bidirect_type_infer ctx) args
       in
       let ty = Opcheck.check (op, argsty) in
-      ({ ty = Some ty; x = Op (op, args) }, ty)
+      ({ ty = Some (None, ty); x = Op (op, args) }, ty)
   | App (f, args) ->
       let f, fty = bidirect_type_infer ctx f in
       let rec aux (fty, args) =
         match (fty, args) with
         | _, [] -> (fty, [])
         | Ty_arrow (t1, t2), arg :: args ->
-            let arg = bidirect_type_check ctx arg t1 in
+            let arg = bidirect_type_check ctx arg (None, t1) in
             let bodytp, args = aux (t2, args) in
             (bodytp, arg :: args)
         | _ ->
@@ -170,7 +185,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
               "type_infer: App, not a function type or wrong args number"
       in
       let ty, args = aux (fty, args) in
-      ({ ty = Some ty; x = App (f, args) }, ty)
+      ({ ty = Some (None, ty); x = App (f, args) }, ty)
   | Let (true, _, _, _) ->
       _failatwith __FILE__ __LINE__
         "cannot infer ret type of recursive function"
@@ -186,18 +201,21 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         | [] ->
             _failatwith __FILE__ __LINE__ "type_infer: let binding lhs is empty"
         | [ tp ] -> tp
-        | l -> Ty_tuple l
+        | l -> (None, Ty_tuple (List.map snd l))
       in
       let rhs = bidirect_type_check ctx rhs rhsty in
-      let ctx' = List.fold_left Typectx.add_to_right ctx args in
+      let ctx' =
+        List.fold_left Typectx.add_to_right ctx
+          (List.map (fun ((_, ty), id) -> (ty, id)) args)
+      in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = bodyty in
-      ({ ty = Some ty; x = Let (if_rec, args, rhs, body) }, ty)
+      ({ ty = Some (None, ty); x = Let (if_rec, args, rhs, body) }, ty)
   | Ite (e1, e2, e3) ->
-      let e1 = bidirect_type_check ctx e1 Ty_bool in
+      let e1 = bidirect_type_check ctx e1 (None, Ty_bool) in
       let e2, ty = bidirect_type_infer ctx e2 in
-      let e3 = bidirect_type_check ctx e3 ty in
-      ({ ty = Some ty; x = Ite (e1, e2, e3) }, ty)
+      let e3 = bidirect_type_check ctx e3 (None, ty) in
+      ({ ty = Some (None, ty); x = Ite (e1, e2, e3) }, ty)
   | Match (_, []) ->
       _failatwith __FILE__ __LINE__
         "type_infer: pattern matching branch is empty"
@@ -207,7 +225,9 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         let constructor_ty =
           Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
         in
-        let constructor = { ty = Some constructor_ty; x = constructor.x } in
+        let constructor =
+          { ty = Some (None, constructor_ty); x = constructor.x }
+        in
         let argsty, _ = destruct_arrow_tp constructor_ty in
         let ctx' =
           List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
@@ -225,7 +245,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
               (fun ty ty' -> _check_equality __FILE__ __LINE__ eq ty ty')
               ty t
       in
-      ({ ty = Some ty; x = Match (e, cases) }, ty)
+      ({ ty = Some (None, ty); x = Match (e, cases) }, ty)
 
 let check ctx e = fst @@ bidirect_type_infer ctx e
 
@@ -241,8 +261,8 @@ let struc_check ctx l =
         | Lam (ty, _, body) ->
             Sugar.(
               let* bty = get_fty body in
-              Some (Ty_arrow (ty, bty)))
-        | _ -> e.ty
+              Some (Ty_arrow (snd ty, bty)))
+        | _ -> ( match e.ty with None -> None | Some (_, t) -> Some t)
       in
       match (if_rec, get_fty body) with
       | false, _ -> { if_rec; name; body = check ctx body }
@@ -251,7 +271,9 @@ let struc_check ctx l =
             "cannot infer ret type of recursive function"
       | true, Some ty ->
           let body =
-            bidirect_type_check Typectx.(add_to_right ctx (ty, name)) body ty
+            bidirect_type_check
+              Typectx.(add_to_right ctx (ty, name))
+              body (None, ty)
           in
           { if_rec; name; body })
     l

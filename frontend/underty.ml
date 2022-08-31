@@ -45,7 +45,7 @@ let undertype_of_ocamlexpr expr =
           List.map (fun x ->
               match x.ty with
               | None -> failwith "undertype_of_ocamlexpr"
-              | Some ty -> Ntyped.{ x = x.x; ty })
+              | Some (_, ty) -> Ntyped.{ x = x.x; ty })
           @@ Pat.patten_to_typed_ids var
         in
         (hidden_vars, aux e)
@@ -56,7 +56,7 @@ let undertype_of_ocamlexpr expr =
         let x = Expr.expr_of_ocamlexpr x in
         let normalty, basename =
           match (x.ty, x.x) with
-          | Some ty, Var x -> (ty, x)
+          | Some (_, ty), Var x -> (ty, x)
           | _, _ -> failwith "undertype_of_ocamlexpr"
         in
         let prop = prop_of_ocamlexpr @@ snd prop in
@@ -82,7 +82,8 @@ let undertype_to_ocamlexpr x =
     | UnderTy_base { basename; normalty; prop } ->
         let mode = Expr.expr_to_ocamlexpr { ty = None; x = Var "under" } in
         let x =
-          Expr.expr_to_ocamlexpr { ty = Some normalty; x = Var basename }
+          Expr.expr_to_ocamlexpr
+            { ty = Some (None, normalty); x = Var basename }
         in
         let prop = Autov.prop_to_ocamlexpr prop in
         Expr.desc_to_ocamlexpr
@@ -93,7 +94,8 @@ let undertype_to_ocamlexpr x =
           Pat.typed_ids_to_pattens
           @@ List.map
                (fun x ->
-                 Languages.Termlang.{ x = x.Ntyped.x; ty = Some x.Ntyped.ty })
+                 Languages.Termlang.
+                   { x = x.Ntyped.x; ty = Some (None, x.Ntyped.ty) })
                hidden_vars
         in
         Expr.desc_to_ocamlexpr

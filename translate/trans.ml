@@ -2,7 +2,7 @@ module S = Languages.Struc
 module SN = Languages.StrucNA
 module N = Languages.NormalAnormal
 module T = Languages.Termlang
-open Languages.Ntyped
+open Languages.NNtyped
 
 (* let term_to_nan code = Na.simplify @@ Term2normalanormal.to_anormal code *)
 let nan_to_term = Term2normalanormal.to_term

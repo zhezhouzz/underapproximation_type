@@ -28,7 +28,7 @@ and typed_expr_to_ocamlexpr_desc expr =
   | Some ty ->
       Pexp_constraint
         ( desc_to_ocamlexpr @@ expr_to_ocamlexpr_desc expr.L.x,
-          Type.t_to_core_type ty )
+          Type.notated_t_to_core_type ty )
 
 and expr_to_ocamlexpr_desc expr =
   let aux expr =
@@ -142,7 +142,7 @@ let expr_of_ocamlexpr expr =
         let ty = Type.core_type_to_t ty in
         L.(
           match e.ty with
-          | None -> { ty = Some ty; x = e.x }
+          | None -> { ty = Some (None, ty); x = e.x }
           | Some _ -> failwith "multi typed"))
     | Pexp_ident id -> id_to_var id
     | Pexp_construct (c, args) -> (
@@ -259,7 +259,7 @@ let expr_of_ocamlexpr expr =
     match prim with
     | Some (Op.T.PrimOp op, _) -> L.(make_untyped @@ Op (op, args))
     | Some (Op.T.DtConstructor f, ty) | Some (Op.T.External f, ty) ->
-        L.(make_untyped @@ App ({ x = Var f; ty = Some ty }, args))
+        L.(make_untyped @@ App ({ x = Var f; ty = Some (None, ty) }, args))
     | None -> L.(make_untyped @@ App (func, args))
   in
   aux expr

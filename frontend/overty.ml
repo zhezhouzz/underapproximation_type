@@ -20,7 +20,7 @@ let overtype_of_ocamlexpr expr =
         let x = Expr.expr_of_ocamlexpr x in
         let normalty, basename =
           match (x.ty, x.x) with
-          | Some ty, Var x -> (ty, x)
+          | Some (_, ty), Var x -> (ty, x)
           | _, _ -> failwith "overtype_of_ocamlexpr"
         in
         let prop = Autov.prop_of_ocamlexpr @@ snd prop in
@@ -61,7 +61,8 @@ let overtype_to_ocamlexpr x =
     | OverTy_base { basename; normalty; prop } ->
         let mode = Expr.expr_to_ocamlexpr { ty = None; x = Var "over" } in
         let x =
-          Expr.expr_to_ocamlexpr { ty = Some normalty; x = Var basename }
+          Expr.expr_to_ocamlexpr
+            { ty = Some (None, normalty); x = Var basename }
         in
         let prop = Autov.prop_to_ocamlexpr prop in
         Expr.desc_to_ocamlexpr

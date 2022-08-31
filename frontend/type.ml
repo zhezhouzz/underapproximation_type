@@ -47,6 +47,11 @@ and core_type_desc_to_t t =
       | _, _ -> failwith @@ Printf.sprintf "un-imp: %s" (layout_ @@ desc_to_ct t)
       )
 
+let core_type_to_notated_t ct =
+  match ct.ptyp_desc with
+  | Ptyp_extension (name, PTyp ty) -> (Some name.txt, core_type_to_t ty)
+  | _ -> (None, core_type_to_t ct)
+
 let rec t_to_core_type t = desc_to_ct (t_to_core_type_desc t)
 
 and t_to_core_type_desc t =
@@ -65,22 +70,9 @@ and t_to_core_type_desc t =
     | T.Ty_unit -> mk0 "unit"
     | T.Ty_bool -> mk0 "bool"
     | T.Ty_int -> mk0 "int"
-    (* | T.Ref t -> mk1 "ref" (t_to_core_type t) *)
     | T.Ty_list t -> mk1 "list" (t_to_core_type t)
-    (* | T.Array t -> mk1 "array" (t_to_core_type t) *)
     | T.Ty_tree t -> mk1 "tree" (t_to_core_type t)
     | T.Ty_tuple t -> Ptyp_tuple (List.map t_to_core_type t)
-    (* | T.Record t -> *)
-    (*     Ptyp_object *)
-    (*       ( List.map *)
-    (*           (fun (name, t) -> *)
-    (*             { *)
-    (*               pof_desc = Otag (Location.mknoloc name, t_to_core_type t); *)
-    (*               pof_loc = Location.none; *)
-    (*               pof_attributes = []; *)
-    (*             }) *)
-    (*           t, *)
-    (*         Asttypes.Closed ) *)
     | T.Ty_arrow (t1, t2) ->
         Ptyp_arrow (Asttypes.Nolabel, t_to_core_type t1, t_to_core_type t2)
     | Ty_constructor (id, args) ->
@@ -93,6 +85,12 @@ and t_to_core_type_desc t =
             List.map t_to_core_type args )
   in
   aux t
+
+let notated_t_to_core_type (name, t) =
+  let ct = t_to_core_type t in
+  match name with
+  | None -> ct
+  | Some name -> desc_to_ct (Ptyp_extension (Location.mknoloc name, PTyp ct))
 
 let layout t = layout_ (t_to_core_type t)
 let of_string str = core_type_to_t @@ Parse.core_type @@ Lexing.from_string str

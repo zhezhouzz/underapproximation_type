@@ -47,13 +47,21 @@ let layout l = spf "%s\n" (List.split_by "\n" layout_one l)
 let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
   match structure.pstr_desc with
   | Pstr_value (_, [ value_binding ]) ->
+      let a =
+        match value_binding.pvb_attributes with
+        | [ x ] ->
+            (* let () = Printf.printf "attr_name:%s\n" x.attr_name.txt in *)
+            String.equal x.attr_name.txt "notation"
+        | _ -> false
+      in
       let name =
         match (Pat.pattern_to_slang value_binding.pvb_pat).x with
         | L.Var name -> name
         | _ -> failwith "die"
       in
+      (* let () = Printf.printf "name:<%b>%s\n" a name in *)
       let refinement = t_of_ocamlexpr value_binding.pvb_expr in
-      (name, refinement)
+      ((a, name), refinement)
   | _ -> raise @@ failwith "translate not a function value"
 
 let refinement_of_ocamlstruct t_of_ocamlexpr structures =

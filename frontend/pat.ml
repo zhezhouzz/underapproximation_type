@@ -24,7 +24,7 @@ let rec pattern_to_slang pattern =
       (*   Printf.printf "paring id:%s tp:%s\n" (layout_ ident) (Type.layout_ tp) *)
       (* in *)
       let term = pattern_to_slang ident in
-      L.{ ty = Some (Type.core_type_to_t tp); x = term.x }
+      L.{ ty = Some (Type.core_type_to_notated_t tp); x = term.x }
   | Ppat_construct (c, args) ->
       let c =
         match Longident.flatten c.txt with
@@ -75,7 +75,7 @@ and slang_to_pattern_desc slang =
   match slang.L.ty with
   | None -> slang_to_pattern_desc_untyped slang.L.x
   | Some ty ->
-      let ty = Type.t_to_core_type ty in
+      let ty = Type.notated_t_to_core_type ty in
       let pat = dest_to_pat @@ slang_to_pattern_desc_untyped slang.L.x in
       (* let () = *)
       (*   Printf.printf "layout id:%s tp:%s\n" (layout_ pat) (Type.layout_ ty) *)
@@ -86,10 +86,6 @@ and slang_to_pattern_desc slang =
 let to_typed_slang x =
   let open L in
   let rec aux l x =
-    (* let _ = *)
-    (*   Printf.printf "to_typed_slang: %s\n" *)
-    (*     (match x.ty with None -> "none" | Some ty -> Type.layout ty) *)
-    (* in *)
     match x.x with
     | Var name -> l @ [ { ty = x.ty; x = name } ]
     | Tu xs -> List.fold_left aux l xs

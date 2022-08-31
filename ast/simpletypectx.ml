@@ -15,3 +15,4 @@ module NSimpleTypectx = struct
 end
 
 module SMTSimpleTypectx = F (Autov.Smtty)
+module UTSimpleTypectx = F (Underty.T)

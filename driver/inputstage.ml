@@ -40,7 +40,16 @@ let load_over_refinments refine_file =
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
   let refinements =
-    List.map ~f:(fun (name, ty) -> (name, Overtycheck.infer ty)) refinements
+    List.map
+      ~f:(fun ((a, name), ty) -> (a, (name, Overtycheck.infer ty)))
+      refinements
+  in
+  let notations, refinements =
+    Sugar.map2 (List.map ~f:snd) @@ List.partition_tf ~f:fst refinements
+  in
+  let () =
+    Printf.printf "[Loading notations type]:\n%s"
+      (Structure.layout_refinements Overty.pretty_layout notations)
   in
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
@@ -58,15 +67,22 @@ let load_under_refinments refine_file =
     List.map
       ~f:
         Languages.Qunderty.(
-          fun (name, { qvs; qbody }) ->
-            (name, { qvs; qbody = Undertycheck.infer qvs qbody }))
+          fun ((a, name), { qvs; qbody }) ->
+            (a, (name, { qvs; qbody = Undertycheck.infer qvs qbody })))
       refinements
+  in
+  let notations, refinements =
+    Sugar.map2 (List.map ~f:snd) @@ List.partition_tf ~f:fst refinements
+  in
+  let () =
+    Printf.printf "[Loading notations type]:\n%s"
+      (Structure.layout_refinements Qunderty.pretty_layout notations)
   in
   let () =
     Printf.printf "[Loading refinement type]:\n%s"
       (Structure.layout_refinements Qunderty.pretty_layout refinements)
   in
-  refinements
+  (notations, refinements)
 
 let load_type_decls refine_file =
   let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in

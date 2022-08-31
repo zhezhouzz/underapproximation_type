@@ -130,6 +130,6 @@ module F (Type : Type.T) = struct
     res
 end
 
-module NormalAnormal = F (Normalty.T)
+module NormalAnormal = F (Normalty.NotatedT)
 module OverAnormal = F (Overty.T)
 module UnderAnormal = F (Underty.T)

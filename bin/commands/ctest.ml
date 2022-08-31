@@ -73,7 +73,8 @@ let parsing_over_refinements =
         let () = Config.load_default () in
         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
         let refinements =
-          Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x
+          List.map ~f:(fun ((_, a), b) -> (a, b))
+          @@ Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x
         in
         let () =
           Printf.printf "%s"
@@ -89,7 +90,9 @@ let parsing_under_refinements =
         let () = Config.load_default () in
         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
         let refinements =
-          Structure.refinement_of_ocamlstruct Underty.undertype_of_ocamlexpr x
+          List.map ~f:(fun ((_, a), b) -> (a, b))
+          @@ Structure.refinement_of_ocamlstruct Underty.undertype_of_ocamlexpr
+               x
         in
         let () =
           Printf.printf "%s"
@@ -130,8 +133,12 @@ let under_type_check =
       fun () ->
         let () = Config.load_default () in
         let code = Inputstage.load_ssa source_file in
-        let refinements = Inputstage.load_under_refinments refine_file in
-        let code = Typecheck.Undercheck.struc_check code refinements in
+        let notations, refinements =
+          Inputstage.load_under_refinments refine_file
+        in
+        let code =
+          Typecheck.Undercheck.struc_check code notations refinements
+        in
         ())
 
 let init =

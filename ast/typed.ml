@@ -10,3 +10,12 @@ module Ntyped = struct
   let eq a b = String.equal a.x b.x && Normalty.T.eq a.ty b.ty
   let to_q_typed { ty; x } = Autov.Prop.{ ty = Normalty.T.to_smtty ty; x }
 end
+
+module NNtyped = struct
+  include F (Normalty.NotatedT)
+
+  let eq a b = String.equal a.x b.x && Normalty.NotatedT.eq a.ty b.ty
+
+  let to_q_typed { ty; x } =
+    Autov.Prop.{ ty = Normalty.T.to_smtty @@ snd ty; x }
+end

@@ -1,7 +1,7 @@
 module T = struct
   open Sexplib.Std
 
-  type ty = Normalty.T.t [@@deriving sexp]
+  type ty = string option * Normalty.T.t [@@deriving sexp]
   type id = Strid.T.t [@@deriving sexp]
   type 'a opttyped = { ty : ty option; x : 'a } [@@deriving sexp]
   type if_rec = bool [@@deriving sexp]

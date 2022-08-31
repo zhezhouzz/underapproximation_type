@@ -21,7 +21,7 @@ let lit_to_prop_lit (ty, x) =
   | ConstI i -> P.(ACint i)
   | Var id -> P.(AVar { ty; x = id })
 
-let erase_check file line (overfty, normalty) =
+let erase_check file line (overfty, (_, normalty)) =
   (* let () = *)
   (*   Printf.printf "|_ %s _| = %s\n" *)
   (*     (Frontend.Overtype.layout overfty) *)
@@ -36,7 +36,7 @@ let erase_check_mk_id file line id overfty =
   (*     (Frontend.Overtype.layout overfty) *)
   (*     (Frontend.Type.layout @@ OT.erase overfty) *)
   (* in *)
-  let _ = _check_equality file line NT.eq (OT.erase overfty) id.NL.ty in
+  let _ = _check_equality file line NT.eq (OT.erase overfty) (snd id.NL.ty) in
   OL.{ ty = overfty; x = id.x }
 
 let hide_depedent_var ctx name ty =

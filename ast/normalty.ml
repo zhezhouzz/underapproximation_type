@@ -64,3 +64,15 @@ module T = struct
     in
     aux t
 end
+
+module NotatedT = struct
+  open Sexplib.Std
+
+  type t = string option * T.t [@@deriving sexp]
+
+  let eq (a1, b1) (a2, b2) =
+    match (a1, a2) with
+    | None, None -> T.eq b1 b2
+    | Some a1, Some a2 when String.equal a1 a2 -> T.eq b1 b2
+    | _ -> false
+end

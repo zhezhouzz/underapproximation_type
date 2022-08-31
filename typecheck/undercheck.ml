@@ -49,7 +49,7 @@ let erase_check file line (underfty, normalty) =
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (*     (Frontend.Type.layout normalty) *)
   (* in *)
-  let _ = _check_equality file line NT.eq (UT.erase underfty) normalty in
+  let _ = _check_equality file line NT.eq (UT.erase underfty) (snd normalty) in
   ()
 
 let erase_check_mk_id file line id underfty =
@@ -59,7 +59,7 @@ let erase_check_mk_id file line id underfty =
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (*     (Frontend.Type.layout id.NL.ty) *)
   (* in *)
-  let _ = _check_equality file line NT.eq (UT.erase underfty) id.NL.ty in
+  let _ = _check_equality file line NT.eq (UT.erase underfty) (snd id.NL.ty) in
   UL.{ ty = underfty; x = id.x }
 
 let subtyping_check = Undersub.subtyping_check
@@ -101,32 +101,60 @@ and lit_type_infer (ctx : Qtypectx.t) (lit : NL.smt_lit NL.typed) :
       let id = id_type_infer ctx { ty = lit.ty; x = id } in
       UL.{ ty = id.ty; x = Var id.x }
 
-and value_type_infer (ctx : Qtypectx.t) (a : NL.value NL.typed) :
-    UL.value UL.typed =
+and value_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
+    (ctx : Qtypectx.t) (a : NL.value NL.typed) : UL.value UL.typed =
   let aty = a.ty in
   match a.x with
   | NL.Lit lit ->
       let lit = lit_type_infer ctx { ty = aty; x = lit } in
       UL.{ ty = lit.ty; x = Lit lit.x }
-  | NL.Lam (_, _) ->
-      (* NOTE: Can we infer a type of the lambda function without the argment type? *)
-      _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
+  | NL.Lam (id, body) -> (
+      match fst id.ty with
+      | None -> _failatwith __FILE__ __LINE__ "die"
+      | Some typename -> (
+          match
+            Simpletypectx.UTSimpleTypectx.get_opt notations_ctx typename
+          with
+          | Some (_, idty) ->
+              let id = erase_check_mk_id __FILE__ __LINE__ id idty in
+              let ctx' = Qtypectx.add_to_right ctx id in
+              let body = term_type_infer notations_ctx ctx' body in
+              UL.
+                {
+                  ty =
+                    UnderTy_arrow
+                      {
+                        argname = id.x;
+                        hidden_vars = [];
+                        argty = id.ty;
+                        retty = body.ty;
+                      };
+                  x = Lam (id, body);
+                }
+          | None ->
+              _failatwith __FILE__ __LINE__
+              @@ spf "cannot find the notation of %s (named %s)" id.x typename))
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
-and value_type_check (ctx : Qtypectx.t) (a : NL.value NL.typed) (ty : UT.t) :
-    UL.value UL.typed =
+and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
+    (ctx : Qtypectx.t) (a : NL.value NL.typed) (ty : UT.t) : UL.value UL.typed =
   let open UT in
   let result =
     match (a.NL.x, ty) with
     | NL.Lit _, _ ->
-        let x = value_type_infer ctx a in
+        let x = value_type_infer notations_ctx ctx a in
         let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
         x
     | NL.Lam (id, body), UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+        let () =
+          match Simpletypectx.UTSimpleTypectx.get_opt notations_ctx id.x with
+          | Some _ -> _failatwith __FILE__ __LINE__ "die"
+          | None -> ()
+        in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
         let ctx' = Qtypectx.add_arrow_arg_to_right ctx (hidden_vars, id) in
         let retty = UT.subst_id retty argname id.x in
-        let body = term_type_check ctx' body retty in
+        let body = term_type_check notations_ctx ctx' body retty in
         {
           ty = UnderTy_arrow { argname; hidden_vars; argty; retty = body.ty };
           x = Lam (id, body);
@@ -134,13 +162,14 @@ and value_type_check (ctx : Qtypectx.t) (a : NL.value NL.typed) (ty : UT.t) :
     | NL.Fix (f, body), ty ->
         let f = erase_check_mk_id __FILE__ __LINE__ f ty in
         let ctx' = Qtypectx.add_to_right ctx f in
-        let body = value_type_check ctx' body ty in
+        let body = value_type_check notations_ctx ctx' body ty in
         { ty = body.ty; x = Fix (f, body) }
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result
 
-and handle_lettu ctx (tu, args, body) target_type =
+and handle_lettu (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
+    (tu, args, body) target_type =
   let open UL in
   let args = List.map (id_type_infer ctx) args in
   let tu =
@@ -151,15 +180,16 @@ and handle_lettu ctx (tu, args, body) target_type =
   let ty, body =
     match target_type with
     | None ->
-        let body = term_type_infer ctx' body in
+        let body = term_type_infer notations_ctx ctx' body in
         (Qtypectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
-        let body = term_type_check ctx' body ty in
+        let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
   in
   UL.{ ty; x = LetTu { tu; args; body } }
 
-and handle_letdetu ctx (tu, args, body) target_type =
+and handle_letdetu (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
+    (tu, args, body) target_type =
   let open UL in
   let tu = id_type_infer ctx tu in
   let argsty =
@@ -175,15 +205,16 @@ and handle_letdetu ctx (tu, args, body) target_type =
   let ty, body =
     match target_type with
     | None ->
-        let body = term_type_infer ctx' body in
+        let body = term_type_infer notations_ctx ctx' body in
         (Qtypectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
-        let body = term_type_check ctx' body ty in
+        let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
   in
   UL.{ ty; x = LetDeTu { tu; args; body } }
 
-and handle_letapp ctx (ret, fty, args, body) target_type =
+and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
+    (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
   (* let () = Frontend.Qtypectx.pretty_print ctx in *)
@@ -223,17 +254,18 @@ and handle_letapp ctx (ret, fty, args, body) target_type =
   let ty, body =
     match target_type with
     | None ->
-        let body = term_type_infer ctx' body in
+        let body = term_type_infer notations_ctx ctx' body in
         (Qtypectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
-        let body = term_type_check ctx' body ty in
+        let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
   in
   (ty, (ret, args, body))
 
-and handle_letval ctx (lhs, rhs, body) target_type =
+and handle_letval (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
+    (lhs, rhs, body) target_type =
   let open UL in
-  let rhs = value_type_infer ctx rhs in
+  let rhs = value_type_infer notations_ctx ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
   let ctx' = Qtypectx.add_to_right ctx lhs in
   (* let () = *)
@@ -243,24 +275,26 @@ and handle_letval ctx (lhs, rhs, body) target_type =
   let ty, body =
     match target_type with
     | None ->
-        let body = term_type_infer ctx' body in
+        let body = term_type_infer notations_ctx ctx' body in
         (Qtypectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
-        let body = term_type_check ctx' body ty in
+        let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
   in
   UL.{ ty; x = LetVal { lhs; rhs; body } }
 
-and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
-    =
+and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
+    (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed =
   let open NL in
   let res =
     match a.x with
     | V v ->
-        let v = value_type_infer ctx { ty = a.ty; x = v } in
+        let v = value_type_infer notations_ctx ctx { ty = a.ty; x = v } in
         UL.{ ty = v.ty; x = V v.x }
-    | LetTu { tu; args; body } -> handle_lettu ctx (tu, args, body) None
-    | LetDeTu { tu; args; body } -> handle_letdetu ctx (tu, args, body) None
+    | LetTu { tu; args; body } ->
+        handle_lettu notations_ctx ctx (tu, args, body) None
+    | LetDeTu { tu; args; body } ->
+        handle_letdetu notations_ctx ctx (tu, args, body) None
     | LetOp { ret; op; args; body } ->
         (* let argsty = List.map (fun x -> x.ty) args in *)
         let opty =
@@ -268,16 +302,17 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
           @@ Prim.get_primitive_under_ty (Op.op_to_string op)
         in
         let ty, (ret, args, body) =
-          handle_letapp ctx (ret, opty, args, body) None
+          handle_letapp notations_ctx ctx (ret, opty, args, body) None
         in
         { ty; x = LetOp { ret; op; args; body } }
     | LetApp { ret; f; args; body } ->
         let f = id_type_infer ctx f in
         let ty, (ret, args, body) =
-          handle_letapp ctx (ret, f.ty, args, body) None
+          handle_letapp notations_ctx ctx (ret, f.ty, args, body) None
         in
         { ty; x = LetApp { ret; f; args; body } }
-    | LetVal { lhs; rhs; body } -> handle_letval ctx (lhs, rhs, body) None
+    | LetVal { lhs; rhs; body } ->
+        handle_letval notations_ctx ctx (lhs, rhs, body) None
     | Ite { cond; e_t; e_f } ->
         let () =
           Pp.printf "@{<bold>Before If@}\n";
@@ -289,7 +324,7 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
             Qtypectx.conjunct ctx
               (cond.x, UT.make_basic_from_prop NT.Ty_bool propf)
           in
-          close_term_by_diff ctx' ctx (term_type_infer ctx' e)
+          close_term_by_diff ctx' ctx (term_type_infer notations_ctx ctx' e)
         in
         let e_t = handle_case (fun x -> P.(Lit (AVar x))) e_t in
         let e_f = handle_case (fun x -> P.(Not (Lit (AVar x)))) e_f in
@@ -360,7 +395,7 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
             Qtypectx.conjunct ctx (matched.x, UT.add_ex_vars hidden_vars retty)
           in
           let ctx' = Qtypectx.add_to_rights ctx' args in
-          let exp = term_type_infer ctx' exp in
+          let exp = term_type_infer notations_ctx ctx' exp in
           ( Qtypectx.close_by_diff ctx' ctx exp.ty,
             UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
         in
@@ -382,22 +417,23 @@ and term_type_infer (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed
   in
   res
 
-and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : UT.t) :
-    UL.term UL.typed =
+and term_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
+    (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : UT.t) : UL.term UL.typed =
   let () = Frontend.Qtypectx.pretty_print_judge ctx (layout_term x, ty) in
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let open NL in
   match (x.x, ty) with
   | V v, _ ->
-      let v = value_type_check ctx { ty = x.ty; x = v } ty in
+      let v = value_type_check notations_ctx ctx { ty = x.ty; x = v } ty in
       { ty = v.ty; x = V v.x }
-  | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) (Some ty)
+  | LetTu { tu; args; body }, _ ->
+      handle_lettu notations_ctx ctx (tu, args, body) (Some ty)
   | LetDeTu { tu; args; body }, _ ->
-      handle_letdetu ctx (tu, args, body) (Some ty)
+      handle_letdetu notations_ctx ctx (tu, args, body) (Some ty)
   | LetApp { ret; f; args; body }, _ ->
       let f = id_type_infer ctx f in
       let ty, (ret, args, body) =
-        handle_letapp ctx (ret, f.ty, args, body) (Some ty)
+        handle_letapp notations_ctx ctx (ret, f.ty, args, body) (Some ty)
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
@@ -407,27 +443,28 @@ and term_type_check (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : UT.t) :
         @@ Prim.get_primitive_under_ty (Op.op_to_string op)
       in
       let ty, (ret, args, body) =
-        handle_letapp ctx (ret, opty, args, body) (Some ty)
+        handle_letapp notations_ctx ctx (ret, opty, args, body) (Some ty)
       in
       (* let _ = *)
       (*   Pp.printf "ret = _:%s\n" @@ Frontend.Underty.pretty_layout ty' *)
       (* in *)
       { ty; x = LetOp { ret; op; args; body } }
-  | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) (Some ty)
+  | LetVal { lhs; rhs; body }, _ ->
+      handle_letval notations_ctx ctx (lhs, rhs, body) (Some ty)
   | Ite _, _ | Match _, _ ->
-      let x = term_type_infer ctx x in
+      let x = term_type_infer notations_ctx ctx x in
       let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
       (* NOTE: underappproximate here *)
       { ty; x = x.x }
 
-let type_check x ty =
+let type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t) x ty =
   let ctx, ty = Qtypectx.mk_from_qunder ty in
-  term_type_check ctx x ty
+  term_type_check notations_ctx ctx x ty
 
 module SNA = Languages.StrucNA
 module SOA = Languages.StrucOA
 
-let struc_check l r =
+let struc_check l notations r =
   let open SNA in
   List.iteri
     (fun id (name', ty) ->
@@ -435,6 +472,14 @@ let struc_check l r =
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
       | Some { body; _ } ->
-          let _ = type_check body ty in
+          let notations_ctx =
+            Simpletypectx.UTSimpleTypectx.(
+              List.fold_left
+                (* TODO: quantifiers? *)
+                  (fun ctx (name, ty) ->
+                  add_to_right ctx (ty.Qunder.qbody, name))
+                empty notations)
+          in
+          let _ = type_check notations_ctx body ty in
           ())
     r

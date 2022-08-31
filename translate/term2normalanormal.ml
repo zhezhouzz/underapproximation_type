@@ -1,7 +1,7 @@
 module S = Languages.Termlang
 module T = Languages.NormalAnormal
 module Type = Languages.Normalty
-module Typed = Languages.Ntyped
+module Typed = Languages.NNtyped
 open S
 open Sugar
 

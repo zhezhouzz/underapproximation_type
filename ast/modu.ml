@@ -20,7 +20,7 @@ end
 
 module StrucNA = struct
   open Sexplib.Std
-  open Typed.F (Normalty.T)
+  open Typed.F (Normalty.NotatedT)
 
   type t = { name : string; body : Anormal.NormalAnormal.term typed }
   [@@deriving sexp]
@@ -30,7 +30,7 @@ end
 
 module StrucOA = struct
   open Sexplib.Std
-  open Typed.F (Normalty.T)
+  open Typed.F (Normalty.NotatedT)
 
   type t = { name : string; body : Anormal.OverAnormal.term typed }
   [@@deriving sexp]
