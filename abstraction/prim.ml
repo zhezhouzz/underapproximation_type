@@ -1,8 +1,9 @@
 open Sugar
 open Prim_map
 
-let init (type_decls, normals, overs, unders, rev_unders) =
+let init (type_decls, normals, overs, unders, rev_unders, lemmas) =
   let nm = make_normal type_decls normals in
+  lemma_m := Some (make_lemmas lemmas);
   normal_m := Some nm;
   notation_m := Some (make_m nm overs unders rev_unders)
 
@@ -44,3 +45,5 @@ let get_primitive_rev_under_ty name =
 
 let normal_check_if_is_known_prims name =
   try Some (get_by_name (get_normal_m ()) name) with _ -> None
+
+let lemmas_to_pres () = lemmas_to_pres ()

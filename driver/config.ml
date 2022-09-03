@@ -20,6 +20,7 @@ let load fname =
       underp = p |> member "underp" |> to_string;
       rev_underp = p |> member "rev_underp" |> to_string;
       type_decls = p |> member "type_decls" |> to_string;
+      lemmas = p |> member "lemmas" |> to_string;
     }
   in
   let open Abstraction in
@@ -33,13 +34,15 @@ let load fname =
     | underr, [] -> underr
     | _, _ -> failwith "wrong under prim"
   in
+  let lemmas = Inputstage.load_lemmas prim_path.lemmas in
   let () =
     Prim.init
       ( Inputstage.load_type_decls prim_path.type_decls,
         Inputstage.load_normal_refinements prim_path.normalp,
         Inputstage.load_over_refinments prim_path.overp,
         underr,
-        rev_underr )
+        rev_underr,
+        lemmas )
   in
   config := Some { mode; prim_path }
 

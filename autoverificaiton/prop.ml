@@ -238,6 +238,8 @@ module T = struct
     in
     aux (t1, t2)
 
+  let eq = strict_eq
+
   let instantiate_vars (y, lit) t =
     let rec aux_lit t =
       match t with
@@ -594,4 +596,64 @@ module T = struct
   let to_e_nf prop =
     let uqvs, eqvs, prop = to_fe_nf prop in
     match uqvs with [] -> (eqvs, prop) | _ -> failwith "not a eq form"
+
+  let assume_fe prop =
+    let rec aux = function
+      | Forall (u, e) ->
+          let eqs, e = aux e in
+          (u :: eqs, e)
+      | e -> if has_qv e then failwith "not a forall quantified" else ([], e)
+    in
+    aux prop
+
+  let assume_epr prop =
+    let rec aux = function
+      | Exists (u, e) ->
+          let eqs, e = aux e in
+          (u :: eqs, e)
+      | e -> ([], assume_fe e)
+    in
+    let eqvs, (uqvs, prop) = aux prop in
+    (eqvs, uqvs, prop)
+
+  (*FV*)
+  open Zzdatatype.Datatype
+
+  let rec lit_fv m t =
+    match t with
+    | ACint _ | ACbool _ -> m
+    | AVar id -> StrMap.add id.x () m
+    | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
+
+  let _add_fv m prop =
+    let rec aux m t =
+      match t with
+      | Lit lit -> lit_fv m lit
+      | Implies (e1, e2) -> List.fold_left aux m [ e1; e2 ]
+      | Ite (e1, e2, e3) -> List.fold_left aux m [ e1; e2; e3 ]
+      | Not e -> aux m e
+      | And es -> List.fold_left aux m es
+      | Or es -> List.fold_left aux m es
+      | Iff (e1, e2) -> List.fold_left aux m [ e1; e2 ]
+      | MethodPred (_, args) -> List.fold_left lit_fv m args
+      | Forall (u, e) -> StrMap.remove u.x @@ aux m e
+      | Exists (u, e) -> StrMap.remove u.x @@ aux m e
+    in
+    aux m prop
+
+  let add_fv fv prop =
+    let fv =
+      StrMap.to_key_list
+      @@ _add_fv
+           (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
+           prop
+    in
+    (* let () = *)
+    (*   Printf.printf "FV %s:\n%s\n" *)
+    (*     (Frontend.pretty_layout prop) *)
+    (*     (StrList.to_string fv) *)
+    (* in *)
+    fv
+
+  let fv prop = add_fv [] prop
 end

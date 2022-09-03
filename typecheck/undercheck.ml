@@ -35,6 +35,11 @@ let layout_term e = Frontend.Expr.layout @@ Trans.nan_to_term e
 (*       Frontend.Typectx.pretty_layout_under_judge Trans.nan_to_term ctx (e, ty)) *)
 (*     ctx *)
 
+let check_empty_hidden file line hvs =
+  if List.length hvs != 0 then
+    _failatwith file line "do not allow hidden variables"
+  else ()
+
 let lit_to_prop_lit (ty, x) =
   let open UL in
   match x with
@@ -64,8 +69,8 @@ let erase_check_mk_id file line id underfty =
 
 let subtyping_check = Undersub.subtyping_check
 
-let subtyping_check__with_hidden_vars =
-  Undersub.subtyping_check_with_hidden_vars
+(* let subtyping_check__with_hidden_vars = *)
+(*   Undersub.subtyping_check_with_hidden_vars *)
 
 let close_term_by_diff ctx' ctx UL.{ ty; x } =
   UL.{ x; ty = Qtypectx.close_by_diff ctx' ctx ty }
@@ -152,8 +157,9 @@ and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           | None -> ()
         in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
-        let ctx' = Qtypectx.add_arrow_arg_to_right ctx (hidden_vars, id) in
+        let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
         let retty = UT.subst_id retty argname id.x in
+        let ctx' = Qtypectx.add_to_right ctx id in
         let body = term_type_check notations_ctx ctx' body retty in
         {
           ty = UnderTy_arrow { argname; hidden_vars; argty; retty = body.ty };
@@ -230,9 +236,12 @@ and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
         let hidden_vars, argty =
           Qtypectx.rename_hidden_vars ctx (hidden_vars, argty)
         in
+        (* HACK *)
+        let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
         let () =
-          subtyping_check__with_hidden_vars __FILE__ __LINE__ ctx arg.ty
-            hidden_vars argty
+          if UT.is_fv_in argname retty then
+            subtyping_check __FILE__ __LINE__ ctx argty arg.ty
+          else subtyping_check __FILE__ __LINE__ ctx arg.ty argty
         in
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
@@ -391,9 +400,8 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           (* let ctx', retty =  *)
           (*   Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, retty) *)
           (* in *)
-          let ctx' =
-            Qtypectx.conjunct ctx (matched.x, UT.add_ex_vars hidden_vars retty)
-          in
+          let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
+          let ctx' = Qtypectx.conjunct ctx (matched.x, retty) in
           let ctx' = Qtypectx.add_to_rights ctx' args in
           let exp = term_type_infer notations_ctx ctx' exp in
           ( Qtypectx.close_by_diff ctx' ctx exp.ty,

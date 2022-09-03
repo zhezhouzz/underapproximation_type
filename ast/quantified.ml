@@ -31,3 +31,27 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
 end
 
 module Qunderty = F (Normalty.T) (Underty.T)
+
+module EProp = struct
+  include F (Normalty.T) (Autov.Prop)
+  open Zzdatatype.Datatype
+  module P = Autov.Prop
+  open Typed.Ntyped
+
+  let var_space { qvs; qbody } =
+    List.slow_rm_dup String.equal
+    @@ List.map (fun x -> x.x) qvs
+    @ P.var_space qbody
+
+  let eq a b = List.eq eq a.qvs b.qvs && P.eq a.qbody b.qbody
+
+  let subst_id { qvs; qbody } x z =
+    if List.exists (fun y -> String.equal x y.x) qvs then { qvs; qbody }
+    else { qvs; qbody = P.subst_id qbody x z }
+
+  let fv { qvs; qbody } =
+    List.filter (fun x -> not @@ List.exists (fun y -> String.equal x y.x) qvs)
+    @@ P.fv qbody
+end
+
+module EPR = F (Normalty.T) (EProp)

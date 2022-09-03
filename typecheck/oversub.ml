@@ -6,6 +6,7 @@ module NT = Normalty
 module OT = Overty
 open Zzdatatype.Datatype
 open Sugar
+open Abstraction
 
 let layout_subtyping = Frontend.Typectx.pretty_layout_over_subtyping
 
@@ -56,7 +57,8 @@ let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
           | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
-        if Autov.check_implies_multi_pre pres res then ()
+        if Autov.check_implies_multi_pre (Prim.lemmas_to_pres ()) pres res then
+          ()
         else failwith "Subtyping check: rejected by the verifier"
     | OverTy_tuple ts1, OverTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2

@@ -96,8 +96,18 @@ let make_m normal_m (over_refinements : (string * OT.t) list)
   check rum;
   m
 
+let make_lemmas = StrMap.from_kv_list
+
+module L = Languages.Lemma
+
+let lemma_m : L.t StrMap.t option ref = ref None
 let normal_m : NT.t S.t option ref = ref None
 let notation_m : notation S.t option ref = ref None
+
+let lemmas_to_pres () =
+  match !lemma_m with
+  | None -> _failatwith __FILE__ __LINE__ "un init"
+  | Some m -> List.map L.to_prop @@ StrMap.to_value_list m
 
 let get_normal_m () =
   match !normal_m with

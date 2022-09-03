@@ -5,6 +5,14 @@ module ET = struct
   open Typed.Ntyped
   module UL = Anormal.UnderAnormal
 
+  let filter_qvs_by_find qvs scope =
+    List.map
+      (fun name ->
+        match List.find_opt (fun x -> String.equal x.x name) qvs with
+        | None -> failwith "filter_qvs_by_find"
+        | Some x -> x)
+      scope
+
   let add_hidden_vars_to_right { qvs; qbody } (hvs, ty) =
     let hvs, ty =
       List.fold_left

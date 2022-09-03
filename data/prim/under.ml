@@ -1,47 +1,47 @@
 let[@notation] eq =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a == b))
 
 let[@notation] neq =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a != b))
 
 let[@notation] lt =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a < b))
 
 let[@notation] gt =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a > b))
 
 let[@notation] le =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a <= b))
 
 let[@notation] ge =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : bool) (iff v (a => b))
 
 let[@notation] plus =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : int) (v == a + b)
 
 let[@notation] minus =
-  let a (x : int) = (v : int) (v == x) in
-  let b (y : int) = (v : int) (v == y) in
+  let a = (v : int) true in
+  let b = (v : int) true in
   (v : int) (v == a - b)
 
 let[@notation] nil (u : 'forall * int) = (v : int list) (not (mem v u))
 
 let[@notation] cons (u : 'forall * int) =
-  let h (w : int) = (v : int) (v == w) in
+  let h = (v : int) true in
   let t = (v : int list) (implies (mem v u) (u == h)) in
   (v : int list) (implies (mem v u) (u == h) && mem v h)
 

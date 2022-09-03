@@ -25,3 +25,5 @@ module Qtypectx = Qtypectx
 module Qunderty = Qunder
 module QunderAnormal = Anormal.F (Qunderty)
 module Typedec = Type_dec.T
+module Lemma = Lemma
+module SMTtyped = Typed.SMTtyped

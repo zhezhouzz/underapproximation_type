@@ -8,6 +8,7 @@ type prim_path = {
   underp : string;
   rev_underp : string;
   type_decls : string;
+  lemmas : string;
 }
 [@@deriving sexp]
 

@@ -1,15 +1,23 @@
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v == x)
+  let x = (v : int) (v >= 0) in
+  let y = (v : int) (v >= 0) in
+  let z = (v : int) (v >= 0) in
+  (v : int) (v >= 1)
 
 let foo =
-  let x = (v : int) (v < 0) in
-  (v : int) (v == x)
+  let x = (v : int) (v >= 0) in
+  let y = (v : int) (v >= 0) in
+  let z = (v : int) (v >= 0) in
+  (v : int) (v >= 1 + y)
 
 let foo =
-  let x (a : int) = (v : int) (v == a) in
-  (v : int) (v == x + x)
+  let x = (v : int) (v >= 0) in
+  let y = (v : int) (v >= x) in
+  let z = (v : int) (v >= 0) in
+  (v : int) (v >= 1 + y)
 
-(* let foo = *)
-(*   let x = (v : int) true in *)
-(*   (v : int) (v == x) *)
+let foo =
+  let x = (v : int) (v >= 0) in
+  let y = (v : int) (v >= x) in
+  let z = (v : int) (v >= 0) in
+  (v : int) (v >= 1 + y + x)
