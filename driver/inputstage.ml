@@ -91,28 +91,10 @@ module NT = Languages.Ntyped
 
 let load_lemmas lemma_file =
   let lemmas =
-    Structure.refinement_of_ocamlstruct
-      Qunderty.quantified_undertype_of_ocamlexpr
+    Structure.refinement_of_ocamlstruct Frontend.Lemma.undertype_of_ocamlexpr
       (Ocaml_parser.Frontend.parse ~sourcefile:lemma_file)
   in
-  let rec ty_to_uprop =
-    UT.(
-      function
-      | UnderTy_base { prop; _ } -> ([], prop)
-      | UnderTy_arrow { argname; argty; retty; _ } ->
-          let uqvs, prop = ty_to_uprop retty in
-          (NTyped.{ x = argname; ty = erase argty } :: uqvs, prop)
-      | _ -> failwith "die")
-  in
-  let lemmas =
-    List.map
-      ~f:
-        Languages.Lemma.(
-          fun ((_, name), qty) ->
-            let eqvs, (uqvs, prop) = QUT.(qty.qvs, ty_to_uprop qty.qbody) in
-            (name, { qvs = eqvs; qbody = { qvs = uqvs; qbody = prop } }))
-      lemmas
-  in
+  let lemmas = List.map ~f:(fun ((_, name), lemma) -> (name, lemma)) lemmas in
   let () =
     Printf.printf "[Loading Lemmas type]:\n%s"
       (sprintf "Lemma %s"

@@ -67,6 +67,10 @@ let context_convert (uqvs : string P.typed list) (ctx : Typectx.t)
   let nu = typed_to_smttyped { ty = nt; x = name } in
   let open P in
   let mk_q (uqs, eqs, prop) =
+    let _, basic_uqs = List.partition (fun x -> Autov.Smtty.is_dt x.ty) uqs in
+    let prop =
+      Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs)
+    in
     let dt_eqs, basic_eqs =
       List.partition (fun x -> Autov.Smtty.is_dt x.ty) eqs
     in
@@ -197,7 +201,8 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
             in
             (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
             (* let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in *)
-            if Autov.check (Prim.lemmas_to_pres ()) q then ()
+            if Autov.check (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ()) q
+            then ()
             else
               _failatwith file line "Subtyping check: rejected by the verifier"
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
@@ -236,7 +241,8 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
                 ctx
                 (typeself, nt, prop1, [], prop2)
             in
-            if Autov.check (Prim.lemmas_to_pres ()) q then ()
+            if Autov.check (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ()) q
+            then ()
             else
               _failatwith file line "Subtyping check: rejected by the verifier"
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->

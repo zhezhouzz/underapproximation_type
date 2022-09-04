@@ -19,6 +19,10 @@ module T = struct
 
   let is_basic_tp = function Ty_unit | Ty_int | Ty_bool -> true | _ -> false
 
+  let is_dt = function
+    | Ty_list _ | Ty_tree _ | Ty_constructor _ -> true
+    | _ -> false
+
   let eq x y =
     let rec aux (x, y) =
       match (x, y) with

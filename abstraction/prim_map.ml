@@ -107,7 +107,7 @@ let notation_m : notation S.t option ref = ref None
 let lemmas_to_pres () =
   match !lemma_m with
   | None -> _failatwith __FILE__ __LINE__ "un init"
-  | Some m -> List.map L.to_prop @@ StrMap.to_value_list m
+  | Some m -> StrMap.to_value_list m
 
 let get_normal_m () =
   match !normal_m with

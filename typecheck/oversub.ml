@@ -57,8 +57,11 @@ let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
           | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
-        if Autov.check_implies_multi_pre (Prim.lemmas_to_pres ()) pres res then
-          ()
+        if
+          Autov.check_implies_multi_pre
+            (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ())
+            pres res
+        then ()
         else failwith "Subtyping check: rejected by the verifier"
     | OverTy_tuple ts1, OverTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2
