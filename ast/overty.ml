@@ -1,9 +1,10 @@
 module T = struct
   open Sexplib.Std
   open Sugar
+  module NT = Normalty.Ast.T
 
   type id = Strid.T.t [@@deriving sexp]
-  type normalty = Normalty.T.t [@@deriving sexp]
+  type normalty = NT.t [@@deriving sexp]
 
   type t =
     | OverTy_base of { basename : id; normalty : normalty; prop : Autov.Prop.t }
@@ -45,9 +46,8 @@ module T = struct
 
   let rec erase = function
     | OverTy_base { normalty; _ } -> normalty
-    | OverTy_arrow { argty; retty; _ } ->
-        Normalty.T.Ty_arrow (erase argty, erase retty)
-    | OverTy_tuple ts -> Normalty.T.Ty_tuple (List.map erase ts)
+    | OverTy_arrow { argty; retty; _ } -> NT.Ty_arrow (erase argty, erase retty)
+    | OverTy_tuple ts -> NT.Ty_tuple (List.map erase ts)
 
   let subst_id t x y =
     let rec aux t =
@@ -73,6 +73,8 @@ module T = struct
 
   module P = Autov.Prop
   module T = Autov.Smtty
+  module Ntyped = Normalty.Ast.Ntyped
+  open Ntyped
 
   let strict_eq t1 t2 =
     let rec aux (t1, t2) =
@@ -82,8 +84,7 @@ module T = struct
           OverTy_base
             { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
           String.equal basename1 basename2
-          && Normalty.T.eq normalty1 normalty2
-          && P.strict_eq prop1 prop2
+          && NT.eq normalty1 normalty2 && P.strict_eq prop1 prop2
       | OverTy_tuple ts1, OverTy_tuple ts2 ->
           List.for_all aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2
       | ( OverTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
@@ -97,21 +98,21 @@ module T = struct
     aux (t1, t2)
 
   let eq a b = strict_eq a b
-  let mk_int_id name = P.{ ty = T.Int; x = name }
+  let mk_int_id name = to_smttyped { ty = NT.Ty_int; x = name }
 
   let make_basic basename normalty prop =
     OverTy_base
       {
         basename;
         normalty;
-        prop = prop P.{ ty = Normalty.T.to_smtty normalty; x = basename };
+        prop = prop (to_smttyped { ty = normalty; x = basename });
       }
 
   let make_basic_top basename normalty =
     make_basic basename normalty (fun _ -> P.mk_true)
 
   let make_arrow argname normalty argtyf rettyf =
-    let id = P.{ ty = Normalty.T.to_smtty normalty; x = argname } in
+    let id = to_smttyped { ty = normalty; x = argname } in
     OverTy_arrow { argname; argty = argtyf argname normalty; retty = rettyf id }
 
   let arrow_args_rename args overftp =
@@ -137,8 +138,7 @@ module T = struct
     | OverTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
     | OverTy_base { basename; normalty; prop } ->
         let xprop = P.subst_id prop basename xname in
-        let smtty = Normalty.T.to_smtty normalty in
-        let x = P.{ ty = smtty; x = xname } in
+        let x = to_smttyped { x = xname; ty = normalty } in
         let rec aux ty =
           match ty with
           | OverTy_base { basename; normalty; prop } ->
@@ -182,7 +182,7 @@ module T = struct
         OverTy_base { basename = basename2; normalty = normalty2; prop = prop2 }
       ) ->
         let normalty =
-          _check_equality __FILE__ __LINE__ Normalty.T.eq normalty1 normalty2
+          _check_equality __FILE__ __LINE__ NT.eq normalty1 normalty2
         in
         let prop2 =
           if String.equal basename1 basename2 then prop2
@@ -227,4 +227,13 @@ module T = struct
     | [] -> _failatwith __FILE__ __LINE__ "conjunct no types"
     | [ t ] -> t
     | h :: t -> List.fold_left conjunct h t
+end
+
+module Otyped = struct
+  include T
+
+  type 'a typed = { x : 'a; ty : t } [@@deriving sexp]
+
+  (* let map (f : 'a -> 'b) { x; ty } = { x = f x; ty } *)
+  (* let typed_eq a b = String.equal a.x b.x && eq a.ty b.ty *)
 end

@@ -20,10 +20,10 @@ module F (Type : Type.T) = struct
 end
 
 module Ntyped = struct
-  include F (Normalty.T)
+  include F (NT)
 
-  let eq a b = String.equal a.x b.x && Normalty.T.eq a.ty b.ty
-  let to_q_typed { ty; x } = Autov.Prop.{ ty = Normalty.T.to_smtty ty; x }
+  let eq a b = String.equal a.x b.x && NT.eq a.ty b.ty
+  let to_q_typed { ty; x } = Autov.Prop.{ ty = NT.to_smtty ty; x }
 end
 
 module Ptyped = struct
@@ -37,10 +37,8 @@ module SMTtyped = struct
 end
 
 module NNtyped = struct
-  include F (Normalty.NotatedT)
+  include F (NotatedT)
 
-  let eq a b = String.equal a.x b.x && Normalty.NotatedT.eq a.ty b.ty
-
-  let to_q_typed { ty; x } =
-    Autov.Prop.{ ty = Normalty.T.to_smtty @@ snd ty; x }
+  let eq a b = String.equal a.x b.x && NotatedT.eq a.ty b.ty
+  let to_q_typed { ty; x } = Autov.Prop.{ ty = NT.to_smtty @@ snd ty; x }
 end

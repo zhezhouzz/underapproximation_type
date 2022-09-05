@@ -1,15 +1,15 @@
 module T = struct
   module P = Autov.Prop
   module T = Autov.Smtty
-  module NT = Normalty.T
-  module NTyped = Typed.Ntyped
+  module NT = Normalty.Ast.NT
+  module NTyped = Normalty.Ast.Ntyped
   open Sexplib.Std
   open Sugar
 
   type id = Strid.T.t [@@deriving sexp]
   type normalty = NT.t [@@deriving sexp]
 
-  open Typed.F (NT)
+  open NTyped
 
   (* invariant: the prop here should be existensial quantified. *)
   type t =
@@ -88,7 +88,7 @@ module T = struct
       {
         basename;
         normalty;
-        prop = prop P.{ ty = NT.to_smtty normalty; x = basename };
+        prop = prop (to_smttyped { x = basename; ty = normalty });
       }
 
   let make_basic_from_const_int (n : int) =
@@ -108,7 +108,7 @@ module T = struct
     make_basic default_v_name normalty (fun _ -> P.mk_true)
 
   let make_arrow_no_hidden_vars argname normalty argtyf rettyf =
-    let id = P.{ ty = NT.to_smtty normalty; x = argname } in
+    let id = to_smttyped { ty = normalty; x = argname } in
     UnderTy_arrow
       {
         argname;
@@ -160,7 +160,7 @@ module T = struct
               retty = retty2;
             } ) ->
           String.equal argname1 argname2
-          && List.equal NTyped.eq hidden_vars1 hidden_vars2
+          && List.equal NTyped.typed_eq hidden_vars1 hidden_vars2
           && aux (argty1, argty2)
           && aux (retty1, retty2)
       | _, _ -> false
@@ -211,7 +211,8 @@ module T = struct
             _check_equality __FILE__ __LINE__ strict_eq argty1 argty2
           in
           let hidden_vars =
-            _check_equality __FILE__ __LINE__ (List.equal NTyped.eq)
+            _check_equality __FILE__ __LINE__
+              (List.equal NTyped.typed_eq)
               hidden_vars1 hidden_vars2
           in
           let retty = aux (retty1, retty2) in
@@ -284,7 +285,7 @@ module T = struct
 
   (* let add_ex_prop_qv_basic_raw (id, idprop) (basename, normalty, prop) = *)
   (*   UnderTy_base *)
-  (*     { basename; normalty; prop = P.Exists (NTyped.to_q_typed id, prop) } *)
+  (*     { basename; normalty; prop = P.Exists (to_smttyped id, prop) } *)
 
   let work_on_retty if_apply (t_apply, f_apply) t =
     let rec aux t =
@@ -318,15 +319,13 @@ module T = struct
     in
     let if_apply name = (not ifq) && String.equal id.x name in
     let t_apply prop = P.And [ idprop; prop ] in
-    let f_apply prop =
-      P.Exists (NTyped.to_q_typed id, P.And [ idprop; prop ])
-    in
+    let f_apply prop = P.Exists (to_smttyped id, P.And [ idprop; prop ]) in
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_var id t =
     let if_apply name = String.equal id.x name in
     let t_apply prop = prop in
-    let f_apply prop = P.Exists (NTyped.to_q_typed id, prop) in
+    let f_apply prop = P.Exists (to_smttyped id, prop) in
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_vars ids t = List.fold_right add_ex_var ids t
@@ -356,4 +355,13 @@ module T = struct
           UnderTy_arrow { argname; hidden_vars; argty; retty }
     in
     aux m t
+end
+
+module Utyped = struct
+  include T
+
+  type 'a typed = { x : 'a; ty : t } [@@deriving sexp]
+
+  (* let map (f : 'a -> 'b) { x; ty } = { x = f x; ty } *)
+  (* let typed_eq a b = String.equal a.x b.x && eq a.ty b.ty *)
 end

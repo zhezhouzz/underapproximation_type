@@ -1,7 +1,7 @@
 module T = Autov.Smtty
 module NT = Languages.Normalty
 open Sugar
-module P = Autov.Prop
+open Languages.SMTtyped
 open Languages.SMTSimpleTypectx
 open Zzdatatype.Datatype
 
@@ -9,7 +9,6 @@ let infer_id ctx name =
   (* let () = *)
   (*   Printf.printf "[infer_id] ctx: %s\n" @@ List.split_by_comma fst ctx *)
   (* in *)
-  let open Autov.Prop in
   match get_opt ctx name.x with
   | None -> failwith @@ spf "free variable (%s) in refinement type" name.x
   | Some (_, ty) -> { ty; x = name.x }
@@ -74,7 +73,5 @@ let infer uqvs t =
         UnderTy_arrow { argname; hidden_vars; argty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
-  let to_ctx qvs =
-    List.map Ntyped.(fun x -> (x.x, Normalty.T.to_smtty x.ty)) qvs
-  in
+  let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, NT.to_smtty x.ty)) qvs in
   aux (to_ctx uqvs) t

@@ -1,8 +1,10 @@
+open Normalty.Ast
+
 module ET = struct
-  include Quantified.F (Normalty.T) (Typectx.UnderTypectx)
+  include Quantified.F (Ntyped) (Typectx.UnderTypectx)
   open Sugar
   open Underty.T
-  open Typed.Ntyped
+  open Ntyped
   module UL = Anormal.UnderAnormal
 
   let filter_qvs_by_find qvs scope =
@@ -51,7 +53,7 @@ module ET = struct
     let rec subtract = function
       | a, [] -> a
       | h1 :: t1, h2 :: t2 ->
-          if eq h1 h2 then subtract (t1, t2)
+          if typed_eq h1 h2 then subtract (t1, t2)
           else _failatwith __FILE__ __LINE__ ""
       | _, _ -> _failatwith __FILE__ __LINE__ ""
     in
@@ -91,7 +93,8 @@ module ET = struct
     @@ List.map (fun x -> x.x) qvs
     @ Typectx.UnderTypectx.var_space qbody
 
-  let eq a b = List.eq eq a.qvs b.qvs && Typectx.UnderTypectx.eq a.qbody b.qbody
+  let eq a b =
+    List.eq typed_eq a.qvs b.qvs && Typectx.UnderTypectx.eq a.qbody b.qbody
 
   let subst_id { qvs; qbody } x z =
     if List.exists (fun y -> String.equal x y.x) qvs then { qvs; qbody }
@@ -102,10 +105,10 @@ module ET = struct
 end
 
 module T = struct
-  include Quantified.F (Normalty.T) (ET)
+  include Quantified.F (Ntyped) (ET)
   open Sugar
   open Underty.T
-  open Typed.Ntyped
+  open Ntyped
   module UL = Anormal.UnderAnormal
 
   let add_hidden_vars_to_right_ { qvs; qbody } (hvs, ty) =
@@ -140,7 +143,7 @@ module T = struct
   let mk_from_qunder Qunder.{ qvs; qbody } = ({ qvs; qbody = ET.empty }, qbody)
 
   let close_by_diff { qvs; qbody } { qvs = qvs'; qbody = qbody' } uty =
-    if List.equal eq qvs qvs' then ET.close_by_diff qbody qbody' uty
+    if List.equal typed_eq qvs qvs' then ET.close_by_diff qbody qbody' uty
     else _failatwith __FILE__ __LINE__ ""
 
   let instantiate_qvs { qvs; qbody = ctx } ty =

@@ -1,18 +1,17 @@
 module T = struct
-  type constructor_declaration = {
-    constr_name : string;
-    argsty : Normalty.T.t list;
-  }
+  module NT = Normalty.Ast.T
+
+  type constructor_declaration = { constr_name : string; argsty : NT.t list }
 
   type t = {
     type_name : string;
-    type_params : Normalty.T.t list;
+    type_params : NT.t list;
     type_decls : constructor_declaration list;
   }
 
   type user_defined_types = t list
 
-  open Normalty.T
+  open NT
 
   let name_to_ctype name type_params = Ty_constructor (name, type_params)
 

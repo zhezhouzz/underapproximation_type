@@ -1,14 +1,16 @@
 module T = Autov.Smtty
 module NT = Languages.Normalty
+module SMTtyped = Languages.SMTtyped
+module Ntyped = Languages.Ntyped
 open Sugar
 module P = Autov.Prop
-open P
 open Languages.SMTSimpleTypectx
+open SMTtyped
 
 let infer_id ctx name =
   match List.find_opt (fun (y, _) -> String.equal y name.x) ctx with
   | None -> failwith "free variable in refinement type"
-  | Some (_, ty) -> P.{ ty; x = name.x }
+  | Some (_, ty) -> { ty; x = name.x }
 
 let rec infer_lit ctx lit =
   let open P in

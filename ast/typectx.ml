@@ -101,7 +101,7 @@ end
 module UnderTypectx = struct
   include F (Underty.T)
   open Underty.T
-  open Typed.Ntyped
+  open Normalty.Ast.Ntyped
   open Sugar
   module UL = Anormal.UnderAnormal
 
@@ -132,7 +132,7 @@ module UnderTypectx = struct
     List.filter_map
       (fun (x, tys) ->
         let nt' = get_nt tys in
-        if Normalty.T.eq nt nt' then Some x else None)
+        if eq nt nt' then Some x else None)
       ctx
 
   let destrct_right ctx =

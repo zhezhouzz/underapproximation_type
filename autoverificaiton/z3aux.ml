@@ -2,7 +2,7 @@ open Z3
 open Z3.Expr
 open Z3.Boolean
 open Z3.Arithmetic
-module T = Smtty.T
+module T = Normalty.Ast.Smtty
 
 let int_to_z3 ctx i = mk_numeral_int ctx i (Integer.mk_sort ctx)
 let bool_to_z3 ctx b = if b then mk_true ctx else mk_false ctx

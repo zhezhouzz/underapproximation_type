@@ -9,7 +9,7 @@
    ; ast
    strid
    op
-   normalty
+   ; normalty
    termlang
    overty
    underty
@@ -23,11 +23,11 @@
    quantified
    qunder
    qtypectx
-   typed
+   ; typed
    type_dec
    prim
    lemma
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
-  (libraries zzdatatype autov utils)
+  (libraries zzdatatype autov utils normalty)
 )

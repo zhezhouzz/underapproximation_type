@@ -1,8 +1,8 @@
-module F (Type : Type.T) = struct
+module F (Typed : Type.Typed) = struct
   open Sexplib.Std
-  include Typed.F (Type)
+  include Typed
 
-  type ty = Type.t [@@deriving sexp]
+  type ty = t [@@deriving sexp]
   type id = Strid.T.t [@@deriving sexp]
   (* type 'a typed = { ty : ty; x : 'a } [@@deriving sexp] *)
 
@@ -130,6 +130,6 @@ module F (Type : Type.T) = struct
     res
 end
 
-module NormalAnormal = F (Normalty.NotatedT)
-module OverAnormal = F (Overty.T)
-module UnderAnormal = F (Underty.T)
+module NormalAnormal = F (Normalty.Ast.NNtyped)
+module OverAnormal = F (Overty.Otyped)
+module UnderAnormal = F (Underty.Utyped)

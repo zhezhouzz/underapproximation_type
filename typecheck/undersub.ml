@@ -5,6 +5,7 @@ module UT = Languages.Underty
 module QUT = Languages.Qunderty
 module Op = Languages.Op
 module P = Autov.Prop
+module SMTtyped = Languages.SMTtyped
 module Typectx = Languages.UnderTypectx
 module Qtypectx = Languages.Qtypectx
 open Zzdatatype.Datatype
@@ -26,7 +27,7 @@ let _assume_basety file line (x, ty) =
       in
       _failatwith file line "should not happen"
 
-let typed_to_smttyped { ty; x } = P.{ ty = NT.to_smtty ty; x }
+let typed_to_smttyped = Languages.Ntyped.to_smttyped
 
 type mode = InIn | InNotin | NotinIn | NotinNotin
 
@@ -62,12 +63,12 @@ let core ctx nu ((eq1, prop1), (uq2, prop2)) =
   in
   aux ctx (([ nu ], []), (eq1, prop1), (uq2, prop2))
 
-let context_convert (uqvs : string P.typed list) (ctx : Typectx.t)
+let context_convert (uqvs : string SMTtyped.typed list) (ctx : Typectx.t)
     (name, nt, prop1, eqvs2, prop2) =
   let nu = typed_to_smttyped { ty = nt; x = name } in
-  let open P in
+  let open SMTtyped in
   let mk_q (uqs, eqs, prop) =
-    let _, basic_uqs = List.partition (fun x -> Autov.Smtty.is_dt x.ty) uqs in
+    let _, basic_uqs = List.partition (fun x -> is_dt x.ty) uqs in
     let prop =
       Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs)
     in
@@ -121,10 +122,10 @@ let context_convert (uqvs : string P.typed list) (ctx : Typectx.t)
       (fun fv (eqvs, prop) ->
         if Typectx.exists ctx fv then (eqvs, prop)
         else
-          match List.find_opt (fun x -> String.equal x.P.x fv) uqvs with
+          match List.find_opt (fun x -> String.equal x.x fv) uqvs with
           | None -> failwith (spf "filter_qvs_by_find: %s" fv)
           | Some x ->
-              let x' = P.{ x = Rename.unique x.x; ty = x.ty } in
+              let x' = { x = Rename.unique x.x; ty = x.ty } in
               (eqvs @ [ x' ], P.subst_id prop x.x x'.x))
       (List.substract String.equal (Autov.prop_fv prop2) [ nu.x ])
       ([], prop2)
@@ -150,8 +151,8 @@ let context_convert (uqvs : string P.typed list) (ctx : Typectx.t)
   in
   let () =
     Frontend.Qtypectx.pretty_print_q
-      (List.map (fun x -> x.P.x) final_uqvs)
-      (List.map (fun x -> x.P.x) final_eqvs)
+      (List.map (fun x -> x.x) final_uqvs)
+      (List.map (fun x -> x.x) final_eqvs)
       final_prop
   in
   let q = mk_q (final_uqvs, final_eqvs, final_prop) in

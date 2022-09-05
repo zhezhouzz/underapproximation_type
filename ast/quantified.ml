@@ -1,9 +1,9 @@
-module F (Type : Type.T) (Qb : Quantifiable.T) = struct
+module F (Typed : Type.Typed) (Qb : Quantifiable.T) = struct
   open Sexplib.Std
 
   type id = Strid.T.t [@@deriving sexp]
 
-  open Typed.F (Type)
+  open Typed
 
   type t = { qvs : id typed list; qbody : Qb.t } [@@deriving sexp]
 
@@ -15,7 +15,7 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
 
   open Zzdatatype.Datatype
 
-  let typed_id_eq x y = Type.eq x.ty y.ty && String.equal x.x y.x
+  let typed_id_eq x y = eq x.ty y.ty && String.equal x.x y.x
   let without_qv qbody = { qvs = []; qbody }
   let map f { qvs; qbody } = { qvs; qbody = f qbody }
 
@@ -30,20 +30,20 @@ module F (Type : Type.T) (Qb : Quantifiable.T) = struct
     | _ -> false
 end
 
-module Qunderty = F (Normalty.T) (Underty.T)
+module Qunderty = F (Normalty.Ast.Ntyped) (Underty.T)
 
 module EProp = struct
-  include F (Normalty.T) (Autov.Prop)
+  include F (Normalty.Ast.Ntyped) (Autov.Prop)
   open Zzdatatype.Datatype
   module P = Autov.Prop
-  open Typed.Ntyped
+  open Normalty.Ast.Ntyped
 
   let var_space { qvs; qbody } =
     List.slow_rm_dup String.equal
     @@ List.map (fun x -> x.x) qvs
     @ P.var_space qbody
 
-  let eq a b = List.eq eq a.qvs b.qvs && P.eq a.qbody b.qbody
+  let eq a b = List.eq typed_eq a.qvs b.qvs && P.eq a.qbody b.qbody
 
   let subst_id { qvs; qbody } x z =
     if List.exists (fun y -> String.equal x y.x) qvs then { qvs; qbody }
@@ -54,4 +54,4 @@ module EProp = struct
     @@ P.fv qbody
 end
 
-module EPR = F (Normalty.T) (EProp)
+module EPR = F (Normalty.Ast.Ntyped) (EProp)

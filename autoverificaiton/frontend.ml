@@ -1,8 +1,10 @@
 open Ocaml_parser
 open Parsetree
 module L = Prop.T
+module Smtty = Normalty.Ast.Smtty
+open Normalty.Ast.SMTtyped
 
-type label = Fa of Smtty.T.t | Ex of Smtty.T.t
+type label = Fa of Smtty.t | Ex of Smtty.t
 
 let layout_ct t =
   let _ = Format.flush_str_formatter () in
@@ -21,16 +23,16 @@ let core_type_to_ty ct =
   match ct.ptyp_desc with
   | Ptyp_constr (name, []) -> (
       match Longident.last name.txt with
-      | "int" -> Smtty.T.Int
-      | "bool" -> Smtty.T.Bool
-      | "dt" -> Smtty.T.Dt
+      | "int" -> Smtty.Int
+      | "bool" -> Smtty.Bool
+      | "dt" -> Smtty.Dt
       | _ ->
           failwith
             (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct)))
   | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
 
 let ty_to_core_type ty =
-  match Longident.unflatten [ Smtty.T.layout ty ] with
+  match Longident.unflatten [ Smtty.layout ty ] with
   | Some id -> ptyp_desc_to_ct @@ Ptyp_constr (Location.mknoloc id, [])
   | _ -> failwith "die"
 
@@ -51,11 +53,11 @@ let label_to_core_type x =
   ptyp_desc_to_ct ct
 
 (* NOTE: should we parse type here? or is the prop is typed? *)
-let default_type = Smtty.T.Int
+let default_type = Smtty.Int
 
 let handle_id id =
   match Longident.flatten id.Location.txt with
-  | [ x ] -> L.{ ty = default_type; x }
+  | [ x ] -> { ty = default_type; x }
   | ids ->
       failwith
         (Printf.sprintf "expr, handel id: %s"
@@ -71,7 +73,7 @@ let rec lit_of_ocamlexpr e =
       let b = lit_of_ocamlexpr @@ snd b in
       let f =
         match func.pexp_desc with
-        | Pexp_ident id -> (handle_id id).L.x
+        | Pexp_ident id -> (handle_id id).x
         | _ -> failwith "wrong method predicate"
       in
       if L.is_op f then L.AOp2 (f, a, b)
@@ -100,7 +102,7 @@ let prop_of_ocamlexpr expr =
     | Pexp_apply (func, args) -> (
         let f =
           match func.pexp_desc with
-          | Pexp_ident id -> (handle_id id).L.x
+          | Pexp_ident id -> (handle_id id).x
           | _ -> failwith "wrong method predicate"
         in
         let args = List.map snd args in
@@ -282,7 +284,7 @@ let psetting =
     sym_forall = "∀";
     sym_exists = "∃";
     layout_typedid = (fun x -> x.x);
-    (* (fun x ->          Printf.sprintf "(%s:%s)" x.x (Smtty.T.layout x.ty)); *)
+    (* (fun x ->          Printf.sprintf "(%s:%s)" x.x (Smtty.layout x.ty)); *)
     layout_mp = (fun x -> x);
   }
 

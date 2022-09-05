@@ -2,7 +2,7 @@
  (name autov)
  (wrapped true)
  (modules
-   smtty
+   ; smtty
    prop
    ; typecheck
    z3aux
@@ -15,5 +15,5 @@
    unique
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
- (libraries zzdatatype z3 Str ocaml_parser)
+ (libraries zzdatatype z3 Str ocaml_parser normalty)
 )

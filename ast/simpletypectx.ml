@@ -9,10 +9,10 @@ module F (Type : Type.T) = struct
 end
 
 module NSimpleTypectx = struct
-  include F (Normalty.T)
+  include F (Normalty.Ast.T)
 
   let of_type_decls e : t = Type_dec.T.mk_ctx e
 end
 
-module SMTSimpleTypectx = F (Autov.Smtty)
+module SMTSimpleTypectx = F (Normalty.Ast.Smtty)
 module UTSimpleTypectx = F (Underty.T)
