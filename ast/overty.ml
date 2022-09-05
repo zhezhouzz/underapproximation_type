@@ -98,21 +98,17 @@ module T = struct
     aux (t1, t2)
 
   let eq a b = strict_eq a b
-  let mk_int_id name = to_smttyped { ty = NT.Ty_int; x = name }
+  let mk_int_id name = { ty = NT.Ty_int; x = name }
 
   let make_basic basename normalty prop =
     OverTy_base
-      {
-        basename;
-        normalty;
-        prop = prop (to_smttyped { ty = normalty; x = basename });
-      }
+      { basename; normalty; prop = prop { ty = normalty; x = basename } }
 
   let make_basic_top basename normalty =
     make_basic basename normalty (fun _ -> P.mk_true)
 
   let make_arrow argname normalty argtyf rettyf =
-    let id = to_smttyped { ty = normalty; x = argname } in
+    let id = { ty = normalty; x = argname } in
     OverTy_arrow { argname; argty = argtyf argname normalty; retty = rettyf id }
 
   let arrow_args_rename args overftp =
@@ -138,7 +134,7 @@ module T = struct
     | OverTy_tuple _ -> _failatwith __FILE__ __LINE__ "tuple type"
     | OverTy_base { basename; normalty; prop } ->
         let xprop = P.subst_id prop basename xname in
-        let x = to_smttyped { x = xname; ty = normalty } in
+        let x = { x = xname; ty = normalty } in
         let rec aux ty =
           match ty with
           | OverTy_base { basename; normalty; prop } ->

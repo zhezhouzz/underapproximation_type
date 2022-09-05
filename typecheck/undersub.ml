@@ -5,7 +5,6 @@ module UT = Languages.Underty
 module QUT = Languages.Qunderty
 module Op = Languages.Op
 module P = Autov.Prop
-module SMTtyped = Languages.SMTtyped
 module Typectx = Languages.UnderTypectx
 module Qtypectx = Languages.Qtypectx
 open Zzdatatype.Datatype
@@ -52,29 +51,24 @@ let core ctx nu ((eq1, prop1), (uq2, prop2)) =
         | false, false -> aux ctx ((uqvs, pre), (eq1, prop1), (uq2, prop2))
         | true, false ->
             let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            let x = typed_to_smttyped x in
             let if_keep, prop1 = add_with_simp_eq_prop x xprop prop1 in
             let eq1 = if if_keep then eq1 @ [ x ] else eq1 in
             aux ctx ((uqvs, pre), (eq1, prop1), (uq2, prop2))
         | _, true ->
             let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            let x = typed_to_smttyped x in
             aux ctx ((x :: uqvs, xprop :: pre), (eq1, prop1), (uq2, prop2)))
   in
   aux ctx (([ nu ], []), (eq1, prop1), (uq2, prop2))
 
-let context_convert (uqvs : string SMTtyped.typed list) (ctx : Typectx.t)
+let context_convert (uqvs : string typed list) (ctx : Typectx.t)
     (name, nt, prop1, eqvs2, prop2) =
-  let nu = typed_to_smttyped { ty = nt; x = name } in
-  let open SMTtyped in
+  let nu = { ty = nt; x = name } in
   let mk_q (uqs, eqs, prop) =
     let _, basic_uqs = List.partition (fun x -> is_dt x.ty) uqs in
     let prop =
       Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs)
     in
-    let dt_eqs, basic_eqs =
-      List.partition (fun x -> Autov.Smtty.is_dt x.ty) eqs
-    in
+    let dt_eqs, basic_eqs = List.partition (fun x -> is_dt x.ty) eqs in
     let dt_eqs, prop =
       Autov.uqv_encoding (List.map (fun x -> x.x) dt_eqs) prop
     in
@@ -195,10 +189,7 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
               else (name1, prop1, P.subst_id prop2 name2 name1)
             in
             let q =
-              context_convert
-                (List.map typed_to_smttyped uqvs)
-                ctx
-                (typeself, nt, prop1, List.map typed_to_smttyped eqvs, prop2)
+              context_convert uqvs ctx (typeself, nt, prop1, eqvs, prop2)
             in
             (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
             (* let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in *)
@@ -236,12 +227,7 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
               if String.equal name1 name2 then (name1, prop1, prop2)
               else (name1, prop1, P.subst_id prop2 name2 name1)
             in
-            let q =
-              context_convert
-                (List.map typed_to_smttyped uqvs)
-                ctx
-                (typeself, nt, prop1, [], prop2)
-            in
+            let q = context_convert uqvs ctx (typeself, nt, prop1, [], prop2) in
             if Autov.check (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ()) q
             then ()
             else

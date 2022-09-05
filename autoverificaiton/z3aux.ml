@@ -2,13 +2,17 @@ open Z3
 open Z3.Expr
 open Z3.Boolean
 open Z3.Arithmetic
+open Normalty.Ast.T
 module T = Normalty.Ast.Smtty
 
 let int_to_z3 ctx i = mk_numeral_int ctx i (Integer.mk_sort ctx)
 let bool_to_z3 ctx b = if b then mk_true ctx else mk_false ctx
 
-let tp_to_sort ctx =
-  T.(function Int | Dt -> Integer.mk_sort ctx | Bool -> Boolean.mk_sort ctx)
+let tp_to_sort ctx t =
+  T.(
+    match to_smtty t with
+    | Int | Dt -> Integer.mk_sort ctx
+    | Bool -> Boolean.mk_sort ctx)
 
 let z3func ctx funcname inptps outtp =
   FuncDecl.mk_func_decl ctx
@@ -33,7 +37,7 @@ let array_head ctx (arrname, idxname) =
 
 let tpedvar_to_z3 ctx (tp, name) =
   T.(
-    match tp with
+    match to_smtty tp with
     | Dt | Int -> Integer.mk_const_s ctx name
     | Bool -> Boolean.mk_const_s ctx name)
 

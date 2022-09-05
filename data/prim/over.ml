@@ -39,12 +39,12 @@ let minus =
   (v : int) (v == a - b)
 
 let nil =
-  (v : int list) (fun (u : 'fa * int) -> (not (mem v u)) && not (hd v u))
+  (v : int list) (fun (u : [%forall: int]) -> (not (mem v u)) && not (hd v u))
 
 let cons =
   let h = (v : int) true in
   let t = (v : int list) true in
-  (v : int list) (fun (u : 'fa * int) ->
+  (v : int list) (fun (u : [%forall: int]) ->
       iff (mem v u) (mem t u || u == h)
       && iff (hd v u) (u == h)
       && implies (hd v u) (mem v u))

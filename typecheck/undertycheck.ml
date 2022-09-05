@@ -1,8 +1,7 @@
-module T = Autov.Smtty
 module NT = Languages.Normalty
 open Sugar
-open Languages.SMTtyped
-open Languages.SMTSimpleTypectx
+open Languages.Ntyped
+open Languages.NSimpleTypectx
 open Zzdatatype.Datatype
 
 let infer_id ctx name =
@@ -21,8 +20,8 @@ let rec infer_lit ctx lit =
   | AOp2 (mp, a, b) ->
       let a = infer_lit ctx a in
       let b = infer_lit ctx b in
-      if T.eq (lit_get_ty a) T.Int && T.eq (lit_get_ty b) T.Int && is_op mp then
-        AOp2 (mp, a, b)
+      if NT.eq (lit_get_ty a) Ty_int && NT.eq (lit_get_ty b) Ty_int && is_op mp
+      then AOp2 (mp, a, b)
       else _failatwith __FILE__ __LINE__ ""
 
 let infer_prop ctx t =
@@ -54,24 +53,21 @@ let infer uqvs t =
   let open Languages.Underty in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
-        let ctx = add_to_right ctx (NT.to_smtty normalty, basename) in
+        let ctx = add_to_right ctx (normalty, basename) in
         UnderTy_base { basename; normalty; prop = infer_prop ctx prop }
     | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
         (* let () = Printf.printf "do arrow\n" in *)
-        let argty =
-          aux
-            (List.fold_left add_to_right ctx
-            @@ List.map
-                 (fun x -> (NT.to_smtty x.Ntyped.ty, x.Ntyped.x))
-                 hidden_vars)
-            argty
+        let () =
+          if List.length hidden_vars > 0 then _failatwith __FILE__ __LINE__ ""
+          else ()
         in
-        let ctx = add_to_right ctx (NT.to_smtty @@ erase argty, argname) in
+        let argty = aux ctx argty in
+        let ctx = add_to_right ctx (erase argty, argname) in
         (* let () = *)
         (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
         (* in *)
         UnderTy_arrow { argname; hidden_vars; argty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
-  let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, NT.to_smtty x.ty)) qvs in
+  let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, x.ty)) qvs in
   aux (to_ctx uqvs) t

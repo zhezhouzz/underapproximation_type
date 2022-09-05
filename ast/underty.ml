@@ -85,11 +85,7 @@ module T = struct
 
   let make_basic basename normalty prop =
     UnderTy_base
-      {
-        basename;
-        normalty;
-        prop = prop (to_smttyped { x = basename; ty = normalty });
-      }
+      { basename; normalty; prop = prop { x = basename; ty = normalty } }
 
   let make_basic_from_const_int (n : int) =
     make_basic default_v_name NT.Ty_int (fun nu ->
@@ -108,7 +104,7 @@ module T = struct
     make_basic default_v_name normalty (fun _ -> P.mk_true)
 
   let make_arrow_no_hidden_vars argname normalty argtyf rettyf =
-    let id = to_smttyped { ty = normalty; x = argname } in
+    let id = { ty = normalty; x = argname } in
     UnderTy_arrow
       {
         argname;
@@ -319,13 +315,13 @@ module T = struct
     in
     let if_apply name = (not ifq) && String.equal id.x name in
     let t_apply prop = P.And [ idprop; prop ] in
-    let f_apply prop = P.Exists (to_smttyped id, P.And [ idprop; prop ]) in
+    let f_apply prop = P.Exists (id, P.And [ idprop; prop ]) in
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_var id t =
     let if_apply name = String.equal id.x name in
     let t_apply prop = prop in
-    let f_apply prop = P.Exists (to_smttyped id, prop) in
+    let f_apply prop = P.Exists (id, prop) in
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_vars ids t = List.fold_right add_ex_var ids t

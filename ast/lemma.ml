@@ -1,25 +1,23 @@
 open Normalty.Ast
 module P = Autov.Prop
 module T = Termlang.T
+open Q
 
-type qmode = Qex | Qfa
-type t = { qvs : (qmode * string Ntyped.typed) list; prop : P.t }
+type t = { qvs : (Q.t * string Ntyped.typed) list; prop : P.t }
 
 let to_prop { qvs; prop } =
   let open P in
   List.fold_right
     (fun (mode, qv) prop ->
-      match mode with
-      | Qex -> Exists (Ntyped.to_smttyped qv, prop)
-      | Qfa -> Forall (Ntyped.to_smttyped qv, prop))
+      match mode with Ex -> Exists (qv, prop) | Fa -> Forall (qv, prop))
     qvs prop
 
 let of_raw (qvs, prop) =
   let open T in
   let aux qv =
     match qv with
-    | { x; ty = Some (Some "forall", nty) } -> (Qfa, Ntyped.{ x; ty = nty })
-    | { x; ty = Some (Some "exists", nty) } -> (Qex, Ntyped.{ x; ty = nty })
+    | { x; ty = Some (Some "forall", nty) } -> (Fa, Ntyped.{ x; ty = nty })
+    | { x; ty = Some (Some "exists", nty) } -> (Ex, Ntyped.{ x; ty = nty })
     | { ty = Some (Some name, _); _ } ->
         failwith @@ Printf.sprintf "unknown label %s" name
     | { ty = Some (None, _); _ } -> failwith "wrong format"
@@ -34,10 +32,10 @@ let assume_feprop { qvs; prop } =
     List.fold_left
       (fun (uqvs, eqvs) (mode, qv) ->
         match mode with
-        | Qfa ->
+        | Fa ->
             if List.length eqvs != 0 then failwith "wrong format"
             else (uqvs @ [ qv ], eqvs)
-        | Qex -> (uqvs, eqvs @ [ qv ]))
+        | Ex -> (uqvs, eqvs @ [ qv ]))
       ([], []) qvs
   in
   (uqvs, eqvs, prop)
@@ -76,12 +74,9 @@ let rec union lemmas =
 open Zzdatatype.Datatype
 
 let instantiate (uqvs, eqvs, prop) uchoices =
-  let open SMTtyped in
   let () = if List.length eqvs != 0 then failwith "die" else () in
   let uqvs_settings =
-    List.map
-      (fun x -> List.filter (fun y -> Autov.Smtty.eq y.ty x.ty) uchoices)
-      uqvs
+    List.map (fun x -> List.filter (fun y -> eq y.ty x.ty) uchoices) uqvs
   in
   let settings = List.choose_list_list uqvs_settings in
   let unify_to_vars (vars, prop) vars' =
@@ -99,6 +94,4 @@ let instantiate (uqvs, eqvs, prop) uchoices =
 
 let with_lemma lemmas query uchoices =
   let uqvs, eqvs, prop = union lemmas in
-  let uqvs = List.map to_smttyped uqvs in
-  let eqvs = List.map to_smttyped eqvs in
   P.Implies (instantiate (uqvs, eqvs, prop) uchoices, query)

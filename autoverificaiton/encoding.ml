@@ -1,7 +1,7 @@
 open Prop.T
 open Zzdatatype.Datatype
-module Smtty = Normalty.Ast.Smtty
-open Normalty.Ast.SMTtyped
+module Ty = Normalty.Ast.T
+open Normalty.Ast.Ntyped
 
 module S = Map.Make (struct
   type t = lit list
@@ -76,7 +76,7 @@ let uqv_encoding uqvs prop =
           (fun lits _ ->
             let encoding =
               {
-                ty = Smtty.Bool;
+                ty = Ty.Ty_bool;
                 x =
                   List.fold_left
                     (fun s lit ->

@@ -271,11 +271,9 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
   | Ite { cond; e_t; e_f }, _ ->
       let cond = id_type_infer ctx cond in
-      let true_branch_prop x =
-        Autov.(Prop.(Lit (AVar { ty = Smtty.Bool; x })))
-      in
+      let true_branch_prop x = Autov.(Prop.(Lit (AVar { ty = Ty_bool; x }))) in
       let false_branch_prop x =
-        Autov.(Prop.(Not (Lit (AVar { ty = Smtty.Bool; x }))))
+        Autov.(Prop.(Not (Lit (AVar { ty = Ty_bool; x }))))
       in
       let true_branch_ctx =
         Typectx.add_to_right ctx

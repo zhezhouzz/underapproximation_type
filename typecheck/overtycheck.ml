@@ -1,11 +1,10 @@
-module T = Autov.Smtty
 module NT = Languages.Normalty
 module SMTtyped = Languages.SMTtyped
 module Ntyped = Languages.Ntyped
 open Sugar
 module P = Autov.Prop
-open Languages.SMTSimpleTypectx
-open SMTtyped
+open Languages.NSimpleTypectx
+open Ntyped
 
 let infer_id ctx name =
   match List.find_opt (fun (y, _) -> String.equal y name.x) ctx with
@@ -20,8 +19,11 @@ let rec infer_lit ctx lit =
   | AOp2 (mp, a, b) ->
       let a = infer_lit ctx a in
       let b = infer_lit ctx b in
-      if T.eq (lit_get_ty a) T.Int && T.eq (lit_get_ty b) T.Int && is_op mp then
-        AOp2 (mp, a, b)
+      if
+        Ntyped.eq (lit_get_ty a) Ty_int
+        && Ntyped.eq (lit_get_ty b) Ty_int
+        && is_op mp
+      then AOp2 (mp, a, b)
       else _failatwith __FILE__ __LINE__ ""
 
 let infer_prop ctx t =
@@ -49,11 +51,11 @@ let infer t =
   let open Languages.Overty in
   let rec aux ctx = function
     | OverTy_base { basename; normalty; prop } ->
-        let ctx = add_to_right ctx (NT.to_smtty normalty, basename) in
+        let ctx = add_to_right ctx (normalty, basename) in
         OverTy_base { basename; normalty; prop = infer_prop ctx prop }
     | OverTy_arrow { argname; argty; retty } ->
         let argty = aux ctx argty in
-        let ctx = add_to_right ctx (NT.to_smtty @@ erase argty, argname) in
+        let ctx = add_to_right ctx (erase argty, argname) in
         OverTy_arrow { argname; argty; retty = aux ctx retty }
     | OverTy_tuple ts -> OverTy_tuple (List.map (aux ctx) ts)
   in

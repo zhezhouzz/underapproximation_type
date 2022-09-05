@@ -1,10 +1,12 @@
 open Ocaml_parser
 open Parsetree
 module L = Prop.T
-module Smtty = Normalty.Ast.Smtty
-open Normalty.Ast.SMTtyped
+module Ty = Normalty.Ast.T
+module Q = Normalty.Ast.Q
+open Normalty.Ast.Ntyped
+open Normalty.Frontend
 
-type label = Fa of Smtty.t | Ex of Smtty.t
+(* type label = Fa of Ty.t | Ex of Ty.t *)
 
 let layout_ct t =
   let _ = Format.flush_str_formatter () in
@@ -19,41 +21,24 @@ let ptyp_desc_to_ct ct =
     ptyp_attributes = [];
   }
 
-let core_type_to_ty ct =
-  match ct.ptyp_desc with
-  | Ptyp_constr (name, []) -> (
-      match Longident.last name.txt with
-      | "int" -> Smtty.Int
-      | "bool" -> Smtty.Bool
-      | "dt" -> Smtty.Dt
-      | _ ->
-          failwith
-            (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct)))
-  | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
+(* let core_type_to_label ct = *)
+(*   match ct.ptyp_desc with *)
+(*   | Ptyp_tuple [ { ptyp_desc = Ptyp_var "fa"; _ }; t ] -> Fa (core_type_to_ty t) *)
+(*   | Ptyp_tuple [ { ptyp_desc = Ptyp_var "ex"; _ }; t ] -> Ex (core_type_to_ty t) *)
+(*   | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct)) *)
 
-let ty_to_core_type ty =
-  match Longident.unflatten [ Smtty.layout ty ] with
-  | Some id -> ptyp_desc_to_ct @@ Ptyp_constr (Location.mknoloc id, [])
-  | _ -> failwith "die"
-
-let core_type_to_label ct =
-  match ct.ptyp_desc with
-  | Ptyp_tuple [ { ptyp_desc = Ptyp_var "fa"; _ }; t ] -> Fa (core_type_to_ty t)
-  | Ptyp_tuple [ { ptyp_desc = Ptyp_var "ex"; _ }; t ] -> Ex (core_type_to_ty t)
-  | _ -> failwith (Printf.sprintf "prasing prop: wrong label %s" (layout_ct ct))
-
-let label_to_core_type x =
-  let ct =
-    match x with
-    | Fa ct ->
-        Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "fa"; ty_to_core_type ct ]
-    | Ex ct ->
-        Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "ex"; ty_to_core_type ct ]
-  in
-  ptyp_desc_to_ct ct
+(* let label_to_core_type x = *)
+(*   let ct = *)
+(*     match x with *)
+(*     | Fa ct -> *)
+(*         Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "fa"; ty_to_core_type ct ] *)
+(*     | Ex ct -> *)
+(*         Ptyp_tuple [ ptyp_desc_to_ct @@ Ptyp_var "ex"; ty_to_core_type ct ] *)
+(*   in *)
+(*   ptyp_desc_to_ct ct *)
 
 (* NOTE: should we parse type here? or is the prop is typed? *)
-let default_type = Smtty.Int
+let default_type = Ty.Ty_int
 
 let handle_id id =
   match Longident.flatten id.Location.txt with
@@ -131,7 +116,11 @@ let prop_of_ocamlexpr expr =
         let label, u =
           match arg.ppat_desc with
           | Ppat_constraint (arg, core_type) ->
-              let label = core_type_to_label core_type in
+              let label =
+                match core_type_to_notated_t core_type with
+                | Some name, ty -> (Q.of_string name, ty)
+                | _ -> failwith "parsing: prop function"
+              in
               let arg =
                 match arg.ppat_desc with
                 | Ppat_var arg -> arg.txt
@@ -142,8 +131,8 @@ let prop_of_ocamlexpr expr =
         in
         let body = aux expr in
         match label with
-        | Fa uty -> L.Forall ({ ty = uty; x = u }, body)
-        | Ex uty -> L.Exists ({ ty = uty; x = u }, body))
+        | Q.Fa, uty -> L.Forall ({ ty = uty; x = u }, body)
+        | Q.Ex, uty -> L.Exists ({ ty = uty; x = u }, body))
     | _ ->
         raise
         @@ failwith
@@ -232,7 +221,7 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      label_to_core_type (Fa u.ty) )),
+                      notated_t_to_core_type (Some (Q.to_string Fa), u.ty) )),
                aux body ))
     | P.Exists (u, body) ->
         desc_to_ocamlexpr
@@ -242,15 +231,13 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      label_to_core_type (Ex u.ty) )),
+                      notated_t_to_core_type (Some (Q.to_string Q.Ex), u.ty) )),
                aux body ))
   in
 
   aux prop
 
 let layout prop = Pprintast.string_of_expression @@ prop_to_expr prop
-
-open P
 
 type layout_setting = {
   sym_true : string;
@@ -284,7 +271,7 @@ let psetting =
     sym_forall = "∀";
     sym_exists = "∃";
     layout_typedid = (fun x -> x.x);
-    (* (fun x ->          Printf.sprintf "(%s:%s)" x.x (Smtty.layout x.ty)); *)
+    (* (fun x ->          Printf.sprintf "(%s:%s)" x.x (Ty.layout x.ty)); *)
     layout_mp = (fun x -> x);
   }
 
@@ -300,13 +287,11 @@ let coqsetting =
     sym_forall = "forall";
     sym_exists = "exists";
     layout_typedid =
-      (fun x ->
-        match x.ty with
-        | Bool -> sprintf "(%s:bool)" x.x
-        | Int -> sprintf "(%s:nat)" x.x
-        | Dt -> sprintf "(%s:dt)" x.x);
+      (fun x -> sprintf "(%s:%s)" x.x (Normalty.Frontend.layout x.ty));
     layout_mp = (function "==" -> "=" | x -> x);
   }
+
+open P
 
 let lit_pretty_layout_ { sym_true; sym_false; layout_typedid; layout_mp; _ } =
   let rec aux = function

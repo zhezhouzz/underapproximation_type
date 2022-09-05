@@ -1,9 +1,9 @@
 module T = struct
   open Sexplib.Std
-  module Smtty = Normalty.Ast.Smtty
-  open Normalty.Ast.SMTtyped
+  module Ty = Normalty.Ast.T
+  open Normalty.Ast.Ntyped
 
-  type ty = Smtty.t [@@deriving sexp]
+  type ty = Ty.t [@@deriving sexp]
 
   type lit =
     | ACint of int
@@ -88,22 +88,20 @@ module T = struct
   (* TODO: type check *)
   let lit_get_ty lit =
     let aux = function
-      | ACint _ -> Smtty.Int
-      | ACbool _ -> Smtty.Bool
+      | ACint _ -> Ty.Ty_int
+      | ACbool _ -> Ty.Ty_bool
       | AVar id -> id.ty
       | AOp2 (mp, _, _) -> (
           match mp with
-          | "==" | "!=" | "<" | ">" | "<=" | ">=" -> Smtty.Bool
-          | "+" | "-" -> Smtty.Int
+          | "==" | "!=" | "<" | ">" | "<=" | ">=" -> Ty.Ty_bool
+          | "+" | "-" -> Ty.Ty_int
           | _ -> failwith "lit_get_ty: unknown op")
     in
     aux lit
 
   let typed_id_eq x y =
     if String.equal x.x y.x then
-      let () =
-        if Smtty.smtty_eq (x.ty, y.ty) then () else failwith "prop naming error"
-      in
+      let () = if eq x.ty y.ty then () else failwith "prop naming error" in
       true
     else false
 

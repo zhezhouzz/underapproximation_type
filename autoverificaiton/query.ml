@@ -64,7 +64,7 @@ let to_z3 ctx prop =
     | MethodPred (mp, args) ->
         let argsty = List.map lit_get_ty args in
         let args = List.map (lit_to_z3 ctx) args in
-        let func = z3func ctx mp argsty T.Bool in
+        let func = z3func ctx mp argsty Ty_bool in
         Z3.FuncDecl.apply func args
   in
   aux prop
