@@ -63,21 +63,21 @@ let core ctx nu ((eq1, prop1), (uq2, prop2)) =
 let context_convert (uqvs : string typed list) (ctx : Typectx.t)
     (name, nt, prop1, eqvs2, prop2) =
   let nu = { ty = nt; x = name } in
-  let mk_q (uqs, eqs, prop) =
-    let _, basic_uqs = List.partition (fun x -> is_dt x.ty) uqs in
-    let prop =
-      Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs)
-    in
-    let dt_eqs, basic_eqs = List.partition (fun x -> is_dt x.ty) eqs in
-    let dt_eqs, prop =
-      Autov.uqv_encoding (List.map (fun x -> x.x) dt_eqs) prop
-    in
-    let prop =
-      List.fold_right (fun qv prop -> P.(Exists (qv, prop))) dt_eqs prop
-    in
-    List.fold_right (fun x prop -> P.Forall (x, prop)) uqs
-    @@ List.fold_right (fun x prop -> P.Exists (x, prop)) basic_eqs prop
-  in
+  (* let mk_q (uqs, eqs, prop) = *)
+  (*   let _, basic_uqs = List.partition (fun x -> is_dt x.ty) uqs in *)
+  (*   let prop = *)
+  (*     Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs) *)
+  (*   in *)
+  (*   let dt_eqs, basic_eqs = List.partition (fun x -> is_dt x.ty) eqs in *)
+  (*   let dt_eqs, prop = *)
+  (*     Autov.uqv_encoding (List.map (fun x -> x.x) dt_eqs) prop *)
+  (*   in *)
+  (*   let prop = *)
+  (*     List.fold_right (fun qv prop -> P.(Exists (qv, prop))) dt_eqs prop *)
+  (*   in *)
+  (*   List.fold_right (fun x prop -> P.Forall (x, prop)) uqs *)
+  (*   @@ List.fold_right (fun x prop -> P.Exists (x, prop)) basic_eqs prop *)
+  (* in *)
   (* let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in *)
   (* let aux (x, xty) ((eqpre, pre), (eq1, prop1), prop2) = *)
   (*   let xty = UT.conjunct_list xty in *)
@@ -149,14 +149,17 @@ let context_convert (uqvs : string typed list) (ctx : Typectx.t)
       (List.map (fun x -> x.x) final_eqvs)
       final_prop
   in
-  let q = mk_q (final_uqvs, final_eqvs, final_prop) in
+  let pres, q =
+    Lemma.with_lemma (Prim.lemmas_to_pres ())
+      (final_uqvs, final_eqvs, final_prop)
+  in
   (* let q = P.simp_conj_disj q in *)
   (* let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in *)
   (* let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in *)
   (* let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in *)
   (* closing check *)
   match Autov.prop_fv q with
-  | [] -> q
+  | [] -> (pres, q)
   | fv ->
       let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
       let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
@@ -188,13 +191,12 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
               if String.equal name1 name2 then (name1, prop1, prop2)
               else (name1, prop1, P.subst_id prop2 name2 name1)
             in
-            let q =
+            let pres, q =
               context_convert uqvs ctx (typeself, nt, prop1, eqvs, prop2)
             in
             (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
             (* let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in *)
-            if Autov.check (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ()) q
-            then ()
+            if Autov.check pres q then ()
             else
               _failatwith file line "Subtyping check: rejected by the verifier"
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
@@ -227,9 +229,10 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
               if String.equal name1 name2 then (name1, prop1, prop2)
               else (name1, prop1, P.subst_id prop2 name2 name1)
             in
-            let q = context_convert uqvs ctx (typeself, nt, prop1, [], prop2) in
-            if Autov.check (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ()) q
-            then ()
+            let pres, q =
+              context_convert uqvs ctx (typeself, nt, prop1, [], prop2)
+            in
+            if Autov.check pres q then ()
             else
               _failatwith file line "Subtyping check: rejected by the verifier"
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
