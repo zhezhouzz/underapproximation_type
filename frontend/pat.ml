@@ -1,5 +1,6 @@
 open Ocaml_parser
 open Parsetree
+module Type = Normalty.Frontend
 module L = Languages.Termlang
 
 let layout_ t =

@@ -1,6 +1,7 @@
 open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
+module Type = Normalty.Frontend
 module L = Languages.Termlang
 
 let get_if_rec flag =

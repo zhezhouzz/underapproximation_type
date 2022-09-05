@@ -4,6 +4,7 @@ open Zzdatatype.Datatype
 module T = Languages.Termlang
 module L = Languages.Underty
 module Ntyped = Languages.Ntyped
+module Type = Normalty.Frontend
 
 type mode = Under | Tuple
 

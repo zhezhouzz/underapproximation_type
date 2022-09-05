@@ -3,7 +3,7 @@
  (wrapped true)
  (libraries utils ast core ocaml_parser abstraction)
  (modules
-   type
+   ; type
    value
    ; prop
    pat

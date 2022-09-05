@@ -3,6 +3,7 @@ open Parsetree
 module L = Languages.Qunderty
 open Languages.Ntyped
 open Quantified
+module Type = Normalty.Frontend
 
 let core_type_to_qt ct =
   match ct.ptyp_desc with

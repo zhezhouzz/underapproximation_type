@@ -1,6 +1,7 @@
 open Ocaml_parser
 open Parsetree
 open Languages.Typedec
+module Type = Normalty.Frontend
 
 let constructor_declaration_of_ocaml { pcd_name; pcd_args; _ } =
   let argsty =

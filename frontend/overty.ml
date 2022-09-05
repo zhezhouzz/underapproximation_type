@@ -3,6 +3,7 @@ open Parsetree
 open Zzdatatype.Datatype
 module T = Languages.Termlang
 module L = Languages.Overty
+module Type = Normalty.Frontend
 
 type mode = Over | Tuple
 

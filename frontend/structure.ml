@@ -2,6 +2,7 @@ open Ocaml_parser
 open Parsetree
 module L = Languages.Termlang
 module S = Languages.Struc
+module Type = Normalty.Frontend
 
 let func_decl_of_ocamlstruct_one structure =
   match structure.pstr_desc with

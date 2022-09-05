@@ -8,7 +8,7 @@ open Type
 open Sugar
 open Abstraction
 
-let layout = Frontend.Type.layout
+let layout_ty = Normalty.Frontend.layout
 
 let rec infer_value (c : Value.t) =
   match c with
@@ -141,7 +141,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
       _failatwith __FILE__ __LINE__
         (spf "type_check: inconsistent term (%s) and type (%s)"
            (Frontend.Expr.layout { ty = None; x = e })
-           (Frontend.Type.layout ty))
+           (layout_ty ty))
 
 and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
