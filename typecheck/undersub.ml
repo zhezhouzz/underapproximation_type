@@ -14,6 +14,11 @@ open Abstraction
 
 (* let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping *)
 
+let with_lemma_to_query lemmas x =
+  let x = Lemma.query_with_lemma_to_prop @@ Lemma.with_lemma lemmas x in
+  let () = Frontend.Lemma.print_with_lemma x in
+  x
+
 let _assume_basety file line (x, ty) =
   let open UT in
   match ty with
@@ -38,7 +43,9 @@ let core ctx nu ((eq1, prop1), (uq2, prop2)) =
     | None -> ((uqvs, pre), eq1 @ uq2, Implies (prop2, prop1))
     | Some (ctx, (x, xty)) -> (
         let xty = UT.conjunct_list xty in
-        let in1, in2 = (check_in x prop1, check_in x prop2) in
+        let in1, in2 =
+          (check_in x prop1, check_in x prop2 || check_in x (And pre))
+        in
         (* let () = *)
         (*   Printf.printf "WORK ON... %s: %s <%b;%b> |- (%s ==> ∃ %s, %s) \n" x *)
         (*     (Frontend.Underty.pretty_layout xty) *)
@@ -150,7 +157,7 @@ let context_convert (uqvs : string typed list) (ctx : Typectx.t)
       final_prop
   in
   let pres, q =
-    Lemma.with_lemma (Prim.lemmas_to_pres ())
+    with_lemma_to_query (Prim.lemmas_to_pres ())
       (final_uqvs, final_eqvs, final_prop)
   in
   (* let q = P.simp_conj_disj q in *)

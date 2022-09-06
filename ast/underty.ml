@@ -89,7 +89,7 @@ module T = struct
 
   let make_basic_from_const_int (n : int) =
     make_basic default_v_name NT.Ty_int (fun nu ->
-        P.(Lit (AOp2 ("==", AVar nu, ACint n))))
+        P.(mk_lit_eq_lit (AVar nu) (ACint n)))
 
   let make_basic_from_const_bool (b : bool) =
     make_basic default_v_name NT.Ty_int
@@ -313,9 +313,12 @@ module T = struct
           let prop = Autov.Prop.subst_id prop x' id in
           ({ x = id; ty }, prop)
     in
-    let if_apply name = (not ifq) && String.equal id.x name in
-    let t_apply prop = P.And [ idprop; prop ] in
-    let f_apply prop = P.Exists (id, P.And [ idprop; prop ]) in
+    let if_apply name = String.equal id.x name in
+    let t_apply _ = _failatwith __FILE__ __LINE__ "" in
+    let f_apply prop =
+      if ifq then P.Exists (id, P.And [ idprop; prop ])
+      else P.And [ idprop; prop ]
+    in
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_var id t =
@@ -325,6 +328,20 @@ module T = struct
     work_on_retty if_apply (t_apply, f_apply) t
 
   let add_ex_vars ids t = List.fold_right add_ex_var ids t
+
+  let instantiate_reduction vars t =
+    let rec aux t =
+      match t with
+      | UnderTy_base { basename; normalty; prop } ->
+          let prop = Autov.vars_reduction vars prop in
+          UnderTy_base { basename; normalty; prop }
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
+      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+          let argty = aux argty in
+          let retty = aux retty in
+          UnderTy_arrow { argname; hidden_vars; argty; retty }
+    in
+    aux t
 
   let instantiate_universial m t =
     let mk_conj prop m =

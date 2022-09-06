@@ -45,9 +45,7 @@ let subst_mp m prop =
         match StrMap.find_opt m mp with
         | None -> prop
         | Some s -> (
-            match S.find_opt args s with
-            | None -> prop
-            | Some lit -> Lit (AVar lit)))
+            match S.find_opt args s with None -> prop | Some prop' -> prop'))
     | Implies (e1, e2) -> Implies (aux e1, aux e2)
     | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
     | Not e -> Not (aux e)
@@ -58,7 +56,7 @@ let subst_mp m prop =
   in
   aux prop
 
-let uqv_encoding uqvs prop =
+let find_lits_with_vars uqvs prop =
   let m = stat_mp_app_in_prop prop in
   let has_uqv = List.exists (lit_has_uqvs uqvs) in
   let m =
@@ -68,6 +66,33 @@ let uqv_encoding uqvs prop =
         if S.cardinal s == 0 then None else Some s)
       m
   in
+  m
+
+let layout_res m =
+  StrMap.iter
+    (fun k s ->
+      Printf.printf "mp: %s\n" k;
+      S.iter
+        (fun lit _ ->
+          Printf.printf "(%s)\n"
+          @@ List.split_by_comma Frontend.pretty_layout_lit lit)
+        s)
+    m
+
+let vars_reduction vars prop =
+  let m = find_lits_with_vars vars prop in
+  let m = StrMap.map (fun s -> S.map (fun _ -> mk_true) s) m in
+  (* let () = layout_res m in *)
+  let prop' = subst_mp m prop in
+  (* let () = *)
+  (*   Printf.printf "%s --> %s\n" *)
+  (*     (Frontend.pretty_layout prop) *)
+  (*     (Frontend.pretty_layout prop') *)
+  (* in *)
+  prop'
+
+let uqv_encoding uqvs prop =
+  let m = find_lits_with_vars uqvs prop in
   let m =
     StrMap.mapi
       (fun mp s ->
@@ -96,5 +121,7 @@ let uqv_encoding uqvs prop =
     @@ List.map (fun s -> List.map snd @@ List.of_seq @@ S.to_seq s)
     @@ StrMap.to_value_list m
   in
-  let prop = subst_mp m prop in
+  let prop =
+    subst_mp (StrMap.map (fun s -> S.map (fun x -> Lit (AVar x)) s) m) prop
+  in
   (new_uqvs, prop)

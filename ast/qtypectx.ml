@@ -80,7 +80,9 @@ module ET = struct
       List.map (fun l -> List.combine (List.map (fun x -> x.x) tyuqvs) l)
       @@ List.choose_list_list vars
     in
-    instantiate_universial settings uty
+    if List.length settings = 0 then
+      instantiate_reduction (List.map (fun x -> x.x) tyuqvs) uty
+    else instantiate_universial settings uty
 
   let fv { qvs; qbody } =
     List.filter (fun x -> not @@ List.exists (fun y -> String.equal x y.x) qvs)

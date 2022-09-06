@@ -247,7 +247,12 @@ and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
         aux (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
-  let retty = aux (args, fty) in
+  let retty =
+    try aux (args, fty)
+    with Failure msg ->
+      let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
+      make_basic_top (snd ret.NL.ty)
+  in
   let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
   (* let () = Pp.printf "before handel let-- (%s)\n" ret.NL.x in *)
   (* let retty = *)
@@ -404,6 +409,20 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           let ctx' = Qtypectx.conjunct ctx (matched.x, retty) in
           let ctx' = Qtypectx.add_to_rights ctx' args in
           let exp = term_type_infer notations_ctx ctx' exp in
+          let () =
+            Pp.printf "@{<bold>Close:@}\n";
+            Frontend.Qtypectx.pretty_print ctx';
+            Pp.printf "@{<bold>-@}\n";
+            Frontend.Qtypectx.pretty_print ctx;
+            Pp.printf "@{<bold>=@}\n";
+            Frontend.Qtypectx.pretty_print
+              {
+                qvs = [];
+                qbody =
+                  List.map (fun (b, (name, t)) -> (spf "|%b|%s" b name, t))
+                  @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody;
+              }
+          in
           ( Qtypectx.close_by_diff ctx' ctx exp.ty,
             UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
         in

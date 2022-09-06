@@ -104,11 +104,10 @@ let prop_of_ocamlexpr expr =
         | "&&", _ -> failwith "parsing: prop wrong and"
         | "||", [ a; b ] -> L.Or [ aux a; aux b ]
         | "||", _ -> failwith "parsing: prop wrong or"
+        | "=", _ -> failwith "please use == instead of = "
         | f, args ->
-            if L.is_op f then L.Lit (lit_of_ocamlexpr expr)
-            else
-              let args = List.map lit_of_ocamlexpr args in
-              L.MethodPred (f, args))
+            let args = List.map lit_of_ocamlexpr args in
+            L.MethodPred (f, args))
     | Pexp_ifthenelse (e1, e2, Some e3) -> L.(Ite (aux e1, aux e2, aux e3))
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_match _ -> failwith "parsing: prop does not have match"
@@ -253,9 +252,6 @@ type layout_setting = {
   layout_mp : string -> string;
 }
 
-let is_op op =
-  match op with "==" | "<" | ">" | "<=" | ">=" -> true | _ -> false
-
 open Printf
 open Zzdatatype.Datatype
 
@@ -292,6 +288,7 @@ let coqsetting =
   }
 
 open P
+open Sugar
 
 let lit_pretty_layout_ { sym_true; sym_false; layout_typedid; layout_mp; _ } =
   let rec aux = function
@@ -299,7 +296,9 @@ let lit_pretty_layout_ { sym_true; sym_false; layout_typedid; layout_mp; _ } =
     | ACbool false -> sym_false
     | ACbool true -> sym_true
     | AVar id -> layout_typedid id
-    | AOp2 (mp, a, b) -> sprintf "(%s %s %s)" (aux a) (layout_mp mp) (aux b)
+    | AOp2 (mp, a, b) ->
+        if is_op mp then sprintf "(%s %s %s)" (aux a) (layout_mp mp) (aux b)
+        else _failatwith __FILE__ __LINE__ @@ spf "unknown op %s" mp
   in
   aux
 

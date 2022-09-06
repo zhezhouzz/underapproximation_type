@@ -1,6 +1,7 @@
 open Prop.T
 open Z3aux
 open Z3
+open Sugar
 
 let make_forall ctx qv body =
   if List.length qv == 0 then body
@@ -29,15 +30,9 @@ let lit_to_z3 ctx lit =
         let a = aux a in
         let b = aux b in
         match mp with
-        | "==" -> Z3.Boolean.mk_eq ctx a b
-        | "!=" -> Z3.Boolean.(mk_not ctx @@ mk_eq ctx a b)
-        | "<=" -> Z3.Arithmetic.mk_le ctx a b
-        | ">=" -> Z3.Arithmetic.mk_ge ctx a b
-        | "<" -> Z3.Arithmetic.mk_lt ctx a b
-        | ">" -> Z3.Arithmetic.mk_gt ctx a b
         | "+" -> Z3.Arithmetic.mk_add ctx [ a; b ]
         | "-" -> Z3.Arithmetic.mk_sub ctx [ a; b ]
-        | _ -> failwith "unknown operator")
+        | _ -> failwith @@ spf "unknown operator: %s" mp)
   in
   aux lit
 
@@ -61,6 +56,25 @@ let to_z3 ctx prop =
         make_forall ctx [ tpedvar_to_z3 ctx (u.ty, u.x) ] (aux body)
     | Exists (u, body) ->
         make_exists ctx [ tpedvar_to_z3 ctx (u.ty, u.x) ] (aux body)
+    | MethodPred ("==", [ a; b ]) ->
+        Z3.Boolean.mk_eq ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred ("==", _) -> _failatwith __FILE__ __LINE__ ""
+    | MethodPred ("!=", [ a; b ]) ->
+        Z3.Boolean.mk_not ctx
+        @@ Z3.Boolean.mk_eq ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred ("!=", _) -> _failatwith __FILE__ __LINE__ ""
+    | MethodPred ("<=", [ a; b ]) ->
+        Z3.Arithmetic.mk_le ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred ("<=", _) -> _failatwith __FILE__ __LINE__ ""
+    | MethodPred (">=", [ a; b ]) ->
+        Z3.Arithmetic.mk_ge ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred (">=", _) -> _failatwith __FILE__ __LINE__ ""
+    | MethodPred ("<", [ a; b ]) ->
+        Z3.Arithmetic.mk_lt ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred ("<", _) -> _failatwith __FILE__ __LINE__ ""
+    | MethodPred (">", [ a; b ]) ->
+        Z3.Arithmetic.mk_gt ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
+    | MethodPred (">", _) -> _failatwith __FILE__ __LINE__ ""
     | MethodPred (mp, args) ->
         let argsty = List.map lit_get_ty args in
         let args = List.map (lit_to_z3 ctx) args in

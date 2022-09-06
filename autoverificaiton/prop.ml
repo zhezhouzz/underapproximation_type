@@ -27,10 +27,7 @@ module T = struct
 
   let mk_true = Lit (ACbool true)
   let mk_false = Lit (ACbool false)
-
-  let is_op = function
-    | "==" | "!=" | "<" | ">" | "<=" | ">=" | "+" | "-" -> true
-    | _ -> false
+  let is_op = function "+" | "-" -> true | _ -> false
 
   let negate prop =
     let rec aux t =
@@ -93,7 +90,7 @@ module T = struct
       | AVar id -> id.ty
       | AOp2 (mp, _, _) -> (
           match mp with
-          | "==" | "!=" | "<" | ">" | "<=" | ">=" -> Ty.Ty_bool
+          (* | "==" | "!=" | "<" | ">" | "<=" | ">=" -> Ty.Ty_bool *)
           | "+" | "-" -> Ty.Ty_int
           | _ -> failwith "lit_get_ty: unknown op")
     in
@@ -200,6 +197,8 @@ module T = struct
     let u = { ty; x } in
     Exists (u, prop u)
 
+  let mk_lit_eq_lit lit1 lit2 = MethodPred ("==", [ lit1; lit2 ])
+
   let lit_strict_eq l1 l2 =
     let rec aux (l1, l2) =
       match (l1, l2) with
@@ -291,8 +290,10 @@ module T = struct
 
   let add_with_simp_eq_prop id xprop prop =
     let is_eq = function
-      | Lit (AOp2 ("==", AVar x, lit)) when String.equal x.x id.x -> Some lit
-      | Lit (AOp2 ("==", lit, AVar x)) when String.equal x.x id.x -> Some lit
+      | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x ->
+          Some lit
+      | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x ->
+          Some lit
       | _ -> None
     in
     match is_eq xprop with
@@ -301,8 +302,8 @@ module T = struct
 
   let simp_exists eqv t =
     let is_eq = function
-      | Lit (AOp2 ("==", AVar x, lit)) when String.equal x.x eqv -> Some lit
-      | Lit (AOp2 ("==", lit, AVar x)) when String.equal x.x eqv -> Some lit
+      | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x eqv -> Some lit
+      | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x eqv -> Some lit
       | _ -> None
     in
     match t with
@@ -313,24 +314,29 @@ module T = struct
         | lit :: _ -> (false, subst_id_with_lit t eqv lit))
     | _ -> (true, t)
 
-  let rec simp_lit_lit t =
-    match t with
-    | ACint _ -> t
-    | ACbool _ -> t
-    | AVar _ -> t
-    | AOp2 (op, a, b) -> (
-        match (op, simp_lit_lit a, simp_lit_lit b) with
-        | "==", AVar id, AVar id' when String.equal id.x id'.x -> ACbool true
-        | "==", ACint i, ACint i' -> ACbool (i == i')
-        | "==", ACbool i, ACbool i' -> ACbool (i == i')
-        | "==", a, b when lit_strict_eq a b -> ACbool true
-        | op, a, b -> AOp2 (op, a, b))
+  (* let rec simp_lit_lit t = *)
+  (*   match t with *)
+  (*   | ACint _ -> t *)
+  (*   | ACbool _ -> t *)
+  (*   | AVar _ -> t *)
+  (*   | AOp2 (op, a, b) -> ( *)
+  (*       match (op, simp_lit_lit a, simp_lit_lit b) with *)
+  (*       | "==", AVar id, AVar id' when String.equal id.x id'.x -> ACbool true *)
+  (*       | "==", ACint i, ACint i' -> ACbool (i == i') *)
+  (*       | "==", ACbool i, ACbool i' -> ACbool (i == i') *)
+  (*       | "==", a, b when lit_strict_eq a b -> ACbool true *)
+  (*       | op, a, b -> AOp2 (op, a, b)) *)
 
   let simp_lit t =
     let rec aux t =
       match t with
-      | Lit lit -> Lit (simp_lit_lit lit)
-      | MethodPred (mp, args) -> MethodPred (mp, List.map simp_lit_lit args)
+      | Lit lit -> Lit lit
+      | MethodPred ("==", [ AVar id; AVar id' ]) when String.equal id.x id'.x ->
+          mk_true
+      | MethodPred ("==", [ ACint i; ACint i' ]) -> Lit (ACbool (i == i'))
+      | MethodPred ("==", [ ACbool i; ACbool i' ]) -> Lit (ACbool (i == i'))
+      | MethodPred ("==", [ a; b ]) when lit_strict_eq a b -> mk_true
+      | MethodPred (mp, args) -> MethodPred (mp, args)
       | Implies (e1, e2) -> Implies (aux e1, aux e2)
       | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
       | Not e -> Not (aux e)

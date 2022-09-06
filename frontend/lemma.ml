@@ -23,3 +23,10 @@ let undertype_of_ocamlexpr expr =
 let pretty_layout lemma =
   (* let to_strings = List.map (fun x -> x.Languages.SMTtyped.x) in *)
   spf "%s." (Autov.pretty_layout_prop @@ to_prop lemma)
+
+let print_with_lemma (pres, prop) =
+  List.iter
+    (fun pre ->
+      Pp.printf "@{<bold>lemma: @} %s\n" @@ Autov.pretty_layout_prop pre)
+    pres;
+  Pp.printf "@{<bold>VC: @} %s\n" @@ Autov.pretty_layout_prop prop

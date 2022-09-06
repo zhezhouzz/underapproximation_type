@@ -41,3 +41,4 @@ let coq_layout_prop = Frontend.coq_layout
 let prop_fv = Prop.fv
 let add_prop_to_fv = Prop.add_fv
 let uqv_encoding = Encoding.uqv_encoding
+let vars_reduction = Encoding.vars_reduction
