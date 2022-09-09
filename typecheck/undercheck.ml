@@ -128,12 +128,7 @@ and value_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
                 {
                   ty =
                     UnderTy_arrow
-                      {
-                        argname = id.x;
-                        hidden_vars = [];
-                        argty = id.ty;
-                        retty = body.ty;
-                      };
+                      { argname = id.x; argty = id.ty; retty = body.ty };
                   x = Lam (id, body);
                 }
           | None ->
@@ -150,19 +145,18 @@ and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
         let x = value_type_infer notations_ctx ctx a in
         let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
         x
-    | NL.Lam (id, body), UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+    | NL.Lam (id, body), UnderTy_arrow { argname; argty; retty } ->
         let () =
           match Simpletypectx.UTSimpleTypectx.get_opt notations_ctx id.x with
           | Some _ -> _failatwith __FILE__ __LINE__ "die"
           | None -> ()
         in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
-        let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
         let retty = UT.subst_id retty argname id.x in
         let ctx' = Qtypectx.add_to_right ctx id in
         let body = term_type_check notations_ctx ctx' body retty in
         {
-          ty = UnderTy_arrow { argname; hidden_vars; argty; retty = body.ty };
+          ty = UnderTy_arrow { argname; argty; retty = body.ty };
           x = Lam (id, body);
         }
     | NL.Fix (f, body), ty ->
@@ -233,12 +227,8 @@ and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
   (* arguments type check *)
   let rec aux = function
     | [], ty -> ty
-    | arg :: args, UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-        let hidden_vars, argty =
-          Qtypectx.rename_hidden_vars ctx (hidden_vars, argty)
-        in
+    | arg :: args, UnderTy_arrow { argname; argty; retty } ->
         (* HACK *)
-        let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
         let () =
           if UT.is_fv_in argname retty then
             subtyping_check __FILE__ __LINE__ ctx argty arg.ty
@@ -374,12 +364,11 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
             @@ Prim.get_primitive_rev_under_ty constructor.x
           in
           let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
-          let hidden_vars, retty, args =
+          let retty, args =
             let open UT in
             match constructor.ty with
-            | UnderTy_base _ -> ([], constructor.ty, [])
-            | UnderTy_arrow
-                { argname; argty; hidden_vars; retty = UnderTy_tuple ts } ->
+            | UnderTy_base _ -> (constructor.ty, [])
+            | UnderTy_arrow { argname; argty; retty = UnderTy_tuple ts } ->
                 let ts =
                   List.map (fun t -> UT.subst_id t argname matched.x) ts
                 in
@@ -400,13 +389,12 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
                           _failatwith __FILE__ __LINE__ "wrong rev under prim")
                     tsargs
                 in
-                (hidden_vars, argty, args)
+                (argty, args)
             | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
           in
           (* let ctx', retty =  *)
           (*   Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, retty) *)
           (* in *)
-          let () = check_empty_hidden __FILE__ __LINE__ hidden_vars in
           let ctx' = Qtypectx.conjunct ctx (matched.x, retty) in
           let ctx' = Qtypectx.add_to_rights ctx' args in
           let exp = term_type_infer notations_ctx ctx' exp in

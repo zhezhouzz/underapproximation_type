@@ -39,19 +39,7 @@ let mode_of_ocamlexpr e =
 
 let undertype_of_ocamlexpr expr =
   let open T in
-  let rec parse_hidden expr =
-    match expr.pexp_desc with
-    | Pexp_fun (_, _, var, e) ->
-        let hidden_vars =
-          List.map (fun x ->
-              match x.ty with
-              | None -> failwith "undertype_of_ocamlexpr"
-              | Some (_, ty) -> Ntyped.{ x = x.x; ty })
-          @@ Pat.patten_to_typed_ids var
-        in
-        (hidden_vars, aux e)
-    | _ -> ([], aux expr)
-  and aux expr =
+  let rec aux expr =
     match expr.pexp_desc with
     | Pexp_apply (x, [ prop ]) ->
         let x = Expr.expr_of_ocamlexpr x in
@@ -70,8 +58,8 @@ let undertype_of_ocamlexpr expr =
           | [ id ] -> id.x
           | _ -> failwith "undertype_of_ocamlexpr"
         in
-        let hidden_vars, argty = parse_hidden vb.pvb_expr in
-        L.(UnderTy_arrow { argname; hidden_vars; argty; retty = aux body })
+        let argty = aux vb.pvb_expr in
+        L.(UnderTy_arrow { argname; argty; retty = aux body })
     | _ -> failwith "wrong refinement type"
   in
   aux expr
@@ -90,15 +78,7 @@ let undertype_to_ocamlexpr x =
         Expr.desc_to_ocamlexpr
         @@ Pexp_apply
              (mode, List.map (fun x -> (Asttypes.Nolabel, x)) [ x; prop ])
-    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-        let patten =
-          Pat.typed_ids_to_pattens
-          @@ List.map
-               (fun x ->
-                 Languages.Termlang.
-                   { x = x.Ntyped.x; ty = Some (None, x.Ntyped.ty) })
-               hidden_vars
-        in
+    | UnderTy_arrow { argname; argty; retty } ->
         Expr.desc_to_ocamlexpr
         @@ Pexp_let
              ( Asttypes.Nonrecursive,
@@ -106,9 +86,7 @@ let undertype_to_ocamlexpr x =
                  {
                    pvb_pat =
                      Pat.dest_to_pat @@ Ppat_var (Location.mknoloc argname);
-                   pvb_expr =
-                     Expr.desc_to_ocamlexpr
-                     @@ Pexp_fun (Asttypes.Nolabel, None, patten, aux argty);
+                   pvb_expr = aux argty;
                    pvb_attributes = [];
                    pvb_loc = Location.none;
                  };
@@ -139,21 +117,11 @@ let pretty_layout x =
     | UnderTy_base { basename; normalty; prop } ->
         Sugar.spf "[%s:%s | %s]" basename (Type.layout normalty)
           (Autov.pretty_layout_prop prop)
-    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+    | UnderTy_arrow { argname; argty; retty } ->
         let argname_f ty =
           if L.is_fv_in argname retty then Sugar.spf "%s:%s" argname ty else ty
         in
-        let hidden_vars_f ty =
-          match hidden_vars with
-          | [] -> ty
-          | _ ->
-              Sugar.spf "|%s ▷%s|"
-                (List.split_by_comma (fun x -> x.Ntyped.x) hidden_vars)
-                ty
-        in
-        Sugar.spf "%s → %s"
-          (argname_f @@ hidden_vars_f @@ aux argty)
-          (aux retty)
+        Sugar.spf "%s → %s" (argname_f @@ aux argty) (aux retty)
     | UnderTy_tuple ts ->
         Sugar.spf "(%s)" @@ Zzdatatype.Datatype.List.split_by_comma aux ts
   in

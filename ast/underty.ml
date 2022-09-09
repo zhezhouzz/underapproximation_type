@@ -14,18 +14,11 @@ module T = struct
   (* invariant: the prop here should be existensial quantified. *)
   type t =
     | UnderTy_base of { basename : id; normalty : normalty; prop : P.t }
-    | UnderTy_arrow of {
-        argname : id;
-        hidden_vars : id NTyped.typed list;
-        argty : t;
-        retty : t;
-      }
+    | UnderTy_arrow of { argname : id; argty : t; retty : t }
     | UnderTy_tuple of t list
   [@@deriving sexp]
 
   open Zzdatatype.Datatype
-
-  let hidden_vars_to_vars = List.map (fun x -> x.x)
 
   let var_space t =
     let add xs s = List.fold_left (fun s x -> StrMap.add x () s) s xs in
@@ -34,20 +27,14 @@ module T = struct
           let s = add (P.var_space prop) s in
           add [ basename ] s
       | UnderTy_tuple ts -> List.fold_left aux s ts
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-          let s = add (argname :: hidden_vars_to_vars hidden_vars) s in
+      | UnderTy_arrow { argname; argty; retty } ->
+          let s = add [ argname ] s in
           let space =
             StrMap.to_key_list @@ aux (aux StrMap.empty argty) retty
           in
           add space s
     in
     StrMap.to_key_list @@ aux StrMap.empty t
-
-  (* let rec destruct_arrow_tp = function *)
-  (*   | UnderTy_arrow { argname; argty; retty } -> *)
-  (*       let a, b = destruct_arrow_tp retty in *)
-  (*       ((argty, argname) :: a, b) *)
-  (*   | ty -> ([], ty) *)
 
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
@@ -60,16 +47,13 @@ module T = struct
       | UnderTy_base { basename; normalty; prop } ->
           if String.equal basename x then t
           else UnderTy_base { basename; normalty; prop = P.subst_id prop x y }
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+      | UnderTy_arrow { argname; argty; retty } ->
           let argty = aux argty in
           let retty =
-            if
-              List.exists (String.equal x)
-                (argname :: hidden_vars_to_vars hidden_vars)
-            then retty
+            if List.exists (String.equal x) [ argname ] then retty
             else aux retty
           in
-          UnderTy_arrow { argname; hidden_vars; argty; retty }
+          UnderTy_arrow { argname; argty; retty }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
     in
     aux t
@@ -106,27 +90,7 @@ module T = struct
   let make_arrow_no_hidden_vars argname normalty argtyf rettyf =
     let id = { ty = normalty; x = argname } in
     UnderTy_arrow
-      {
-        argname;
-        hidden_vars = [];
-        argty = argtyf argname normalty;
-        retty = rettyf id;
-      }
-
-  (* let arrow_args_rename args overftp = *)
-  (*   let rec aux args overftp = *)
-  (*     match (args, overftp) with *)
-  (*     | [], tp -> tp *)
-  (*     | id :: args, UnderTy_arrow { argname; argty; retty } -> *)
-  (*         UnderTy_arrow *)
-  (*           { *)
-  (*             argname = id; *)
-  (*             argty; *)
-  (*             retty = aux args @@ subst_id retty argname id; *)
-  (*           } *)
-  (*     | _ -> _failatwith __FILE__ __LINE__ "" *)
-  (*   in *)
-  (*   aux args overftp *)
+      { argname; argty = argtyf argname normalty; retty = rettyf id }
 
   let is_base_type = function UnderTy_base _ -> true | _ -> false
 
@@ -141,22 +105,10 @@ module T = struct
           && NT.eq normalty1 normalty2 && P.strict_eq prop1 prop2
       | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
           List.for_all aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2
-      | ( UnderTy_arrow
-            {
-              argname = argname1;
-              hidden_vars = hidden_vars1;
-              argty = argty1;
-              retty = retty1;
-            },
-          UnderTy_arrow
-            {
-              argname = argname2;
-              hidden_vars = hidden_vars2;
-              argty = argty2;
-              retty = retty2;
-            } ) ->
+      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
+        ->
           String.equal argname1 argname2
-          && List.equal NTyped.typed_eq hidden_vars1 hidden_vars2
           && aux (argty1, argty2)
           && aux (retty1, retty2)
       | _, _ -> false
@@ -185,20 +137,9 @@ module T = struct
       | UnderTy_base _, UnderTy_base _ -> modify_prop_over_basetype f (t1, t2)
       | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
           UnderTy_tuple (List.map aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2)
-      | ( UnderTy_arrow
-            {
-              argname = argname1;
-              argty = argty1;
-              hidden_vars = hidden_vars1;
-              retty = retty1;
-            },
-          UnderTy_arrow
-            {
-              argname = argname2;
-              argty = argty2;
-              hidden_vars = hidden_vars2;
-              retty = retty2;
-            } ) ->
+      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
+        ->
           (* NOTE: we ask the argument should be exactly the same *)
           let argname =
             _check_equality __FILE__ __LINE__ String.equal argname1 argname2
@@ -206,13 +147,8 @@ module T = struct
           let argty =
             _check_equality __FILE__ __LINE__ strict_eq argty1 argty2
           in
-          let hidden_vars =
-            _check_equality __FILE__ __LINE__
-              (List.equal NTyped.typed_eq)
-              hidden_vars1 hidden_vars2
-          in
           let retty = aux (retty1, retty2) in
-          UnderTy_arrow { argname; hidden_vars; argty; retty }
+          UnderTy_arrow { argname; argty; retty }
       | _, _ -> _failatwith __FILE__ __LINE__ ""
     in
     aux (t1, t2)
@@ -238,23 +174,13 @@ module T = struct
           let fv = Autov.prop_fv prop in
           List.filter (fun x -> not @@ String.equal basename x) fv
       | UnderTy_tuple ts -> List.concat (List.map aux ts)
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+      | UnderTy_arrow { argname; argty; retty } ->
           let fv_retty =
             List.filter
-              (fun x ->
-                not
-                @@ List.exists (String.equal x)
-                     (argname :: hidden_vars_to_vars hidden_vars))
+              (fun x -> not @@ List.exists (String.equal x) [ argname ])
               (aux retty)
           in
-          let fv_argty =
-            List.filter
-              (fun x ->
-                not
-                @@ List.exists (String.equal x)
-                     (hidden_vars_to_vars hidden_vars))
-              (aux argty)
-          in
+          let fv_argty = aux argty in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv_retty @ fv_argty)
     in
     aux bodyt
@@ -267,8 +193,8 @@ module T = struct
       | UnderTy_base { basename; normalty; prop } ->
           UnderTy_base { basename; normalty; prop = f prop }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-          UnderTy_arrow { argname; hidden_vars; argty; retty = aux retty }
+      | UnderTy_arrow { argname; argty; retty } ->
+          UnderTy_arrow { argname; argty; retty = aux retty }
     in
     aux t
 
@@ -291,17 +217,11 @@ module T = struct
             UnderTy_base { basename; normalty; prop = t_apply prop }
           else UnderTy_base { basename; normalty; prop = f_apply prop }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-          let argty =
-            if List.exists if_apply (hidden_vars_to_vars hidden_vars) then argty
-            else _failatwith __FILE__ __LINE__ ""
-          in
+      | UnderTy_arrow { argname; argty; retty } ->
           let retty =
-            if List.exists if_apply (argname :: hidden_vars_to_vars hidden_vars)
-            then retty
-            else aux retty
+            if List.exists if_apply [ argname ] then retty else aux retty
           in
-          UnderTy_arrow { argname; hidden_vars; argty; retty }
+          UnderTy_arrow { argname; argty; retty }
     in
     aux t
 
@@ -336,10 +256,10 @@ module T = struct
           let prop = Autov.vars_reduction vars prop in
           UnderTy_base { basename; normalty; prop }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
+      | UnderTy_arrow { argname; argty; retty } ->
           let argty = aux argty in
           let retty = aux retty in
-          UnderTy_arrow { argname; hidden_vars; argty; retty }
+          UnderTy_arrow { argname; argty; retty }
     in
     aux t
 
@@ -354,18 +274,16 @@ module T = struct
     let filter m name =
       List.map (List.filter (fun (x, _) -> not @@ String.equal name x)) m
     in
-    let filters m names = List.fold_left filter m names in
     let rec aux m t =
       match t with
       | UnderTy_base { basename; normalty; prop } ->
           let prop = mk_conj prop @@ filter m basename in
           UnderTy_base { basename; normalty; prop }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux m) ts)
-      | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-          let m = filters m @@ hidden_vars_to_vars @@ hidden_vars in
+      | UnderTy_arrow { argname; argty; retty } ->
           let argty = aux m argty in
           let retty = aux (filter m argname) retty in
-          UnderTy_arrow { argname; hidden_vars; argty; retty }
+          UnderTy_arrow { argname; argty; retty }
     in
     aux m t
 end
@@ -374,7 +292,4 @@ module Utyped = struct
   include T
 
   type 'a typed = { x : 'a; ty : t } [@@deriving sexp]
-
-  (* let map (f : 'a -> 'b) { x; ty } = { x = f x; ty } *)
-  (* let typed_eq a b = String.equal a.x b.x && eq a.ty b.ty *)
 end

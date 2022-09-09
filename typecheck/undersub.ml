@@ -171,14 +171,10 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
                   "Subtyping check: rejected by the verifier" m)
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
             List.iter (aux ctx) @@ List.combine ts1 ts2
-        | ( UnderTy_arrow
-              { argname = x1; hidden_vars = hv1; argty = t11; retty = t12 },
-            UnderTy_arrow
-              { argname = x2; hidden_vars = hv2; argty = t21; retty = t22 } ) ->
+        | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
+            UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
             let t22 = subst_id t22 x2 x1 in
-            let ctx', t11 = Typectx.add_hidden_vars_to_right ctx (hv1, t11) in
-            let ctx', t21 = Typectx.add_hidden_vars_to_right ctx' (hv2, t21) in
-            let () = aux ctx' (t21, t11) in
+            let () = aux ctx (t21, t11) in
             let () = aux ctx (t12, t22) in
             ()
         | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
@@ -210,10 +206,8 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
                   "Subtyping check: rejected by the verifier" m)
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
             List.iter (aux ctx) @@ List.combine ts1 ts2
-        | ( UnderTy_arrow
-              { argname = x1; hidden_vars = []; argty = t11; retty = t12 },
-            UnderTy_arrow
-              { argname = x2; hidden_vars = []; argty = t21; retty = t22 } ) ->
+        | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
+            UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
             let t22 = subst_id t22 x2 x1 in
             let () =
               if UT.is_fv_in x2 t22 then aux ctx (t11, t21)
