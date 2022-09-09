@@ -15,9 +15,9 @@ open Abstraction
 (* let layout_subtyping = Frontend.Typectx.pretty_layout_under_subtyping *)
 
 let with_lemma_to_query lemmas x =
-  let x = Lemma.query_with_lemma_to_prop @@ Lemma.with_lemma lemmas x in
-  let () = Frontend.Lemma.print_with_lemma x in
-  x
+  let pre, a, b = Lemma.query_with_lemma_to_prop @@ Lemma.with_lemma lemmas x in
+  let () = Frontend.Lemma.print_with_lemma (pre, b) in
+  (pre, a, b)
 
 let _assume_basety file line (x, ty) =
   let open UT in
@@ -70,66 +70,24 @@ let core ctx nu ((eq1, prop1), (uq2, prop2)) =
 let context_convert (uqvs : string typed list) (ctx : Typectx.t)
     (name, nt, prop1, eqvs2, prop2) =
   let nu = { ty = nt; x = name } in
-  (* let mk_q (uqs, eqs, prop) = *)
-  (*   let _, basic_uqs = List.partition (fun x -> is_dt x.ty) uqs in *)
-  (*   let prop = *)
-  (*     Lemma.with_lemma (Prim.lemmas_to_pres ()) prop (basic_uqs @ eqs) *)
-  (*   in *)
-  (*   let dt_eqs, basic_eqs = List.partition (fun x -> is_dt x.ty) eqs in *)
-  (*   let dt_eqs, prop = *)
-  (*     Autov.uqv_encoding (List.map (fun x -> x.x) dt_eqs) prop *)
-  (*   in *)
-  (*   let prop = *)
-  (*     List.fold_right (fun qv prop -> P.(Exists (qv, prop))) dt_eqs prop *)
-  (*   in *)
-  (*   List.fold_right (fun x prop -> P.Forall (x, prop)) uqs *)
-  (*   @@ List.fold_right (fun x prop -> P.Exists (x, prop)) basic_eqs prop *)
-  (* in *)
-  (* let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in *)
-  (* let aux (x, xty) ((eqpre, pre), (eq1, prop1), prop2) = *)
-  (*   let xty = UT.conjunct_list xty in *)
-  (*   let in1, in2 = (check_in x prop1, check_in x prop2) in *)
-  (*   let () = *)
-  (*     Printf.printf *)
-  (*       "WORK ON... %s: %s <%b;%b> |- ∃ %s, %s /\\ (%s ==> ∃ %s, %s) \n" x *)
-  (*       (Frontend.Underty.pretty_layout xty) *)
-  (*       in2 in1 *)
-  (*       (List.split_by_comma (fun x -> x.P.x) eqpre) *)
-  (*       (Autov.pretty_layout_prop pre) *)
-  (*       (Autov.pretty_layout_prop prop2) *)
-  (*       (List.split_by_comma (fun x -> x.P.x) eq1) *)
-  (*       (Autov.pretty_layout_prop prop1) *)
-  (*   in *)
-  (*   match (in1, in2) with *)
-  (*   | false, false -> ((eqpre, pre), (eq1, prop1), prop2) *)
-  (*   | true, false -> *)
-  (*       let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-  (*       let x = typed_to_smttyped x in *)
-  (*       let if_keep, prop1 = add_with_simp_eq_prop x xprop prop1 in *)
-  (*       let eq1 = if if_keep then eq1 @ [ x ] else eq1 in *)
-  (*       ((eqpre, pre), (eq1, prop1), prop2) *)
-  (*   | _, true -> *)
-  (*       let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-  (*       let x = typed_to_smttyped x in *)
-  (*       ((eqpre @ [ x ], P.And [ pre; xprop ]), (eq1, prop1), prop2) *)
-  (* in *)
   let eq1, prop1 = P.lift_exists prop1 in
   let uq2, prop2 =
     let eq2, prop2 = P.lift_exists prop2 in
     let () =
       if List.length eq2 != 0 then _failatwith __FILE__ __LINE__ "" else ()
     in
-    List.fold_right
-      (fun fv (eqvs, prop) ->
-        if Typectx.exists ctx fv then (eqvs, prop)
-        else
-          match List.find_opt (fun x -> String.equal x.x fv) uqvs with
-          | None -> failwith (spf "filter_qvs_by_find: %s" fv)
-          | Some x ->
-              let x' = { x = Rename.unique x.x; ty = x.ty } in
-              (eqvs @ [ x' ], P.subst_id prop x.x x'.x))
-      (List.substract String.equal (Autov.prop_fv prop2) [ nu.x ])
-      ([], prop2)
+    ([], prop2)
+    (* List.fold_right *)
+    (*   (fun fv (eqvs, prop) -> *)
+    (*     if Typectx.exists ctx fv then (eqvs, prop) *)
+    (*     else *)
+    (*       match List.find_opt (fun x -> String.equal x.x fv) uqvs with *)
+    (*       | None -> failwith (spf "filter_qvs_by_find: %s" fv) *)
+    (*       | Some x -> *)
+    (*           let x' = { x = Rename.unique x.x; ty = x.ty } in *)
+    (*           (eqvs @ [ x' ], P.subst_id prop x.x x'.x)) *)
+    (*   (List.substract String.equal (Autov.prop_fv prop2) [ nu.x ]) *)
+    (*   ([], prop2)  *)
   in
   (* let eq2, prop2 = *)
   (*   List.fold_left *)
@@ -156,7 +114,7 @@ let context_convert (uqvs : string typed list) (ctx : Typectx.t)
       (List.map (fun x -> x.x) final_eqvs)
       final_prop
   in
-  let pres, q =
+  let pres, uqvs, q =
     with_lemma_to_query (Prim.lemmas_to_pres ())
       (final_uqvs, final_eqvs, final_prop)
   in
@@ -165,7 +123,9 @@ let context_convert (uqvs : string typed list) (ctx : Typectx.t)
   (* let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in *)
   (* let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in *)
   (* closing check *)
-  match Autov.prop_fv q with
+  match
+    List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)
+  with
   | [] -> (pres, q)
   | fv ->
       let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
@@ -183,7 +143,8 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
       let rec aux ctx (t1, t2) =
         match (t1, t2) with
         | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
-            UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
+            UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } )
+          -> (
             (* let typeself, prop1, prop2 = *)
             (*   match (Typectx.in_ctx ctx name1, Typectx.in_ctx ctx name2) with *)
             (*   | true, true -> *)
@@ -203,9 +164,11 @@ let subtyping_check_with_hidden_vars file line (qctx : Qtypectx.t) (t1 : UT.t)
             in
             (* let () = Printf.printf "VC: %s\n" @@ Autov.coq_layout_prop q in *)
             (* let () = Printf.printf "VC: %s\n" @@ Autov.pretty_layout_prop q in *)
-            if Autov.check pres q then ()
-            else
-              _failatwith file line "Subtyping check: rejected by the verifier"
+            match Autov.check pres q with
+            | None -> ()
+            | Some m ->
+                Autov._failwithmodel file line
+                  "Subtyping check: rejected by the verifier" m)
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
             List.iter (aux ctx) @@ List.combine ts1 ts2
         | ( UnderTy_arrow
@@ -230,7 +193,8 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
       let rec aux ctx (t1, t2) =
         match (t1, t2) with
         | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
-            UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
+            UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } )
+          -> (
             let nt = _check_equality __FILE__ __LINE__ NT.eq nt1 nt2 in
             let typeself, prop1, prop2 =
               if String.equal name1 name2 then (name1, prop1, prop2)
@@ -239,9 +203,11 @@ let subtyping_check file line (qctx : Qtypectx.t) (t1 : UT.t) (t2 : UT.t) =
             let pres, q =
               context_convert uqvs ctx (typeself, nt, prop1, [], prop2)
             in
-            if Autov.check pres q then ()
-            else
-              _failatwith file line "Subtyping check: rejected by the verifier"
+            match Autov.check pres q with
+            | None -> ()
+            | Some m ->
+                Autov._failwithmodel file line
+                  "Subtyping check: rejected by the verifier" m)
         | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
             List.iter (aux ctx) @@ List.combine ts1 ts2
         | ( UnderTy_arrow

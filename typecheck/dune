@@ -15,4 +15,5 @@
    ; underdt
    undertycheck
    overtycheck
+   infer
  ))

@@ -6,3 +6,6 @@ let lemma2 (l : [%forall: int list]) (u : [%forall: int]) =
 
 let lemma3 (l : [%forall: int list]) (u : [%exists: int]) =
   implies (not (empty l)) (mem l u)
+
+let lemma4 (l : [%forall: int list]) (u : [%exists: int]) =
+  implies (not (empty l)) (hd l u)

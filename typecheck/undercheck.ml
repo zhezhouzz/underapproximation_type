@@ -167,9 +167,10 @@ and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
         }
     | NL.Fix (f, body), ty ->
         let f = erase_check_mk_id __FILE__ __LINE__ f ty in
-        let ctx' = Qtypectx.add_to_right ctx f in
-        let body = value_type_check notations_ctx ctx' body ty in
-        { ty = body.ty; x = Fix (f, body) }
+        Infer.rec_infer ctx f body (value_type_check notations_ctx)
+        (* let ctx' = Qtypectx.add_to_right ctx f in *)
+        (* let body = value_type_check notations_ctx ctx' body ty in *)
+        (* { ty = body.ty; x = Fix (f, body) } *)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result
@@ -409,20 +410,20 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           let ctx' = Qtypectx.conjunct ctx (matched.x, retty) in
           let ctx' = Qtypectx.add_to_rights ctx' args in
           let exp = term_type_infer notations_ctx ctx' exp in
-          let () =
-            Pp.printf "@{<bold>Close:@}\n";
-            Frontend.Qtypectx.pretty_print ctx';
-            Pp.printf "@{<bold>-@}\n";
-            Frontend.Qtypectx.pretty_print ctx;
-            Pp.printf "@{<bold>=@}\n";
-            Frontend.Qtypectx.pretty_print
-              {
-                qvs = [];
-                qbody =
-                  List.map (fun (b, (name, t)) -> (spf "|%b|%s" b name, t))
-                  @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody;
-              }
-          in
+          (* let () = *)
+          (*   Pp.printf "@{<bold>Close:@}\n"; *)
+          (*   Frontend.Qtypectx.pretty_print ctx'; *)
+          (*   Pp.printf "@{<bold>-@}\n"; *)
+          (*   Frontend.Qtypectx.pretty_print ctx; *)
+          (*   Pp.printf "@{<bold>=@}\n"; *)
+          (*   Frontend.Qtypectx.pretty_print *)
+          (*     { *)
+          (*       qvs = []; *)
+          (*       qbody = *)
+          (*         List.map (fun (b, (name, t)) -> (spf "|%b|%s" b name, t)) *)
+          (*         @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody; *)
+          (*     } *)
+          (* in *)
           ( Qtypectx.close_by_diff ctx' ctx exp.ty,
             UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
         in

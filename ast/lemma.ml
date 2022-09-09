@@ -164,13 +164,21 @@ let without_e_dt lemmas
 
 let query_with_lemma_to_prop
     { vclw_pres; vclw_u_basics; vclw_u_dts; vclw_e_basics; vclw_body } =
-  ( vclw_pres,
-    List.fold_right
-      (fun x prop -> P.Forall (x, prop))
-      (vclw_u_basics @ vclw_u_dts)
-    @@ List.fold_right
-         (fun x prop -> P.Exists (x, prop))
-         vclw_e_basics vclw_body )
+  let if_snf = true in
+  if if_snf then
+    ( vclw_pres,
+      vclw_u_basics @ vclw_u_dts,
+      List.fold_right (fun x prop -> P.Exists (x, prop)) vclw_e_basics vclw_body
+    )
+  else
+    ( vclw_pres,
+      [],
+      List.fold_right
+        (fun x prop -> P.Forall (x, prop))
+        (vclw_u_basics @ vclw_u_dts)
+      @@ List.fold_right
+           (fun x prop -> P.Exists (x, prop))
+           vclw_e_basics vclw_body )
 
 let with_lemma lemmas (uqvs, eqvs, vc_body) =
   let vc_u_dts, vc_u_basics = List.partition (fun x -> is_dt x.ty) uqvs in

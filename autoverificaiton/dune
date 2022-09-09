@@ -13,6 +13,7 @@
    ; fv
    encoding
    unique
+   enum
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
  (libraries zzdatatype z3 Str ocaml_parser normalty utils)

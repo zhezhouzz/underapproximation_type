@@ -46,7 +46,7 @@ let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
     let () = Printf.printf "Subtype: \n%s\n" @@ layout_subtyping ctx (t1, t2) in
     match (t1, t2) with
     | ( OverTy_base { basename = name1; prop = prop1; _ },
-        OverTy_base { basename = name2; prop = prop2; _ } ) ->
+        OverTy_base { basename = name2; prop = prop2; _ } ) -> (
         let typeself, prop1, prop2 =
           match (Typectx.exists ctx name1, Typectx.exists ctx name2) with
           | true, true ->
@@ -57,12 +57,15 @@ let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
           | _, _ -> (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let pres, res = subtyping_to_query ctx typeself (prop1, prop2) in
-        if
+        match
           Autov.check_implies_multi_pre
             (List.map Lemma.to_prop @@ Prim.lemmas_to_pres ())
             pres res
-        then ()
-        else failwith "Subtyping check: rejected by the verifier"
+        with
+        | None -> ()
+        | Some _ ->
+            _failatwith __FILE__ __LINE__
+              "Subtyping check: rejected by the verifier")
     | OverTy_tuple ts1, OverTy_tuple ts2 ->
         List.iter (aux ctx) @@ List.combine ts1 ts2
     | ( OverTy_arrow { argname = x1; argty = t11; retty = t12 },
