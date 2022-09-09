@@ -3,30 +3,26 @@
  (wrapped false)
  (modules_without_implementation type quantifiable refinement)
  (modules
-   type
-   quantifiable
-   refinement
-   ; ast
-   strid
-   op
-   ; normalty
-   termlang
-   overty
-   underty
-   ; normal_anormal
    anormal
-   value
-   modu
    languages
-   typectx
-   simpletypectx
+   lemma
+   modu
+   op
+   overty
+   prim
+   qtypectx
+   quantifiable
    quantified
    qunder
-   qtypectx
-   ; typed
+   refinement
+   simpletypectx
+   strid
+   termlang
+   type
    type_dec
-   prim
-   lemma
+   typectx
+   underty
+   value
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
   (libraries zzdatatype autov utils normalty)

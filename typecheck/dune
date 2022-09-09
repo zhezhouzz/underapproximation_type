@@ -3,16 +3,12 @@
  (wrapped true)
  (libraries utils ast core frontend translate abstraction)
  (modules
-   ; primitive
    opcheck
-   ; typectx
-   ; qtypectx
    termcheck
    oversub
    undersub
    overcheck
    undercheck
-   ; underdt
    undertycheck
    overtycheck
    infer
