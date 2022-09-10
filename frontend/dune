@@ -3,16 +3,17 @@
  (wrapped true)
  (libraries utils ast core ocaml_parser abstraction)
  (modules
+   ; qtypectx
+   quantified
+   ; qunderty
    anormal
    expr
    lemma
    overty
    pat
-   qtypectx
-   quantified
-   qunderty
    structure
    typectx
+   utypectx
    typedec
    underty
    value

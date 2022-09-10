@@ -1,13 +1,6 @@
-module NL = Languages.NormalAnormal
-module UL = Languages.UnderAnormal
-module NT = Languages.Normalty
-module UT = Languages.Underty
-module QUT = Languages.Qunderty
-module Typectx = Languages.UnderTypectx
-module Qtypectx = Languages.Qtypectx
-module Op = Languages.Op
+open Languages
+module Typectx = UnderTypectx
 module P = Autov.Prop
-module Ntyped = Languages.Ntyped
 open Ntyped
 
 (* open Zzdatatype.Datatype *)
@@ -55,7 +48,7 @@ let rec_infer ctx (f : string UL.typed) (body : NL.value NL.typed) typecheck :
     let f =
       { x = f.x; ty = UT.map_on_retty (fun x -> P.And (props @ [ x ])) f.ty }
     in
-    let ctx' = Qtypectx.add_to_right ctx f in
+    let ctx' = Typectx.add_to_right ctx f in
     try
       let body = typecheck ctx' body f.ty in
       { ty = body.ty; x = Fix (f, body) }

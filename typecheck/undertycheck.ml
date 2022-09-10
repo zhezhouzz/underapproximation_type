@@ -1,7 +1,7 @@
-module NT = Languages.Normalty
+open Languages
 open Sugar
-open Languages.Ntyped
-open Languages.NSimpleTypectx
+open Ntyped
+open NSimpleTypectx
 open Zzdatatype.Datatype
 
 let infer_id ctx name =
@@ -50,7 +50,7 @@ module Ntyped = Languages.Ntyped
 
 let infer uqvs t =
   (* let () = Printf.printf "infer: %s\n" @@ Frontend.Underty.pretty_layout t in *)
-  let open Languages.Underty in
+  let open UT in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
         let ctx = add_to_right ctx (normalty, basename) in

@@ -1,8 +1,8 @@
 open Ocaml_parser
 open Parsetree
-module L = Languages.Underty
-module Ntyped = Languages.Ntyped
-open Languages.Lemma
+module L = Ast.UT
+module Ntyped = Ast.Ntyped
+open Ast.Lemma
 open Sugar
 
 let undertype_of_ocamlexpr expr =

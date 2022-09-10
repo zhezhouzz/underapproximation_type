@@ -4,19 +4,14 @@
  (modules_without_implementation type quantifiable refinement)
  (modules
    anormal
-   languages
+   ast
    lemma
    modu
    op
    overty
    prim
-   qtypectx
-   quantifiable
-   quantified
-   qunder
    refinement
    simpletypectx
-   strid
    termlang
    type
    type_dec

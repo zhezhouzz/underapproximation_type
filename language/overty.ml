@@ -3,7 +3,7 @@ module T = struct
   open Sugar
   module NT = Normalty.Ast.T
 
-  type id = string [@@deriving sexp]
+  type id = Strid.T.t [@@deriving sexp]
   type normalty = NT.t [@@deriving sexp]
 
   type t =

@@ -3,7 +3,8 @@ module F (Typed : Type.Typed) = struct
   include Typed
 
   type ty = t [@@deriving sexp]
-  type id = string [@@deriving sexp]
+  type id = Strid.T.t [@@deriving sexp]
+  (* type 'a typed = { ty : ty; x : 'a } [@@deriving sexp] *)
 
   let tupleC = "tuple"
 

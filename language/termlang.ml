@@ -3,7 +3,7 @@ module T = struct
   module NotatedT = Normalty.Ast.NotatedT
 
   type ty = NotatedT.t [@@deriving sexp]
-  type id = string [@@deriving sexp]
+  type id = Strid.T.t [@@deriving sexp]
   type 'a opttyped = { ty : ty option; x : 'a } [@@deriving sexp]
   type if_rec = bool [@@deriving sexp]
 

@@ -1,17 +1,22 @@
-module Id = Strid.T
 module Op = Op.T
 module Value = Value
 include Normalty.Ast
 module NNormalty = NotatedT
-module Normalty = T
+
+module NT = struct
+  include T
+
+  let layout = Normalty.Frontend.layout
+end
+
 module Otyped = Overty.Otyped
-module Overty = Overty.T
-module Underty = Underty.T
+module OT = Overty.T
+module UT = Underty.T
 module Ntyped = Ntyped
 module NNtyped = NNtyped
-module NormalAnormal = Anormal.NormalAnormal
-module OverAnormal = Anormal.OverAnormal
-module UnderAnormal = Anormal.UnderAnormal
+module NL = Anormal.NormalAnormal
+module OL = Anormal.OverAnormal
+module UL = Anormal.UnderAnormal
 module Termlang = Termlang.T
 module Signat = Modu.Signat
 module Struc = Modu.Struc
@@ -22,9 +27,5 @@ module UnderTypectx = Typectx.UnderTypectx
 module NSimpleTypectx = Simpletypectx.NSimpleTypectx
 module SMTSimpleTypectx = Simpletypectx.SMTSimpleTypectx
 module UTSimpleTypectx = Simpletypectx.UTSimpleTypectx
-module Qtypectx = Qtypectx
-module Qunderty = Qunder
-
-(* module QunderAnormal = Anormal.F (Qunderty) *)
 module Typedec = Type_dec.T
 module Lemma = Lemma

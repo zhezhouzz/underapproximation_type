@@ -6,7 +6,7 @@ module T = struct
   open Sexplib.Std
   open Sugar
 
-  type id = string [@@deriving sexp]
+  type id = Strid.T.t [@@deriving sexp]
   type normalty = NT.t [@@deriving sexp]
 
   open NTyped

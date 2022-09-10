@@ -1,7 +1,7 @@
 (library
  (name typecheck)
  (wrapped true)
- (libraries utils ast core frontend translate abstraction)
+ (libraries utils languages core translate abstraction)
  (modules
    opcheck
    termcheck

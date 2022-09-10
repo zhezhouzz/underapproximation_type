@@ -1,34 +1,34 @@
 open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
-module T = Languages.Termlang
-module L = Languages.Underty
-module Ntyped = Languages.Ntyped
+module T = Ast.Termlang
+module L = Ast.UT
+module Ntyped = Ast.Ntyped
 module Type = Normalty.Frontend
 
 type mode = Under | Tuple
 
 let prop_of_ocamlexpr e =
   let prop = Autov.prop_of_ocamlexpr e in
-  let uqvs, eqvs, _ = Autov.Prop.to_fe_nf prop in
-  let () =
-    if List.length uqvs != 0 then
-      failwith
-        (Sugar.spf
-           "Syntax error: refinement proposition cannot contain universial \
-            quantified variables: %s"
-        @@ Autov.pretty_layout_prop prop)
-    else ()
-  in
-  let () =
-    if List.length eqvs != 0 then
-      failwith
-        (Sugar.spf
-           "Syntax error: refinement proposition cannot contain existential \
-            quantified variables: %s"
-        @@ Autov.pretty_layout_prop prop)
-    else ()
-  in
+  (* let uqvs, eqvs, _ = Autov.Prop.to_fe_nf prop in *)
+  (* let () = *)
+  (*   if List.length uqvs != 0 then *)
+  (*     failwith *)
+  (*       (Sugar.spf *)
+  (* "Syntax error: refinement proposition cannot contain universial \ *)
+     (*           quantified variables: %s" *)
+  (*       @@ Autov.pretty_layout_prop prop) *)
+  (*   else () *)
+  (* in *)
+  (* let () = *)
+  (*   if List.length eqvs != 0 then *)
+  (*     failwith *)
+  (*       (Sugar.spf *)
+  (* "Syntax error: refinement proposition cannot contain existential \ *)
+     (*           quantified variables: %s" *)
+  (*       @@ Autov.pretty_layout_prop prop) *)
+  (*   else () *)
+  (* in *)
   prop
 
 let mode_of_ocamlexpr e =

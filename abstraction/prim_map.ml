@@ -1,6 +1,6 @@
-module S = Map.Make (Languages.Op)
-open Languages.Op
-module NT = Languages.Normalty
+open Ast
+module S = Map.Make (Op)
+open Op
 
 let typed_prim_of_string ctx = function
   | "[]" ->
@@ -25,7 +25,7 @@ let typed_prim_of_string ctx = function
 let make_normal type_decls (normals : (string * NT.t) list) =
   let kvs =
     List.map (fun (name, ty) -> (DtConstructor name, ty))
-    @@ Languages.NSimpleTypectx.of_type_decls type_decls
+    @@ NSimpleTypectx.of_type_decls type_decls
   in
   let m = S.of_seq @@ List.to_seq kvs in
   let m =
@@ -41,13 +41,10 @@ let make_normal type_decls (normals : (string * NT.t) list) =
   in
   m
 
-module QUT = Languages.Qunderty
-module OT = Languages.Overty
-
 type notation = {
   overty : OT.t option;
-  qunderty : QUT.t option;
-  rev_qunderty : QUT.t option;
+  qunderty : UT.t option;
+  rev_qunderty : UT.t option;
 }
 
 open Zzdatatype.Datatype
@@ -66,8 +63,8 @@ let layout_m m =
     m
 
 let make_m normal_m (over_refinements : (string * OT.t) list)
-    (under_refinements : (string * QUT.t) list)
-    (rev_under_refinements : (string * QUT.t) list) =
+    (under_refinements : (string * UT.t) list)
+    (rev_under_refinements : (string * UT.t) list) =
   let om = StrMap.from_kv_list over_refinements in
   let um = StrMap.from_kv_list under_refinements in
   let rum = StrMap.from_kv_list rev_under_refinements in
@@ -97,10 +94,7 @@ let make_m normal_m (over_refinements : (string * OT.t) list)
   m
 
 let make_lemmas = StrMap.from_kv_list
-
-module L = Languages.Lemma
-
-let lemma_m : L.t StrMap.t option ref = ref None
+let lemma_m : Lemma.t StrMap.t option ref = ref None
 let normal_m : NT.t S.t option ref = ref None
 let notation_m : notation S.t option ref = ref None
 

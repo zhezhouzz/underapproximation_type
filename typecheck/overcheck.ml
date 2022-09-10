@@ -1,14 +1,10 @@
-module NL = Languages.NormalAnormal
-module OL = Languages.OverAnormal
-module NT = Languages.Normalty
-module OT = Languages.Overty
-module Typectx = Languages.OverTypectx
+open Languages
+module Typectx = OverTypectx
 module P = Autov.Prop
-module Op = Languages.Op
 open Zzdatatype.Datatype
 open Abstraction
 open Sugar
-open Languages.Otyped
+open Otyped
 
 let layout_judge ctx (e, r) =
   Frontend.Typectx.pretty_layout_over_judge ctx

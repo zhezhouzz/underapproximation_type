@@ -38,14 +38,18 @@ let[@notation] minus =
   let b = (v : int) true in
   (v : int) (v == a - b)
 
-let[@notation] nil (u : [%forall: int]) = (v : int list) (not (mem v u))
+let[@notation] nil = (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
 
-let[@notation] cons (u : [%forall: int]) =
+let[@notation] cons =
   let h = (v : int) true in
-  let t = (v : int list) (implies (mem v u) (u == h)) in
-  (v : int list) (implies (mem v u) (u == h) && mem v h)
+  let t =
+    (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == h))
+  in
+  (v : int list) (fun (u : [%forall: int]) ->
+      implies (mem v u) (u == h) && mem v h)
 
-let[@notation] ileaf (u : [%forall: int]) = (v : int_tree) (not (mem v u))
+let[@notation] ileaf =
+  (v : int_tree) (fun (u : [%forall: int]) -> not (mem v u))
 
 let[@notation] _ret_two_value =
   let x = (v : int) (v > 0) in

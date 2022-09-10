@@ -1,4 +1,5 @@
-module V = Languages.Value
+open Ast
+module V = Value
 open Ocaml_parser
 open Parsetree
 open Sugar

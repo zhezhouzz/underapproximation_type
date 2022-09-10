@@ -1,10 +1,10 @@
-module Exp = Languages.Termlang
-module V = Languages.Value
-module NType = Languages.NNormalty
-module Type = Languages.Normalty
-module Typectx = Languages.NSimpleTypectx
+open Languages
+module Exp = Termlang
+module V = Value
+module NType = NNormalty
+module Typectx = NSimpleTypectx
 open Zzdatatype.Datatype
-open Type
+open NT
 open Sugar
 open Abstraction
 

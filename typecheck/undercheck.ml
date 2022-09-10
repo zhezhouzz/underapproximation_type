@@ -1,11 +1,5 @@
-module NL = Languages.NormalAnormal
-module UL = Languages.UnderAnormal
-module NT = Languages.Normalty
-module UT = Languages.Underty
-module QUT = Languages.Qunderty
+open Languages
 module Typectx = Languages.UnderTypectx
-module Qtypectx = Languages.Qtypectx
-module Op = Languages.Op
 module P = Autov.Prop
 open Zzdatatype.Datatype
 open Abstraction
@@ -14,7 +8,7 @@ open Sugar
 (* type 'a bodyttyped = { bodyt_ty : UT.t; bodyt_x : 'a } *)
 
 (* let unify_to_ctx x ctx = *)
-(*   let bodyt_ty, ctx = Qtypectx.unify_raw x.UL.ty ctx in *)
+(*   let bodyt_ty, ctx = Typectx.unify_raw x.UL.ty ctx in *)
 (*   ({ bodyt_ty; bodyt_x = x.UL.x }, ctx) *)
 
 (* let unify_to_ctxs xs ctx = *)
@@ -73,29 +67,30 @@ let subtyping_check = Undersub.subtyping_check
 (*   Undersub.subtyping_check_with_hidden_vars *)
 
 let close_term_by_diff ctx' ctx UL.{ ty; x } =
-  UL.{ x; ty = Qtypectx.close_by_diff ctx' ctx ty }
+  let _ = UL.{ x; ty = Typectx.close_by_diff ctx' ctx ty } in
+  _failatwith __FILE__ __LINE__ "unimp"
 
 (* let close_qterm_by_diff ctx' ctx x = *)
-(*   UL.{ x = x.x; ty = Qtypectx.close_qv_by_diff ctx' ctx x.ty } *)
+(*   UL.{ x = x.x; ty = Typectx.close_qv_by_diff ctx' ctx x.ty } *)
 
-let instantiate_in_qctx (qctx : Qtypectx.t) (quty : QUT.t) : UT.t =
-  Qtypectx.instantiate_qvs qctx quty
+let instantiate_in_qctx (_ : Typectx.t) (_ : UT.t) : UT.t =
+  _failatwith __FILE__ __LINE__ "unimp"
+(* Typectx.instantiate_qvs qctx quty *)
 
-let rec id_type_infer (ctx : Qtypectx.t) (id : NL.id NL.typed) : UL.id UL.typed
-    =
+let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : UL.id UL.typed =
   let ty =
-    try Qtypectx.get_ty ctx id.x
+    try Typectx.get_ty ctx id.x
     with _ -> instantiate_in_qctx ctx @@ Prim.get_primitive_under_ty id.x
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
-and id_type_check (ctx : Qtypectx.t) (id : NL.id NL.typed) (ty : UT.t) :
+and id_type_check (ctx : Typectx.t) (id : NL.id NL.typed) (ty : UT.t) :
     NL.id UL.typed =
   let id = id_type_infer ctx id in
   let () = subtyping_check __FILE__ __LINE__ ctx id.UL.ty ty in
   id
 
-and lit_type_infer (ctx : Qtypectx.t) (lit : NL.smt_lit NL.typed) :
+and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
     UL.smt_lit UL.typed =
   let open NL in
   let open UT in
@@ -107,7 +102,7 @@ and lit_type_infer (ctx : Qtypectx.t) (lit : NL.smt_lit NL.typed) :
       UL.{ ty = id.ty; x = Var id.x }
 
 and value_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
-    (ctx : Qtypectx.t) (a : NL.value NL.typed) : UL.value UL.typed =
+    (ctx : Typectx.t) (a : NL.value NL.typed) : UL.value UL.typed =
   let aty = a.ty in
   match a.x with
   | NL.Lit lit ->
@@ -122,7 +117,7 @@ and value_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           with
           | Some (_, idty) ->
               let id = erase_check_mk_id __FILE__ __LINE__ id idty in
-              let ctx' = Qtypectx.add_to_right ctx id in
+              let ctx' = Typectx.add_to_right ctx id in
               let body = term_type_infer notations_ctx ctx' body in
               UL.
                 {
@@ -137,7 +132,7 @@ and value_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
 and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
-    (ctx : Qtypectx.t) (a : NL.value NL.typed) (ty : UT.t) : UL.value UL.typed =
+    (ctx : Typectx.t) (a : NL.value NL.typed) (ty : UT.t) : UL.value UL.typed =
   let open UT in
   let result =
     match (a.NL.x, ty) with
@@ -153,7 +148,7 @@ and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
         in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
         let retty = UT.subst_id retty argname id.x in
-        let ctx' = Qtypectx.add_to_right ctx id in
+        let ctx' = Typectx.add_to_right ctx id in
         let body = term_type_check notations_ctx ctx' body retty in
         {
           ty = UnderTy_arrow { argname; argty; retty = body.ty };
@@ -162,7 +157,7 @@ and value_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
     | NL.Fix (f, body), ty ->
         let f = erase_check_mk_id __FILE__ __LINE__ f ty in
         Infer.rec_infer ctx f body (value_type_check notations_ctx)
-        (* let ctx' = Qtypectx.add_to_right ctx f in *)
+        (* let ctx' = Typectx.add_to_right ctx f in *)
         (* let body = value_type_check notations_ctx ctx' body ty in *)
         (* { ty = body.ty; x = Fix (f, body) } *)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -177,12 +172,12 @@ and handle_lettu (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
     erase_check_mk_id __FILE__ __LINE__ tu
       (UT.UnderTy_tuple (List.map (fun x -> x.ty) args))
   in
-  let ctx' = Qtypectx.add_to_right ctx tu in
+  let ctx' = Typectx.add_to_right ctx tu in
   let ty, body =
     match target_type with
     | None ->
         let body = term_type_infer notations_ctx ctx' body in
-        (Qtypectx.close_by_diff ctx' ctx body.ty, body)
+        (Typectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
         let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
@@ -202,12 +197,12 @@ and handle_letdetu (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
     List.map (fun (x, ty) -> erase_check_mk_id __FILE__ __LINE__ x ty)
     @@ List.combine args argsty
   in
-  let ctx' = Qtypectx.add_to_rights ctx args in
+  let ctx' = Typectx.add_to_rights ctx args in
   let ty, body =
     match target_type with
     | None ->
         let body = term_type_infer notations_ctx ctx' body in
-        (Qtypectx.close_by_diff ctx' ctx body.ty, body)
+        (Typectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
         let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
@@ -218,12 +213,12 @@ and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
     (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
-  (* let () = Frontend.Qtypectx.pretty_print ctx in *)
+  (* let () = Frontend.Typectx.pretty_print ctx in *)
   let args = List.map (id_type_infer ctx) args in
   (* let () = Pp.printf "fty': %s\n" (Frontend.Qunderty.pretty_layout fty') in *)
   (* let () = Pp.printf "%s\n" @@ layout_judge ctx' (body, without_qv fty') in *)
   (* let argsty, retty = UT.destruct_arrow_tp fty' in *)
-  let () = Frontend.Qtypectx.pretty_print_app_judge ctx (args, fty) in
+  let () = Typectx.pretty_print_app_judge ctx (args, fty) in
   (* arguments type check *)
   let rec aux = function
     | [], ty -> ty
@@ -253,14 +248,14 @@ and handle_letapp (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
   (*   @@ List.combine argsty args *)
   (* in *)
   (* let () = Pp.printf "let bind var: %s\n" ret.x in *)
-  (* let () = Pp.printf "ctx': %s\n" @@ Frontend.Qtypectx.pretty_layout ctx' in *)
-  let ctx' = Qtypectx.add_to_right ctx ret in
+  (* let () = Pp.printf "ctx': %s\n" @@ Frontend.Typectx.pretty_layout ctx' in *)
+  let ctx' = Typectx.add_to_right ctx ret in
   (* let () = Pp.printf "ret.ty: %s\n" (Frontend.Qunderty.layout ret.ty) in *)
   let ty, body =
     match target_type with
     | None ->
         let body = term_type_infer notations_ctx ctx' body in
-        (Qtypectx.close_by_diff ctx' ctx body.ty, body)
+        (Typectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
         let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
@@ -272,16 +267,16 @@ and handle_letval (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
   let open UL in
   let rhs = value_type_infer notations_ctx ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let ctx' = Qtypectx.add_to_right ctx lhs in
+  let ctx' = Typectx.add_to_right ctx lhs in
   (* let () = *)
   (*   Pp.printf "after let value ctx: %s\n" *)
-  (*     (Frontend.Qtypectx.pretty_layout ctx') *)
+  (*     (Frontend.Typectx.pretty_layout ctx') *)
   (* in *)
   let ty, body =
     match target_type with
     | None ->
         let body = term_type_infer notations_ctx ctx' body in
-        (Qtypectx.close_by_diff ctx' ctx body.ty, body)
+        (Typectx.close_by_diff ctx' ctx body.ty, body)
     | Some ty ->
         let body = term_type_check notations_ctx ctx' body ty in
         (ty, body)
@@ -289,7 +284,7 @@ and handle_letval (notations_ctx : Simpletypectx.UTSimpleTypectx.t) ctx
   UL.{ ty; x = LetVal { lhs; rhs; body } }
 
 and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
-    (ctx : Qtypectx.t) (a : NL.term NL.typed) : UL.term UL.typed =
+    (ctx : Typectx.t) (a : NL.term NL.typed) : UL.term UL.typed =
   let open NL in
   let res =
     match a.x with
@@ -321,12 +316,12 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
     | Ite { cond; e_t; e_f } ->
         let () =
           Pp.printf "@{<bold>Before If@}\n";
-          Frontend.Qtypectx.pretty_print ctx
+          Typectx.pretty_print ctx
         in
         let cond = id_type_infer ctx cond in
         let handle_case propf e =
           let ctx' =
-            Qtypectx.conjunct ctx
+            Typectx.conjunct ctx
               (cond.x, UT.make_basic_from_prop NT.Ty_bool propf)
           in
           close_term_by_diff ctx' ctx (term_type_infer notations_ctx ctx' e)
@@ -335,13 +330,13 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
         let e_f = handle_case (fun x -> P.(Not (Lit (AVar x)))) e_f in
         (* let () = *)
         (*   Pp.printf "@{<bold>Compare@}\n"; *)
-        (*   Frontend.Qtypectx.pretty_print ctx; *)
-        (*   Frontend.Qtypectx.pretty_print true_branch_ctx *)
+        (*   Frontend.Typectx.pretty_print ctx; *)
+        (*   Frontend.Typectx.pretty_print true_branch_ctx *)
         (* in *)
+        let open UL in
         let () =
           List.iter
-            (fun ty ->
-              Pp.printf "case ty: %s\n" @@ Frontend.Underty.pretty_layout ty)
+            (fun ty -> Pp.printf "case ty: %s\n" @@ UT.pretty_layout ty)
             [ e_t.ty; e_f.ty ]
         in
         let ty = UT.disjunct_list [ e_t.ty; e_f.ty ] in
@@ -393,18 +388,18 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
             | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
           in
           (* let ctx', retty =  *)
-          (*   Qtypectx.add_hidden_vars_to_right ctx (hidden_vars, retty) *)
+          (*   Typectx.add_hidden_vars_to_right ctx (hidden_vars, retty) *)
           (* in *)
-          let ctx' = Qtypectx.conjunct ctx (matched.x, retty) in
-          let ctx' = Qtypectx.add_to_rights ctx' args in
+          let ctx' = Typectx.conjunct ctx (matched.x, retty) in
+          let ctx' = Typectx.add_to_rights ctx' args in
           let exp = term_type_infer notations_ctx ctx' exp in
           (* let () = *)
           (*   Pp.printf "@{<bold>Close:@}\n"; *)
-          (*   Frontend.Qtypectx.pretty_print ctx'; *)
+          (*   Frontend.Typectx.pretty_print ctx'; *)
           (*   Pp.printf "@{<bold>-@}\n"; *)
-          (*   Frontend.Qtypectx.pretty_print ctx; *)
+          (*   Frontend.Typectx.pretty_print ctx; *)
           (*   Pp.printf "@{<bold>=@}\n"; *)
-          (*   Frontend.Qtypectx.pretty_print *)
+          (*   Frontend.Typectx.pretty_print *)
           (*     { *)
           (*       qvs = []; *)
           (*       qbody = *)
@@ -412,7 +407,7 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
           (*         @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody; *)
           (*     } *)
           (* in *)
-          ( Qtypectx.close_by_diff ctx' ctx exp.ty,
+          ( Typectx.close_by_diff ctx' ctx exp.ty,
             UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
         in
         let tys, cases = List.split @@ List.map handle_case cases in
@@ -428,14 +423,12 @@ and term_type_infer (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
         in
         { ty; x = Match { matched; cases } }
   in
-  let () =
-    Frontend.Qtypectx.pretty_print_infer ctx (layout_term a, res.UL.ty)
-  in
+  let () = Typectx.pretty_print_infer ctx (layout_term a, res.UL.ty) in
   res
 
 and term_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
-    (ctx : Qtypectx.t) (x : NL.term NL.typed) (ty : UT.t) : UL.term UL.typed =
-  let () = Frontend.Qtypectx.pretty_print_judge ctx (layout_term x, ty) in
+    (ctx : Typectx.t) (x : NL.term NL.typed) (ty : UT.t) : UL.term UL.typed =
+  let () = Typectx.pretty_print_judge ctx (layout_term x, ty) in
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let open NL in
   match (x.x, ty) with
@@ -474,7 +467,7 @@ and term_type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t)
       { ty; x = x.x }
 
 let type_check (notations_ctx : Simpletypectx.UTSimpleTypectx.t) x ty =
-  let ctx, ty = Qtypectx.mk_from_qunder ty in
+  let ctx = Typectx.empty in
   term_type_check notations_ctx ctx x ty
 
 module SNA = Languages.StrucNA
@@ -492,8 +485,7 @@ let struc_check l notations r =
             Simpletypectx.UTSimpleTypectx.(
               List.fold_left
                 (* TODO: quantifiers? *)
-                  (fun ctx (name, ty) ->
-                  add_to_right ctx (ty.Qunder.qbody, name))
+                  (fun ctx (name, ty) -> add_to_right ctx (ty, name))
                 empty notations)
           in
           let _ = type_check notations_ctx body ty in

@@ -1,8 +1,8 @@
 open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
-module T = Languages.Termlang
-module L = Languages.Overty
+module T = Ast.Termlang
+module L = Ast.OT
 module Type = Normalty.Frontend
 
 type mode = Over | Tuple

@@ -2,7 +2,7 @@ open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
 module Type = Normalty.Frontend
-module L = Languages.Termlang
+module L = Ast.Termlang
 
 let get_if_rec flag =
   match flag with Asttypes.Recursive -> true | Asttypes.Nonrecursive -> false
