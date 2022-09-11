@@ -126,18 +126,20 @@ let rec u_union lemmas =
 let add_lemmas lemmas { vc_u_basics; vc_u_dts; vc_e_basics; vc_e_dts; vc_body }
     =
   let ulemmas, elemmas = split_to_u_e lemmas in
-
   let vcl_pres = List.map to_prop ulemmas in
   let elemmas = List.map (fun x -> instantiate_dt x vc_u_dts) elemmas in
   let vcl_u_basics, vcl_body =
-    let u_basics', prop' = u_union elemmas in
-    let () =
-      Printf.printf "\t len(vc_u_dts)=%i len(elemmas)=%i len(prop') = %i\n"
-        (List.length vc_u_dts) (List.length elemmas) (List.length prop')
-    in
-    match prop' with
+    match elemmas with
     | [] -> (vc_u_basics, vc_body)
-    | prop' -> (vc_u_basics @ u_basics', P.Implies (P.And prop', vc_body))
+    | _ -> (
+        let u_basics', prop' = u_union elemmas in
+        let () =
+          Printf.printf "\t len(vc_u_dts)=%i len(elemmas)=%i len(prop') = %i\n"
+            (List.length vc_u_dts) (List.length elemmas) (List.length prop')
+        in
+        match prop' with
+        | [] -> (vc_u_basics, vc_body)
+        | prop' -> (vc_u_basics @ u_basics', P.Implies (P.And prop', vc_body)))
   in
   {
     vcl_pres;
@@ -151,6 +153,9 @@ let add_lemmas lemmas { vc_u_basics; vc_u_dts; vc_e_basics; vc_e_dts; vc_body }
 let without_e_dt lemmas
     { vcl_pres; vcl_u_basics; vcl_u_dts; vcl_e_basics; vcl_e_dts; vcl_body } =
   let _, _ = split_to_u_e lemmas in
+  let () =
+    Printf.printf "vcl_body: %s\n" @@ Autov.pretty_layout_prop vcl_body
+  in
   let vclw_e_basics', vclw_body =
     Autov.uqv_encoding (List.map (fun x -> x.x) vcl_e_dts) vcl_body
   in
@@ -181,6 +186,10 @@ let query_with_lemma_to_prop
            vclw_e_basics vclw_body )
 
 let with_lemma lemmas (uqvs, eqvs, vc_body) =
+  let mps = P.get_mps vc_body in
+  let lemmas =
+    List.filter (fun x -> List.exists (fun y -> eq y.ty x.udt.ty) mps) lemmas
+  in
   let vc_u_dts, vc_u_basics = List.partition (fun x -> is_dt x.ty) uqvs in
   let vc_e_dts, vc_e_basics = List.partition (fun x -> is_dt x.ty) eqvs in
   let x =

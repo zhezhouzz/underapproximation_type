@@ -1,8 +1,13 @@
+(copy_files# under/*.ml{,i})
 (library
  (name typecheck)
  (wrapped true)
  (libraries utils languages core translate abstraction)
  (modules
+   ; under/
+   litcheck
+   checkaux
+   ; ./
    opcheck
    termcheck
    oversub

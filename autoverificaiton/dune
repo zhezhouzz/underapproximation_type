@@ -2,6 +2,7 @@
  (name autov)
  (wrapped true)
  (modules
+   ast
    ; smtty
    prop
    ; typecheck

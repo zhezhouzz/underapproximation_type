@@ -5,9 +5,9 @@ let[@notation] cons =
     (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
         implies (mem v u && mem v w) (u == w) && not (empty v))
   in
-  ( (h : int) (mem l h),
-    (t : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
-        implies (mem t u && mem t w) (u == w)) )
+  ( (v : int) (mem l v),
+    (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
+        implies (mem v u && mem v w) (u == w)) )
 
 (* let[@notation] ileaf (u : [%forall: int]) = (v : int_tree) (not (mem v u)) *)
 

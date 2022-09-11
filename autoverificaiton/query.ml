@@ -1,4 +1,4 @@
-open Prop.T
+open Prop
 open Z3aux
 open Z3
 open Sugar

@@ -1,4 +1,4 @@
-open Prop.T
+open Prop
 
 type mp_maps = (string * lit list) list
 

@@ -62,6 +62,9 @@ let infer uqvs t =
         (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
         (* in *)
         UnderTy_arrow { argname; argty; retty = aux ctx retty }
+    | UnderTy_poly_arrow { argname; argnty; retty } ->
+        let ctx = add_to_right ctx (argnty, argname) in
+        UnderTy_poly_arrow { argname; argnty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
   let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, x.ty)) qvs in

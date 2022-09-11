@@ -1,41 +1,41 @@
 let[@notation] eq =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a == b))
 
 let[@notation] neq =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a != b))
 
 let[@notation] lt =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a < b))
 
 let[@notation] gt =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a > b))
 
 let[@notation] le =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a <= b))
 
 let[@notation] ge =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : bool) (iff v (a => b))
 
 let[@notation] plus =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : int) (v == a + b)
 
 let[@notation] minus =
-  let a = (v : int) true in
-  let b = (v : int) true in
+  let a = [%poly: int] in
+  let b = [%poly: int] in
   (v : int) (v == a - b)
 
 let[@notation] nil = (v : int list) (fun (u : [%forall: int]) -> not (mem v u))

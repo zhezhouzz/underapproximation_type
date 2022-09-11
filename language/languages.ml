@@ -38,3 +38,10 @@ module OT = struct
   include Frontend.Overty
   include OT
 end
+
+module UL = struct
+  include UL
+
+  let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
+  let typed_map f { ty; x } = { ty; x = f x }
+end

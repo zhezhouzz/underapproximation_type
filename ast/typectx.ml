@@ -74,19 +74,6 @@ module F (R : Refinement.T) = struct
     in
     if !counter != 1 then failwith "type ctx update error" else ctx
 
-  (* let update ctx (id, f) = *)
-  (*   let counter = ref 0 in *)
-  (*   let ctx = *)
-  (*     List.map *)
-  (*       (fun (x, ty) -> *)
-  (*         if String.equal x id then ( *)
-  (*           counter := !counter + 1; *)
-  (*           (x, f ty)) *)
-  (*         else (x, ty)) *)
-  (*       ctx *)
-  (*   in *)
-  (*   if !counter != 1 then failwith "type ctx update error" else ctx *)
-
   let subst_id ctx id id' =
     List.map
       (fun (x, tys) ->
@@ -140,7 +127,9 @@ module UnderTypectx = struct
 
   let close_by_diff ctx ctx' uty =
     List.fold_right
-      (fun (ifq, (x, tys)) uty -> add_ex_prop ifq x (conjunct_list tys) uty)
+      (fun (ifq, (x, tys)) uty ->
+        let ty = conjunct_list tys in
+        add_ex_uprop ifq x ty uty)
       (subtract ctx ctx') uty
 end
 

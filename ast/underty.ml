@@ -15,6 +15,7 @@ module T = struct
   type t =
     | UnderTy_base of { basename : id; normalty : normalty; prop : P.t }
     | UnderTy_arrow of { argname : id; argty : t; retty : t }
+    | UnderTy_poly_arrow of { argname : id; argnty : normalty; retty : t }
     | UnderTy_tuple of t list
   [@@deriving sexp]
 
@@ -27,6 +28,8 @@ module T = struct
           let s = add (P.var_space prop) s in
           add [ basename ] s
       | UnderTy_tuple ts -> List.fold_left aux s ts
+      | UnderTy_poly_arrow { argname; retty; _ } ->
+          add (argname :: (StrMap.to_key_list @@ aux StrMap.empty retty)) s
       | UnderTy_arrow { argname; argty; retty } ->
           let s = add [ argname ] s in
           let space =
@@ -39,6 +42,8 @@ module T = struct
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
     | UnderTy_arrow { argty; retty; _ } -> NT.Ty_arrow (erase argty, erase retty)
+    | UnderTy_poly_arrow { argnty; retty; _ } ->
+        NT.Ty_arrow (argnty, erase retty)
     | UnderTy_tuple ts -> NT.Ty_tuple (List.map erase ts)
 
   let subst_id t x y =
@@ -47,6 +52,12 @@ module T = struct
       | UnderTy_base { basename; normalty; prop } ->
           if String.equal basename x then t
           else UnderTy_base { basename; normalty; prop = P.subst_id prop x y }
+      | UnderTy_poly_arrow { argname; argnty; retty } ->
+          let retty =
+            if List.exists (String.equal x) [ argname ] then retty
+            else aux retty
+          in
+          UnderTy_poly_arrow { argname; argnty; retty }
       | UnderTy_arrow { argname; argty; retty } ->
           let argty = aux argty in
           let retty =
@@ -62,6 +73,20 @@ module T = struct
     | UnderTy_base { basename; normalty; prop } ->
         Some (basename, normalty, prop)
     | _ -> None
+
+  let assume_base file line = function
+    | UnderTy_base { basename; normalty; prop } -> (basename, normalty, prop)
+    | _ -> _failatwith file line ""
+
+  let assume_base_subst_id file line name = function
+    | UnderTy_base { basename; normalty; prop } ->
+        UnderTy_base
+          { basename = name; normalty; prop = P.subst_id prop basename name }
+    | _ -> _failatwith file line ""
+
+  let assume_tuple file line = function
+    | UnderTy_tuple tys -> tys
+    | _ -> _failatwith file line ""
 
   (* let mk_int_id name = P.{ ty = T.Int; x = name } *)
 
@@ -87,7 +112,7 @@ module T = struct
   let make_basic_top normalty =
     make_basic default_v_name normalty (fun _ -> P.mk_true)
 
-  let make_arrow_no_hidden_vars argname normalty argtyf rettyf =
+  let make_arrow argname normalty argtyf rettyf =
     let id = { ty = normalty; x = argname } in
     UnderTy_arrow
       { argname; argty = argtyf argname normalty; retty = rettyf id }
@@ -110,6 +135,13 @@ module T = struct
         ->
           String.equal argname1 argname2
           && aux (argty1, argty2)
+          && aux (retty1, retty2)
+      | ( UnderTy_poly_arrow
+            { argname = argname1; argnty = argty1; retty = retty1 },
+          UnderTy_poly_arrow
+            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+          String.equal argname1 argname2
+          && NT.eq argty1 argty2
           && aux (retty1, retty2)
       | _, _ -> false
     in
@@ -149,12 +181,28 @@ module T = struct
           in
           let retty = aux (retty1, retty2) in
           UnderTy_arrow { argname; argty; retty }
+      | ( UnderTy_poly_arrow
+            { argname = argname1; argnty = argty1; retty = retty1 },
+          UnderTy_poly_arrow
+            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+          (* NOTE: we ask the argument should be exactly the same *)
+          let argname =
+            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
+          in
+          let argnty = _check_equality __FILE__ __LINE__ NT.eq argty1 argty2 in
+          let retty = aux (retty1, retty2) in
+          UnderTy_poly_arrow { argname; argnty; retty }
       | _, _ -> _failatwith __FILE__ __LINE__ ""
     in
     aux (t1, t2)
 
-  let disjunct = modify_prop_in_ty (fun x y -> P.Or [ x; y ])
-  let conjunct = modify_prop_in_ty (fun x y -> P.And [ x; y ])
+  let disjunct =
+    modify_prop_in_ty (fun x y ->
+        P.disjunct_tope_uprop __FILE__ __LINE__ [ x; y ])
+
+  let conjunct =
+    modify_prop_in_ty (fun x y ->
+        P.conjunct_tope_uprop __FILE__ __LINE__ [ x; y ])
 
   let disjunct_list ts =
     match ts with
@@ -182,6 +230,13 @@ module T = struct
           in
           let fv_argty = aux argty in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv_retty @ fv_argty)
+      | UnderTy_poly_arrow { argname; retty; _ } ->
+          let fv_retty =
+            List.filter
+              (fun x -> not @@ List.exists (String.equal x) [ argname ])
+              (aux retty)
+          in
+          Zzdatatype.Datatype.List.slow_rm_dup String.equal fv_retty
     in
     aux bodyt
 
@@ -195,6 +250,8 @@ module T = struct
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
       | UnderTy_arrow { argname; argty; retty } ->
           UnderTy_arrow { argname; argty; retty = aux retty }
+      | UnderTy_poly_arrow { argname; argnty; retty } ->
+          UnderTy_poly_arrow { argname; argnty; retty = aux retty }
     in
     aux t
 
@@ -222,22 +279,28 @@ module T = struct
             if List.exists if_apply [ argname ] then retty else aux retty
           in
           UnderTy_arrow { argname; argty; retty }
+      | UnderTy_poly_arrow { argname; argnty; retty } ->
+          let retty =
+            if List.exists if_apply [ argname ] then retty else aux retty
+          in
+          UnderTy_poly_arrow { argname; argnty; retty }
     in
     aux t
 
-  let add_ex_prop ifq id idty t =
+  let add_ex_uprop ifq id idty t =
     let id, idprop =
       match assume_base_destruct_opt idty with
       | None -> _failatwith __FILE__ __LINE__ "invalid idty"
       | Some (x', ty, prop) ->
-          let prop = Autov.Prop.subst_id prop x' id in
-          ({ x = id; ty }, prop)
+          let prop = P.subst_id prop x' id in
+          let id = { x = id; ty } in
+          let prop = if ifq then P.Exists (id, prop) else prop in
+          (id, prop)
     in
     let if_apply name = String.equal id.x name in
     let t_apply _ = _failatwith __FILE__ __LINE__ "" in
     let f_apply prop =
-      if ifq then P.Exists (id, P.And [ idprop; prop ])
-      else P.And [ idprop; prop ]
+      P.conjunct_tope_uprop __FILE__ __LINE__ [ idprop; prop ]
     in
     work_on_retty if_apply (t_apply, f_apply) t
 
@@ -260,6 +323,7 @@ module T = struct
           let argty = aux argty in
           let retty = aux retty in
           UnderTy_arrow { argname; argty; retty }
+      | UnderTy_poly_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
     in
     aux t
 
@@ -284,6 +348,7 @@ module T = struct
           let argty = aux m argty in
           let retty = aux (filter m argname) retty in
           UnderTy_arrow { argname; argty; retty }
+      | UnderTy_poly_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
     in
     aux m t
 end

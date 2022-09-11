@@ -1,4 +1,4 @@
-module Prop = Prop.T
+module Prop = Prop
 module Smtty = Normalty.Ast.Smtty
 module Enum = Enum
 
@@ -8,7 +8,8 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "1999") ]
+  Z3.mk_context
+    [ ("model", "true"); ("proof", "false"); ("timeout", "2999999") ]
 
 let pretty_print_model model =
   Z3.Model.to_string model |> fun s ->
@@ -25,9 +26,9 @@ let pretty_print_model model =
     (Z3.Model.get_const_decls model)
   |> Printf.printf "%s\n"
 
-let _check pres q =
+let _check pre q =
   let open Check in
-  match smt_neg_and_solve ctx pres q with
+  match smt_neg_and_solve ctx pre q with
   | SmtUnsat -> None
   | SmtSat model ->
       Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model;

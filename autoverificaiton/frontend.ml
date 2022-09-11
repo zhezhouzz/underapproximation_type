@@ -1,6 +1,6 @@
 open Ocaml_parser
 open Parsetree
-module L = Prop.T
+module L = Ast
 module Ty = Normalty.Ast.T
 module Q = Normalty.Ast.Q
 open Normalty.Ast.Ntyped
@@ -321,7 +321,11 @@ let _pretty_layout s =
       | Lit lit -> lit_pretty_layout_ s lit
       | MethodPred (mp, args) ->
           let args = List.map (lit_pretty_layout_ s) args in
-          sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
+          if is_bop mp then
+            match args with
+            | [ a; b ] -> sprintf "(%s %s %s)" a mp b
+            | _ -> _failatwith __FILE__ __LINE__ ""
+          else sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
       | Implies (p1, p2) ->
           sprintf "(%s %s %s)" (layout p1) sym_implies (layout p2)
       | And ps -> sprintf "(%s)" @@ List.split_by sym_and layout ps
