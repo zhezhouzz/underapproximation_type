@@ -294,8 +294,7 @@ let struc_check l notations r =
           let notations_ctx =
             Nctx.(
               List.fold_left
-                (* TODO: quantifiers? *)
-                  (fun ctx (name, ty) -> add_to_right ctx (ty, name))
+                (fun ctx (name, ty) -> add_to_right ctx (ty, name))
                 empty notations)
           in
           let _ = type_check notations_ctx body ty in

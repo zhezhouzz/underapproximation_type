@@ -41,12 +41,13 @@ let[@notation] minus =
 let[@notation] nil = (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
 
 let[@notation] cons =
-  let h = (v : int) true in
+  let h = [%poly: int] in
   let t =
-    (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == h))
+    (v : int list) (fun (u : [%forall: int]) ->
+        iff (hd v u) (u == h) && implies (mem v u) (u == h))
   in
   (v : int list) (fun (u : [%forall: int]) ->
-      implies (mem v u) (u == h) && mem v h)
+      implies (mem v u) (u == h) && hd v h)
 
 let[@notation] ileaf =
   (v : int_tree) (fun (u : [%forall: int]) -> not (mem v u))

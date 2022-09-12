@@ -128,8 +128,10 @@ module UnderTypectx = struct
   let close_by_diff ctx ctx' uty =
     List.fold_right
       (fun (ifq, (x, tys)) uty ->
-        let ty = conjunct_list tys in
-        add_ex_uprop ifq x ty uty)
+        let fv = fv uty in
+        if List.exists (String.equal x) fv then
+          add_ex_uprop ifq x (conjunct_list tys) uty
+        else uty)
       (subtract ctx ctx') uty
 end
 

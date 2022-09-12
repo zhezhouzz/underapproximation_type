@@ -7,6 +7,7 @@
         "rev_underp": "data/prim/rev_under.ml",
         "normalp": "data/prim/normal.mli",
         "type_decls": "data/typedecs.ml",
-        "lemmas": "data/lemmas.ml"
+        "lemmas": "data/lemmas.ml",
+        "functional_lemmas": "data/functional_lemmas.ml"
     }
 }

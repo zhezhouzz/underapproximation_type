@@ -62,12 +62,17 @@ let layout_m m =
     (fun name _ -> Printf.printf "key: %s\n" @@ t_to_string_for_load name)
     m
 
+let safe_make_m l =
+  let m = StrMap.from_kv_list l in
+  if List.length l != StrMap.cardinal m then _failatwith __FILE__ __LINE__ ""
+  else m
+
 let make_m normal_m (over_refinements : (string * OT.t) list)
     (under_refinements : (string * UT.t) list)
     (rev_under_refinements : (string * UT.t) list) =
-  let om = StrMap.from_kv_list over_refinements in
-  let um = StrMap.from_kv_list under_refinements in
-  let rum = StrMap.from_kv_list rev_under_refinements in
+  let om = safe_make_m over_refinements in
+  let um = safe_make_m under_refinements in
+  let rum = safe_make_m rev_under_refinements in
   let make_one prim (om, um, rum) =
     let overty, om = consume prim om in
     let qunderty, um = consume prim um in
@@ -93,13 +98,19 @@ let make_m normal_m (over_refinements : (string * OT.t) list)
   check rum;
   m
 
-let make_lemmas = StrMap.from_kv_list
+let make_lemmas = safe_make_m
 let lemma_m : Lemma.t StrMap.t option ref = ref None
+let functional_lemma_m : Lemma.t StrMap.t option ref = ref None
 let normal_m : NT.t S.t option ref = ref None
 let notation_m : notation S.t option ref = ref None
 
 let lemmas_to_pres () =
   match !lemma_m with
+  | None -> _failatwith __FILE__ __LINE__ "un init"
+  | Some m -> StrMap.to_value_list m
+
+let functional_lemmas_to_pres () =
+  match !functional_lemma_m with
   | None -> _failatwith __FILE__ __LINE__ "un init"
   | Some m -> StrMap.to_value_list m
 

@@ -25,17 +25,6 @@ let _assume_basety file line (x, ty) =
 
 let typed_to_smttyped = Languages.Ntyped.to_smttyped
 
-let conjunct_base_to_tope_uprop (id, xprop) (eqvs1, prop1) =
-  let open P in
-  let is_eq = function
-    | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x -> Some lit
-    | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x -> Some lit
-    | _ -> None
-  in
-  match is_eq xprop with
-  | None -> (id :: eqvs1, And [ xprop; prop1 ])
-  | Some y -> (eqvs1, subst_id_with_lit prop1 id.x y)
-
 type mode = InIn | InNotin | NotinIn | NotinNotin
 
 let core ctx nu ((eqvs1, uprop1), (uqvs2, prop2)) =
@@ -49,7 +38,8 @@ let core ctx nu ((eqvs1, uprop1), (uqvs2, prop2)) =
         in
         ( uqvs @ [ nu ],
           List.concat pre_eqvs @ uqvs2 @ eqvs1,
-          Implies (And (pres @ [ prop2 ]), uprop1) )
+          And (pres @ [ prop2 ]),
+          uprop1 )
     | Some (ctx, (x, xty)) -> (
         let xty = UT.conjunct_list xty in
         let in1, in2 =
@@ -60,7 +50,7 @@ let core ctx nu ((eqvs1, uprop1), (uqvs2, prop2)) =
         | true, false ->
             let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
             let eqvs1, prop1 =
-              conjunct_base_to_tope_uprop (x, xprop) (eqvs1, uprop1)
+              conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
             in
             aux ctx ((uqvs, upre), (eqvs1, prop1), (uqvs2, prop2))
         | _, true ->
@@ -74,18 +64,18 @@ let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
   (* let () = Pp.printf "%s\n" (Autov.pretty_layout_prop prop1) in *)
   let eq1, prop1 = P.assume_tope_uprop __FILE__ __LINE__ prop1 in
   let uq2, prop2 = P.rename_destruct_uprop __FILE__ __LINE__ prop2 in
-  let final_uqvs, final_eqvs, final_prop =
+  let final_uqvs, final_eqvs, final_pre, final_post =
     core ctx nu ((eq1, prop1), (uq2, prop2))
   in
   let () =
     Typectx.pretty_print_q
       (List.map (fun x -> x.x) final_uqvs)
       (List.map (fun x -> x.x) final_eqvs)
-      final_prop
+      final_pre final_post
   in
   let pres, uqvs, q =
     with_lemma_to_query (Prim.lemmas_to_pres ())
-      (final_uqvs, final_eqvs, final_prop)
+      (final_uqvs, final_eqvs, final_pre, final_post)
   in
   match
     List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)

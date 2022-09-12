@@ -3,6 +3,42 @@ open Normalty.Ast.Ntyped
 
 let bvar_to_prop x = Lit (AVar x)
 
+(*FV*)
+open Zzdatatype.Datatype
+
+let rec lit_fv m t =
+  match t with
+  | ACint _ | ACbool _ -> m
+  | AVar id -> StrMap.add id.x () m
+  | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
+
+let _add_fv m prop =
+  let rec aux m t =
+    match t with
+    | Lit lit -> lit_fv m lit
+    | Implies (e1, e2) -> List.fold_left aux m [ e1; e2 ]
+    | Ite (e1, e2, e3) -> List.fold_left aux m [ e1; e2; e3 ]
+    | Not e -> aux m e
+    | And es -> List.fold_left aux m es
+    | Or es -> List.fold_left aux m es
+    | Iff (e1, e2) -> List.fold_left aux m [ e1; e2 ]
+    | MethodPred (_, args) -> List.fold_left lit_fv m args
+    | Forall (u, e) -> StrMap.remove u.x @@ aux m e
+    | Exists (u, e) -> StrMap.remove u.x @@ aux m e
+  in
+  aux m prop
+
+let add_fv fv prop =
+  let fv =
+    StrMap.to_key_list
+    @@ _add_fv
+         (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
+         prop
+  in
+  fv
+
+let fv prop = add_fv [] prop
+
 let negate prop =
   let rec aux t =
     match t with
@@ -629,6 +665,94 @@ let assume_fe file line prop =
   in
   aux prop
 
+let qv_only_in_dt_mp file line prop dt =
+  let qvs, prop = assume_fe file line prop in
+  let rec aux = function
+    | Lit _ -> true
+    | MethodPred (mp, args) when not (is_bop mp) ->
+        let args =
+          List.filter_map (function AVar x -> Some x | _ -> None) args
+        in
+        if
+          List.exists
+            (fun x -> List.exists (fun y -> String.equal x.x y.x) args)
+            qvs
+        then
+          let args = List.filter (fun x -> is_dt x.ty) args in
+          match args with
+          | [ dt' ] when String.equal dt'.x dt.x -> String.equal dt'.x dt.x
+          | _ -> false
+        else true
+    | MethodPred (_, _) -> true
+    | Implies (e1, e2) -> aux e1 && aux e2
+    | Ite (e1, e2, e3) -> aux e1 && aux e2 && aux e3
+    | Not e -> aux e
+    | And es -> List.for_all aux es
+    | Or es -> List.for_all aux es
+    | Iff (e1, e2) -> aux e1 && aux e2
+    | Forall (_, _) | Exists (_, _) -> _failatwith file line "qv"
+  in
+  aux prop
+
+let rename_destruct_uprop file line upre =
+  let ids, prop = assume_fe file line upre in
+  List.fold_right
+    (fun id (ids', prop) ->
+      let id' = map Rename.unique id in
+      (id' :: ids', subst_id prop id.x id'.x))
+    ids ([], prop)
+
+let lift_qv_over_mp_in_uprop file line prop edts =
+  let rec aux prop =
+    match prop with
+    | Lit _ | MethodPred (_, _) | Implies (_, _) | Not _ | Ite (_, _, _) | Iff _
+      ->
+        ([], prop)
+    | And es ->
+        let qvs, props = List.split @@ List.map aux es in
+        (List.concat qvs, And props)
+    | Or es ->
+        let qvs, props = List.split @@ List.map aux es in
+        (List.concat qvs, Or props)
+    | Forall (_, _) ->
+        let fv = fv prop in
+        if List.exists (fun edt -> List.exists (String.equal edt.x) fv) edts
+        then ([], prop)
+        else rename_destruct_uprop file line prop
+    | Exists (_, _) -> _failatwith file line (Frontend.layout prop)
+    (* | _ -> _failatwith file line (Frontend.layout prop) *)
+  in
+  aux prop
+
+let instantiate_uqvs_in_uprop_ file line prop choices =
+  let uqvs, prop = assume_fe file line prop in
+  let len = List.length uqvs in
+  let props =
+    List.map (fun uqvs' ->
+        List.fold_right
+          (fun (x, y) prop -> subst_id prop x.x y.x)
+          (List.combine uqvs uqvs') prop)
+    @@ List.choose_n choices len
+  in
+  match props with [] -> mk_true | _ -> And props
+
+let instantiate_uqvs_in_uprop file line prop choices =
+  let rec aux prop =
+    match prop with
+    | Lit _ | MethodPred (_, _) -> prop
+    | Implies (e1, e2) -> Implies (aux e1, aux e2)
+    | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+    | Not e -> Not (aux e)
+    | Iff (e1, e2) -> Iff (aux e1, aux e2)
+    | And es -> And (List.map aux es)
+    | Or es -> Or (List.map aux es)
+    | Forall (_, _) -> instantiate_uqvs_in_uprop_ file line prop choices
+    | Exists (_, _) ->
+        _failatwith file line
+          (spf "instantiate_uqvs_in_uprop: exists, %s" @@ Frontend.layout prop)
+  in
+  aux prop
+
 let assume_tope_uprop file line prop =
   let rec aux = function
     | Exists (u, e) ->
@@ -643,6 +767,9 @@ let assume_tope_uprop file line prop =
 let tope_to_prop (eqvs, prop) =
   List.fold_right (fun eqv prop -> Exists (eqv, prop)) eqvs prop
 
+let topu_to_prop (uqvs, prop) =
+  List.fold_right (fun eqv prop -> Forall (eqv, prop)) uqvs prop
+
 let disjunct_tope_uprop file line props =
   let eqvs, bodys =
     List.split @@ List.map (assume_tope_uprop file line) props
@@ -655,51 +782,23 @@ let conjunct_tope_uprop file line props =
   in
   tope_to_prop (List.concat eqvs, And bodys)
 
-let rename_destruct_uprop file line upre =
-  let ids, prop = assume_fe file line upre in
-  List.fold_right
-    (fun id (ids', prop) ->
-      let id' = map Rename.unique id in
-      (id' :: ids', subst_id prop id.x id'.x))
-    ids ([], prop)
+let conjunct_base_to_tope_uprop_ (xeqvs, xprop) (eqvs1, prop1) =
+  match xeqvs with
+  | [] -> (eqvs1, And [ xprop; prop1 ])
+  | [ id ] -> (
+      let is_eq = function
+        | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x ->
+            Some lit
+        | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x ->
+            Some lit
+        | _ -> None
+      in
+      match is_eq xprop with
+      | None -> (id :: eqvs1, And [ xprop; prop1 ])
+      | Some y -> (eqvs1, subst_id_with_lit prop1 id.x y))
+  | _ -> (xeqvs @ eqvs1, And [ xprop; prop1 ])
 
-(*FV*)
-open Zzdatatype.Datatype
-
-let rec lit_fv m t =
-  match t with
-  | ACint _ | ACbool _ -> m
-  | AVar id -> StrMap.add id.x () m
-  | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
-
-let _add_fv m prop =
-  let rec aux m t =
-    match t with
-    | Lit lit -> lit_fv m lit
-    | Implies (e1, e2) -> List.fold_left aux m [ e1; e2 ]
-    | Ite (e1, e2, e3) -> List.fold_left aux m [ e1; e2; e3 ]
-    | Not e -> aux m e
-    | And es -> List.fold_left aux m es
-    | Or es -> List.fold_left aux m es
-    | Iff (e1, e2) -> List.fold_left aux m [ e1; e2 ]
-    | MethodPred (_, args) -> List.fold_left lit_fv m args
-    | Forall (u, e) -> StrMap.remove u.x @@ aux m e
-    | Exists (u, e) -> StrMap.remove u.x @@ aux m e
-  in
-  aux m prop
-
-let add_fv fv prop =
-  let fv =
-    StrMap.to_key_list
-    @@ _add_fv
-         (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
-         prop
-  in
-  (* let () = *)
-  (*   Printf.printf "FV %s:\n%s\n" *)
-  (*     (Frontend.pretty_layout prop) *)
-  (*     (StrList.to_string fv) *)
-  (* in *)
-  fv
-
-let fv prop = add_fv [] prop
+let conjunct_base_to_tope_uprop file line xprop prop =
+  let xeqvs, xprop = assume_tope_uprop file line xprop in
+  let eqvs1, prop1 = assume_tope_uprop file line prop in
+  conjunct_base_to_tope_uprop_ (xeqvs, xprop) (eqvs1, prop1)

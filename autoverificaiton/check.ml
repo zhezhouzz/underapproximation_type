@@ -57,10 +57,10 @@ let smt_neg_and_solve ctx pre vc =
   (* let g = *)
   (*   Z3.Tactic.(ApplyResult.get_subgoal (apply (mk_tactic ctx "snf") g None) 0) *)
   (* in *)
-  let () =
-    Printf.printf "Goal: %s\n\n"
-    @@ Zzdatatype.Datatype.List.split_by "\n" Z3.Expr.to_string
-    @@ Z3.Goal.get_formulas g
-  in
+  (* let () = *)
+  (*   Printf.printf "Goal: %s\n\n" *)
+  (*   @@ Zzdatatype.Datatype.List.split_by "\n" Z3.Expr.to_string *)
+  (*   @@ Z3.Goal.get_formulas g *)
+  (* in *)
   let _ = Solver.add solver (get_formulas g) in
   solver_result solver

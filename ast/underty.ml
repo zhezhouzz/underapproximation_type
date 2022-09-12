@@ -300,7 +300,8 @@ module T = struct
     let if_apply name = String.equal id.x name in
     let t_apply _ = _failatwith __FILE__ __LINE__ "" in
     let f_apply prop =
-      P.conjunct_tope_uprop __FILE__ __LINE__ [ idprop; prop ]
+      P.tope_to_prop
+      @@ P.conjunct_base_to_tope_uprop __FILE__ __LINE__ idprop prop
     in
     work_on_retty if_apply (t_apply, f_apply) t
 
