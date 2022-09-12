@@ -41,6 +41,12 @@ let tpedvar_to_z3 ctx (tp, name) =
     | Dt | Int -> Integer.mk_const_s ctx name
     | Bool -> Boolean.mk_const_s ctx name)
 
+let z3expr_to_bool v =
+  match Boolean.get_bool_value v with
+  | Z3enums.L_TRUE -> true
+  | Z3enums.L_FALSE -> false
+  | Z3enums.L_UNDEF -> failwith "z3expr_to_bool"
+
 type imp_version = V1 | V2
 
 let layout_imp_version = function V1 -> "V1" | V2 -> "V2"

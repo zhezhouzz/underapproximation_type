@@ -105,6 +105,7 @@ let subtyping_check file line (ctx : Typectx.t) (t1 : UT.t) (t2 : UT.t) =
         match Autov.check pres q with
         | None -> ()
         | Some m ->
+            let _ = Autov.Func_interp.get_preds_interp Autov.ctx m in
             Autov._failwithmodel file line
               "Subtyping check: rejected by the verifier" m)
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
