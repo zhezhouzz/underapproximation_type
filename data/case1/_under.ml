@@ -31,6 +31,6 @@ let foo =
   (v : int) (v == 2 || v == 3)
 
 (* Should fail *)
-(* let foo = *)
-(*   let x = (v : int) false in *)
-(*   (v : int) true *)
+let foo =
+  let x = (v : int) false in
+  (v : int) true

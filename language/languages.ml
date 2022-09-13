@@ -15,6 +15,26 @@ module Lemma = struct
         | Some (qvs, prop) -> Some (P.topu_to_prop (qvs, prop)))
       ulemmas
 
+  let body_lift_emp res =
+    let vcl_u_basics', vcl_body =
+      P.lift_qv_over_mp_in_uprop __FILE__ __LINE__ res.vcl_body res.vcl_e_dts
+    in
+    { res with vcl_u_basics = res.vcl_u_basics @ vcl_u_basics'; vcl_body }
+
+  let body_lift_all res =
+    let vcl_u_basics', vcl_body =
+      P.lift_merge_uprop __FILE__ __LINE__ res.vcl_body
+    in
+    { res with vcl_u_basics = res.vcl_u_basics @ vcl_u_basics'; vcl_body }
+
+  let body_instantiate_uqvs res =
+    {
+      res with
+      vcl_body =
+        P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body
+          (res.vcl_u_basics @ res.vcl_e_basics);
+    }
+
   let add_lemmas lemmas
       { vc_u_basics; vc_u_dts; vc_e_basics; vc_head; vc_e_dts; vc_body } =
     let ulemmas, elemmas = split_to_u_e lemmas in
@@ -46,37 +66,23 @@ module Lemma = struct
     (* let () = *)
     (*   Printf.printf "vcl_head : %s\n" @@ Autov.pretty_layout_prop vcl_head *)
     (* in *)
+    let uqvs_head, vcl_head = P.lift_merge_uprop __FILE__ __LINE__ vcl_head in
     let res =
       {
         vcl_lemmas;
         vcl_u_basics;
         vcl_u_dts = vc_u_dts;
-        vcl_e_basics = vc_e_basics;
+        vcl_e_basics = vc_e_basics @ uqvs_head;
         vcl_head;
         vcl_e_dts = vc_e_dts;
         vcl_body;
       }
     in
     let () = pretty_print_with_lemma res in
-    let vcl_u_basics', vcl_body =
-      P.lift_qv_over_mp_in_uprop __FILE__ __LINE__ vcl_body vc_e_dts
-    in
-    (* let vcl_u_basics' = [] in *)
-    let vcl_body =
-      P.instantiate_uqvs_in_uprop __FILE__ __LINE__ vcl_body
-        (vcl_u_basics @ vc_e_basics)
-    in
-    let res =
-      {
-        vcl_lemmas;
-        vcl_u_basics = vcl_u_basics @ vcl_u_basics';
-        vcl_u_dts = vc_u_dts;
-        vcl_e_basics = vc_e_basics;
-        vcl_head;
-        vcl_e_dts = vc_e_dts;
-        vcl_body;
-      }
-    in
+    let res = body_lift_emp res in
+    (* let res = body_lift_all res in *)
+    let () = pretty_print_with_lemma res in
+    let res = body_instantiate_uqvs res in
     let () = pretty_print_with_lemma res in
     res
 
@@ -148,14 +154,32 @@ module Lemma = struct
     without_e_dt lemmas x
 end
 
-module UnderTypectx = struct
-  include Frontend.Utypectx
-  include UnderTypectx
-end
-
 module UT = struct
   include Frontend.Underty
   include UT
+end
+
+module UnderTypectx = struct
+  include Frontend.Utypectx
+  include UnderTypectx
+  open UT
+
+  let close_by_diff ctx ctx' uty =
+    let diff = subtract ctx ctx' in
+    (* let () = *)
+    (*   Printf.printf "Diff:\n"; *)
+    (*   List.iter *)
+    (*     (fun (ifq, (x, tys)) -> *)
+    (*       Printf.printf "%b|%s:[%s]\n" ifq x *)
+    (*         (UT.pretty_layout (conjunct_list tys))) *)
+    (*     diff *)
+    (* in *)
+    List.fold_right
+      (fun (ifq, (x, tys)) uty ->
+        if List.exists (String.equal x) (fv uty) || not ifq then
+          add_ex_uprop ifq x (conjunct_list tys) uty
+        else uty)
+      diff uty
 end
 
 module Typedec = struct

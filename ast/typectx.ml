@@ -124,15 +124,6 @@ module UnderTypectx = struct
 
   let destrct_right ctx =
     match List.rev ctx with [] -> None | h :: t -> Some (List.rev t, h)
-
-  let close_by_diff ctx ctx' uty =
-    List.fold_right
-      (fun (ifq, (x, tys)) uty ->
-        let fv = fv uty in
-        if List.exists (String.equal x) fv then
-          add_ex_uprop ifq x (conjunct_list tys) uty
-        else uty)
-      (subtract ctx ctx') uty
 end
 
 module OverTypectx = F (Overty.T)

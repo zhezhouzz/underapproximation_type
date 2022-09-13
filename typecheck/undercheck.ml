@@ -278,8 +278,10 @@ and term_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
       { ty; x = x.x }
 
 let type_check (notations_ctx : Nctx.t) x ty =
+  (* let ty = Well_found.reduction ty in *)
   let ctx = Typectx.empty in
-  term_type_check notations_ctx ctx x ty
+  let res = term_type_check notations_ctx ctx x ty in
+  res
 
 module SNA = Languages.StrucNA
 
@@ -287,6 +289,7 @@ let struc_check l notations r =
   let open SNA in
   List.iteri
     (fun id (name', ty) ->
+      let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
@@ -298,5 +301,8 @@ let struc_check l notations r =
                 empty notations)
           in
           let _ = type_check notations_ctx body ty in
+          let () =
+            Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n" id
+          in
           ())
     r

@@ -702,6 +702,24 @@ let rename_destruct_uprop file line upre =
       (id' :: ids', subst_id prop id.x id'.x))
     ids ([], prop)
 
+let rename_prop prop l =
+  List.fold_right (fun (id, id') prop -> subst_id prop id.x id'.x) l prop
+
+let rename_destruct_uprop_with_qvs file line upre uqvs =
+  let ids, prop = assume_fe file line upre in
+  let ids' =
+    List.mapi
+      (fun i id ->
+        if i < List.length uqvs then List.nth uqvs i else map Rename.unique id)
+      ids
+  in
+  let prop = rename_prop prop @@ List.combine ids ids' in
+  let qvs = if List.length ids' < List.length uqvs then uqvs else ids' in
+  (* let () = *)
+  (*   Printf.printf "return [%s]\n" (List.split_by_comma (fun x -> x.x) qvs) *)
+  (* in *)
+  (qvs, prop)
+
 let lift_qv_over_mp_in_uprop file line prop edts =
   let rec aux prop =
     match prop with
@@ -720,9 +738,42 @@ let lift_qv_over_mp_in_uprop file line prop edts =
         then ([], prop)
         else rename_destruct_uprop file line prop
     | Exists (_, _) -> _failatwith file line (Frontend.layout prop)
-    (* | _ -> _failatwith file line (Frontend.layout prop) *)
   in
   aux prop
+
+let lift_merge_uprop file line prop =
+  let rec aux (uqvs, prop) =
+    (* let () = *)
+    (*   Printf.printf "lift_merge_uprop [%s] : %s)\n" *)
+    (*     (List.split_by_comma (fun x -> x.x) uqvs) *)
+    (*     (Frontend.layout prop) *)
+    (* in *)
+    match prop with
+    | Lit _ | MethodPred (_, _) | Implies (_, _) | Not _ | Ite (_, _, _) | Iff _
+      ->
+        (uqvs, prop)
+    | And es ->
+        let uqvs, es =
+          List.fold_right
+            (fun uprop (uqvs, props) ->
+              let uqvs, uprop' = aux (uqvs, uprop) in
+              (uqvs, uprop' :: props))
+            es (uqvs, [])
+        in
+        (uqvs, And es)
+    | Or es ->
+        let uqvs, es =
+          List.fold_right
+            (fun uprop (uqvs, props) ->
+              let uqvs, uprop' = aux (uqvs, uprop) in
+              (uqvs, uprop' :: props))
+            es (uqvs, [])
+        in
+        (uqvs, Or es)
+    | Forall (_, _) -> rename_destruct_uprop_with_qvs file line prop uqvs
+    | Exists (_, _) -> _failatwith file line (Frontend.layout prop)
+  in
+  aux ([], prop)
 
 let instantiate_uqvs_in_uprop_ file line prop choices =
   let uqvs, prop = assume_fe file line prop in

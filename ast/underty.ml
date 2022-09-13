@@ -297,6 +297,10 @@ module T = struct
           let prop = if ifq then P.Exists (id, prop) else prop in
           (id, prop)
     in
+    (* let () = *)
+    (*   Printf.printf "id: %s; idprop: %s\n" id.x *)
+    (*     (Autov.pretty_layout_prop idprop) *)
+    (* in *)
     let if_apply name = String.equal id.x name in
     let t_apply _ = _failatwith __FILE__ __LINE__ "" in
     let f_apply prop =

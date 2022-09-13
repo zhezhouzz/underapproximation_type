@@ -27,45 +27,48 @@ let typed_to_smttyped = Languages.Ntyped.to_smttyped
 
 type mode = InIn | InNotin | NotinIn | NotinNotin
 
-let core ctx nu ((eqvs1, uprop1), (uqvs2, prop2)) =
+let core ctx nu ((eqvs1, uprop1), prop2) =
   let open P in
   let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
-  let rec aux ctx ((uqvs, upre), (eqvs1, uprop1), (uqvs2, prop2)) =
+  let rec aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) =
     match Typectx.destrct_right ctx with
     | None ->
-        let pre_eqvs, pres =
-          List.split @@ List.map (rename_destruct_uprop __FILE__ __LINE__) upre
-        in
-        ( uqvs @ [ nu ],
-          List.concat pre_eqvs @ uqvs2 @ eqvs1,
-          And (pres @ [ prop2 ]),
-          uprop1 )
-    | Some (ctx, (x, xty)) -> (
+        (* let pre_uqvs, pre = lift_merge_uprop __FILE__ __LINE__ uprop2 in *)
+        let eqvs1' = List.map (fun x -> Ntyped.map Rename.unique x) eqvs1 in
+        let uprop1' = P.rename_prop uprop1 (List.combine eqvs1 eqvs1') in
+        (nu :: eqvs2, eqvs1', uprop2, uprop1')
+    | Some (ctx, (x, xty)) ->
         let xty = UT.conjunct_list xty in
-        let in1, in2 =
-          (check_in x uprop1, check_in x prop2 || check_in x (And upre))
+        let update (eqvs, uprop) =
+          if check_in x uprop then
+            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+            conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs, uprop)
+          else (eqvs, uprop)
         in
-        match (in1, in2) with
-        | false, false -> aux ctx ((uqvs, upre), (eqvs1, uprop1), (uqvs2, prop2))
-        | true, false ->
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            let eqvs1, prop1 =
-              conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
-            in
-            aux ctx ((uqvs, upre), (eqvs1, prop1), (uqvs2, prop2))
-        | _, true ->
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            aux ctx ((x :: uqvs, xprop :: upre), (eqvs1, uprop1), (uqvs2, prop2))
-        )
+        aux ctx (update (eqvs1, uprop1), update (eqvs2, uprop2))
+    (* let in1, in2 = (check_in x uprop1, check_in x uprop2) in *)
+    (* match (in1, in2) with *)
+    (* | false, false -> aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) *)
+    (* | true, false -> *)
+    (*     let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
+    (*     let eqvs1, prop1 = *)
+    (*       conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1) *)
+    (*     in *)
+    (*     aux ctx ((eqvs1, prop1), (eqvs2, uprop2)) *)
+    (* | _, true -> *)
+    (*     let x, _ = _assume_basety __FILE__ __LINE__ (x, xty) in *)
+    (*     aux ctx ((eqvs1 [ x ], uprop1), (eqvs2 @ [ x ], uprop2)) *)
+    (* let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
+    (* aux ctx ((x :: uqvs, xprop :: upre), (eqvs1, uprop1), (uqvs2, prop2)) *)
   in
-  aux ctx (([], []), (eqvs1, uprop1), (uqvs2, prop2))
+  aux ctx ((eqvs1, uprop1), ([], prop2))
 
 let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
   (* let () = Pp.printf "%s\n" (Autov.pretty_layout_prop prop1) in *)
   let eq1, prop1 = P.assume_tope_uprop __FILE__ __LINE__ prop1 in
-  let uq2, prop2 = P.rename_destruct_uprop __FILE__ __LINE__ prop2 in
+  (* let uq2, prop2 = P.rename_destruct_uprop __FILE__ __LINE__ prop2 in *)
   let final_uqvs, final_eqvs, final_pre, final_post =
-    core ctx nu ((eq1, prop1), (uq2, prop2))
+    core ctx nu ((eq1, prop1), prop2)
   in
   let () =
     Typectx.pretty_print_q
