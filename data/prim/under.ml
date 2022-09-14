@@ -47,7 +47,7 @@ let[@notation] cons =
         iff (hd v u) (u == h) && implies (mem v u) (u == h))
   in
   (v : int list) (fun (u : [%forall: int]) ->
-      implies (mem v u) (u == h) && hd v h)
+      implies (mem v u) (u == h) && iff (hd v u) (u == h))
 
 let[@notation] ileaf =
   (v : int_tree) (fun (u : [%forall: int]) -> not (mem v u))

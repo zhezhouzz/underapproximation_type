@@ -11,7 +11,7 @@ type mode = Under | Tuple
 
 let prop_of_ocamlexpr e =
   let prop = Autov.prop_of_ocamlexpr e in
-  let _ = Autov.Prop.assume_fe __FILE__ __LINE__ prop in
+  let _ = Autov.Prop.assume_tope_uprop __FILE__ __LINE__ prop in
   prop
 
 let mode_of_ocamlexpr e =

@@ -5,8 +5,8 @@ let[@notation] cons =
     (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
         implies (mem v u && mem v w) (u == w) && not (empty v))
   in
-  ( (v : int) (hd l v),
-    (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (mem l u)) )
+  ( (v : int) (fun (u : [%forall: int]) -> iff (hd l u) (v == u)),
+    (v : int list) (fun (u : [%forall: int]) -> iff (mem v u) (mem l u)) )
 
 let[@notation] ileaf =
   (v : int_tree) (fun (u : [%forall: int]) -> not (mem v u))

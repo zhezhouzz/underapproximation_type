@@ -39,27 +39,6 @@ let _check pre q =
 
 open Sugar
 
-let find_const_in_model m x =
-  let cs = Z3.Model.get_const_decls m in
-  let i =
-    List.find
-      (fun d ->
-        let name = Z3.Symbol.to_string @@ Z3.FuncDecl.get_name d in
-        let () = Printf.printf "Find (%s) in %s\n" x name in
-        String.equal name x)
-      cs
-  in
-  Z3.FuncDecl.apply i []
-
-let get_int_by_name m x =
-  let i = find_const_in_model m x in
-  match Z3.Model.eval m i false with
-  (* match Z3.Model.get_const_interp m i with *)
-  | None -> failwith "get_int"
-  | Some v ->
-      Printf.printf "get_int(%s)\n" (Z3.Expr.to_string v);
-      int_of_string @@ Z3.Arithmetic.Integer.numeral_to_string v
-
 let get_mp_app model (mp, args) =
   let mp =
     List.find
@@ -69,7 +48,7 @@ let get_mp_app model (mp, args) =
         String.equal name mp)
       (Z3.Model.get_func_decls model)
   in
-  let args = List.map (find_const_in_model model) args in
+  let args = List.map (Z3aux.find_const_in_model model) args in
   let prop_z3 = Z3.FuncDecl.apply mp args in
   match Z3.Model.eval model prop_z3 false with
   | None -> _failatwith __FILE__ __LINE__ ""
@@ -96,3 +75,4 @@ let prop_fv = Prop.fv
 let add_prop_to_fv = Prop.add_fv
 let uqv_encoding = Encoding.uqv_encoding
 let vars_reduction = Encoding.vars_reduction
+(* let peval = Simp.peval *)

@@ -82,14 +82,21 @@ let qprop_subst_id { mode; qvs; prop } id id' =
     _failatwith __FILE__ __LINE__ ""
   else { mode; qvs; prop = P.subst_id prop id id' }
 
-let instantiate_dt { udt; qprop = { qvs; prop; _ } } udts =
+let instantiate_dt { udt; qprop = { qvs; prop; mode } } udts =
   let l =
     List.filter_map
       (fun dt ->
-        if eq udt.ty dt.ty then Some (P.subst_id prop udt.x dt.x) else None)
+        if eq udt.ty dt.ty then
+          let prop = P.subst_id prop udt.x dt.x in
+          match mode with
+          | Ex -> Some (P.tope_to_prop (qvs, prop))
+          | Fa -> Some (P.topu_to_prop (qvs, prop))
+        else None)
       udts
   in
-  match l with [] -> None | _ -> Some (qvs, P.And l)
+  match mode with
+  | Ex -> P.conjunct_tope_uprop __FILE__ __LINE__ l
+  | Fa -> P.topu_to_prop @@ P.lift_uprop __FILE__ __LINE__ (And l)
 
 let rename_with_vars (vars, prop) =
   List.fold_right

@@ -210,7 +210,8 @@ and handle_match nctx ctx (matched, cases) =
       UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
   in
   let tys, cases = List.split @@ List.map handle_case cases in
-  { ty = merge_case_tys tys; x = Match { matched; cases } }
+  { ty = List.nth tys 1; x = Match { matched; cases } }
+(* { ty = merge_case_tys tys; x = Match { matched; cases } } *)
 
 and term_type_infer (notations_ctx : Nctx.t) (ctx : Typectx.t)
     (a : NL.term NL.typed) : UL.term UL.typed =
@@ -280,6 +281,7 @@ and term_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
 let type_check (notations_ctx : Nctx.t) x ty =
   (* let ty = Well_found.reduction ty in *)
   let ctx = Typectx.empty in
+  (* let _ = Typectx.close_type ty "v" in *)
   let res = term_type_check notations_ctx ctx x ty in
   res
 
@@ -293,16 +295,21 @@ let struc_check l notations r =
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
-      | Some { body; _ } ->
+      | Some { body; _ } -> (
           let notations_ctx =
             Nctx.(
               List.fold_left
                 (fun ctx (name, ty) -> add_to_right ctx (ty, name))
                 empty notations)
           in
-          let _ = type_check notations_ctx body ty in
-          let () =
-            Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n" id
-          in
-          ())
+          try
+            let _ = type_check notations_ctx body ty in
+            let _ =
+              Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
+                id
+            in
+            ()
+          with e ->
+            Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id;
+            raise e))
     r
