@@ -151,7 +151,7 @@ let under_post_shrink =
           Inputstage.load_under_refinments refine_file
         in
         let res =
-          Typecheck.Infer.struc_post_shrink code notations refinements
+          Inference.Infer.struc_post_shrink code notations refinements
         in
         let () =
           List.iter res ~f:(fun (idx, name, uty) ->

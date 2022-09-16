@@ -8,6 +8,7 @@ open Zzdatatype.Datatype
 
 type mp_maps = (string * string typed) list
 
+open Typecheck
 (* let get_bv model m = *)
 (*   let m_z3 = *)
 (*     List.map *)
