@@ -246,9 +246,18 @@ module UnderTypectx = struct
       | None -> prop
       | Some (ctx, (x, xty)) ->
           let xty = conjunct_list xty in
-          let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-          if if_drop_unused && not (check_in x.x prop) then aux ctx prop
-          else aux ctx (Exists (x, And [ xprop; prop ]))
+          (* NOTE: the lambda type always indicates values, thus are reachable *)
+          if is_base_type xty then
+            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+            if if_drop_unused && not (check_in x.x prop) then aux ctx prop
+            else
+              let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in
+              let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in
+              let prop =
+                P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
+              in
+              aux ctx prop
+          else aux ctx prop
     in
     let res = aux ctx prop in
     let res' = peval res in
@@ -260,6 +269,7 @@ module UnderTypectx = struct
     res'
 
   let close_prop = close_prop_ false
+  let close_prop_drop_independt = close_prop_ true
 
   let close_type uty nu =
     let open P in

@@ -4,6 +4,12 @@ open Zzdatatype.Datatype
 open Normalty.Ast.Ntyped
 open Peval
 
+let tope_to_prop (eqvs, prop) =
+  List.fold_right (fun eqv prop -> Exists (eqv, prop)) eqvs prop
+
+let topu_to_prop (uqvs, prop) =
+  List.fold_right (fun eqv prop -> Forall (eqv, prop)) uqvs prop
+
 let assume_fe file line prop =
   let rec aux = function
     | Forall (u, e) ->
@@ -75,11 +81,6 @@ let lift_uprop file line prop =
   in
   aux prop
 
-let conjunct_two_eprops_ (eqv1, prop1) (eqv2, prop2) =
-  let eqv2' = List.map (fun x -> map Rename.unique x) eqv2 in
-  let prop2 = rename_prop prop2 @@ List.combine eqv2 eqv2' in
-  (eqv1 @ eqv2', And [ prop1; prop2 ])
-
 let assume_tope_uprop file line prop =
   let rec aux = function
     | Exists (u, e) ->
@@ -90,6 +91,44 @@ let assume_tope_uprop file line prop =
         else _failatwith file line (Frontend.layout prop)
   in
   aux prop
+
+let conjunct_eprop_to_right_ (eqv1, prop1) (eqv2, prop2) =
+  let is_eq id = function
+    | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x -> Some lit
+    | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x -> Some lit
+    | _ -> None
+  in
+  let merge (eqv1, prop1) (eqv2, prop2) =
+    let eqvs, prop1 =
+      List.fold_right
+        (fun eq (eqv2, prop1) ->
+          if List.exists (fun y -> String.equal eq.x y.x) eqv2 then
+            let eq' = map Rename.unique eq in
+            (eq' :: eqv2, rename_prop prop1 [ (eq, eq') ])
+          else (eq :: eqv2, prop1))
+        eqv1 (eqv2, prop1)
+    in
+    tope_to_prop (eqvs, And [ prop1; prop2 ])
+  in
+  match eqv1 with
+  | [ x ] -> (
+      match is_eq x prop1 with
+      | Some y ->
+          let prop2' = subst_id_with_lit prop2 x.x y in
+          (* let () = *)
+          (*   Printf.printf "SIMP: %s ---> %s in %s => %s\n" x.x *)
+          (*     (Frontend.pretty_layout_lit y) *)
+          (*     (Frontend.pretty_layout prop2) *)
+          (*     (Frontend.pretty_layout prop2') *)
+          (* in *)
+          tope_to_prop (eqv2, prop2')
+      | _ -> merge (eqv1, prop1) (eqv2, prop2))
+  | _ -> merge (eqv1, prop1) (eqv2, prop2)
+
+let conjunct_eprop_to_right file line prop1 prop2 =
+  conjunct_eprop_to_right_
+    (assume_tope_uprop file line prop1)
+    (assume_tope_uprop file line prop2)
 
 let assume_tope_uprop_fresh_name file line prop =
   let eqvs, prop = assume_tope_uprop file line prop in
@@ -121,12 +160,6 @@ let disjunct_eprops_ es =
          es
   in
   (List.concat eqvs, peval @@ Or es)
-
-let tope_to_prop (eqvs, prop) =
-  List.fold_right (fun eqv prop -> Exists (eqv, prop)) eqvs prop
-
-let topu_to_prop (uqvs, prop) =
-  List.fold_right (fun eqv prop -> Forall (eqv, prop)) uqvs prop
 
 let conjunct_tope_uprop file line props =
   let props = List.map (assume_tope_uprop file line) props in

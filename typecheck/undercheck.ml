@@ -84,12 +84,10 @@ and value_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
           x = Lam (id, body);
         }
     | NL.Fix (f, body), ty ->
-        let () = _failatwith __FILE__ __LINE__ "" in
         let f = erase_check_mk_id __FILE__ __LINE__ f ty in
-        Infer.rec_infer ctx f body (value_type_check notations_ctx)
-        (* let ctx' = Typectx.add_to_right ctx f in *)
-        (* let body = value_type_check notations_ctx ctx' body ty in *)
-        (* { ty = body.ty; x = Fix (f, body) } *)
+        let ctx' = Typectx.add_to_right ctx f in
+        let body = value_type_check notations_ctx ctx' body ty in
+        { ty = body.ty; x = Fix (f, body) }
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result

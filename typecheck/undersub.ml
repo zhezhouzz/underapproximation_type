@@ -47,16 +47,14 @@ let core ctx nu ((eqvs1, uprop1), prop2) =
     | Some (ctx, (x, xty)) ->
         let xty = UT.conjunct_list xty in
         let eqvs1, uprop1 =
-          if check_in x uprop1 then
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
-          else (eqvs1, uprop1)
+          let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
+          conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
         in
         let eqvs2, uprop2 =
           if check_in x uprop2 then
             let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
             conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs2, uprop2)
-          else ({ x; ty = UT.erase xty } :: eqvs2, uprop2)
+          else (eqvs2, uprop2)
         in
         (* let update (eqvs, uprop) = *)
         (*   if check_in x uprop then *)
@@ -115,6 +113,12 @@ let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
         (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
 let to_query (nu, prop1, prop2) =
+  let () =
+    Typectx.pretty_print_q
+      (List.map (fun x -> x.x) [ nu ])
+      (List.map (fun x -> x.x) [])
+      prop2 prop1
+  in
   let eq2, final_pre = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
   (* let _ = *)
   (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
@@ -127,13 +131,13 @@ let to_query (nu, prop1, prop2) =
   let final_eqvs, final_post =
     P.assume_tope_uprop_fresh_name __FILE__ __LINE__ prop1
   in
+  (* let _ = *)
+  (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
+  (*     (Autov.pretty_layout_prop prop1) *)
+  (*     (Autov.pretty_layout_prop final_post) *)
+  (* in *)
+  (* let () = failwith "zz" in *)
   let final_uqvs = nu :: eq2 in
-  let () =
-    Typectx.pretty_print_q
-      (List.map (fun x -> x.x) final_uqvs)
-      (List.map (fun x -> x.x) final_eqvs)
-      final_pre final_post
-  in
   let pres, uqvs, q =
     with_lemma_to_query (Prim.lemmas_to_pres ())
       (final_uqvs, final_eqvs, final_pre, final_post)
@@ -154,25 +158,6 @@ let check file line pres q =
   | None -> ()
   | Some m ->
       (* let _ = Autov.Func_interp.get_preds_interp m in *)
-      let features =
-        [
-          ("mem", [ { ty = Ty_int; x = "l" }; { ty = Ty_int; x = "u" } ]);
-          ("==", [ { ty = Ty_int; x = "x" }; { ty = Ty_int; x = "u" } ]);
-        ]
-      in
-      (* let features = *)
-      (*   [ *)
-      (*     ("mem", [ { ty = Ty_int; x = "v" }; { ty = Ty_int; x = "u" } ]); *)
-      (*     ("==", [ { ty = Ty_int; x = "x" }; { ty = Ty_int; x = "u" } ]); *)
-      (*   ] *)
-      (* in *)
-      let fv_tab = Autov.Func_interp.get_fvs features [ "l"; "x" ] [ "u" ] m in
-      let () =
-        Hashtbl.iter
-          (fun fv _ ->
-            Pp.printf "[%s]\n" @@ List.split_by_comma string_of_bool fv)
-          fv_tab
-      in
       Autov._failwithmodel file line "Subtyping check: rejected by the verifier"
         m
 
@@ -190,10 +175,16 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let nu = { ty = nt; x = typeself } in
-        let pres, q =
-          to_query
-            (nu, Typectx.close_prop ctx prop1, Typectx.close_prop ctx prop2)
-        in
+        let prop1' = Typectx.close_prop ctx prop1 in
+        (* let _ = *)
+        (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
+        (*     (Autov.pretty_layout_prop prop1') *)
+        (*     (Autov.pretty_layout_prop @@ P.topu_to_prop *)
+        (*     @@ P.lift_uprop __FILE__ __LINE__ prop1') *)
+        (* in *)
+        (* let () = failwith "zz" in *)
+        let prop2' = Typectx.close_prop_drop_independt ctx prop2 in
+        let pres, q = to_query (nu, prop1', prop2') in
         (* let _ = failwith "end" in *)
         (* let pres, q = context_convert ctx (nu, prop1, prop2) in *)
         check file line pres q
