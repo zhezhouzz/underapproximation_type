@@ -1,10 +1,9 @@
-module NA = Languages.NormalAnormal
-module T = Languages.Termlang
-module StrucNA = Languages.StrucNA
-module Struc = Languages.Struc
+module T = Ast.Termlang
+module StrucNA = Ast.StrucNA
+module Struc = Ast.Struc
 
 let layout to_term code =
-  let open NA in
+  let open Ast.NL in
   let code =
     match code.x with
     | V (Fix (_, body)) -> { ty = body.ty; x = V body.x }
@@ -16,7 +15,7 @@ open Sugar
 open Zzdatatype.Datatype
 
 let layout_one to_term StrucNA.{ name; body } =
-  let open NA in
+  let open Ast.NL in
   let if_rec, body =
     match body.x with
     | V (Fix (_, body)) -> (true, { ty = body.ty; x = V body.x })

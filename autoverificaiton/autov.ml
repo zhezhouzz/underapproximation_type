@@ -1,4 +1,5 @@
-module Prop = Prop.T
+module Prop = Prop
+module Func_interp = Func_interp
 module Smtty = Normalty.Ast.Smtty
 module Enum = Enum
 
@@ -8,7 +9,8 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "1999") ]
+  Z3.mk_context
+    [ ("model", "true"); ("proof", "false"); ("timeout", "2999999") ]
 
 let pretty_print_model model =
   Z3.Model.to_string model |> fun s ->
@@ -25,9 +27,9 @@ let pretty_print_model model =
     (Z3.Model.get_const_decls model)
   |> Printf.printf "%s\n"
 
-let _check pres q =
+let _check pre q =
   let open Check in
-  match smt_neg_and_solve ctx pres q with
+  match smt_neg_and_solve ctx pre q with
   | SmtUnsat -> None
   | SmtSat model ->
       Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model;
@@ -36,27 +38,6 @@ let _check pres q =
   | Timeout -> failwith "smt timeout"
 
 open Sugar
-
-let find_const_in_model m x =
-  let cs = Z3.Model.get_const_decls m in
-  let i =
-    List.find
-      (fun d ->
-        let name = Z3.Symbol.to_string @@ Z3.FuncDecl.get_name d in
-        let () = Printf.printf "Find (%s) in %s\n" x name in
-        String.equal name x)
-      cs
-  in
-  Z3.FuncDecl.apply i []
-
-let get_int_by_name m x =
-  let i = find_const_in_model m x in
-  match Z3.Model.eval m i false with
-  (* match Z3.Model.get_const_interp m i with *)
-  | None -> failwith "get_int"
-  | Some v ->
-      Printf.printf "get_int(%s)\n" (Z3.Expr.to_string v);
-      int_of_string @@ Z3.Arithmetic.Integer.numeral_to_string v
 
 let get_mp_app model (mp, args) =
   let mp =
@@ -67,7 +48,7 @@ let get_mp_app model (mp, args) =
         String.equal name mp)
       (Z3.Model.get_func_decls model)
   in
-  let args = List.map (find_const_in_model model) args in
+  let args = List.map (Z3aux.find_const_in_model model) args in
   let prop_z3 = Z3.FuncDecl.apply mp args in
   match Z3.Model.eval model prop_z3 false with
   | None -> _failatwith __FILE__ __LINE__ ""
@@ -94,3 +75,4 @@ let prop_fv = Prop.fv
 let add_prop_to_fv = Prop.add_fv
 let uqv_encoding = Encoding.uqv_encoding
 let vars_reduction = Encoding.vars_reduction
+(* let peval = Simp.peval *)

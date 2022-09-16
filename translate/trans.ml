@@ -1,8 +1,9 @@
-module S = Languages.Struc
-module SN = Languages.StrucNA
-module N = Languages.NormalAnormal
-module T = Languages.Termlang
-open Languages.NNtyped
+open Ast
+module S = Struc
+module SN = StrucNA
+module N = NL
+module T = Termlang
+open NNtyped
 
 (* let term_to_nan code = Na.simplify @@ Term2normalanormal.to_anormal code *)
 let nan_to_term = Term2normalanormal.to_term

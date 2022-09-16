@@ -1,8 +1,9 @@
-let foo (u : 'forall * int) (w : 'forall * int) =
+let foo =
   let l = (v : int list) true in
-  (v : int list)
-    (implies (mem v u) (mem l u) && implies (mem l u && mem l w) (u == w))
+  (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
+      implies (mem v u) (mem l u) && implies (mem l u && mem l w) (u == w))
 
-(* let foo (u : 'forall * int) = *)
-(*   let l = (v : int list) true in *)
-(*   (v : int list) (fun (z : 'ex * int) -> implies (mem v u) (u == z)) *)
+(* should fail *)
+let foo =
+  let l = (v : int list) true in
+  (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (mem l u))

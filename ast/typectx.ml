@@ -74,19 +74,6 @@ module F (R : Refinement.T) = struct
     in
     if !counter != 1 then failwith "type ctx update error" else ctx
 
-  (* let update ctx (id, f) = *)
-  (*   let counter = ref 0 in *)
-  (*   let ctx = *)
-  (*     List.map *)
-  (*       (fun (x, ty) -> *)
-  (*         if String.equal x id then ( *)
-  (*           counter := !counter + 1; *)
-  (*           (x, f ty)) *)
-  (*         else (x, ty)) *)
-  (*       ctx *)
-  (*   in *)
-  (*   if !counter != 1 then failwith "type ctx update error" else ctx *)
-
   let subst_id ctx id id' =
     List.map
       (fun (x, tys) ->

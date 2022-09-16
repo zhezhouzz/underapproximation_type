@@ -3,22 +3,20 @@
  (wrapped true)
  (libraries utils ast core ocaml_parser abstraction)
  (modules
-   ; type
-   value
-   ; prop
-   pat
-   expr
-   ; signature
-   structure
-   overty
-   underty
+   ; qtypectx
    quantified
-   qunderty
+   ; qunderty
    anormal
-   typectx
-   qtypectx
-   typedec
+   expr
    lemma
+   overty
+   pat
+   structure
+   typectx
+   utypectx
+   typedec
+   underty
+   value
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
 )

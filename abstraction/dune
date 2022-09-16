@@ -3,9 +3,6 @@
  (wrapped true)
  (libraries utils ast core)
  (modules
-   ; normalprim
-   ; overprim
-   ; underprim
    prim
    prim_map
  )

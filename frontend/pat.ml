@@ -1,7 +1,8 @@
 open Ocaml_parser
 open Parsetree
 module Type = Normalty.Frontend
-module L = Languages.Termlang
+open Ast
+module L = Termlang
 
 let layout_ t =
   let _ = Format.flush_str_formatter () in

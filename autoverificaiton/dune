@@ -2,6 +2,7 @@
  (name autov)
  (wrapped true)
  (modules
+   ast
    ; smtty
    prop
    ; typecheck
@@ -14,7 +15,11 @@
    encoding
    unique
    enum
+   func_interp
+   parse
+   peval
+   unify_qvs
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
- (libraries zzdatatype z3 Str ocaml_parser normalty utils)
+ (libraries zzdatatype str z3 ocaml_parser normalty utils z3parser)
 )

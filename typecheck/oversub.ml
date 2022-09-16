@@ -1,9 +1,5 @@
 open Languages
 module Typectx = OverTypectx
-module NL = NormalAnormal
-module OL = OverAnormal
-module NT = Normalty
-module OT = Overty
 open Zzdatatype.Datatype
 open Sugar
 open Abstraction

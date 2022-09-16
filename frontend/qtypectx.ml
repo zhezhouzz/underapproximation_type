@@ -44,14 +44,6 @@ let pretty_print_subtyping ctx (r1, r2) =
   Pp.printf "⊢ @{<magenta>%s@} <: @{<cyan>%s@}\n\n" (Underty.pretty_layout r1)
     (Underty.pretty_layout r2)
 
-(* let pretty_print_q uqvs eqvs pre (eq1, p1) (eq2, p2) = *)
-(*   let () = Pp.printf "@{<bold>Query:@}\n" in *)
-(*   Quantified.print_qt_ uqvs eqvs; *)
-(*   Pp.printf "%s ⊨ @{<cyan>%s@} ==> @{<magenta>%s@}\n\n" *)
-(*     (Autov.pretty_layout_prop pre) *)
-(*     (Quantified.layout_qt_ [] eq2 (Autov.pretty_layout_prop p2)) *)
-(*     (Quantified.layout_qt_ [] eq1 (Autov.pretty_layout_prop p1)) *)
-
 let pretty_print_q uqvs eqvs prop =
   let () = Pp.printf "@{<bold>Query:@}\n" in
   Quantified.print_qt_ uqvs eqvs;

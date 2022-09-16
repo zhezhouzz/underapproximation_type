@@ -3,10 +3,11 @@
     "logfile": ".log",
     "prim_path": {
         "overp": "data/prim/over.ml",
-        "underp": "data/prim/under_simp.ml",
-        "rev_underp": "data/prim/rev_under_simp.ml",
+        "underp": "data/prim/under.ml",
+        "rev_underp": "data/prim/rev_under.ml",
         "normalp": "data/prim/normal.mli",
         "type_decls": "data/typedecs.ml",
-        "lemmas": "data/lemmas.ml"
+        "lemmas": "data/lemmas.ml",
+        "functional_lemmas": "data/functional_lemmas.ml"
     }
 }

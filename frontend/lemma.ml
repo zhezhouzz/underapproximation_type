@@ -1,8 +1,8 @@
 open Ocaml_parser
 open Parsetree
-module L = Languages.Underty
-module Ntyped = Languages.Ntyped
-open Languages.Lemma
+module L = Ast.UT
+module Ntyped = Ast.Ntyped
+open Ast.Lemma
 open Sugar
 
 let undertype_of_ocamlexpr expr =
@@ -23,6 +23,25 @@ let undertype_of_ocamlexpr expr =
 let pretty_layout lemma =
   (* let to_strings = List.map (fun x -> x.Languages.SMTtyped.x) in *)
   spf "%s." (Autov.pretty_layout_prop @@ to_prop lemma)
+
+let pretty_print_with_lemma
+    {
+      vcl_lemmas;
+      vcl_u_basics;
+      vcl_u_dts;
+      vcl_e_basics;
+      vcl_head;
+      vcl_e_dts;
+      vcl_body;
+    } =
+  let () = Pp.printf "@{<bold>With Lemmas:@}\n" in
+  List.iter
+    (fun p -> Pp.printf "@{<bold>lemmas:@} %s\n" @@ Autov.pretty_layout_prop p)
+    vcl_lemmas;
+  Quantified.print_qt (vcl_u_basics @ vcl_u_dts) vcl_e_basics;
+  Pp.printf "\n@{<cyan>%s@} @{<bold>=>@}\n" (Autov.pretty_layout_prop vcl_head);
+  Quantified.print_qt [] vcl_e_dts;
+  Pp.printf "@{<magenta>%s@}\n" (Autov.pretty_layout_prop vcl_body)
 
 let print_with_lemma (pres, prop) =
   List.iter

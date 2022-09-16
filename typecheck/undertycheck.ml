@@ -1,7 +1,7 @@
-module NT = Languages.Normalty
+open Languages
 open Sugar
-open Languages.Ntyped
-open Languages.NSimpleTypectx
+open Ntyped
+open NSimpleTypectx
 open Zzdatatype.Datatype
 
 let infer_id ctx name =
@@ -50,23 +50,21 @@ module Ntyped = Languages.Ntyped
 
 let infer uqvs t =
   (* let () = Printf.printf "infer: %s\n" @@ Frontend.Underty.pretty_layout t in *)
-  let open Languages.Underty in
+  let open UT in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
         let ctx = add_to_right ctx (normalty, basename) in
         UnderTy_base { basename; normalty; prop = infer_prop ctx prop }
-    | UnderTy_arrow { argname; hidden_vars; argty; retty } ->
-        (* let () = Printf.printf "do arrow\n" in *)
-        let () =
-          if List.length hidden_vars > 0 then _failatwith __FILE__ __LINE__ ""
-          else ()
-        in
+    | UnderTy_arrow { argname; argty; retty } ->
         let argty = aux ctx argty in
         let ctx = add_to_right ctx (erase argty, argname) in
         (* let () = *)
         (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
         (* in *)
-        UnderTy_arrow { argname; hidden_vars; argty; retty = aux ctx retty }
+        UnderTy_arrow { argname; argty; retty = aux ctx retty }
+    | UnderTy_poly_arrow { argname; argnty; retty } ->
+        let ctx = add_to_right ctx (argnty, argname) in
+        UnderTy_poly_arrow { argname; argnty; retty = aux ctx retty }
     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
   in
   let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, x.ty)) qvs in

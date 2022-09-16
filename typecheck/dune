@@ -1,19 +1,21 @@
+(copy_files# under/*.ml{,i})
 (library
  (name typecheck)
  (wrapped true)
- (libraries utils ast core frontend translate abstraction)
+ (libraries utils languages core translate abstraction)
  (modules
-   ; primitive
+   ; under/
+   litcheck
+   checkaux
+   ; ./
    opcheck
-   ; typectx
-   ; qtypectx
    termcheck
    oversub
    undersub
    overcheck
    undercheck
-   ; underdt
    undertycheck
    overtycheck
    infer
+   well_found
  ))

@@ -1,9 +1,7 @@
-module NT = Languages.Normalty
-module SMTtyped = Languages.SMTtyped
-module Ntyped = Languages.Ntyped
+open Languages
 open Sugar
 module P = Autov.Prop
-open Languages.NSimpleTypectx
+open NSimpleTypectx
 open Ntyped
 
 let infer_id ctx name =
@@ -48,7 +46,7 @@ let infer_prop ctx t =
   aux ctx t
 
 let infer t =
-  let open Languages.Overty in
+  let open OT in
   let rec aux ctx = function
     | OverTy_base { basename; normalty; prop } ->
         let ctx = add_to_right ctx (normalty, basename) in

@@ -1,7 +1,8 @@
-module S = Languages.Termlang
-module T = Languages.NormalAnormal
-module Type = Languages.Normalty
-module Typed = Languages.NNtyped
+open Ast
+module S = Termlang
+module T = NL
+module Type = NT
+module Typed = NNtyped
 open S
 open Sugar
 
@@ -234,7 +235,7 @@ let to_term e =
                 ty = Some ret.Typed.ty;
                 x =
                   App
-                    ( { ty = None; x = Var (Languages.Op.op_to_string op) },
+                    ( { ty = None; x = Var (Op.op_to_string op) },
                       List.map to_var args );
               },
               aux body )

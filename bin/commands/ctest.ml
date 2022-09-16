@@ -136,8 +136,30 @@ let under_type_check =
         let notations, refinements =
           Inputstage.load_under_refinments refine_file
         in
-        let code =
-          Typecheck.Undercheck.struc_check code notations refinements
+        let () = Typecheck.Undercheck.struc_check code notations refinements in
+        ())
+
+let under_post_shrink =
+  Command.basic ~summary:"under_post_shrink"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source file" %: regular_file)
+      and refine_file = anon ("refine_file" %: regular_file) in
+      fun () ->
+        let () = Config.load_default () in
+        let code = Inputstage.load_ssa source_file in
+        let notations, refinements =
+          Inputstage.load_under_refinments refine_file
+        in
+        let res =
+          Typecheck.Infer.struc_post_shrink code notations refinements
+        in
+        let () =
+          List.iter res ~f:(fun (idx, name, uty) ->
+              let () =
+                Pp.printf "@{<bold>Task %i@}: %s\n%s\n" idx name
+                  (Languages.UT.pretty_layout uty)
+              in
+              ())
         in
         ())
 
@@ -161,6 +183,7 @@ let test =
       ("parsing-type-decls", parsing_type_decls);
       ("over-type-check", over_type_check);
       ("under-type-check", under_type_check);
+      ("under-post-shrink", under_post_shrink);
       ("init", init);
     ]
 

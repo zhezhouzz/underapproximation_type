@@ -4,6 +4,28 @@ open Z3.Boolean
 open Z3.Arithmetic
 open Normalty.Ast.T
 module T = Normalty.Ast.Smtty
+open Sugar
+
+let find_const_in_model m x =
+  let cs = Z3.Model.get_const_decls m in
+  let i =
+    List.find
+      (fun d ->
+        let name = Z3.Symbol.to_string @@ Z3.FuncDecl.get_name d in
+        let () = Printf.printf "Find (%s) in %s\n" x name in
+        String.equal name x)
+      cs
+  in
+  Z3.FuncDecl.apply i []
+
+let get_int_by_name m x =
+  let i = find_const_in_model m x in
+  match Z3.Model.eval m i false with
+  (* match Z3.Model.get_const_interp m i with *)
+  | None -> _failatwith __FILE__ __LINE__ "get_int"
+  | Some v ->
+      Printf.printf "get_int(%s)\n" (Z3.Expr.to_string v);
+      int_of_string @@ Z3.Arithmetic.Integer.numeral_to_string v
 
 let int_to_z3 ctx i = mk_numeral_int ctx i (Integer.mk_sort ctx)
 let bool_to_z3 ctx b = if b then mk_true ctx else mk_false ctx
@@ -40,6 +62,12 @@ let tpedvar_to_z3 ctx (tp, name) =
     match to_smtty tp with
     | Dt | Int -> Integer.mk_const_s ctx name
     | Bool -> Boolean.mk_const_s ctx name)
+
+let z3expr_to_bool v =
+  match Boolean.get_bool_value v with
+  | Z3enums.L_TRUE -> true
+  | Z3enums.L_FALSE -> false
+  | Z3enums.L_UNDEF -> failwith "z3expr_to_bool"
 
 type imp_version = V1 | V2
 

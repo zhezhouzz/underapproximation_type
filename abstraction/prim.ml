@@ -1,9 +1,12 @@
 open Sugar
 open Prim_map
 
-let init (type_decls, normals, overs, unders, rev_unders, lemmas) =
+let init
+    (type_decls, normals, overs, unders, rev_unders, lemmas, functional_lemmas)
+    =
   let nm = make_normal type_decls normals in
   lemma_m := Some (make_lemmas lemmas);
+  functional_lemma_m := Some (make_lemmas functional_lemmas);
   normal_m := Some nm;
   notation_m := Some (make_m nm overs unders rev_unders)
 

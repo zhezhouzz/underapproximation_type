@@ -33,11 +33,7 @@ let get_int_name ctx m name =
 let get_pred m predexpr =
   match Model.eval m predexpr true with
   | None -> failwith "get pred"
-  | Some v -> (
-      match Boolean.get_bool_value v with
-      | Z3enums.L_TRUE -> true
-      | Z3enums.L_FALSE -> false
-      | Z3enums.L_UNDEF -> failwith "get pred")
+  | Some v -> Z3aux.z3expr_to_bool v
 
 let get_unknown_fv ctx m unknown_fv =
   List.map (fun (_, b) -> get_pred m (Boolean.mk_const_s ctx b)) unknown_fv
@@ -53,14 +49,14 @@ let smt_neg_and_solve ctx pre vc =
   (* let () = Printf.printf "Q: %s\n" @@ Frontend.coq_layout vc in *)
   let q = Z3.Boolean.mk_not ctx @@ Query.to_z3 ctx vc in
   let _ = Goal.add g (List.map (Query.to_z3 ctx) pre @ [ q ]) in
-  let g = Z3.Goal.simplify g None in
+  (* let g = Z3.Goal.simplify g None in *)
   (* let g = *)
   (*   Z3.Tactic.(ApplyResult.get_subgoal (apply (mk_tactic ctx "snf") g None) 0) *)
   (* in *)
-  let () =
-    Printf.printf "Goal: %s\n\n"
-    @@ Zzdatatype.Datatype.List.split_by "\n" Z3.Expr.to_string
-    @@ Z3.Goal.get_formulas g
-  in
+  (* let () = *)
+  (*   Printf.printf "Goal: %s\n\n" *)
+  (*   @@ Zzdatatype.Datatype.List.split_by "\n" Z3.Expr.to_string *)
+  (*   @@ Z3.Goal.get_formulas g *)
+  (* in *)
   let _ = Solver.add solver (get_formulas g) in
   solver_result solver

@@ -1,11 +1,9 @@
-module NA = Languages.NormalAnormal
-module T = Languages.Termlang
-module StrucNA = Languages.StrucNA
-module Struc = Languages.Struc
+open Ast
+module T = Termlang
 open Zzdatatype.Datatype
 
 let remove_dummy_eq e =
-  let open NA in
+  let open NL in
   let rec aux_value e =
     match e.x with
     | Lit _ -> e
@@ -45,7 +43,7 @@ let remove_dummy_eq e =
   aux e
 
 let remove_dummy_let e =
-  let open NA in
+  let open NL in
   (* let () = Printf.printf "start simplify\n" in *)
   let rec aux_value e =
     match e.x with

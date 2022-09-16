@@ -1,6 +1,5 @@
-open Languages.Ntyped
-
-type q = Fa | Ex
+open Ast.Ntyped
+open Ast.Q
 
 let mk_q_ (q, x, e) =
   let q = match q with Fa -> "∀ " | Ex -> "∃ " in

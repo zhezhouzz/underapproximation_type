@@ -1,7 +1,7 @@
-open Languages.Normalty
-open Languages.Op
+open Languages
+open NT
+open Op
 module Prim = Abstraction.Prim
-module Type = Normalty.Frontend
 
 let check = function
   | Plus, [ Ty_int; Ty_int ] -> Ty_int
@@ -20,4 +20,4 @@ let check = function
       failwith
         (Sugar.spf "unknown primitive operators (%s) and arg types (%s)"
            (op_to_string op)
-           (Zzdatatype.Datatype.List.split_by_comma Type.layout argsty))
+           (Zzdatatype.Datatype.List.split_by_comma layout argsty))

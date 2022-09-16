@@ -1,7 +1,7 @@
 open Ocaml_parser
 open Parsetree
-module L = Languages.Termlang
-module S = Languages.Struc
+module L = Ast.Termlang
+module S = Ast.Struc
 module Type = Normalty.Frontend
 
 let func_decl_of_ocamlstruct_one structure =
