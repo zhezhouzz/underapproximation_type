@@ -156,11 +156,12 @@ let under_post_shrink =
             refinements
         in
         let () =
-          List.iter res ~f:(fun (idx, name, uty) ->
+          List.iter res ~f:(fun (idx, name, uty, res) ->
               let () =
                 Pp.printf "@{<bold>Task %i@}: %s\n%s\n" idx name
                   (Languages.UT.pretty_layout uty)
               in
+              let () = Inference.Check_false.(print_res res) in
               ())
         in
         ())
@@ -187,8 +188,10 @@ let test_mk_features =
         (* let () = failwith (Printf.sprintf "end: %i" @@ List.length settings) in *)
         let () =
           List.iter
-            ~f:(fun (name, args) ->
-              let infer_ctx = Inference.Infer_ctx.load infer_ctx_file args in
+            ~f:(fun (name, (args, retv)) ->
+              let infer_ctx =
+                Inference.Infer_ctx.load infer_ctx_file args retv
+              in
               let () = Inference.Infer_ctx.print infer_ctx in
               ())
             settings

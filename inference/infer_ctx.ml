@@ -3,7 +3,8 @@ open Ntyped
 
 type t = {
   qvs : string typed list;
-  args : string typed list;
+  inpargs : string typed list;
+  retv : string typed;
   mps : string list;
   features : (string * string typed list) list;
 }
@@ -21,9 +22,11 @@ let feature_to_prop (mp, args) =
 
 let layout_feature feature = Autov.pretty_layout_prop @@ feature_to_prop feature
 
-let print { qvs; args; mps; features } =
+let print { qvs; inpargs; retv; mps; features } =
   Pp.printf "@{<bold>qvs:@} %s;\n" (List.split_by_comma layout_ntyped qvs);
-  Pp.printf "@{<bold>args:@} %s;\n" (List.split_by_comma layout_ntyped args);
+  Pp.printf "@{<bold>args:@} (%s) -> %s;\n"
+    (List.split_by_comma layout_ntyped inpargs)
+    (layout_ntyped retv);
   Pp.printf "@{<bold>mps:@} %s;\n" (List.split_by_comma (fun x -> x) mps);
   Pp.printf "@{<bold>features:@} %s;\n"
     (List.split_by_comma layout_feature features)
@@ -71,10 +74,13 @@ let mk_feature_mp qvs args mp =
   List.map (fun tuple -> (mp, tuple)) tuples
 
 let init_features t = t
+let get_inpout x = x.inpargs @ [ x.retv ]
 
-let init ~qvs ~args ~mps =
-  let features = List.concat @@ List.map (mk_feature_mp qvs args) mps in
-  { qvs; args; mps; features }
+let init ~qvs ~inpargs ~retv ~mps =
+  let features =
+    List.concat @@ List.map (mk_feature_mp qvs (inpargs @ [ retv ])) mps
+  in
+  { qvs; inpargs; retv; mps; features }
 
 open Json
 open Yojson.Basic.Util
@@ -84,7 +90,7 @@ let default_qvs =
     { ty = Ty_int; x = "u" }; { ty = Ty_int; x = "w" }; { ty = Ty_int; x = "z" };
   ]
 
-let load fname args =
+let load fname inpargs retv =
   let j = load_json fname in
   let qvnum = j |> member "qvnum" |> to_int in
   let mps = List.map (fun j -> to_string j) (j |> member "mps" |> to_list) in
@@ -93,4 +99,4 @@ let load fname args =
       _failatwith __FILE__ __LINE__ "unimp"
     else List.sublist default_qvs ~start_included:0 ~end_excluded:qvnum
   in
-  init ~qvs ~args ~mps
+  init ~qvs ~inpargs ~retv ~mps

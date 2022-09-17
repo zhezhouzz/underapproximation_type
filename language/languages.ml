@@ -333,8 +333,10 @@ module UL = struct
     let open Anormal.NormalAnormal in
     let rec aux body =
       match body.x with
-      | V (Lam (x, body)) -> x :: aux body
-      | _ -> [ { x = retname; ty = body.ty } ]
+      | V (Lam (x, body)) ->
+          let args, retv = aux body in
+          (NNtyped.to_ntyped x :: args, retv)
+      | _ -> ([], NNtyped.to_ntyped { x = retname; ty = body.ty })
     in
-    List.map NNtyped.to_ntyped @@ aux body
+    aux body
 end
