@@ -52,23 +52,48 @@ let get_preds_interp model =
           @@ List.choose_list_list space
         in
         (* HACK: add dt to space *)
+        let dts = List.nth space 0 in
         let space = List.concat space in
-        ((func_name, f), space)
+        ((func_name, f), (dts, space))
   in
   let tab, space = List.split @@ List.map get funcs in
-  (tab, List.slow_rm_dup ( == ) @@ List.concat space)
+  let dts, space = List.split space in
+  ( tab,
+    List.slow_rm_dup ( == ) @@ List.concat dts,
+    List.slow_rm_dup ( == ) @@ List.concat space )
 
 let pre_pred_tab = StrMap.from_kv_list [ ("==", fun arr -> arr.(0) == arr.(1)) ]
+
+let layout_fv_tab features fvtab =
+  Pp.printf "@{<bold>%s@}\n"
+  @@ List.split_by_comma
+       (fun (mp, names) ->
+         Frontend.pretty_layout
+         @@ Prop.MethodPred (mp, List.map (fun x -> Prop.AVar x) names))
+       features;
+  Hashtbl.iter
+    (fun fv n ->
+      Pp.printf "@{<yellow>%s@}: %i\n" (List.split_by_comma string_of_bool fv) n)
+    fvtab
 
 let get_fvs features vars qvs model =
   let vars_interp =
     List.map (fun x -> (x, Z3aux.get_int_by_name model x)) vars
   in
-  let var_m = StrMap.from_kv_list vars_interp in
-  let preds_interp, space = get_preds_interp model in
-  let space = List.slow_rm_dup ( == ) (List.map snd vars_interp @ space) in
+  let preds_interp, dts, space = get_preds_interp model in
+  let names, values = List.split vars_interp in
+  let var_ms =
+    let m =
+      List.map (fun x -> match x with None -> dts | Some y -> [ y ]) values
+    in
+    let settings = List.choose_list_list m in
+    List.map StrMap.from_kv_list @@ List.map (List.combine names) settings
+  in
+  let space =
+    List.slow_rm_dup ( == ) (List.filter_map (fun x -> x) values @ space)
+  in
   let pred_tab = StrMap.add_seq (List.to_seq preds_interp) pre_pred_tab in
-  let features =
+  let features' =
     List.map
       (fun (f, args) ->
         (StrMap.find "get pred fail" pred_tab f, List.map (fun x -> x.x) args))
@@ -76,7 +101,7 @@ let get_fvs features vars qvs model =
   in
   let () = Printf.printf "space : %s\n" (IntList.to_string space) in
   let fv_tab = Hashtbl.create 100 in
-  let aux qvs_v =
+  let aux fv_tab_tmp var_m qvs_v =
     let m = StrMap.add_seq (List.to_seq @@ List.combine qvs qvs_v) var_m in
     let fv =
       List.map
@@ -85,7 +110,7 @@ let get_fvs features vars qvs model =
             List.map (fun x -> StrMap.find (spf "find arg(%s) fail" x) m x) args
           in
           mp (Array.of_list args))
-        features
+        features'
     in
     let () =
       Printf.printf "(%s) --> [%s]\n"
@@ -93,9 +118,21 @@ let get_fvs features vars qvs model =
         @@ StrMap.to_kv_list m)
         (List.split_by_comma string_of_bool fv)
     in
-    if Hashtbl.mem fv_tab fv then () else Hashtbl.add fv_tab fv ()
+    match Hashtbl.find_opt fv_tab_tmp fv with
+    | None -> Hashtbl.add fv_tab_tmp fv ()
+    | Some _ -> ()
   in
-  let () =
-    List.iter aux @@ List.choose_list_list (List.map (fun _ -> space) qvs)
+  let aux var_m qvs =
+    let fv_tab_tmp = Hashtbl.create 100 in
+    let () = List.iter (fun qvs_v -> aux fv_tab_tmp var_m qvs_v) qvs in
+    Hashtbl.iter
+      (fun fv _ ->
+        match Hashtbl.find_opt fv_tab fv with
+        | None -> Hashtbl.add fv_tab fv 1
+        | Some n -> Hashtbl.replace fv_tab fv (n + 1))
+      fv_tab_tmp
   in
-  fv_tab
+  let qvs = List.choose_list_list (List.map (fun _ -> space) qvs) in
+  let () = List.iter (fun x -> aux x qvs) var_ms in
+  let () = layout_fv_tab features fv_tab in
+  List.of_seq @@ Hashtbl.to_seq @@ fv_tab

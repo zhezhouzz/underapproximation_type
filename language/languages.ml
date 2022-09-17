@@ -328,4 +328,13 @@ module UL = struct
 
   let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
   let typed_map f { ty; x } = { ty; x = f x }
+
+  let get_args_return_name retname body =
+    let open Anormal.NormalAnormal in
+    let rec aux body =
+      match body.x with
+      | V (Lam (x, body)) -> x :: aux body
+      | _ -> [ { x = retname; ty = body.ty } ]
+    in
+    List.map NNtyped.to_ntyped @@ aux body
 end

@@ -3,5 +3,6 @@
  (wrapped true)
  (libraries utils languages core translate abstraction typecheck)
  (modules
+   infer_ctx
    infer
  ))

@@ -24,10 +24,10 @@ let load_normal_refinements refine_file =
     Struc.func_decl_of_ocamlstruct
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
-  let () =
-    Printf.printf "[Loading normal type]:\n%s\n\n"
-      (Struc.layout_normals refinements)
-  in
+  (* let () = *)
+  (*   Printf.printf "[Loading normal type]:\n%s\n\n" *)
+  (*     (Struc.layout_normals refinements) *)
+  (* in *)
   refinements
 
 let load_over_refinments refine_file =
@@ -47,10 +47,10 @@ let load_over_refinments refine_file =
     Printf.printf "[Loading notations type]:\n%s"
       (Struc.layout_refinements OT.pretty_layout notations)
   in
-  let () =
-    Printf.printf "[Loading refinement type]:\n%s"
-      (Struc.layout_refinements OT.pretty_layout refinements)
-  in
+  (* let () = *)
+  (*   Printf.printf "[Loading refinement type]:\n%s" *)
+  (*     (Struc.layout_refinements OT.pretty_layout refinements) *)
+  (* in *)
   refinements
 
 let load_under_refinments refine_file =
@@ -66,14 +66,14 @@ let load_under_refinments refine_file =
   let notations, refinements =
     Sugar.map2 (List.map ~f:snd) @@ List.partition_tf ~f:fst refinements
   in
-  let () =
-    Printf.printf "[Loading notations type]:\n%s"
-      (Struc.layout_refinements UT.pretty_layout notations)
-  in
-  let () =
-    Printf.printf "[Loading refinement type]:\n%s"
-      (Struc.layout_refinements UT.pretty_layout refinements)
-  in
+  (* let () = *)
+  (*   Printf.printf "[Loading notations type]:\n%s" *)
+  (*     (Struc.layout_refinements UT.pretty_layout notations) *)
+  (* in *)
+  (* let () = *)
+  (*   Printf.printf "[Loading refinement type]:\n%s" *)
+  (*     (Struc.layout_refinements UT.pretty_layout refinements) *)
+  (* in *)
   (notations, refinements)
 
 open Languages
@@ -85,10 +85,10 @@ let load_lemmas lemma_file =
       (Ocaml_parser.Frontend.parse ~sourcefile:lemma_file)
   in
   let lemmas = List.map ~f:(fun ((_, name), lemma) -> (name, lemma)) lemmas in
-  let () =
-    Printf.printf "[Loading Lemmas type]:\n%s"
-      (sprintf "Lemma %s" @@ Struc.layout_refinements Lemma.pretty_layout lemmas)
-  in
+  (* let () = *)
+  (*   Printf.printf "[Loading Lemmas type]:\n%s" *)
+  (*     (sprintf "Lemma %s" @@ Struc.layout_refinements Lemma.pretty_layout lemmas) *)
+  (* in *)
   lemmas
 
 let load_type_decls refine_file =
