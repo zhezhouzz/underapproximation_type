@@ -148,7 +148,10 @@ and handle_letapp (notations_ctx : Nctx.t) ctx (ret, fty, args, body)
     | Autov.FailWithModel (msg, _) ->
         let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
         make_basic_top (snd ret.NL.ty)
-    | _ -> failwith "??"
+    | Autov.SMTTIMEOUT ->
+        let () = Pp.printf "@{<orange>Application failed:@}%s\n" "timeout" in
+        make_basic_top (snd ret.NL.ty)
+    | e -> raise e
   in
   (* let () = Pp.printf "@{<end>Begin@}\n" in *)
   let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
