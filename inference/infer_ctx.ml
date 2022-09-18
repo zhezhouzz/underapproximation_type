@@ -59,12 +59,12 @@ let mk_feature_mp qvs args mp =
     | "mem" | "hd" ->
         let dtargs, _ = List.partition (fun x -> NT.is_dt x.ty) args in
         let tuples = List.choose_list_list_order [ dtargs; qvs ] in
-        let () =
-          List.iter
-            (fun t ->
-              Pp.printf "tuples : %s\n" (List.split_by_comma layout_ntyped t))
-            tuples
-        in
+        (* let () = *)
+        (*   List.iter *)
+        (*     (fun t -> *)
+        (*       Pp.printf "tuples : %s\n" (List.split_by_comma layout_ntyped t)) *)
+        (*     tuples *)
+        (* in *)
         List.slow_rm_dup (List.equal typed_eq) tuples
     | "empty" ->
         let dtargs, _ = List.partition (fun x -> NT.is_dt x.ty) args in

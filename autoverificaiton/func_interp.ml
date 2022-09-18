@@ -44,13 +44,13 @@ let get_preds_interp model =
         (*     (Frontend.pretty_layout prope) *)
         (* in *)
         let space, f = Parse.parse_to_func (arity, Expr.to_string e) in
-        let () =
-          List.iter (fun l ->
-              Printf.printf "%s(%s) := %b\n" func_name
-                (List.split_by_comma string_of_int l)
-                (f (Array.of_list l)))
-          @@ List.choose_list_list space
-        in
+        (* let () = *)
+        (*   List.iter (fun l -> *)
+        (*       Printf.printf "%s(%s) := %b\n" func_name *)
+        (*         (List.split_by_comma string_of_int l) *)
+        (*         (f (Array.of_list l))) *)
+        (*   @@ List.choose_list_list space *)
+        (* in *)
         (* HACK: add dt to space *)
         let dts = List.nth space 0 in
         let space = List.concat space in
@@ -99,7 +99,7 @@ let get_fvs features vars qvs model =
         (StrMap.find "get pred fail" pred_tab f, List.map (fun x -> x.x) args))
       features
   in
-  let () = Printf.printf "space : %s\n" (IntList.to_string space) in
+  (* let () = Printf.printf "space : %s\n" (IntList.to_string space) in *)
   let fv_tab = Hashtbl.create 100 in
   let aux fv_tab_tmp var_m qvs_v =
     let m = StrMap.add_seq (List.to_seq @@ List.combine qvs qvs_v) var_m in
@@ -112,12 +112,12 @@ let get_fvs features vars qvs model =
           mp (Array.of_list args))
         features'
     in
-    let () =
-      Printf.printf "(%s) --> [%s]\n"
-        (List.split_by_comma (fun (x, i) -> spf "%s:%i" x i)
-        @@ StrMap.to_kv_list m)
-        (List.split_by_comma string_of_bool fv)
-    in
+    (* let () = *)
+    (*   Printf.printf "(%s) --> [%s]\n" *)
+    (*     (List.split_by_comma (fun (x, i) -> spf "%s:%i" x i) *)
+    (*     @@ StrMap.to_kv_list m) *)
+    (*     (List.split_by_comma string_of_bool fv) *)
+    (* in *)
     match Hashtbl.find_opt fv_tab_tmp fv with
     | None -> Hashtbl.add fv_tab_tmp fv ()
     | Some _ -> ()

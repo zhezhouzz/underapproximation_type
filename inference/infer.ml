@@ -53,42 +53,46 @@ let phi_rule_out_bv phi bv =
   if Hashtbl.mem phi bv then Hashtbl.remove phi bv
   else _failatwith __FILE__ __LINE__ ""
 
-let post_shrink infer_ctx nctx prog uty =
+let conjunct_ty_with_phi infer_ctx uty neg_phi =
+  UT.work_on_retty
+    (fun x -> String.equal x infer_ctx.retv.x)
+    ( (fun prop ->
+        And
+          [
+            prop;
+            P.topu_to_prop
+              (infer_ctx.qvs, P.Not (bv_to_prop_merge infer_ctx neg_phi));
+          ]),
+      fun _ -> _failatwith __FILE__ __LINE__ "" )
+    uty
+
+let lam_post_shrink infer_ctx nctx prog uty =
+  let counter = ref 0 in
   let rec aux neg_phi =
-    let neg_phi_prop = neg_phi_to_prop infer_ctx neg_phi in
-    let () =
-      Pp.printf "@{<yellow>neg_phi:@} %s\n"
-      @@ Autov.pretty_layout_prop (bv_to_prop_merge infer_ctx neg_phi)
-    in
-    let () =
-      Printf.printf "prop: %s\n" @@ Autov.pretty_layout_prop neg_phi_prop
-    in
-    let _ =
-      match
-        Autov.check []
-          (P.Iff (neg_phi_prop, P.Not (bv_to_prop_merge infer_ctx neg_phi)))
-      with
-      | None -> ()
-      | Some _ -> _failatwith __FILE__ __LINE__ "bad"
-    in
-    let uty =
-      UT.work_on_retty
-        (fun x -> String.equal x infer_ctx.retv.x)
-        ( (fun prop ->
-            And
-              [
-                prop;
-                P.topu_to_prop
-                  (infer_ctx.qvs, P.Not (bv_to_prop_merge infer_ctx neg_phi));
-              ]),
-          fun _ -> _failatwith __FILE__ __LINE__ "" )
-        uty
-    in
-    let () = Printf.printf "uty: %s\n" @@ UT.pretty_layout uty in
+    let () = counter := !counter + 1 in
+    let () = Pp.printf "@{<bold>Iter: %i@}\n" !counter in
+    (* let neg_phi_prop = neg_phi_to_prop infer_ctx neg_phi in *)
+    (* let () = *)
+    (*   Pp.printf "@{<yellow>neg_phi:@} %s\n" *)
+    (*   @@ Autov.pretty_layout_prop (bv_to_prop_merge infer_ctx neg_phi) *)
+    (* in *)
+    (* let () = *)
+    (*   Printf.printf "prop: %s\n" @@ Autov.pretty_layout_prop neg_phi_prop *)
+    (* in *)
+    (* let _ = *)
+    (*   match *)
+    (*     Autov.check [] *)
+    (*       (P.Iff (neg_phi_prop, P.Not (bv_to_prop_merge infer_ctx neg_phi))) *)
+    (*   with *)
+    (*   | None -> () *)
+    (*   | Some _ -> _failatwith __FILE__ __LINE__ "bad" *)
+    (* in *)
+    let uty' = conjunct_ty_with_phi infer_ctx uty neg_phi in
+    (* let () = Printf.printf "uty: %s\n" @@ UT.pretty_layout uty' in *)
     let res =
       try
-        let _ = Undercheck.type_check nctx prog uty in
-        Succ uty
+        let _ = Undercheck.type_check nctx prog uty' in
+        Succ uty'
       with Autov.FailWithModel (_, model) -> Failed model
     in
     match res with
@@ -96,9 +100,64 @@ let post_shrink infer_ctx nctx prog uty =
     | Failed model ->
         let bvs = get_fvs infer_ctx model in
         let bv = choose_bv bvs in
+        let () =
+          Pp.printf "@{<bold>Add:@} %s\n"
+          @@ Autov.pretty_layout_prop
+          @@ bv_to_prop infer_ctx.features bv
+        in
         aux (bv :: neg_phi)
   in
   aux []
+
+let rec_post_shrink infer_ctx nctx (f, prog) uty =
+  let inner_counter = ref 0 in
+  let outer_counter = ref 0 in
+  let rec aux neg_phi_in_ctx neg_phi =
+    let () = inner_counter := !inner_counter + 1 in
+    let () =
+      Pp.printf "@{<bold>Rec Iter: %i -- %i@}\n" !outer_counter !inner_counter
+    in
+    let uty_in_ctx = conjunct_ty_with_phi infer_ctx uty neg_phi_in_ctx in
+    let uty' = conjunct_ty_with_phi infer_ctx uty neg_phi in
+    (* let () = Printf.printf "uty_in_ctx: %s\n" @@ UT.pretty_layout uty_in_ctx in *)
+    (* let () = Printf.printf "uty: %s\n" @@ UT.pretty_layout uty' in *)
+    let res =
+      try
+        let ctx =
+          Typectx.add_to_right Typectx.empty UL.{ x = f.NL.x; ty = uty_in_ctx }
+        in
+        let _ = Undercheck.term_type_check nctx ctx prog uty' in
+        Succ uty'
+      with Autov.FailWithModel (_, model) -> Failed model
+    in
+    match res with
+    | Succ _ -> neg_phi
+    | Failed model ->
+        let bvs = get_fvs infer_ctx model in
+        let bv = choose_bv bvs in
+        let () =
+          Pp.printf "@{<bold>Add:@} %s\n"
+          @@ Autov.pretty_layout_prop
+          @@ bv_to_prop infer_ctx.features bv
+        in
+        aux neg_phi_in_ctx (bv :: neg_phi)
+  in
+  let rec loop neg_phi_in_ctx =
+    let () = outer_counter := !outer_counter + 1 in
+    let neg_phi = aux neg_phi_in_ctx neg_phi_in_ctx in
+    if List.length neg_phi == List.length neg_phi_in_ctx then
+      conjunct_ty_with_phi infer_ctx uty neg_phi
+    else loop neg_phi
+  in
+  loop []
+
+let post_shrink infer_ctx nctx prog uty =
+  let open NL in
+  match prog.x with
+  | V (Lam _) -> lam_post_shrink infer_ctx nctx prog uty
+  | V (Fix (f, prog)) ->
+      rec_post_shrink infer_ctx nctx (f, { x = V prog.x; ty = prog.ty }) uty
+  | _ -> _failatwith __FILE__ __LINE__ ""
 
 module SNA = Languages.StrucNA
 module Nctx = Simpletypectx.UTSimpleTypectx

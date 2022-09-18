@@ -118,7 +118,7 @@ module Lemma = struct
         vcl_body = P.peval vcl_body;
       }
     in
-    let () = pretty_print_with_lemma res in
+    (* let () = pretty_print_with_lemma res in *)
     (* let res = body_lift_emp res in *)
     (* (\* let res = body_lift_all res in *\) *)
     (* let () = pretty_print_with_lemma res in *)

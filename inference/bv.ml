@@ -75,9 +75,9 @@ let choose_bv bvs =
       let bvs =
         List.sort
           (fun a b ->
-            Sexplib.Sexp.compare
-              (sexp_of_list sexp_of_bool a)
-              (sexp_of_list sexp_of_bool b))
+            -Sexplib.Sexp.compare
+               (sexp_of_list sexp_of_bool a)
+               (sexp_of_list sexp_of_bool b))
           bv
       in
       List.nth bvs 0

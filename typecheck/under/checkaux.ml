@@ -30,21 +30,21 @@ let term_subtyping_check file line ctx UL.{ x; ty } t2 =
 (*   Undersub.subtyping_check_with_hidden_vars *)
 
 let merge_case_tys tys =
-  let () =
-    List.iteri
-      (fun i ty ->
-        Pp.printf "@{<bold>Case(%i) ty@}: %s\n" i @@ UT.pretty_layout ty)
-      tys
-  in
+  (* let () = *)
+  (*   List.iteri *)
+  (*     (fun i ty -> *)
+  (*       Pp.printf "@{<bold>Case(%i) ty@}: %s\n" i @@ UT.pretty_layout ty) *)
+  (*     tys *)
+  (* in *)
   (* let () = *)
   (*   Pp.printf "@{<bold>Compare@}\n"; *)
   (*   Frontend.Typectx.pretty_print ctx; *)
   (*   Frontend.Typectx.pretty_print true_branch_ctx *)
   (* in *)
   let ty = UT.disjunct_list tys in
-  let () =
-    Pp.printf "@{<bold>Merged ty@}: %s\n" @@ Frontend.Underty.pretty_layout ty
-  in
+  (* let () = *)
+  (*   Pp.printf "@{<bold>Merged ty@}: %s\n" @@ Frontend.Underty.pretty_layout ty *)
+  (* in *)
   ty
 
 (* let close_term_by_diff ctx' ctx UL.{ ty; x } = *)

@@ -32,7 +32,7 @@ let _check pre q =
   match smt_neg_and_solve ctx pre q with
   | SmtUnsat -> None
   | SmtSat model ->
-      Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model;
+      (* Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model; *)
       (* pretty_print_model model; *)
       Some model
   | Timeout -> failwith "smt timeout"
