@@ -38,22 +38,11 @@ let[@library] minus =
   let (b : [%poly: int]) = () in
   (v == a - b : [%v: int])
 
-let[@library] nil = (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
+let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
   let (h : [%poly: int]) = () in
-  let t =
-    (fun (u : [%forall: int]) ->
-       iff (hd v u) (u == h) && implies (mem v u) (u == h)
-      : [%v: int list])
-  in
-  (fun (u : [%forall: int]) ->
-     implies (mem v u) (u == h) && iff (hd v u) (u == h)
+  let (t : [%poly: int list]) = () in
+  (fun (u : [%forall: int]) (w : [%forall: int]) ->
+     iff (u == w + 1) (len t w && len v u)
     : [%v: int list])
-
-let[@library] ileaf =
-  (fun (u : [%forall: int]) -> not (mem v u) : [%v: int_tree])
-
-let[@library] _ret_two_value =
-  let x = (v > 0 : [%v: int]) in
-  (v == 1 || v == x : [%v: int])

@@ -65,7 +65,15 @@ let infer uqvs t =
     | UnderTy_poly_arrow { argname; argnty; retty } ->
         let ctx = add_to_right ctx (argnty, argname) in
         UnderTy_poly_arrow { argname; argnty; retty = aux ctx retty }
-    | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ctx) ts)
+    | UnderTy_tuple ts ->
+        let rec loop ctx = function
+          | [] -> []
+          | (name, ty) :: ts ->
+              let ty = aux ctx ty in
+              let ctx = add_to_right ctx (erase ty, name) in
+              (name, ty) :: loop ctx ts
+        in
+        UnderTy_tuple (loop ctx ts)
   in
   let to_ctx qvs = List.map Ntyped.(fun x -> (x.x, x.ty)) qvs in
   aux (to_ctx uqvs) t

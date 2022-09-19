@@ -27,13 +27,13 @@ let load fname =
   let open Abstraction in
   let underr =
     match Inputstage.load_under_refinments prim_path.underp with
-    | underr, [] -> underr
-    | _, _ -> failwith "wrong under prim"
+    | [], underr, [] -> underr
+    | _, _, _ -> failwith "wrong under prim"
   in
   let rev_underr =
     match Inputstage.load_under_refinments prim_path.rev_underp with
-    | underr, [] -> underr
-    | _, _ -> failwith "wrong under prim"
+    | [], underr, [] -> underr
+    | _, _, _ -> failwith "wrong under prim"
   in
   let lemmas = Inputstage.load_lemmas prim_path.lemmas in
   let functional_lemmas = Inputstage.load_lemmas prim_path.functional_lemmas in

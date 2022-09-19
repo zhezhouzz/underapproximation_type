@@ -45,15 +45,17 @@ let layout_one { name; if_rec; body } =
 
 let layout l = spf "%s\n" (List.split_by "\n" layout_one l)
 
+type ext = NoExt | NotationExt | LibraryExt
+
 let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
   match structure.pstr_desc with
   | Pstr_value (_, [ value_binding ]) ->
       let a =
         match value_binding.pvb_attributes with
-        | [ x ] ->
-            (* let () = Printf.printf "attr_name:%s\n" x.attr_name.txt in *)
-            String.equal x.attr_name.txt "notation"
-        | _ -> false
+        | [ x ] when String.equal x.attr_name.txt "notation" -> NotationExt
+        | [ x ] when String.equal x.attr_name.txt "library" -> LibraryExt
+        | [] -> NoExt
+        | _ -> _failatwith __FILE__ __LINE__ "unknown extension"
       in
       let name =
         match (Pat.pattern_to_slang value_binding.pvb_pat).x with

@@ -2,8 +2,13 @@ open Core
 open Typecheck
 open Languages
 
-let load_ssa source_file =
-  let ctx = NSimpleTypectx.empty in
+let load_ssa libs source_file =
+  let ctx =
+    NSimpleTypectx.(
+      List.fold_left
+        ~f:(fun ctx (x, ty) -> add_to_right ctx (UT.erase ty, x))
+        ~init:empty libs)
+  in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
   let () =
     Printf.printf "\n[Load ocaml program]:\n%s\n\n"
@@ -40,8 +45,14 @@ let load_over_refinments refine_file =
       ~f:(fun ((a, name), ty) -> (a, (name, Overtycheck.infer ty)))
       refinements
   in
-  let notations, refinements =
-    Sugar.map2 (List.map ~f:snd) @@ List.partition_tf ~f:fst refinements
+  let notations, _, refinements =
+    List.fold_left
+      ~f:(fun (a, b, c) x ->
+        match x with
+        | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ])
+        | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
+        | Frontend.Structure.NotationExt, x -> (a @ [ x ], b, c))
+      ~init:([], [], []) refinements
   in
   let () =
     Printf.printf "[Loading notations type]:\n%s"
@@ -63,18 +74,24 @@ let load_under_refinments refine_file =
       ~f:(fun ((a, name), ty) -> (a, (name, Undertycheck.infer [] ty)))
       refinements
   in
-  let notations, refinements =
-    Sugar.map2 (List.map ~f:snd) @@ List.partition_tf ~f:fst refinements
+  let notations, libs, refinements =
+    List.fold_left
+      ~f:(fun (a, b, c) x ->
+        match x with
+        | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ])
+        | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
+        | Frontend.Structure.NotationExt, x -> (a @ [ x ], b, c))
+      ~init:([], [], []) refinements
   in
   (* let () = *)
-  (*   Printf.printf "[Loading notations type]:\n%s" *)
-  (*     (Struc.layout_refinements UT.pretty_layout notations) *)
+  (*   Printf.printf "[Loading libs type]:\n%s" *)
+  (*     (Struc.layout_refinements UT.pretty_layout libs) *)
   (* in *)
   (* let () = *)
   (*   Printf.printf "[Loading refinement type]:\n%s" *)
   (*     (Struc.layout_refinements UT.pretty_layout refinements) *)
   (* in *)
-  (notations, refinements)
+  (notations, libs, refinements)
 
 open Languages
 module LA = Lemma

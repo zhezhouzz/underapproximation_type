@@ -7,6 +7,12 @@ let check_empty_hidden file line hvs =
   else ()
 
 let erase_check file line (underfty, normalty) =
+  (* let () = *)
+  (*   Pp.printf "|_ %s _| ~> %s = %s\n" *)
+  (*     (UT.pretty_layout underfty) *)
+  (*     (NT.layout @@ UT.erase underfty) *)
+  (*     (NT.layout @@ snd normalty) *)
+  (* in *)
   let _ = _check_equality file line NT.eq (UT.erase underfty) (snd normalty) in
   ()
 

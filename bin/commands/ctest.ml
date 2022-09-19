@@ -118,7 +118,7 @@ let over_type_check =
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Inputstage.load_ssa source_file in
+        let code = Inputstage.load_ssa [] source_file in
         let refinements = Inputstage.load_over_refinments refine_file in
         let () = Printf.printf "[Type checking]:\n" in
         let code = Typecheck.Overcheck.struc_check code refinements in
@@ -128,31 +128,35 @@ let over_type_check =
 let under_type_check =
   Command.basic ~summary:"under_type_check"
     Command.Let_syntax.(
-      let%map_open source_file = anon ("source file" %: regular_file)
+      let%map_open config_file = anon ("config file" %: regular_file)
+      and source_file = anon ("source file" %: regular_file)
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
-        let () = Config.load_default () in
-        let code = Inputstage.load_ssa source_file in
-        let notations, refinements =
+        let () = Config.load config_file in
+        let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
-        let () = Typecheck.Undercheck.struc_check code notations refinements in
+        let code = Inputstage.load_ssa libs source_file in
+        let () =
+          Typecheck.Undercheck.struc_check code notations libs refinements
+        in
         ())
 
 let under_post_shrink =
   Command.basic ~summary:"under_post_shrink"
     Command.Let_syntax.(
-      let%map_open source_file = anon ("source file" %: regular_file)
+      let%map_open config_file = anon ("config file" %: regular_file)
+      and source_file = anon ("source file" %: regular_file)
       and refine_file = anon ("refine_file" %: regular_file)
       and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
       fun () ->
-        let () = Config.load_default () in
-        let code = Inputstage.load_ssa source_file in
-        let notations, refinements =
+        let () = Config.load config_file in
+        let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
+        let code = Inputstage.load_ssa libs source_file in
         let res =
-          Inference.Infer.struc_post_shrink infer_ctx_file code notations
+          Inference.Infer.struc_post_shrink infer_ctx_file code notations libs
             refinements
         in
         let () =
@@ -173,7 +177,7 @@ let test_mk_features =
       and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Inputstage.load_ssa source_file in
+        let code = Inputstage.load_ssa [] source_file in
         let settings =
           List.map
             ~f:

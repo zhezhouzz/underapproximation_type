@@ -1,22 +1,26 @@
-let[@notation] nil = (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
+let[@library] nil = (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
 
-let[@notation] cons =
+let[@library] cons =
   let l =
-    (v : int list) (fun (u : [%forall: int]) ->
-        implies (mem v u) (hd v u) && not (empty v))
+    (fun (u : [%forall: int]) -> implies (mem v u) (hd v u) && not (empty v)
+      : [%v: int list])
   in
-  ( (v : int) (fun (u : [%forall: int]) -> iff (hd l u) (v == u)),
-    (v : int list) (fun (u : [%forall: int]) -> iff (mem v u) (mem l u)) )
+  ( h (fun (u : [%forall: int]) -> iff (hd l u) (v == u) : [%v: int]),
+    t (fun (u : [%forall: int]) -> iff (mem v u) (mem l u) : [%v: int list]) )
 
-let[@notation] ileaf =
-  (v : int_tree) (fun (u : [%forall: int]) -> not (mem v u))
+let[@library] ileaf =
+  (fun (u : [%forall: int]) -> not (mem v u) : [%v: int_tree])
 
-let[@notation] inode =
+let[@library] inode =
   let tree =
-    (v : int_tree) (fun (u : [%forall: int]) (w : [%forall: int]) ->
-        implies (mem v u && mem v w) (u == w) && not (empty v))
+    (fun (u : [%forall: int]) (w : [%forall: int]) ->
+       implies (mem v u && mem v w) (u == w) && not (empty v)
+      : [%v: int_tree])
   in
-  ( (v : int) (fun (u : [%forall: int]) -> mem tree v),
-    (v : int_tree) (fun (u : [%forall: int]) -> implies (mem v u) (mem tree u)),
-    (v : int_tree) (fun (u : [%forall: int]) -> implies (mem v u) (mem tree u))
-  )
+  ( root (fun (u : [%forall: int]) -> mem tree v : [%v: int]),
+    left
+      (fun (u : [%forall: int]) -> implies (mem v u) (mem tree u)
+        : [%v: int_tree]),
+    right
+      (fun (u : [%forall: int]) -> implies (mem v u) (mem tree u)
+        : [%v: int_tree]) )

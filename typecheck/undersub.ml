@@ -189,13 +189,30 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
         (* let pres, q = context_convert ctx (nu, prop1, prop2) in *)
         check file line pres q
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
-        List.iter (aux ctx) @@ List.combine ts1 ts2
+        let rec loop ctx = function
+          | [], [] -> ()
+          | (name1, ty1) :: ts1, (name2, ty2) :: ts2 ->
+              let () = aux ctx (ty1, ty2) in
+              let ts1 =
+                List.map
+                  (fun (name, ty) ->
+                    if String.equal name name1 then
+                      _failatwith __FILE__ __LINE__ ""
+                    else (name, subst_id ty name1 name2))
+                  ts1
+              in
+              let ctx' = Typectx.add_to_right ctx { x = name2; ty = ty1 } in
+              loop ctx' (ts1, ts2)
+          | _, _ -> _failatwith __FILE__ __LINE__ ""
+        in
+        loop ctx (ts1, ts2)
     | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
         UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
         let t22 = subst_id t22 x2 x1 in
         (* let () = *)
         (*   if UT.is_fv_in x2 t22 then aux ctx (t11, t21) else aux ctx (t21, t11) *)
         (* in *)
+        (* TODO: functional subtyping rule *)
         let () = aux ctx (t21, t11) in
         let () = aux ctx (t12, t22) in
         ()
