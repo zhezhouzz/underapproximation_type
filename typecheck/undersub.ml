@@ -184,6 +184,8 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
         (* in *)
         (* let () = failwith "zz" in *)
         let prop2' = Typectx.close_prop_drop_independt ctx prop2 in
+        (* let () = Typectx.pretty_print_q [ nu.x ] [] prop2' prop1 in *)
+        (* let () = failwith "zz" in *)
         let pres, q = to_query (nu, prop1', prop2') in
         (* let _ = failwith "end" in *)
         (* let pres, q = context_convert ctx (nu, prop1, prop2) in *)
