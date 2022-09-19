@@ -36,6 +36,21 @@ let bv_to_prop m l =
   in
   prop
 
+let sanity_check infer_ctx bvs prop =
+  List.iter
+    (fun bv ->
+      let bv_prop = bv_to_prop infer_ctx.features bv in
+      match Autov.check [] (P.Implies (bv_prop, prop)) with
+      | None -> ()
+      | Some _ ->
+          let () =
+            Pp.printf "bv: %s\nprop: %s\n"
+              (Autov.pretty_layout_prop bv_prop)
+              (Autov.pretty_layout_prop prop)
+          in
+          _failatwith __FILE__ __LINE__ "")
+    bvs
+
 let bv_to_prop_merge infer_ctx bvs =
   let tab =
     Hashtbl.of_seq @@ List.to_seq @@ List.map (fun bv -> (bv, ())) bvs
@@ -54,7 +69,9 @@ let bv_to_prop_merge infer_ctx bvs =
         let cond = featrue_to_prop feature in
         P.peval @@ P.Ite (cond, make tab_t, make tab_f)
   in
-  aux infer_ctx.features tab
+  let prop = aux infer_ctx.features tab in
+  let () = sanity_check infer_ctx bvs prop in
+  prop
 
 let choose_bv bvs =
   let max = ref None in
@@ -81,3 +98,20 @@ let choose_bv bvs =
           bv
       in
       List.nth bvs 0
+
+let layout_bv bv = List.split_by_comma string_of_bool bv
+
+let layout_bvs infer_ctx bvs =
+  let bvs =
+    List.sort
+      (fun a b ->
+        -Sexplib.Sexp.compare
+           (sexp_of_list sexp_of_bool (fst a))
+           (sexp_of_list sexp_of_bool (fst b)))
+      bvs
+  in
+  Pp.printf "@{<bold>%s@}\n"
+  @@ List.split_by_comma layout_feature infer_ctx.features;
+  List.iter
+    (fun (bv, n) -> Pp.printf "@{<yellow>%s@}: %i\n" (layout_bv bv) n)
+    bvs

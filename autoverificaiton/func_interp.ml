@@ -64,18 +64,6 @@ let get_preds_interp model =
 
 let pre_pred_tab = StrMap.from_kv_list [ ("==", fun arr -> arr.(0) == arr.(1)) ]
 
-let layout_fv_tab features fvtab =
-  Pp.printf "@{<bold>%s@}\n"
-  @@ List.split_by_comma
-       (fun (mp, names) ->
-         Frontend.pretty_layout
-         @@ Prop.MethodPred (mp, List.map (fun x -> Prop.AVar x) names))
-       features;
-  Hashtbl.iter
-    (fun fv n ->
-      Pp.printf "@{<yellow>%s@}: %i\n" (List.split_by_comma string_of_bool fv) n)
-    fvtab
-
 let get_fvs features vars qvs model =
   let vars_interp =
     List.map (fun x -> (x, Z3aux.get_int_by_name model x)) vars
@@ -134,5 +122,4 @@ let get_fvs features vars qvs model =
   in
   let qvs = List.choose_list_list (List.map (fun _ -> space) qvs) in
   let () = List.iter (fun x -> aux x qvs) var_ms in
-  let () = layout_fv_tab features fv_tab in
   List.of_seq @@ Hashtbl.to_seq @@ fv_tab

@@ -179,7 +179,9 @@ let test_mk_features =
             ~f:
               Languages.StrucNA.(
                 fun { name; body } ->
-                  (name, Languages.UL.get_args_return_name "v" body))
+                  let args, ret = Languages.UL.get_args_return_name "v" body in
+
+                  (name, (List.map ~f:(fun x -> (x, x)) args, ret)))
             code
         in
         (* let () = *)

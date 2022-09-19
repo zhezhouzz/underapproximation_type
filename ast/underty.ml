@@ -356,21 +356,6 @@ module T = struct
       | UnderTy_poly_arrow _ -> _failatwith __FILE__ __LINE__ "unimp"
     in
     aux m t
-
-  let get_inpout uty =
-    let rec aux uty =
-      match uty with
-      | UnderTy_base { basename; normalty; _ } ->
-          ([], { x = basename; ty = normalty })
-      | UnderTy_arrow { argname; argty; retty } ->
-          let args, ret = aux retty in
-          if is_base_type argty then
-            let _, ty, _ = assume_base __FILE__ __LINE__ argty in
-            ({ x = argname; ty } :: args, ret)
-          else (args, ret)
-      | _ -> _failatwith __FILE__ __LINE__ ""
-    in
-    aux uty
 end
 
 module Utyped = struct

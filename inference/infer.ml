@@ -19,11 +19,12 @@ open Sugar
 
 let get_fvs infer_ctx model =
   let fv_tab =
-    Autov.Func_interp.get_fvs infer_ctx.features
-      (List.map (fun x -> x.x) (get_inpout infer_ctx))
+    Autov.Func_interp.get_fvs infer_ctx.code_features
+      (List.map (fun x -> x.x) (get_code_inpout infer_ctx))
       (List.map (fun x -> x.x) infer_ctx.qvs)
       model
   in
+  let () = layout_bvs infer_ctx fv_tab in
   fv_tab
 
 type chekck_result = Succ of UT.t | Failed of Z3.Model.model
@@ -66,6 +67,14 @@ let conjunct_ty_with_phi infer_ctx uty neg_phi =
       fun _ -> _failatwith __FILE__ __LINE__ "" )
     uty
 
+let add_to_phi bv bvs =
+  if List.exists (fun x -> List.equal ( == ) x bv) bvs then
+    let () =
+      Pp.printf "@{<bold>Err:@}: dup %s" (List.split_by_comma string_of_bool bv)
+    in
+    _failatwith __FILE__ __LINE__ ""
+  else bv :: bvs
+
 let lam_post_shrink infer_ctx nctx prog uty =
   let counter = ref 0 in
   let rec aux neg_phi =
@@ -100,12 +109,8 @@ let lam_post_shrink infer_ctx nctx prog uty =
     | Failed model ->
         let bvs = get_fvs infer_ctx model in
         let bv = choose_bv bvs in
-        let () =
-          Pp.printf "@{<bold>Add:@} %s\n"
-          @@ Autov.pretty_layout_prop
-          @@ bv_to_prop infer_ctx.features bv
-        in
-        aux (bv :: neg_phi)
+        let () = Pp.printf "@{<bold>Add:@} %s\n" (layout_bv bv) in
+        aux (add_to_phi bv neg_phi)
   in
   aux []
 
@@ -135,12 +140,8 @@ let rec_post_shrink infer_ctx nctx (f, prog) uty =
     | Failed model ->
         let bvs = get_fvs infer_ctx model in
         let bv = choose_bv bvs in
-        let () =
-          Pp.printf "@{<bold>Add:@} %s\n"
-          @@ Autov.pretty_layout_prop
-          @@ bv_to_prop infer_ctx.features bv
-        in
-        aux neg_phi_in_ctx (bv :: neg_phi)
+        let () = Pp.printf "@{<bold>Add:@} %s\n" (layout_bv bv) in
+        aux neg_phi_in_ctx (add_to_phi bv neg_phi)
   in
   let rec loop neg_phi_in_ctx =
     let () = outer_counter := !outer_counter + 1 in
@@ -151,16 +152,63 @@ let rec_post_shrink infer_ctx nctx (f, prog) uty =
   in
   loop []
 
+let rec_post_shrink_v2 infer_ctx nctx (f, prog) uty =
+  let counter = ref 0 in
+  let rec aux neg_phi =
+    let () = counter := !counter + 1 in
+    let () = Pp.printf "@{<bold>Rec Iter: %i@}\n" !counter in
+    let uty' = conjunct_ty_with_phi infer_ctx uty neg_phi in
+    let res =
+      try
+        let ctx =
+          Typectx.add_to_right Typectx.empty UL.{ x = f.NL.x; ty = uty' }
+        in
+        let _ = Undercheck.term_type_check nctx ctx prog uty' in
+        Succ uty'
+      with Autov.FailWithModel (_, model) -> Failed model
+    in
+    match res with
+    | Succ _ -> uty'
+    | Failed model ->
+        let bvs = get_fvs infer_ctx model in
+        let bv = choose_bv bvs in
+        let () =
+          Pp.printf "@{<bold>Add:@} %s\n"
+          @@ Autov.pretty_layout_prop
+          @@ bv_to_prop infer_ctx.features bv
+        in
+        aux (add_to_phi bv neg_phi)
+  in
+  aux []
+
 let post_shrink infer_ctx nctx prog uty =
   let open NL in
   match prog.x with
   | V (Lam _) -> lam_post_shrink infer_ctx nctx prog uty
   | V (Fix (f, prog)) ->
-      rec_post_shrink infer_ctx nctx (f, { x = V prog.x; ty = prog.ty }) uty
+      (* rec_post_shrink infer_ctx nctx (f, { x = V prog.x; ty = prog.ty }) uty *)
+      rec_post_shrink_v2 infer_ctx nctx (f, { x = V prog.x; ty = prog.ty }) uty
   | _ -> _failatwith __FILE__ __LINE__ ""
 
 module SNA = Languages.StrucNA
 module Nctx = Simpletypectx.UTSimpleTypectx
+
+let get_inpout prog uty =
+  let open UT in
+  let rec aux prog uty =
+    match (prog, uty) with
+    | NL.(V (Fix (_, body))), _ -> aux NL.(V body.x) uty
+    | _, UnderTy_base { basename; normalty; _ } ->
+        ([], { x = basename; ty = normalty })
+    | NL.(V (Lam (arg, body))), UnderTy_arrow { argname; argty; retty } ->
+        let args, ret = aux body.NL.x retty in
+        if is_base_type argty then
+          let _, ty, _ = assume_base __FILE__ __LINE__ argty in
+          (({ x = arg.NL.x; ty }, { x = argname; ty }) :: args, ret)
+        else (args, ret)
+    | _ -> _failatwith __FILE__ __LINE__ ""
+  in
+  aux prog.NL.x uty
 
 let struc_post_shrink infer_ctx_file l notations (r : (string * UT.t) list) =
   let open SNA in
@@ -170,19 +218,15 @@ let struc_post_shrink infer_ctx_file l notations (r : (string * UT.t) list) =
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
-      | Some { body; _ } -> (
+      | Some { body; _ } ->
           let notations_ctx =
             Nctx.(
               List.fold_left
                 (fun ctx (name, ty) -> add_to_right ctx (ty, name))
                 empty notations)
           in
-          try
-            let args, retv = UT.get_inpout ty in
-            let infer_ctx = load infer_ctx_file args retv in
-            let uty = post_shrink infer_ctx notations_ctx body ty in
-            tab @ [ (id, name', uty, Check_false.check infer_ctx uty) ]
-          with e ->
-            Pp.printf "@{<bold>@{<red>Task %i, Fatal Error@}@}\n" id;
-            raise e))
+          let args, retv = get_inpout body ty in
+          let infer_ctx = load infer_ctx_file args retv in
+          let uty = post_shrink infer_ctx notations_ctx body ty in
+          tab @ [ (id, name', uty, Check_false.check infer_ctx uty) ])
     [] r
