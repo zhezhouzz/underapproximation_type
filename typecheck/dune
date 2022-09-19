@@ -16,6 +16,5 @@
    undercheck
    undertycheck
    overtycheck
-   infer
    well_found
  ))

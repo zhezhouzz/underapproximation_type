@@ -1,0 +1,10 @@
+(library
+ (name inference)
+ (wrapped true)
+ (libraries utils languages core translate abstraction typecheck)
+ (modules
+   infer_ctx
+   infer
+   bv
+   check_false
+ ))

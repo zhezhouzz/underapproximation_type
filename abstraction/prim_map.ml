@@ -127,6 +127,6 @@ let get_notation_m () =
 let get_by_name m name =
   match typed_prim_of_string m name with
   | _, None ->
-      let () = layout_m m in
+      (* let () = layout_m m in *)
       _failatwith __FILE__ __LINE__ @@ spf "cannot find prim %s" name
   | prim, Some x -> (prim, x)

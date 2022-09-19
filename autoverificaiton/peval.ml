@@ -67,7 +67,15 @@ let peval prop =
         match e1 with
         | Lit (ACbool true) -> e2
         | Lit (ACbool false) -> e3
-        | _ -> Ite (e1, e2, e3))
+        | _ -> (
+            match (e2, e3) with
+            | Lit (ACbool false), Lit (ACbool false) -> mk_false
+            | Lit (ACbool true), Lit (ACbool true) -> mk_true
+            | Lit (ACbool true), Lit (ACbool false) -> e1
+            | Lit (ACbool false), Lit (ACbool true) -> aux (Not e1)
+            | Lit (ACbool false), _ -> aux (And [ Not e1; e3 ])
+            | _, Lit (ACbool false) -> aux (And [ e1; e2 ])
+            | _, _ -> Ite (e1, e2, e3)))
     | Not e -> (
         let e = aux e in
         match e with

@@ -113,12 +113,12 @@ let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
         (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
 let to_query (nu, prop1, prop2) =
-  let () =
-    Typectx.pretty_print_q
-      (List.map (fun x -> x.x) [ nu ])
-      (List.map (fun x -> x.x) [])
-      prop2 prop1
-  in
+  (* let () = *)
+  (*   Typectx.pretty_print_q *)
+  (*     (List.map (fun x -> x.x) [ nu ]) *)
+  (*     (List.map (fun x -> x.x) []) *)
+  (*     prop2 prop1 *)
+  (* in *)
   let eq2, final_pre = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
   (* let _ = *)
   (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)

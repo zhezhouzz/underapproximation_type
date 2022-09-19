@@ -27,15 +27,17 @@ let pretty_print_model model =
     (Z3.Model.get_const_decls model)
   |> Printf.printf "%s\n"
 
+exception SMTTIMEOUT
+
 let _check pre q =
   let open Check in
   match smt_neg_and_solve ctx pre q with
   | SmtUnsat -> None
   | SmtSat model ->
-      Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model;
+      (* Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model; *)
       (* pretty_print_model model; *)
       Some model
-  | Timeout -> failwith "smt timeout"
+  | Timeout -> raise SMTTIMEOUT
 
 open Sugar
 
@@ -49,6 +51,11 @@ let get_mp_app model (mp, args) =
       (Z3.Model.get_func_decls model)
   in
   let args = List.map (Z3aux.find_const_in_model model) args in
+  let args =
+    List.map
+      (function Some x -> x | None -> _failatwith __FILE__ __LINE__ "")
+      args
+  in
   let prop_z3 = Z3.FuncDecl.apply mp args in
   match Z3.Model.eval model prop_z3 false with
   | None -> _failatwith __FILE__ __LINE__ ""

@@ -128,7 +128,7 @@ and handle_letapp (notations_ctx : Nctx.t) ctx (ret, fty, args, body)
   let open UL in
   let open UT in
   let args = List.map (id_type_infer ctx) args in
-  let () = Typectx.pretty_print_app_judge ctx (args, fty) in
+  (* let () = Typectx.pretty_print_app_judge ctx (args, fty) in *)
   (* arguments type check *)
   let rec aux = function
     | [], ty -> ty
@@ -142,12 +142,18 @@ and handle_letapp (notations_ctx : Nctx.t) ctx (ret, fty, args, body)
         aux (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
+  (* let () = Pp.printf "@{<bold>Begin@}\n" in *)
   let retty =
-    try aux (args, fty)
-    with Failure msg ->
-      let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
-      make_basic_top (snd ret.NL.ty)
+    try aux (args, fty) with
+    | Autov.FailWithModel (msg, _) ->
+        let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
+        make_basic_top (snd ret.NL.ty)
+    | Autov.SMTTIMEOUT ->
+        let () = Pp.printf "@{<orange>Application failed:@}%s\n" "timeout" in
+        make_basic_top (snd ret.NL.ty)
+    | e -> raise e
   in
+  (* let () = Pp.printf "@{<end>Begin@}\n" in *)
   let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
   let ctx' = Typectx.add_to_right ctx ret in
   let ty, body = handle_let_body notations_ctx ctx ctx' body target_type in
@@ -208,8 +214,8 @@ and handle_match nctx ctx (matched, cases) =
       UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
   in
   let tys, cases = List.split @@ List.map handle_case cases in
-  { ty = List.nth tys 1; x = Match { matched; cases } }
-(* { ty = merge_case_tys tys; x = Match { matched; cases } } *)
+  (* { ty = List.nth tys 1; x = Match { matched; cases } } *)
+  { ty = merge_case_tys tys; x = Match { matched; cases } }
 
 and term_type_infer (notations_ctx : Nctx.t) (ctx : Typectx.t)
     (a : NL.term NL.typed) : UL.term UL.typed =
@@ -240,12 +246,12 @@ and term_type_infer (notations_ctx : Nctx.t) (ctx : Typectx.t)
     | Ite { cond; e_t; e_f } -> handle_ite notations_ctx ctx (cond, e_t, e_f)
     | Match { matched; cases } -> handle_match notations_ctx ctx (matched, cases)
   in
-  let () = Typectx.pretty_print_infer ctx (UL.layout a, res.UL.ty) in
+  (* let () = Typectx.pretty_print_infer ctx (UL.layout a, res.UL.ty) in *)
   res
 
 and term_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
     (x : NL.term NL.typed) (ty : UT.t) : UL.term UL.typed =
-  let () = Typectx.pretty_print_judge ctx (UL.layout x, ty) in
+  (* let () = Typectx.pretty_print_judge ctx (UL.layout x, ty) in *)
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let open NL in
   match (x.x, ty) with

@@ -2,8 +2,8 @@ let[@notation] nil = (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
 
 let[@notation] cons =
   let l =
-    (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
-        implies (mem v u && mem v w) (u == w) && not (empty v))
+    (v : int list) (fun (u : [%forall: int]) ->
+        implies (mem v u) (hd v u) && not (empty v))
   in
   ( (v : int) (fun (u : [%forall: int]) -> iff (hd l u) (v == u)),
     (v : int list) (fun (u : [%forall: int]) -> iff (mem v u) (mem l u)) )

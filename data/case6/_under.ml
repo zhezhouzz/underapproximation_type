@@ -31,10 +31,10 @@
 
 (* (Pre) *)
 
-let tail =
-  let x = (v : int) true in
-  let l = (v : int list) (fun (w : [%forall: int]) -> false) in
-  (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
+(* let tail = *)
+(*   let x = (v : int) true in *)
+(*   let l = (v : int list) (fun (w : [%forall: int]) -> false) in *)
+(*   (v : int list) (fun (u : [%forall: int]) -> not (mem v u)) *)
 
 (* (Infer) *)
 
@@ -43,11 +43,12 @@ let tail =
 (*   let l = (v : int list) true in *)
 (*   (v : int list) (mem v x) *)
 
-(* let tail = *)
-(*   let x = (v : int) true in *)
-(*   let l = (v : int list) true in *)
-(*   (v : int list) (fun (u : [%forall: int]) -> *)
-(*       (mem v u && x == u) || (mem v u && x != u) || ((not (mem v u)) && x != u)) *)
+let tail =
+  let x = (v : int) true in
+  let l =
+    (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == x))
+  in
+  (v : int list) (fun (u : [%forall: int]) -> mem v x)
 
 (* let tail = *)
 (*   let x = (v : int) true in *)

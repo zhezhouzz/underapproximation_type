@@ -118,7 +118,7 @@ module Lemma = struct
         vcl_body = P.peval vcl_body;
       }
     in
-    let () = pretty_print_with_lemma res in
+    (* let () = pretty_print_with_lemma res in *)
     (* let res = body_lift_emp res in *)
     (* (\* let res = body_lift_all res in *\) *)
     (* let () = pretty_print_with_lemma res in *)
@@ -328,4 +328,15 @@ module UL = struct
 
   let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
   let typed_map f { ty; x } = { ty; x = f x }
+
+  let get_args_return_name retname body =
+    let open Anormal.NormalAnormal in
+    let rec aux body =
+      match body.x with
+      | V (Lam (x, body)) ->
+          let args, retv = aux body in
+          (NNtyped.to_ntyped x :: args, retv)
+      | _ -> ([], NNtyped.to_ntyped { x = retname; ty = body.ty })
+    in
+    aux body
 end

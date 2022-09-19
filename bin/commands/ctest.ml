@@ -143,7 +143,8 @@ let under_post_shrink =
   Command.basic ~summary:"under_post_shrink"
     Command.Let_syntax.(
       let%map_open source_file = anon ("source file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file) in
+      and refine_file = anon ("refine_file" %: regular_file)
+      and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
         let code = Inputstage.load_ssa source_file in
@@ -151,15 +152,51 @@ let under_post_shrink =
           Inputstage.load_under_refinments refine_file
         in
         let res =
-          Typecheck.Infer.struc_post_shrink code notations refinements
+          Inference.Infer.struc_post_shrink infer_ctx_file code notations
+            refinements
         in
         let () =
-          List.iter res ~f:(fun (idx, name, uty) ->
+          List.iter res ~f:(fun (idx, name, uty, res) ->
               let () =
                 Pp.printf "@{<bold>Task %i@}: %s\n%s\n" idx name
                   (Languages.UT.pretty_layout uty)
               in
+              let () = Inference.Check_false.(print_res res) in
               ())
+        in
+        ())
+
+let test_mk_features =
+  Command.basic ~summary:"test_mk_features"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source file" %: regular_file)
+      and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
+      fun () ->
+        let () = Config.load_default () in
+        let code = Inputstage.load_ssa source_file in
+        let settings =
+          List.map
+            ~f:
+              Languages.StrucNA.(
+                fun { name; body } ->
+                  let args, ret = Languages.UL.get_args_return_name "v" body in
+
+                  (name, (List.map ~f:(fun x -> (x, x)) args, ret)))
+            code
+        in
+        (* let () = *)
+        (*   Pp.printf "@{<bold>len@}(settings) = %i\n" @@ List.length settings *)
+        (* in *)
+        (* let () = failwith (Printf.sprintf "end: %i" @@ List.length settings) in *)
+        let () =
+          List.iter
+            ~f:(fun (name, (args, retv)) ->
+              let infer_ctx =
+                Inference.Infer_ctx.load infer_ctx_file args retv
+              in
+              let () = Inference.Infer_ctx.print infer_ctx in
+              ())
+            settings
         in
         ())
 
@@ -184,6 +221,7 @@ let test =
       ("over-type-check", over_type_check);
       ("under-type-check", under_type_check);
       ("under-post-shrink", under_post_shrink);
+      ("test-mk-features", test_mk_features);
       ("init", init);
     ]
 
