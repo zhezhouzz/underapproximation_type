@@ -22,6 +22,34 @@ module T = struct
 
   open Zzdatatype.Datatype
 
+  let t_to_exn_type t =
+    let rec aux = function
+      | UnderTy_base { basename; normalty; _ } ->
+          UnderTy_base { basename; normalty; prop = P.mk_false }
+      | UnderTy_tuple ts ->
+          UnderTy_tuple (List.map (fun (a, t) -> (a, aux t)) ts)
+      | UnderTy_poly_arrow { argname; argnty; retty } ->
+          UnderTy_poly_arrow { argname; argnty; retty = aux retty }
+      | UnderTy_arrow { argname; argty; retty } ->
+          UnderTy_arrow { argname; argty; retty = aux retty }
+    in
+    aux t
+
+  let nt_to_exn_type t =
+    let rec aux t =
+      match t with
+      | Ty_unknown | Ty_var _ -> _failatwith __FILE__ __LINE__ ""
+      | Ty_unit | Ty_int | Ty_bool | Ty_list _ | Ty_tree _ | Ty_constructor _ ->
+          UnderTy_base
+            { basename = Rename.unique "v"; normalty = t; prop = P.mk_false }
+      | Ty_arrow (t1, t2) ->
+          UnderTy_poly_arrow
+            { argname = Rename.unique "v"; argnty = t1; retty = aux t2 }
+      | Ty_tuple ts ->
+          UnderTy_tuple (List.map (fun t -> (Rename.unique "v", aux t)) ts)
+    in
+    aux t
+
   let var_space t =
     let add xs s = List.fold_left (fun s x -> StrMap.add x () s) s xs in
     let rec aux s = function
@@ -123,6 +151,9 @@ module T = struct
 
   let make_basic_top normalty =
     make_basic default_v_name normalty (fun _ -> P.mk_true)
+
+  let make_basic_bot normalty =
+    make_basic default_v_name normalty (fun _ -> P.mk_false)
 
   let make_arrow argname normalty argtyf rettyf =
     let id = { ty = normalty; x = argname } in

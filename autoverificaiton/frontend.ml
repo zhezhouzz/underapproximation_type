@@ -282,8 +282,7 @@ let coqsetting =
     sym_iff = "<->";
     sym_forall = "forall";
     sym_exists = "exists";
-    layout_typedid =
-      (fun x -> sprintf "(%s:%s)" x.x (Normalty.Frontend.layout x.ty));
+    layout_typedid = (fun x -> x.x);
     layout_mp = (function "==" -> "=" | x -> x);
   }
 
@@ -312,6 +311,7 @@ let _pretty_layout s =
     sym_forall;
     sym_exists;
     layout_typedid;
+    layout_mp;
     _;
   } =
     s
@@ -323,7 +323,7 @@ let _pretty_layout s =
           let args = List.map (lit_pretty_layout_ s) args in
           if is_bop mp then
             match args with
-            | [ a; b ] -> sprintf "(%s %s %s)" a mp b
+            | [ a; b ] -> sprintf "(%s %s %s)" a (layout_mp mp) b
             | _ -> _failatwith __FILE__ __LINE__ ""
           else sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
       | Implies (p1, p2) ->

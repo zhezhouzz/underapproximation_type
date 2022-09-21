@@ -1,3 +1,4 @@
+include Stat
 include Unify_qvs
 include Peval
 include Ast

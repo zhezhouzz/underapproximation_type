@@ -17,6 +17,7 @@ module T = struct
     | Let of if_rec * (ty * id) list * term opttyped * term opttyped
     | Ite of term opttyped * term opttyped * term opttyped
     | Match of term opttyped * case list
+    | Exn
 
   and case = { constructor : id opttyped; args : id list; exp : term opttyped }
   [@@deriving sexp]
@@ -48,7 +49,7 @@ module T = struct
     let rec aux { x; _ } =
       let x =
         match x with
-        | Const _ | Var _ -> x
+        | Const _ | Var _ | Exn -> x
         | Tu es -> Tu (List.map aux es)
         | Lam (ty, id, e) -> Lam (ty, id, aux e)
         | App (e, es) -> App (aux e, List.map aux es)

@@ -93,6 +93,7 @@ and value_type_infer (ctx : Typectx.t) (a : NL.value NL.typed) :
     OL.value OL.typed =
   let aty = a.ty in
   match a.x with
+  | NL.Exn -> failwith "Source Code Exception"
   | NL.Lit lit ->
       let lit = lit_type_infer ctx { ty = aty; x = lit } in
       OL.{ ty = lit.ty; x = Lit lit.x }

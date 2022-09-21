@@ -75,6 +75,13 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
   let open T in
   (* let () = Printf.printf "W: %s\n" @@ Frontend.Expr.layout e in *)
   match e.x with
+  | Exn -> (
+      (* HACK: as var *)
+      match ename with
+      | None -> cont T.{ ty = ety; x = "Exn" }
+      | Some ename ->
+          _failatwith __FILE__ __LINE__
+            (spf "To Anormal, Handel Exn (%s)" ename))
   | Const v ->
       let lit =
         match v with
@@ -175,7 +182,7 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         e None
 
 and to_anormal (e : term opttyped) ename : T.term typed =
-  convert ret_cont e ename
+  T.var_exn_to_exn @@ convert ret_cont e ename
 
 and convert_multi (conts : conts) (es : term opttyped list) : T.term typed =
   (* let open T in *)
@@ -201,6 +208,7 @@ let to_term e =
   let rec aux_value e =
     let x =
       match e.Typed.x with
+      | T.Exn -> Exn
       | T.Lit lit -> aux_lit lit
       | T.Lam (x, body) -> Lam (x.ty, x.x, aux body)
       | T.Fix (_, body) -> (aux_value body).x

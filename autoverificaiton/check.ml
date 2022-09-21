@@ -38,8 +38,8 @@ let get_pred m predexpr =
 let get_unknown_fv ctx m unknown_fv =
   List.map (fun (_, b) -> get_pred m (Boolean.mk_const_s ctx b)) unknown_fv
 
-let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "1999") ]
+(* let ctx = *)
+(*   Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "1999") ] *)
 
 let smt_neg_and_solve ctx pre vc =
   (* let _ = printf "check\n" in *)

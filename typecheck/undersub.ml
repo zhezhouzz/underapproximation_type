@@ -138,6 +138,19 @@ let to_query (nu, prop1, prop2) =
   (* in *)
   (* let () = failwith "zz" in *)
   let final_uqvs = nu :: eq2 in
+  let () =
+    let hol_q =
+      P.(
+        topu_to_prop
+          ( final_uqvs,
+            tope_to_prop (final_eqvs, Implies (final_pre, final_post)) ))
+    in
+    match P.fv hol_q with
+    | [] -> ()
+    | fvs ->
+        (* let () = Printf.printf "Q: %s\n" (Autov.pretty_layout_prop hol_q) in *)
+        _failatwith __FILE__ __LINE__ @@ StrList.to_string fvs
+  in
   let pres, uqvs, q =
     with_lemma_to_query (Prim.lemmas_to_pres ())
       (final_uqvs, final_eqvs, final_pre, final_post)
@@ -165,7 +178,8 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
     (target_ty : UT.t) =
   let open UT in
   let () = Typectx.pretty_print_subtyping ctx (inferred_ty, target_ty) in
-  let rec aux ctx (t1, t2) =
+  (* let counter = ref 0 in *)
+  let rec aux ctx1 ctx2 (t1, t2) =
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
         UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
@@ -175,7 +189,7 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let nu = { ty = nt; x = typeself } in
-        let prop1' = Typectx.close_prop ctx prop1 in
+        let prop1' = Typectx.close_prop ctx1 prop1 in
         (* let _ = *)
         (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
         (*     (Autov.pretty_layout_prop prop1') *)
@@ -183,41 +197,35 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
         (*     @@ P.lift_uprop __FILE__ __LINE__ prop1') *)
         (* in *)
         (* let () = failwith "zz" in *)
-        let prop2' = Typectx.close_prop_drop_independt ctx prop2 in
-        (* let () = Typectx.pretty_print_q [ nu.x ] [] prop2' prop1 in *)
+        let prop2' = Typectx.close_prop_drop_independt ctx2 prop2 in
+        let () = Typectx.pretty_print_q [ nu.x ] [] prop2' prop1' in
         (* let () = failwith "zz" in *)
         let pres, q = to_query (nu, prop1', prop2') in
+        (* let () = *)
+        (*   if !counter == 1 then failwith "zz" else counter := !counter + 1 *)
+        (* in *)
         (* let _ = failwith "end" in *)
         (* let pres, q = context_convert ctx (nu, prop1, prop2) in *)
         check file line pres q
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
-        let rec loop ctx = function
+        let rec loop ctx1 ctx2 = function
           | [], [] -> ()
-          | (name1, ty1) :: ts1, (name2, ty2) :: ts2 ->
-              let () = aux ctx (ty1, ty2) in
-              let ts1 =
-                List.map
-                  (fun (name, ty) ->
-                    if String.equal name name1 then
-                      _failatwith __FILE__ __LINE__ ""
-                    else (name, subst_id ty name1 name2))
-                  ts1
-              in
-              let ctx' = Typectx.add_to_right ctx { x = name2; ty = ty1 } in
-              loop ctx' (ts1, ts2)
+          | (_, ty1) :: ts1, (name2, ty2) :: ts2 ->
+              let () = aux ctx1 ctx2 (ty1, ty2) in
+              (* let ctx1 = Typectx.add_to_right ctx1 { x = name1; ty = ty1 } in *)
+              let ctx2 = Typectx.add_to_right ctx2 { x = name2; ty = ty2 } in
+              let () = Typectx.pretty_print ctx2 in
+              loop ctx1 ctx2 (ts1, ts2)
           | _, _ -> _failatwith __FILE__ __LINE__ ""
         in
-        loop ctx (ts1, ts2)
+        loop ctx1 ctx2 (ts1, ts2)
     | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
         UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
-        let t22 = subst_id t22 x2 x1 in
-        (* let () = *)
-        (*   if UT.is_fv_in x2 t22 then aux ctx (t11, t21) else aux ctx (t21, t11) *)
-        (* in *)
-        (* TODO: functional subtyping rule *)
-        let () = aux ctx (t21, t11) in
-        let () = aux ctx (t12, t22) in
+        let () = aux ctx1 ctx2 (t21, t11) in
+        let ctx1 = Typectx.add_to_right ctx1 { x = x1; ty = t11 } in
+        let ctx2 = Typectx.add_to_right ctx2 { x = x2; ty = t21 } in
+        let () = aux ctx1 ctx2 (t12, t22) in
         ()
     | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
   in
-  aux ctx (inferred_ty, target_ty)
+  aux ctx ctx (inferred_ty, target_ty)

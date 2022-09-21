@@ -42,6 +42,7 @@ and value_type_infer (uctx : uctx) (a : NL.value NL.typed) : UL.value UL.typed =
   let aty = a.ty in
   let open UL in
   match a.x with
+  | NL.Exn -> { ty = UT.nt_to_exn_type (snd aty); x = Exn }
   | NL.Lit lit ->
       typed_map (fun x -> Lit x) @@ lit_type_infer uctx { ty = aty; x = lit }
   | NL.Lam (id, body) ->
@@ -74,6 +75,9 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
   let open UT in
   let result =
     match (a.NL.x, ty) with
+    | NL.Exn, _ ->
+        let x = value_type_infer uctx a in
+        term_subtyping_check __FILE__ __LINE__ uctx.ctx x ty
     | NL.Lit _, _ ->
         let x = value_type_infer uctx a in
         term_subtyping_check __FILE__ __LINE__ uctx.ctx x ty
@@ -120,7 +124,12 @@ and handle_lettu (uctx : uctx) (tu, args, body) target_type =
   let args = List.map (id_type_infer uctx) args in
   let tu =
     erase_check_mk_id __FILE__ __LINE__ tu
-      (UT.UnderTy_tuple (List.map (fun x -> (x.x, x.ty)) args))
+      (UT.UnderTy_tuple
+         (List.map
+            (fun x ->
+              let name = Rename.unique x.x in
+              (name, x.ty))
+            args))
   in
   let ctx' = Typectx.add_to_right uctx.ctx tu in
   let ty, body = handle_let_body uctx ctx' body target_type in

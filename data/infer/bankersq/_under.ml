@@ -9,13 +9,24 @@ let[@library] concat =
      iff (len v u && len l1 w && len l2 z) (u == w + z)
     : [%v: int list])
 
+(* let snoc = *)
+(*   let lenf = (v > 0 : [%v: int]) in *)
+(*   let f = (len v lenf : [%v: int list]) in *)
+(*   let lenr = (v >= 0 && v < lenf : [%v: int]) in *)
+(*   let r = (len v lenr : [%v: int list]) in *)
+(*   let x = (true : [%v: int]) in *)
+(*   ( vlenf (v > 0 : [%v: int]), *)
+(*     vf (len v vlenf : [%v: int list]), *)
+(*     vlenr (v == lenr + 1 : [%v: int]), *)
+(*     vr (len v vlenr : [%v: int list]) ) *)
+
 let snoc =
-  let lenf = (true : [%v: int]) in
+  let lenf = (v > 0 : [%v: int]) in
   let f = (len v lenf : [%v: int list]) in
-  let lenr = (v <= lenf : [%v: int]) in
+  let lenr = (v >= 0 : [%v: int]) in
   let r = (len v lenr : [%v: int list]) in
   let x = (true : [%v: int]) in
-  ( vlenf (true : [%v: int]),
+  ( vlenf (v == lenf + lenr : [%v: int]),
     vf (len v vlenf : [%v: int list]),
-    vlenr (v <= vlenf : [%v: int]),
+    vlenr (v == 0 : [%v: int]),
     vr (len v vlenr : [%v: int list]) )

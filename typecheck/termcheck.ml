@@ -35,11 +35,8 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-(* let fail_as b str = if b then () else failwith str *)
-
-(* let check_eq (t1, t2) str = *)
-(*   fail_as (eq t1 t2) *)
-(*     (spf "%stype %s is not equal to type %s" str (layout t1) (layout t2)) *)
+let _type_check_eq file line t1 t2 =
+  match t1 with Ty_unknown -> t2 | _ -> _check_equality file line eq t1 t2
 
 let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
@@ -54,16 +51,17 @@ and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
   match x.ty with
   | None -> type_check ctx x.x ty
   | Some ty' ->
-      let sndty = _check_equality __FILE__ __LINE__ eq (snd ty) (snd ty') in
+      let sndty = _type_check_eq __FILE__ __LINE__ (snd ty') (snd ty) in
       type_check ctx x.x (fst ty, sndty)
 
 and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
     Exp.term Exp.opttyped =
   let open Exp in
   match (x, snd ty) with
+  | Exn, _ -> Exp.{ x = Exn; ty = Some (None, snd ty) }
   | Const _, _ | Var _, _ | Op (_, _), _ ->
       let x, ty' = type_infer ctx x in
-      let _ = _check_equality __FILE__ __LINE__ eq (snd ty) ty' in
+      let _ = _type_check_eq __FILE__ __LINE__ ty' (snd ty) in
       x
   | Tu es, Ty_tuple tys ->
       let estys = _safe_combine __FILE__ __LINE__ es tys in
@@ -72,16 +70,14 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
       in
       { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
-      let idty =
-        (fst idty, _check_equality __FILE__ __LINE__ eq (snd idty) t1)
-      in
+      let idty = (fst idty, _type_check_eq __FILE__ __LINE__ (snd idty) t1) in
       let ctx' = Typectx.add_to_right ctx (snd idty, id) in
       let body = bidirect_type_check ctx' body (None, t2) in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
       let f, fty = bidirect_type_infer ctx f in
       let argsty, bodyty = destruct_arrow_tp fty in
-      let ty = _check_equality __FILE__ __LINE__ eq bodyty ty in
+      let ty = _type_check_eq __FILE__ __LINE__ bodyty ty in
       let argsargsty = _safe_combine __FILE__ __LINE__ args argsty in
       let args =
         List.map
@@ -146,6 +142,11 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
 and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
   match x with
+  | Exn ->
+      failwith
+        "Cannot infer the type of the exception, should provide the return type"
+      (* let ty = Ty_unknown in *)
+      (* ({ ty = Some (None, ty); x }, ty) *)
   | Const c ->
       let ty = infer_value c in
       ({ ty = Some (None, ty); x }, ty)
@@ -242,7 +243,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         | [] -> _failatwith __FILE__ __LINE__ "die"
         | ty :: t ->
             List.fold_left
-              (fun ty ty' -> _check_equality __FILE__ __LINE__ eq ty ty')
+              (fun ty ty' -> _type_check_eq __FILE__ __LINE__ ty ty')
               ty t
       in
       ({ ty = Some (None, ty); x = Match (e, cases) }, ty)

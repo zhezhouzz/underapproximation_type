@@ -6,7 +6,7 @@ let remove_dummy_eq e =
   let open NL in
   let rec aux_value e =
     match e.x with
-    | Lit _ -> e
+    | Exn | Lit _ -> e
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
   and aux e =
@@ -47,7 +47,7 @@ let remove_dummy_let e =
   (* let () = Printf.printf "start simplify\n" in *)
   let rec aux_value e =
     match e.x with
-    | Lit _ -> e
+    | Exn | Lit _ -> e
     | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
   and aux e =

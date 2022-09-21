@@ -100,10 +100,10 @@ let get_mps prop =
   let m = aux [] prop in
   List.slow_rm_dup typed_eq m
 
-let var_space prop =
+let var_space_ prop =
   let rec aux_lit s = function
     | ACint _ | ACbool _ -> s
-    | AVar x -> StrMap.add x.x () s
+    | AVar x -> StrMap.add x.x x.ty s
     | AOp2 (_, arg1, arg2) -> aux_lit (aux_lit s arg1) arg2
   in
   let rec aux s t =
@@ -116,11 +116,16 @@ let var_space prop =
     | And es -> List.fold_left aux s es
     | Or es -> List.fold_left aux s es
     | Iff (e1, e2) -> aux (aux s e1) e2
-    | Forall (x, e) -> StrMap.add x.x () (aux s e)
-    | Exists (x, e) -> StrMap.add x.x () (aux s e)
+    | Forall (x, e) -> StrMap.add x.x x.ty (aux s e)
+    | Exists (x, e) -> StrMap.add x.x x.ty (aux s e)
   in
   let m = aux StrMap.empty prop in
-  StrMap.to_key_list m
+  m
+
+let var_space prop = StrMap.to_key_list (var_space_ prop)
+
+let tvar_space prop =
+  List.map (fun (x, ty) -> { x; ty }) @@ StrMap.to_kv_list (var_space_ prop)
 
 let has_qv prop =
   let rec aux t =

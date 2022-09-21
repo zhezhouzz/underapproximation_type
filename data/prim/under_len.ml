@@ -44,5 +44,5 @@ let[@library] cons =
   let (h : [%poly: int]) = () in
   let (t : [%poly: int list]) = () in
   (fun (u : [%forall: int]) (w : [%forall: int]) ->
-     iff (u == w + 1) (len t w && len v u)
+     implies (len t w && len v u) (u == w + 1)
     : [%v: int list])

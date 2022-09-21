@@ -153,7 +153,10 @@ let peval prop =
         let e = aux e in
         if List.exists (String.equal u.x) @@ fv e then Exists (u, e) else e
   in
+  (* let start_t = Core_unix.time () in *)
   let res = aux prop in
+  (* let end_t = Core_unix.time () in *)
+  (* let () = Pp.printf "@{<bold>Peval time: %.2f@}\n" @@ (end_t -. start_t) in *)
   (* let () = *)
   (*   Pp.printf "@{<bold>PEVAL:@}\n %s\n=%s\n" *)
   (*     (Frontend.pretty_layout prop) *)

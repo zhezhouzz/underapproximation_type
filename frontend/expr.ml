@@ -34,6 +34,7 @@ and typed_expr_to_ocamlexpr_desc expr =
 and expr_to_ocamlexpr_desc expr =
   let aux expr =
     match expr with
+    | L.Exn -> Pexp_ident (mk_idloc [ "Exn" ])
     | L.Tu es -> Pexp_tuple (List.map expr_to_ocamlexpr es)
     | L.Var var -> Pexp_ident (mk_idloc [ var ])
     | L.Const v -> (Value.value_to_expr v).pexp_desc
@@ -147,18 +148,22 @@ let expr_of_ocamlexpr expr =
           | Some _ -> failwith "multi typed"))
     | Pexp_ident id -> id_to_var id
     | Pexp_construct (c, args) -> (
-        (* let () = *)
-        (*   Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr) *)
-        (* in *)
-        let c = id_to_var c in
-        match args with
-        | None -> handle_app c []
-        | Some args -> (
-            let args = aux args in
-            match args.x with
-            | L.Var _ -> handle_app c [ args ]
-            | L.Tu es -> handle_app c es
-            | _ -> failwith "die"))
+        let () =
+          Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr)
+        in
+        let c = handle_id c in
+        match c with
+        | "Exn" -> L.{ ty = Some (None, Ty_unknown); x = Exn }
+        | _ -> (
+            let c = L.(make_untyped @@ Var c) in
+            match args with
+            | None -> handle_app c []
+            | Some args -> (
+                let args = aux args in
+                match args.x with
+                | L.Var _ -> handle_app c [ args ]
+                | L.Tu es -> handle_app c es
+                | _ -> failwith "die")))
     | Pexp_constant _ -> L.(make_untyped @@ Const (Value.expr_to_value expr))
     | Pexp_let (flag, vbs, e) ->
         List.fold_right

@@ -45,5 +45,5 @@ let pretty_print_q uqvs eqvs pre body =
   let () = Pp.printf "@{<bold>Query:@}\n" in
   Quantified.print_qt_ uqvs eqvs;
   Pp.printf "\n@{<cyan>%s@} @{<bold>=>@}\n@{<magenta>%s@}\n"
-    (Autov.pretty_layout_prop pre)
-    (Autov.pretty_layout_prop body)
+    (Autov.coq_layout_prop pre)
+    (Autov.coq_layout_prop body)

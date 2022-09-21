@@ -7,19 +7,6 @@ module Lemma = struct
   (* open Sugar *)
   open Ntyped
 
-  (* let lemmas_with_dts ulemmas dts = *)
-  (*   List.filter_map *)
-  (*     (fun x -> *)
-  (*       (\* let () = Printf.printf "x: %s\n" @@ Frontend.Lemma.pretty_layout x in *\) *)
-  (*       match instantiate_dt x dts with *)
-  (*       | None -> None *)
-  (*       | Some prop -> *)
-  (*           (\* let () = *\) *)
-  (*           (\*   Printf.printf "return: %s\n" (Autov.pretty_layout_prop prop) *\) *)
-  (*           (\* in *\) *)
-  (*           Some prop) *)
-  (*     ulemmas *)
-
   let lemmas_with_dts lemmas dts =
     List.map (fun x -> instantiate_dt x dts) lemmas
 
@@ -44,13 +31,26 @@ module Lemma = struct
     }
 
   let body_instantiate_uqvs res =
-    {
-      res with
-      vcl_body =
-        P.peval
-        @@ P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body
-             (res.vcl_u_basics @ res.vcl_e_basics);
-    }
+    let get_basics =
+      List.filter (fun x -> match x.ty with Ty_int -> true | _ -> false)
+    in
+    let basics1 = get_basics (res.vcl_u_basics @ res.vcl_e_basics) in
+    let vcl_body1 =
+      P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics1
+    in
+    let () =
+      Pp.printf "@{<bold>body_instantiate_uqvs:@} basics1(%i) --> vc_body(%i)\n"
+        (List.length basics1) (P.size vcl_body1)
+    in
+    (* let basics2 = get_basics @@ P.tvar_space res.vcl_body in *)
+    (* let vcl_body2 = *)
+    (*   P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics2 *)
+    (* in *)
+    (* let () = *)
+    (*   Pp.printf "@{<bold>body_instantiate_uqvs:@} basics2(%i) --> vc_body(%i)\n" *)
+    (*     (List.length basics2) (P.size vcl_body2) *)
+    (* in *)
+    { res with vcl_body = vcl_body1 }
 
   open Zzdatatype.Datatype
 
@@ -76,36 +76,6 @@ module Lemma = struct
     let vcl_u_basics, vcl_head =
       P.assume_tope_uprop __FILE__ __LINE__ vcl_head
     in
-    (* let () = *)
-    (*   Printf.printf "elemmas:\n%s\nvc_head : %s, %s\n" *)
-    (*     (List.split_by "\n" Autov.pretty_layout_prop elemmas) *)
-    (*     (List.split_by_comma (fun x -> x.x) vcl_u_basics) *)
-    (*   @@ Autov.pretty_layout_prop vcl_head *)
-    (* in *)
-    (* let vcl_u_basics, vcl_head = *)
-    (*   match elemmas with *)
-    (*   | [] -> (vc_u_basics, vc_head) *)
-    (*   | _ -> ( *)
-    (*       let u_basics', prop' = *)
-    (*         List.split *)
-    (*         @@ List.map *)
-    (*              (fun x -> P.rename_destruct_eprop __FILE__ __LINE__ x) *)
-    (*              elemmas *)
-    (*       in *)
-    (*       let () = *)
-    (*         Printf.printf *)
-    (*           "\t len(vc_u_dts)=%i len(elemmas)=%i len(prop') = %i\n" *)
-    (*           (List.length vc_u_dts) (List.length elemmas) (List.length prop') *)
-    (*       in *)
-    (*       match prop' with *)
-    (*       | [] -> (vc_u_basics, vc_head) *)
-    (*       | prop' -> *)
-    (*           (vc_u_basics @ List.concat u_basics', P.And (prop' @ [ vc_head ])) *)
-    (*       ) *)
-    (* in *)
-    (* let () = *)
-    (*   Printf.printf "vcl_head : %s\n" @@ Autov.pretty_layout_prop vcl_head *)
-    (* in *)
     let uqvs_head, vcl_head = P.lift_uprop __FILE__ __LINE__ vcl_head in
     let res =
       {
@@ -118,9 +88,10 @@ module Lemma = struct
         vcl_body = P.peval vcl_body;
       }
     in
-    (* let () = pretty_print_with_lemma res in *)
-    (* let res = body_lift_emp res in *)
-    (* (\* let res = body_lift_all res in *\) *)
+    let () =
+      Pp.printf "@{<bold>raw:@} vc_head(%i); vc_body(%i)\n"
+        (P.size res.vcl_head) (P.size res.vcl_body)
+    in
     (* let () = pretty_print_with_lemma res in *)
     let res = body_instantiate_uqvs res in
     (* let () = pretty_print_with_lemma res in *)
@@ -161,9 +132,10 @@ module Lemma = struct
         vclw_u_basics = vcl_u_basics;
         vclw_u_dts = vcl_u_dts;
         vclw_e_basics = vcl_e_basics @ vclw_e_basics';
-        vclw_body = P.peval @@ P.Implies (vcl_head, vclw_body);
+        vclw_body = P.Implies (vcl_head, vclw_body);
       }
     in
+    (* let () = failwith "zz1" in *)
     res
 
   let query_with_lemma_to_prop
@@ -186,6 +158,10 @@ module Lemma = struct
              vclw_e_basics vclw_body )
 
   let with_lemma lemmas (uqvs, eqvs, vc_head, vc_body) =
+    let () =
+      Pp.printf "@{<bold>raw:@} vc_head(%i); vc_body(%i)\n" (P.size vc_head)
+        (P.size vc_body)
+    in
     let mps = P.get_mps (Implies (vc_head, vc_body)) in
     let lemmas =
       List.filter (fun x -> List.exists (fun y -> eq y.ty x.udt.ty) mps) lemmas
@@ -196,7 +172,14 @@ module Lemma = struct
       add_lemmas lemmas
         { vc_u_basics; vc_u_dts; vc_e_basics; vc_head; vc_e_dts; vc_body }
     in
-    without_e_dt lemmas x
+    let () =
+      Pp.printf "@{<bold>add_lemma:@} vc_head(%i); vc_body(%i)\n"
+        (P.size x.vcl_head) (P.size x.vcl_body)
+    in
+    let x = without_e_dt lemmas x in
+    let () = Pp.printf "@{<bold>without_dt:@} %i\n" (P.size x.vclw_body) in
+    (* let () = failwith "zz" in *)
+    x
 end
 
 module UT = struct
@@ -253,10 +236,16 @@ module UnderTypectx = struct
             else
               let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in
               let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in
-              let prop =
+              let prop' =
                 P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
               in
-              aux ctx prop
+              (* let _ = *)
+              (*   Pp.printf "@{<bold>Conj:@} %s --> %s = %s\n" *)
+              (*     (Autov.pretty_layout_prop xprop) *)
+              (*     (Autov.pretty_layout_prop prop) *)
+              (*     (Autov.pretty_layout_prop prop') *)
+              (* in *)
+              aux ctx prop'
           else aux ctx prop
     in
     let res = aux ctx prop in

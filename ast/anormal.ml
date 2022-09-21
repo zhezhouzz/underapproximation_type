@@ -14,6 +14,7 @@ module F (Typed : Type.Typed) = struct
     | Lam of id typed * term typed
     | Fix of id typed * value typed
     | Lit of smt_lit
+    | Exn
 
   and term =
     | V of value
@@ -73,6 +74,7 @@ module F (Typed : Type.Typed) = struct
         | Lit x -> Lit (aux_lit x)
         | Lam (xs, body) -> Lam (xs, aux body)
         | Fix (f, body) -> Fix (f, aux_value body)
+        | Exn -> Exn
       in
       { ty = e.ty; x }
     and aux e =
@@ -127,6 +129,32 @@ module F (Typed : Type.Typed) = struct
     (*     (layout res) *)
     (* in *)
     res
+
+  (* HACK: handel Exn *)
+  let var_exn_to_exn term =
+    let rec aux e =
+      let x =
+        match e.x with
+        | V (Lit (Var "Exn")) -> V Exn
+        | V _ -> e.x
+        | LetApp { ret; f; args; body } ->
+            LetApp { ret; f; args; body = aux body }
+        | LetOp { ret; op; args; body } ->
+            LetOp { ret; op; args; body = aux body }
+        | LetVal { lhs; rhs; body } -> LetVal { lhs; rhs; body = aux body }
+        | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
+        | LetDeTu { tu; args; body } -> LetDeTu { tu; args; body = aux body }
+        | Ite { cond; e_t; e_f } -> Ite { cond; e_t = aux e_t; e_f = aux e_f }
+        | Match { matched; cases } ->
+            Match
+              {
+                matched;
+                cases = List.map (fun x -> { x with exp = aux x.exp }) cases;
+              }
+      in
+      { ty = e.ty; x }
+    in
+    aux term
 end
 
 module NormalAnormal = F (Normalty.Ast.NNtyped)
