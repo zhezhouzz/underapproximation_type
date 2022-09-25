@@ -1,4 +1,14 @@
 let foo =
-  let l = (v : int list) true in
-  (v : int list) (fun (u : [%forall: int]) (w : [%forall: int]) ->
-      implies (mem v u) (mem l u) && implies (mem l u && mem l w) (u == w))
+  let l = (true : [%v: int list]) in
+  (fun (u : [%forall: int]) -> (not (empty v)) && implies (mem v u) (hd l u)
+    : [%v: int list])
+
+(* Should fail *)
+
+(* let foo = *)
+(*   let l = (true : [%v: int list]) in *)
+(*   (fun (u : [%forall: int]) -> implies (mem v u) (hd l u) : [%v: int list]) *)
+
+(* let foo = *)
+(*   let l = (true : [%v: int list]) in *)
+(*   (fun (u : [%forall: int]) -> true : [%v: int list]) *)

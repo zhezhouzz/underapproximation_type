@@ -1,6 +1,6 @@
 open Normalty.Ast
 module P = Autov.Prop
-module T = Termlang.T
+module Term = Termlang.T
 open Q
 open Sugar
 open Ntyped
@@ -24,14 +24,16 @@ let to_prop { udt; qprop } =
 let parse_qvs qvs =
   let aux qv =
     match qv with
-    | T.{ x; ty = Some (Some "forall", nty) } -> (Q.Fa, { x; ty = nty })
-    | T.{ x; ty = Some (Some "exists", nty) } -> (Q.Ex, { x; ty = nty })
-    | T.{ ty = Some (Some name, _); _ } ->
+    | Term.{ x; ty = Some (Some "forall", nty) } -> (Q.Fa, { x; ty = nty })
+    | Term.{ x; ty = Some (Some "exists", nty) } -> (Q.Ex, { x; ty = nty })
+    | Term.{ ty = Some (Some name, _); _ } ->
         _failatwith __FILE__ __LINE__ @@ Printf.sprintf "unknown label %s" name
-    | T.{ ty = Some (None, _); _ } -> failwith "wrong format"
+    | Term.{ ty = Some (None, _); _ } -> failwith "wrong format"
     | _ -> _failatwith __FILE__ __LINE__ "wrong format: untyped"
   in
   List.map aux qvs
+
+open Zzdatatype.Datatype
 
 let of_raw (qvs, prop) =
   match parse_qvs qvs with
@@ -40,11 +42,16 @@ let of_raw (qvs, prop) =
       if not (NT.is_dt udt.ty) then _failatwith __FILE__ __LINE__ ""
       else
         let to_qvs qvs = List.map snd qvs in
+        let m = StrMap.add udt.x udt.ty StrMap.empty in
         let qprop =
           if List.for_all (fun (mode, _) -> is_forall mode) qvs then
-            { mode = Q.Fa; qvs = to_qvs qvs; prop }
+            let qvs = to_qvs qvs in
+            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+            { mode = Q.Fa; qvs; prop = Autov.typeinfer m prop }
           else if List.for_all (fun (mode, _) -> is_exists mode) qvs then
-            { mode = Q.Ex; qvs = to_qvs qvs; prop }
+            let qvs = to_qvs qvs in
+            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+            { mode = Q.Ex; qvs; prop = Autov.typeinfer m prop }
           else _failatwith __FILE__ __LINE__ ""
         in
         { udt; qprop }

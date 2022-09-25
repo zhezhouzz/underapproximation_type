@@ -141,7 +141,7 @@ module T = struct
         P.(mk_lit_eq_lit (AVar nu) (ACint n)))
 
   let make_basic_from_const_bool (b : bool) =
-    make_basic default_v_name NT.Ty_int
+    make_basic default_v_name NT.Ty_bool
       P.(
         fun nu ->
           let nu = Lit (AVar nu) in

@@ -22,29 +22,39 @@ let get_primitive_dt_rev_normal_ty (name, _) =
   let _, ty = get_by_name (get_normal_m ()) name in
   ty
 
-let get_primitive_over_ty name =
-  let _, entry = get_by_name (get_notation_m ()) name in
-  match entry.overty with
-  | None ->
+let get_primitive_ msg m erase (name, ty) =
+  match m with
+  | [] ->
       _failatwith __FILE__ __LINE__
-      @@ spf "cannot find built-in refinement type (%s)" name
-  | Some x -> x
+      @@ spf "cannot find built-in %s refinement type (%s)" msg name
+  | l -> (
+      let l = List.filter (fun ty' -> Normalty.Ast.T.eq (erase ty') ty) l in
+      match l with
+      | [] ->
+          _failatwith __FILE__ __LINE__
+          @@ spf
+               "cannot find built-in %s refinement type (%s) with normal type \
+                (%s)"
+               msg name (Normalty.Ast.T.layout ty)
+      | [ ty ] -> ty
+      | _ ->
+          _failatwith __FILE__ __LINE__
+          @@ spf
+               "multiply types of built-in %s refinement type (%s) with normal \
+                type (%s)"
+               msg name (Normalty.Ast.T.layout ty))
 
-let get_primitive_under_ty name =
+let get_primitive_over_ty (name, ty) =
   let _, entry = get_by_name (get_notation_m ()) name in
-  match entry.qunderty with
-  | None ->
-      _failatwith __FILE__ __LINE__
-      @@ spf "cannot find built-in under type (%s)" name
-  | Some x -> x
+  get_primitive_ "over" entry.overty Ast.OT.erase (name, ty)
 
-let get_primitive_rev_under_ty name =
+let get_primitive_under_ty (name, ty) =
   let _, entry = get_by_name (get_notation_m ()) name in
-  match entry.rev_qunderty with
-  | None ->
-      _failatwith __FILE__ __LINE__
-      @@ spf "cannot find built-in rev under type (%s)" name
-  | Some x -> x
+  get_primitive_ "under" entry.qunderty Ast.UT.erase (name, ty)
+
+let get_primitive_rev_under_ty (name, ty) =
+  let _, entry = get_by_name (get_notation_m ()) name in
+  get_primitive_ "under rev" entry.rev_qunderty Ast.UT.erase (name, ty)
 
 let normal_check_if_is_known_prims name =
   try Some (get_by_name (get_normal_m ()) name) with _ -> None

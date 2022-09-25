@@ -1,6 +1,7 @@
 open Ast
 open UnderTypectx
 open Zzdatatype.Datatype
+open Sugar
 
 let pretty_layout_raw (x : t) = Typectx.pretty_layout Underty.pretty_layout x
 let pretty_layout (x : t) = pretty_layout_raw x
@@ -15,7 +16,7 @@ let pretty_layout_judge ctx (e, (r : UT.t)) =
 let pretty_print_judge ctx (e, (r : UT.t)) =
   let () = Pp.printf "@{<bold>Type Check:@}\n" in
   pretty_print ctx;
-  Pp.printf "⊢ @{<magenta>%s@} ⇦ " e;
+  Pp.printf "⊢ @{<magenta>%s@} ⇦ " (short_str 100 e);
   Pp.printf "@{<cyan>%s@}\n\n" @@ Underty.pretty_layout r
 
 let pretty_print_app_judge ctx (args, (r : UT.t)) =
@@ -28,7 +29,7 @@ let pretty_print_app_judge ctx (args, (r : UT.t)) =
 let pretty_print_infer ctx (e, (r : UT.t)) =
   let () = Pp.printf "@{<bold>Type Infer:@}\n" in
   pretty_print ctx;
-  Pp.printf "⊢ @{<magenta>%s@} ⇨ " e;
+  Pp.printf "⊢ @{<magenta>%s@} ⇨ " (short_str 100 e);
   Pp.printf "@{<cyan>%s@}\n\n" @@ Underty.pretty_layout r
 
 let pretty_layout_subtyping ctx (r1, r2) =

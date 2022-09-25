@@ -10,6 +10,35 @@ open Abstraction
 
 let layout_ty = Normalty.Frontend.layout
 
+(* let _solve_application file line fty argsty = *)
+(*   let fty' = construct_arrow_tp (argsty, Ty_unknown) in *)
+(*   _type_unify file line fty fty' *)
+
+let _solve_by_retty file line fty retty' =
+  let argsty, retty = destruct_arrow_tp fty in
+  (* let () = *)
+  (*   Printf.printf "@{<bold>_solve_by_retty :%s ==> %s@}\n" (NT.layout retty) *)
+  (*     (NT.layout retty') *)
+  (* in *)
+  (* let () = failwith "??" in *)
+  let m, retty = _type_unify_ file line StrMap.empty retty retty' in
+  let subst m t =
+    let rec aux t =
+      match t with
+      | Ty_var n -> (
+          match StrMap.find_opt m n with None -> t | Some ty -> ty)
+      | Ty_list t -> Ty_list (aux t)
+      | Ty_tree t -> Ty_tree (aux t)
+      | Ty_arrow (t1, t2) -> Ty_arrow (aux t1, aux t2)
+      | Ty_tuple ts -> Ty_tuple (List.map aux ts)
+      | Ty_constructor (id, ts) -> Ty_constructor (id, List.map aux ts)
+      | _ -> t
+    in
+    aux t
+  in
+  let argsty = List.map (subst m) argsty in
+  (argsty, retty)
+
 let rec infer_value (c : Value.t) =
   match c with
   | U -> Ty_unit
@@ -35,9 +64,6 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-let _type_check_eq file line t1 t2 =
-  match t1 with Ty_unknown -> t2 | _ -> _check_equality file line eq t1 t2
-
 let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
   match x.ty with
@@ -51,18 +77,34 @@ and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
   match x.ty with
   | None -> type_check ctx x.x ty
   | Some ty' ->
-      let sndty = _type_check_eq __FILE__ __LINE__ (snd ty') (snd ty) in
+      (* let () = *)
+      (*   Pp.printf "@{<bold>ty:%s ==> %s@}\n" *)
+      (*     (NT.layout @@ snd ty') *)
+      (*     (NT.layout @@ snd ty) *)
+      (* in *)
+      let sndty = _type_unify __FILE__ __LINE__ (snd ty') (snd ty) in
+      (* let () = Pp.printf "@{<bold>sndty: %s@}\n" (NT.layout sndty) in *)
       type_check ctx x.x (fst ty, sndty)
 
 and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
     Exp.term Exp.opttyped =
+  (* let () = *)
+  (*   Printf.printf "Check:\n%s\n%s <== %s\n" *)
+  (*     (List.split_by " " (fun (a, b) -> spf "%s:%s" a (layout_ty b)) ctx) *)
+  (*     (Frontend.Expr.layout { x; ty = None }) *)
+  (*     (layout_ty @@ snd ty) *)
+  (* in *)
   let open Exp in
   match (x, snd ty) with
   | Exn, _ -> Exp.{ x = Exn; ty = Some (None, snd ty) }
   | Const _, _ | Var _, _ | Op (_, _), _ ->
       let x, ty' = type_infer ctx x in
-      let _ = _type_check_eq __FILE__ __LINE__ ty' (snd ty) in
-      x
+      (* let () = *)
+      (*   Printf.printf "Work On:%s <=== %s\n" (Frontend.Expr.layout x) *)
+      (*     (layout_ty @@ snd ty) *)
+      (* in *)
+      let ty' = _type_unify __FILE__ __LINE__ ty' (snd ty) in
+      { x = x.x; ty = Some (fst ty, ty') }
   | Tu es, Ty_tuple tys ->
       let estys = _safe_combine __FILE__ __LINE__ es tys in
       let es =
@@ -70,21 +112,47 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
       in
       { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
-      let idty = (fst idty, _type_check_eq __FILE__ __LINE__ (snd idty) t1) in
+      let idty = (fst idty, _type_unify __FILE__ __LINE__ (snd idty) t1) in
       let ctx' = Typectx.add_to_right ctx (snd idty, id) in
       let body = bidirect_type_check ctx' body (None, t2) in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
       let f, fty = bidirect_type_infer ctx f in
-      let argsty, bodyty = destruct_arrow_tp fty in
-      let ty = _type_check_eq __FILE__ __LINE__ bodyty ty in
+      let argsty, retty = _solve_by_retty __FILE__ __LINE__ fty ty in
+      (* let args, argsty = *)
+      (*   List.split @@ List.map (fun e -> bidirect_type_infer ctx e) args *)
+      (* in *)
+      (* let () = *)
+      (*   Pp.printf "@{<bold>solved %s(%s):@} %s ===> %s\n" *)
+      (*     (Frontend.Expr.layout f) *)
+      (*     (List.split_by_comma Frontend.Expr.layout args) *)
+      (*     (layout_ty fty) "??" *)
+      (* in *)
+      (* let fty' = *)
+      (*   _type_unify __FILE__ __LINE__ fty (construct_arrow_tp (argsty, ty)) *)
+      (* in *)
+      (* let () = *)
+      (*   Pp.printf "@{<bold>solved %s(%s):@} %s ===> %s\n" *)
+      (*     (Frontend.Expr.layout f) *)
+      (*     (List.split_by_comma Frontend.Expr.layout args) *)
+      (*     (layout_ty fty) (layout_ty fty') *)
+      (* in *)
+      (* let argsty', bodyty = destruct_arrow_tp fty' in *)
+      (* let ty = _type_unify __FILE__ __LINE__ bodyty ty in *)
+      let f' =
+        bidirect_type_check ctx f (None, construct_arrow_tp (argsty, retty))
+      in
+      (* let () = *)
+      (*   Pp.printf "@{<bold>back %s:@} %s ? %s\n" (Frontend.Expr.layout f) *)
+      (*     (Frontend.Expr.layout f') (layout_ty fty') *)
+      (* in *)
       let argsargsty = _safe_combine __FILE__ __LINE__ args argsty in
       let args =
         List.map
           (fun (e, ty) -> bidirect_type_check ctx e (None, ty))
           argsargsty
       in
-      { ty = Some (None, ty); x = App (f, args) }
+      { ty = Some (None, ty); x = App (f', args) }
   | Let (if_rec, args, rhs, body), _ ->
       let xsty = List.map fst args in
       let rhsty =
@@ -94,6 +162,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
         | [ tp ] -> tp
         | l -> (None, Ty_tuple (List.map snd l))
       in
+      (* let () = Pp.printf "@{<bold>rhsty: %s@}\n" (NT.layout @@ snd rhsty) in *)
       let rhs = bidirect_type_check ctx rhs rhsty in
       let ctx' =
         List.fold_left Typectx.add_to_right ctx
@@ -121,10 +190,24 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
         let constructor_ty =
           Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
         in
-        let constructor =
-          { ty = Some (None, constructor_ty); x = constructor.x }
+        let argsty, retty =
+          _solve_by_retty __FILE__ __LINE__ constructor_ty ety
         in
-        let argsty, _ = destruct_arrow_tp constructor_ty in
+        let constructor =
+          {
+            ty =
+              Some
+                ( None,
+                  match argsty with
+                  | [] -> retty
+                  | _ -> construct_arrow_tp ([ retty ], Ty_tuple argsty) );
+            x = constructor.x;
+          }
+        in
+        (* let () = *)
+        (*   Printf.printf "Inferred argsty: %s --> %s\n" (Frontend.Expr.layout e) *)
+        (*     (List.split_by_comma layout argsty) *)
+        (* in *)
         let ctx' =
           List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
         in
@@ -173,20 +256,37 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = Opcheck.check (op, argsty) in
       ({ ty = Some (None, ty); x = Op (op, args) }, ty)
   | App (f, args) ->
-      let f, fty = bidirect_type_infer ctx f in
-      let rec aux (fty, args) =
-        match (fty, args) with
-        | _, [] -> (fty, [])
-        | Ty_arrow (t1, t2), arg :: args ->
-            let arg = bidirect_type_check ctx arg (None, t1) in
-            let bodytp, args = aux (t2, args) in
-            (bodytp, arg :: args)
-        | _ ->
-            _failatwith __FILE__ __LINE__
-              "type_infer: App, not a function type or wrong args number"
+      let args, argsty =
+        List.split @@ List.map (fun e -> bidirect_type_infer ctx e) args
       in
-      let ty, args = aux (fty, args) in
+      let f, fty = bidirect_type_infer ctx f in
+      let fty' =
+        _type_unify __FILE__ __LINE__ fty
+          (construct_arrow_tp (argsty, Ty_unknown))
+      in
+      let argsty', ty = destruct_arrow_tp fty' in
+      let f = bidirect_type_check ctx f (None, fty') in
+      let argsargsty = _safe_combine __FILE__ __LINE__ args argsty' in
+      let args =
+        List.map
+          (fun (e, ty) -> bidirect_type_check ctx e (None, ty))
+          argsargsty
+      in
       ({ ty = Some (None, ty); x = App (f, args) }, ty)
+      (* let f, fty = bidirect_type_infer ctx f in *)
+      (* let rec aux (fty, args) = *)
+      (*   match (fty, args) with *)
+      (*   | _, [] -> (fty, []) *)
+      (*   | Ty_arrow (t1, t2), arg :: args -> *)
+      (*       let arg = bidirect_type_check ctx arg (None, t1) in *)
+      (*       let bodytp, args = aux (t2, args) in *)
+      (*       (bodytp, arg :: args) *)
+      (*   | _ -> *)
+      (*       _failatwith __FILE__ __LINE__ *)
+      (*         "type_infer: App, not a function type or wrong args number" *)
+      (* in *)
+      (* let ty, args = aux (fty, args) in *)
+      (* ({ ty = Some (None, ty); x = App (f, args) }, ty) *)
   | Let (true, _, _, _) ->
       _failatwith __FILE__ __LINE__
         "cannot infer ret type of recursive function"
@@ -226,10 +326,20 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         let constructor_ty =
           Prim.get_primitive_dt_rev_normal_ty (constructor.x, ety)
         in
-        let constructor =
-          { ty = Some (None, constructor_ty); x = constructor.x }
+        let argsty, retty =
+          _solve_by_retty __FILE__ __LINE__ constructor_ty ety
         in
-        let argsty, _ = destruct_arrow_tp constructor_ty in
+        let constructor =
+          {
+            ty =
+              Some
+                ( None,
+                  match argsty with
+                  | [] -> retty
+                  | _ -> construct_arrow_tp ([ retty ], Ty_tuple argsty) );
+            x = constructor.x;
+          }
+        in
         let ctx' =
           List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
         in
@@ -243,7 +353,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
         | [] -> _failatwith __FILE__ __LINE__ "die"
         | ty :: t ->
             List.fold_left
-              (fun ty ty' -> _type_check_eq __FILE__ __LINE__ ty ty')
+              (fun ty ty' -> _type_unify __FILE__ __LINE__ ty ty')
               ty t
       in
       ({ ty = Some (None, ty); x = Match (e, cases) }, ty)

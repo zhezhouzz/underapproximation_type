@@ -6,7 +6,7 @@ open Abstraction
 open Sugar
 
 (* include Litcheck *)
-module P = Autov.Prop
+(* module P = Autov.Prop *)
 include Checkaux
 
 type uctx = { ctx : Typectx.t; nctx : Nctx.t; libctx : Typectx.t }
@@ -16,9 +16,8 @@ let rec id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
     try Typectx.get_ty uctx.ctx id.x
     with _ -> (
       try Typectx.get_ty uctx.libctx id.x
-      with _ -> Prim.get_primitive_under_ty id.x)
+      with _ -> Prim.get_primitive_under_ty (id.x, snd id.ty))
   in
-
   erase_check_mk_id __FILE__ __LINE__ id ty
 
 and id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
@@ -156,16 +155,16 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
   let open UL in
   let open UT in
   let args = List.map (id_type_infer uctx) args in
-  (* let () = Typectx.pretty_print_app_judge ctx (args, fty) in *)
+  let () = Typectx.pretty_print_app_judge uctx.ctx (args, fty) in
   (* arguments type check *)
   let rec aux = function
     | [], ty -> ty
-    | arg :: args, UnderTy_poly_arrow { argname; argnty; retty } ->
-        let () = erase_check __FILE__ __LINE__ (arg.ty, (arg.x, argnty)) in
+    | arg :: args, UnderTy_poly_arrow { argname; retty; _ } ->
+        (* let () = erase_check __FILE__ __LINE__ (arg.ty, (arg.x, argnty)) in *)
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
-    | arg :: args, UnderTy_arrow { argname; argty; retty } ->
-        let () = subtyping_check __FILE__ __LINE__ uctx.ctx arg.ty argty in
+    | arg :: args, UnderTy_arrow { argname; retty; _ } ->
+        (* let () = subtyping_check __FILE__ __LINE__ uctx.ctx arg.ty argty in *)
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -175,10 +174,10 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
     try aux (args, fty) with
     | Autov.FailWithModel (msg, _) ->
         let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
-        make_basic_top (snd ret.NL.ty)
+        make_basic_bot (snd ret.NL.ty)
     | Autov.SMTTIMEOUT ->
         let () = Pp.printf "@{<orange>Application failed:@}%s\n" "timeout" in
-        make_basic_top (snd ret.NL.ty)
+        make_basic_bot (snd ret.NL.ty)
     | e -> raise e
   in
   (* let () = Pp.printf "@{<end>Begin@}\n" in *)
@@ -222,7 +221,11 @@ and handle_match uctx (matched, cases) =
   let open UL in
   let matched = id_type_infer uctx matched in
   let handle_case NL.{ constructor; args; exp } =
-    let constructor_ty = Prim.get_primitive_rev_under_ty constructor.x in
+    let constructor_ty =
+      unify __FILE__ __LINE__
+        (Prim.get_primitive_rev_under_ty (constructor.x, snd constructor.ty))
+        (snd constructor.ty)
+    in
     let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
     let retty, args =
       let open UT in
@@ -267,7 +270,18 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
     | LetTu { tu; args; body } -> handle_lettu uctx (tu, args, body) None
     | LetDeTu { tu; args; body } -> handle_letdetu uctx (tu, args, body) None
     | LetOp { ret; op; args; body } ->
-        let opty = Prim.get_primitive_under_ty (Op.op_to_string op) in
+        (* let opty = *)
+        (*   unify __FILE__ __LINE__ *)
+        (*     (Prim.get_primitive_under_ty (Op.op_to_string op)) *)
+        (*     (NT.construct_arrow_tp *)
+        (*        (List.map (fun x -> snd x.ty) args, snd ret.ty)) *)
+        (* in *)
+        let opty =
+          Prim.get_primitive_under_ty
+            ( Op.op_to_string op,
+              NT.construct_arrow_tp
+                (List.map (fun x -> snd x.ty) args, snd ret.ty) )
+        in
         let ty, (ret, args, body) =
           handle_letapp uctx (ret, opty, args, body) None
         in
@@ -282,13 +296,13 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
     | Ite { cond; e_t; e_f } -> handle_ite uctx (cond, e_t, e_f)
     | Match { matched; cases } -> handle_match uctx (matched, cases)
   in
-  let () = Typectx.pretty_print_infer uctx.ctx (UL.layout a, res.UL.ty) in
+  let () = Typectx.pretty_print_infer uctx.ctx (NL.layout a, res.UL.ty) in
   res
 
 and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
     UL.term UL.typed =
-  let () = Typectx.pretty_print_judge uctx.ctx (UL.layout x, ty) in
-  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
+  let () = Typectx.pretty_print_judge uctx.ctx (NL.layout x, ty) in
+  let _ = _check_equality __FILE__ __LINE__ NT.eq (UT.erase ty) (snd @@ x.ty) in
   let open NL in
   match (x.x, ty) with
   | V v, _ ->
@@ -304,12 +318,27 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
-      let opty = Prim.get_primitive_under_ty (Op.op_to_string op) in
+      (* let opty = *)
+      (*   unify __FILE__ __LINE__ *)
+      (*     (Prim.get_primitive_under_ty (Op.op_to_string op)) *)
+      (*     (NT.construct_arrow_tp *)
+      (*        (List.map (fun x -> snd x.ty) args, snd ret.ty)) *)
+      (* in *)
+      let opty =
+        Prim.get_primitive_under_ty
+          ( Op.op_to_string op,
+            NT.construct_arrow_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
+          )
+      in
       let ty, (ret, args, body) =
         handle_letapp uctx (ret, opty, args, body) (Some ty)
       in
       { ty; x = LetOp { ret; op; args; body } }
   | LetVal { lhs; rhs; body }, _ ->
+      let () =
+        Pp.printf "@{<bold>lhs: %s; rhs: %s;@}\n" (NL.layout_id lhs)
+          (NL.layout_value rhs)
+      in
       handle_letval uctx (lhs, rhs, body) (Some ty)
   | Ite _, _ | Match _, _ ->
       let x = term_type_infer uctx x in
@@ -340,7 +369,10 @@ let struc_check l notations libs r =
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
-      | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
+      | None ->
+          _failatwith __FILE__ __LINE__
+            (spf "The source code of given refinement type '%s' is missing."
+               name')
       | Some { body; _ } -> (
           let () = Pp.printf "@{<bold>TY:@} %s\n" (UT.pretty_layout ty) in
           let nctx =

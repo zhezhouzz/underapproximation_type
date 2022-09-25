@@ -27,8 +27,10 @@ let add_to_sets e es =
   else e :: es
 
 let merge_sets es1 es2 = List.fold_right add_to_sets es1 es2
+(* let cc = ref 0 *)
 
 let peval prop =
+  (* let () = Pp.printf "@{<bold>before peval@}\n" in *)
   let rec aux = function
     | Lit lit -> Lit (peval_lit lit)
     | MethodPred (mp, args) -> (
@@ -154,6 +156,7 @@ let peval prop =
         if List.exists (String.equal u.x) @@ fv e then Exists (u, e) else e
   in
   (* let start_t = Core_unix.time () in *)
+  (* let () = if !cc == 80 then exit 0 else cc := !cc + 1 in *)
   let res = aux prop in
   (* let end_t = Core_unix.time () in *)
   (* let () = Pp.printf "@{<bold>Peval time: %.2f@}\n" @@ (end_t -. start_t) in *)

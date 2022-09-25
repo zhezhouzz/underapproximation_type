@@ -47,7 +47,11 @@ let smt_neg_and_solve ctx pre vc =
   let g = mk_goal ctx true false false in
   (* let () = Printf.printf "Q: %s\n" @@ Frontend.pretty_layout vc in *)
   (* let () = Printf.printf "Q: %s\n" @@ Frontend.coq_layout vc in *)
-  let q = Z3.Boolean.mk_not ctx @@ Query.to_z3 ctx vc in
+  let time_t, q =
+    Sugar.clock (fun () -> Z3.Boolean.mk_not ctx @@ Query.to_z3_tail ctx vc)
+  in
+  let () = Pp.printf "to_Z3: %0.4fs\n" time_t in
+  (* let () = exit 0 in *)
   let _ = Goal.add g (List.map (Query.to_z3 ctx) pre @ [ q ]) in
   (* let g = Z3.Goal.simplify g None in *)
   (* let g = *)

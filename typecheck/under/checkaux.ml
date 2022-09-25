@@ -1,20 +1,61 @@
 open Languages
 open Sugar
+module P = Autov.Prop
 
 let check_empty_hidden file line hvs =
   if List.length hvs != 0 then
     _failatwith file line "do not allow hidden variables"
   else ()
 
-let erase_check file line (underfty, normalty) =
+open Zzdatatype.Datatype
+
+let unify file line underfty normalty =
+  let open UT in
+  let open Ntyped in
   (* let () = *)
-  (*   Pp.printf "|_ %s _| ~> %s = %s\n" *)
-  (*     (UT.pretty_layout underfty) *)
+  (*   Pp.printf "|_ %s _| ~> %s <=== %s\n" *)
+  (*     (Frontend.Underty.pretty_layout underfty) *)
   (*     (NT.layout @@ UT.erase underfty) *)
-  (*     (NT.layout @@ snd normalty) *)
+  (*     (NT.layout normalty) *)
   (* in *)
-  let _ = _check_equality file line NT.eq (UT.erase underfty) (snd normalty) in
-  ()
+  let rec aux m = function
+    | UnderTy_base { basename; normalty; prop }, nt ->
+        let m, normalty = NT._type_unify_ file line m normalty nt in
+        let prop = P.type_update m prop in
+        UnderTy_base { basename; normalty; prop }
+    | UnderTy_poly_arrow { argname; argnty; retty }, Ty_arrow (t1, t2) ->
+        let m, argnty = NT._type_unify_ file line m argnty t1 in
+        let retty = aux m (retty, t2) in
+        UnderTy_poly_arrow { argname; argnty; retty }
+    | UnderTy_arrow { argname; argty; retty }, Ty_arrow (t1, t2) ->
+        let argty = aux m (argty, t1) in
+        let m = StrMap.add argname (erase argty) m in
+        let retty = aux m (retty, t2) in
+        UnderTy_arrow { argname; argty; retty }
+    | UnderTy_tuple bindings, Ty_tuple ts ->
+        let l = _safe_combine file line bindings ts in
+        let bindings, _ =
+          List.fold_left
+            (fun (bindings, m) ((x, ty), nt) ->
+              let ty = aux m (ty, nt) in
+              let m = StrMap.add x (erase ty) m in
+              (bindings @ [ (x, ty) ], m))
+            ([], m) l
+        in
+        UnderTy_tuple bindings
+    | _, _ -> _failatwith file line "unify"
+  in
+  aux StrMap.empty (underfty, normalty)
+
+(* let erase_check file line (underfty, normalty) = *)
+(*   (\* let () = *\) *)
+(*   (\*   Pp.printf "|_ %s _| ~> %s = %s\n" *\) *)
+(*   (\*     (UT.pretty_layout underfty) *\) *)
+(*   (\*     (NT.layout @@ UT.erase underfty) *\) *)
+(*   (\*     (NT.layout @@ snd normalty) *\) *)
+(*   (\* in *\) *)
+(*   let _ = _check_equality file line NT.eq (UT.erase underfty) (snd normalty) in *)
+(*   () *)
 
 let erase_check_mk_id file line id underfty =
   (* let () = *)
@@ -23,8 +64,10 @@ let erase_check_mk_id file line id underfty =
   (*     (Frontend.Type.layout @@ UT.erase underfty) *)
   (*     (Frontend.Type.layout id.NL.ty) *)
   (* in *)
-  let _ = _check_equality file line NT.eq (UT.erase underfty) (snd id.NL.ty) in
-  UL.{ ty = underfty; x = id.x }
+  let ty = unify file line underfty (snd id.NL.ty) in
+  UL.{ ty; x = id.x }
+(* let _ = _check_equality file line NT.eq (UT.erase underfty) (snd id.NL.ty) in *)
+(* UL.{ ty = underfty; x = id.x } *)
 
 let subtyping_check = Undersub.subtyping_check
 

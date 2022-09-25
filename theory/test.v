@@ -1,9 +1,23 @@
-Lemma L (mem: nat -> nat -> Prop) (hd: nat -> nat -> Prop):
+Lemma L (mem: nat -> nat -> Prop) (hd: nat -> nat -> Prop) (empty: nat -> Prop):
   forall v,
-(exists f, ((forall u, ((mem f u) -> (hd f u)))/\ (forall u, ((mem v u) -> (hd f u))))) ->
-(exists lenf, (exists f, (exists lenr, (exists r, (exists x, (exists r1, (exists b, ((lenf >= 0)/\ (forall u, ((mem f u) -> (hd f u)))/\ (lenr >= 0)/\ (lenr <= lenf)/\ (forall u, ((mem r u) -> (hd f u)))/\ (hd f x)/\ (forall u, (((mem r1 u) -> (u = x))/\ ((u = x) <-> (hd r1 u))))/\ (b <-> ((1 + lenr) <= lenf))/\ ((b/\ (forall u, (((mem v u) -> (u = x))/\ ((u = x) <-> (hd v u))))) \/ ((~ b)/\ (forall u, (~ (mem v u))))))))))))).
+(exists l1, (exists hd1, ((forall u, ((mem l1 u) -> (hd l1 u)))/\ (forall u, (((mem l1 u) -> (hd l1 u))/\ (~ (empty l1))))/\ (forall u, ((hd1 = u) <-> (hd l1 u)))/\ (forall u, (((hd1 = u) <-> (hd v u))/\ ((mem v u) -> (hd1 = u))))))) ->
+(exists l1, (exists l2, (exists hd1, (exists tl1, (exists hd2, (exists tl2, (exists b1, (exists tmp0, (exists b2, ((forall u, ((mem l1 u) -> (hd l1 u)))/\ (forall u, (((mem l1 u) -> (hd l1 u))/\ (~ (empty l1))))/\ (forall u, ((mem l2 u) -> (hd l1 u)))/\ (forall u, (((mem l2 u) -> (hd l2 u))/\ (~ (empty l2))))/\ (forall u, ((hd1 = u) <-> (hd l1 u)))/\ (forall u, ((mem tl1 u) -> (mem l1 u)))/\ (forall u, ((hd2 = u) <-> (hd l2 u)))/\ (forall u, ((mem tl2 u) -> (mem l2 u)))/\ (b1 <-> (hd1 < hd2))/\ (~ b1)/\ (forall u, ((mem tmp0 u) -> (hd tl1 u)))/\ (b2 <-> (hd2 < hd1))/\ b2/\ (forall u, ((mem v u) -> (hd tl1 u))))))))))))).
 Proof.
   intros.
+  destruct H as (l1 & hd1 & H1 & H2 & H3 & H4).
+  exists l1, 0, hd1, 1, 0, 3.
+  exists False. exists 6. exists True.
+  assert (forall u : nat, (mem l1 u -> hd l1 u) /\ ~ empty l1). admit.
+  split. auto.
+  split; auto.
+  split; auto.
+  split. admit.
+  split. admit.
+  split. admit.
+  split. simpl. admit.
+  right. split; auto.
+
+
   destruct H as (f & H1 & H2).
   assert (hd f 0 \/ (forall u, ~ hd f u)). admit.
   destruct H as [H | H].

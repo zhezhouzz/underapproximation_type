@@ -30,29 +30,35 @@ module Lemma = struct
       vcl_body = P.peval vcl_body;
     }
 
+  let get_basics =
+    List.filter (fun x -> match x.ty with Ty_int -> true | _ -> false)
+
+  open Zzdatatype.Datatype
+
   let body_instantiate_uqvs res =
-    let get_basics =
-      List.filter (fun x -> match x.ty with Ty_int -> true | _ -> false)
-    in
     let basics1 = get_basics (res.vcl_u_basics @ res.vcl_e_basics) in
     let vcl_body1 =
       P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics1
     in
     let () =
-      Pp.printf "@{<bold>body_instantiate_uqvs:@} basics1(%i) --> vc_body(%i)\n"
-        (List.length basics1) (P.size vcl_body1)
+      Pp.printf
+        "@{<bold>body_instantiate_uqvs:@} basics1(%i)(%s) --> vc_body(%i)\n"
+        (List.length basics1)
+        (List.split_by_comma (fun x -> x.x) basics1)
+        (P.size vcl_body1)
     in
-    (* let basics2 = get_basics @@ P.tvar_space res.vcl_body in *)
+    (* let basics2 = get_basics @@ P.tvar_fv res.vcl_body in *)
     (* let vcl_body2 = *)
     (*   P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics2 *)
     (* in *)
     (* let () = *)
-    (*   Pp.printf "@{<bold>body_instantiate_uqvs:@} basics2(%i) --> vc_body(%i)\n" *)
-    (*     (List.length basics2) (P.size vcl_body2) *)
+    (*   Pp.printf *)
+    (*     "@{<bold>body_instantiate_uqvs:@} basics2(%i)(%s) --> vc_body(%i)\n" *)
+    (*     (List.length basics2) *)
+    (*     (List.split_by_comma (fun x -> x.x) basics2) *)
+    (*     (P.size vcl_body2) *)
     (* in *)
     { res with vcl_body = vcl_body1 }
-
-  open Zzdatatype.Datatype
 
   let add_lemmas lemmas
       { vc_u_basics; vc_u_dts; vc_e_basics; vc_head; vc_e_dts; vc_body } =
@@ -88,16 +94,16 @@ module Lemma = struct
         vcl_body = P.peval vcl_body;
       }
     in
-    let () =
-      Pp.printf "@{<bold>raw:@} vc_head(%i); vc_body(%i)\n"
-        (P.size res.vcl_head) (P.size res.vcl_body)
-    in
+    (* let () = *)
+    (*   Pp.printf "@{<bold>raw:@} vc_head(%i); vc_body(%i)\n" *)
+    (*     (P.size res.vcl_head) (P.size res.vcl_body) *)
+    (* in *)
     (* let () = pretty_print_with_lemma res in *)
     let res = body_instantiate_uqvs res in
     (* let () = pretty_print_with_lemma res in *)
     res
 
-  let without_e_dt lemmas
+  let without_e_dt
       {
         vcl_lemmas;
         vcl_u_basics;
@@ -107,7 +113,6 @@ module Lemma = struct
         vcl_e_dts;
         vcl_body;
       } =
-    let _, _ = split_to_u_e lemmas in
     (* let () = *)
     (*   Printf.printf "vcl_body: %s\n" @@ Autov.pretty_layout_prop vcl_body *)
     (* in *)
@@ -118,9 +123,9 @@ module Lemma = struct
     (*     (fun x -> Printf.printf "flemmas: %s\n" @@ Autov.pretty_layout_prop x) *)
     (*     flemmas *)
     (* in *)
+    let basics = get_basics @@ P.tvar_fv vcl_body in
     let flemmas =
-      P.instantiate_uqvs_in_uprop __FILE__ __LINE__ (And flemmas)
-        (vcl_u_basics @ vcl_e_basics)
+      P.instantiate_uqvs_in_uprop_no_eq __FILE__ __LINE__ (And flemmas) basics
     in
     let vcl_body = P.And [ flemmas; vcl_body ] in
     let vclw_e_basics', vclw_body =
@@ -135,7 +140,6 @@ module Lemma = struct
         vclw_body = P.Implies (vcl_head, vclw_body);
       }
     in
-    (* let () = failwith "zz1" in *)
     res
 
   let query_with_lemma_to_prop
@@ -176,7 +180,7 @@ module Lemma = struct
       Pp.printf "@{<bold>add_lemma:@} vc_head(%i); vc_body(%i)\n"
         (P.size x.vcl_head) (P.size x.vcl_body)
     in
-    let x = without_e_dt lemmas x in
+    let x = without_e_dt x in
     let () = Pp.printf "@{<bold>without_dt:@} %i\n" (P.size x.vclw_body) in
     (* let () = failwith "zz" in *)
     x
@@ -300,6 +304,14 @@ module Struc = struct
   let prog_of_ocamlstruct = Frontend.Structure.client_of_ocamlstruct
 end
 
+module NL = struct
+  include NL
+
+  let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
+  let layout_value v = layout { x = V v.x; ty = v.ty }
+  let layout_id x = layout_value { x = Lit (Var x.x); ty = x.ty }
+end
+
 module StrucNA = struct
   include StrucNA
 
@@ -315,7 +327,15 @@ end
 module UL = struct
   include UL
 
-  let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
+  (* let layout x = *)
+  (*   let ty = UT.erase x.ty in *)
+  (*   let x = x.x in *)
+  (*   Frontend.Expr.layout @@ Trans.nan_to_term NL.{ x; ty = (None, ty) } *)
+
+  (* let layout_value x = *)
+  (*   let x = { x = V x.x; ty = x.ty } in *)
+  (*   layout x *)
+
   let typed_map f { ty; x } = { ty; x = f x }
 
   let get_args_return_name retname body =

@@ -22,6 +22,7 @@ let snoc =
   ( vlenf (v == lenf + lenr + 1 || v == lenf : [%v: int]),
     vf (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list]),
     vlenr (v + vlenf == lenf + lenr + 1 : [%v: int]),
-    vr (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
-    (* vr (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list]) *)
+    (* vr (fun (u : [%forall: int]) -> true : [%v: int list]) *)
+    (* vr (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list]) *)
+    vr (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list])
   )

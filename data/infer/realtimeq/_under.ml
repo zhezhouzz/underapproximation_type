@@ -19,7 +19,8 @@ let rotate =
     (fun (u : [%forall: int]) -> implies (mem v u) (hd q1 u) : [%v: int list])
   in
   let q3 =
-    (fun (u : [%forall: int]) -> iff (mem v u) (hd q1 u) : [%v: int list])
+    (fun (u : [%forall: int]) -> implies (mem v u) (hd q1 u) && not (empty v)
+      : [%v: int list])
   in
   (fun (u : [%forall: int]) -> implies (mem v u) (hd q1 u) && not (empty v)
     : [%v: int list])

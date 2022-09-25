@@ -3,13 +3,24 @@ open Zzdatatype.Datatype
 module Ty = Normalty.Ast.T
 open Normalty.Ast.Ntyped
 
+(* TODO: use hashmap *)
+
+let layout_args args =
+  List.split_by_comma (Frontend.lit_pretty_layout_ Frontend.detailssetting) args
+
 module S = Map.Make (struct
   type t = lit list
 
   let compare a b =
-    List.compare
-      (fun a b -> Sexplib.Sexp.compare (sexp_of_lit a) (sexp_of_lit b))
-      a b
+    let res =
+      List.compare
+        (fun a b -> Sexplib.Sexp.compare (sexp_of_lit a) (sexp_of_lit b))
+        a b
+    in
+    (* let () = *)
+    (*   Printf.printf "compare(%s)(%s) = %i\n" (layout_args a) (layout_args b) res *)
+    (* in *)
+    res
 end)
 
 let stat_mp_app_in_prop prop =
@@ -92,11 +103,23 @@ let vars_reduction vars prop =
   prop'
 
 let uqv_encoding uqvs prop =
+  (* let () = Pp.printf "@{<bold>1@}\n" in *)
   let m = find_lits_with_vars uqvs prop in
+  (* let () = *)
+  (*   StrMap.iter *)
+  (*     (fun mp s -> *)
+  (*       Printf.printf "mp: %s\n" mp; *)
+  (*       S.iter *)
+  (*         (fun args _ -> *)
+  (*           Printf.printf "args(%i): %s\n" (List.length args) (layout_args args)) *)
+  (*         s) *)
+  (*     m *)
+  (* in *)
+  (* let () = Pp.printf "@{<bold>2@}\n" in *)
   let m =
     StrMap.mapi
       (fun mp s ->
-        let counter = ref 0 in
+        (* let counter = ref 0 in *)
         S.mapi
           (fun lits _ ->
             let encoding =
@@ -105,13 +128,14 @@ let uqv_encoding uqvs prop =
                 x =
                   List.fold_left
                     (fun s lit ->
-                      Printf.sprintf "%s,%s" s
+                      Printf.sprintf "%s_%s" s
                         (Frontend.lit_pretty_layout_ Frontend.psetting lit))
-                    (Printf.sprintf "%s!%i" mp !counter)
+                    (* (Printf.sprintf "%s!%i" mp !counter) *)
+                    (Printf.sprintf "__%s" mp)
                     lits;
               }
             in
-            counter := !counter + 1;
+            (* counter := !counter + 1; *)
             encoding)
           s)
       m
@@ -121,7 +145,9 @@ let uqv_encoding uqvs prop =
     @@ List.map (fun s -> List.map snd @@ List.of_seq @@ S.to_seq s)
     @@ StrMap.to_value_list m
   in
+  (* let () = Pp.printf "@{<bold>3@}\n" in *)
   let prop =
     subst_mp (StrMap.map (fun s -> S.map (fun x -> Lit (AVar x)) s) m) prop
   in
+  (* let () = exit 0 in *)
   (new_uqvs, prop)

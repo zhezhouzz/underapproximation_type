@@ -37,7 +37,7 @@ open Zzdatatype.Datatype
 let rec lit_fv m t =
   match t with
   | ACint _ | ACbool _ -> m
-  | AVar id -> StrMap.add id.x () m
+  | AVar id -> StrMap.add id.x id.ty m
   | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
 
 let _add_fv m prop =
@@ -57,15 +57,11 @@ let _add_fv m prop =
   aux m prop
 
 let add_fv fv prop =
-  let fv =
-    StrMap.to_key_list
-    @@ _add_fv
-         (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
-         prop
-  in
+  let fv = StrMap.to_kv_list @@ _add_fv (StrMap.from_kv_list fv) prop in
   fv
 
-let fv prop = add_fv [] prop
+let fv prop = fst @@ List.split @@ add_fv [] prop
+let tvar_fv prop = List.map (fun (x, ty) -> { x; ty }) @@ add_fv [] prop
 
 let negate prop =
   let rec aux t =

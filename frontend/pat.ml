@@ -30,7 +30,14 @@ let rec pattern_to_slang pattern =
   | Ppat_construct (c, args) ->
       let c =
         match Longident.flatten c.txt with
-        | [ c ] -> L.make_untyped @@ L.Var c
+        | [ c ] -> (
+            match c with
+            | "Exn" -> L.{ ty = Some (None, Ty_unknown); x = Exn }
+            | "true" ->
+                L.{ ty = Some (None, Ty_bool); x = Const (Ast.Value.B true) }
+            | "false" ->
+                L.{ ty = Some (None, Ty_bool); x = Const (Ast.Value.B false) }
+            | _ -> L.make_untyped @@ L.Var c)
         | _ -> failwith "unimp: long name"
       in
       let res =

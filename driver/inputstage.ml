@@ -1,6 +1,7 @@
 open Core
 open Typecheck
 open Languages
+open Sugar
 
 let load_ssa libs source_file =
   let ctx =
@@ -12,15 +13,25 @@ let load_ssa libs source_file =
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
   let () =
     Printf.printf "\n[Load ocaml program]:\n%s\n\n"
+    @@ short_str 300
     @@ Ocaml_parser.Pprintast.string_of_structure code
   in
   let code = Struc.prog_of_ocamlstruct code in
-  let () = Printf.printf "[Before type check]:\n%s\n\n" @@ Struc.layout code in
+  let () =
+    Printf.printf "[Before type check]:\n%s\n\n"
+    @@ short_str 300 @@ Struc.layout code
+  in
   let code = Termcheck.struc_check ctx code in
-  let () = Printf.printf "[Typed program]:\n%s\n\n" @@ Struc.layout code in
+  let () =
+    Printf.printf "[Typed program]:\n%s\n\n"
+    @@ short_str 300 @@ Struc.layout code
+    (* (Struc.layout code) *)
+  in
   let code = Trans.struc_term_to_nan code in
   let () =
-    Printf.printf "[Typed A-normal from]:\n%s\n\n" (StrucNA.layout code)
+    Printf.printf "[Typed A-normal from]:\n%s\n\n"
+    @@ short_str 300 (StrucNA.layout code)
+    (* (StrucNA.layout code) *)
   in
   code
 

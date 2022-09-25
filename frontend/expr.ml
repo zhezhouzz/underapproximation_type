@@ -148,12 +148,16 @@ let expr_of_ocamlexpr expr =
           | Some _ -> failwith "multi typed"))
     | Pexp_ident id -> id_to_var id
     | Pexp_construct (c, args) -> (
-        let () =
-          Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr)
-        in
+        (* let () = *)
+        (*   Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr) *)
+        (* in *)
         let c = handle_id c in
+        (* let () = Printf.printf "Pat: %s\n" c in *)
         match c with
         | "Exn" -> L.{ ty = Some (None, Ty_unknown); x = Exn }
+        | "true" -> L.{ ty = Some (None, Ty_bool); x = Const (Value.V.B true) }
+        | "false" ->
+            L.{ ty = Some (None, Ty_bool); x = Const (Value.V.B false) }
         | _ -> (
             let c = L.(make_untyped @@ Var c) in
             match args with
@@ -264,8 +268,8 @@ let expr_of_ocamlexpr expr =
     in
     match prim with
     | Some (Op.T.PrimOp op, _) -> L.(make_untyped @@ Op (op, args))
-    | Some (Op.T.DtConstructor f, ty) | Some (Op.T.External f, ty) ->
-        L.(make_untyped @@ App ({ x = Var f; ty = Some (None, ty) }, args))
+    | Some (Op.T.DtConstructor f, _) | Some (Op.T.External f, _) ->
+        L.(make_untyped @@ App ({ x = Var f; ty = None }, args))
     | None -> L.(make_untyped @@ App (func, args))
   in
   aux expr

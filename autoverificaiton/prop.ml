@@ -83,6 +83,42 @@ let instantiate_vars (y, lit) t =
   in
   aux t
 
+open Sugar
+
+let type_update m t =
+  (* let _ = *)
+  (*   Printf.printf "type_update: %s\n" *)
+  (*     (List.split_by " " (fun (a, b) -> spf "%s:%s" a (Normalty.Ast.T.layout b)) *)
+  (*     @@ StrMap.to_kv_list m) *)
+  (* in *)
+  let rec aux_lit t =
+    match t with
+    | ACint _ | ACbool _ -> t
+    | AVar id -> AVar { x = id.x; ty = Normalty.Ast.T.subst_m m id.ty }
+    | AOp2 (op, a, b) -> AOp2 (op, aux_lit a, aux_lit b)
+  in
+  let rec aux t =
+    match t with
+    | Lit lit -> Lit (aux_lit lit)
+    | Implies (e1, e2) -> Implies (aux e1, aux e2)
+    | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+    | Not e -> Not (aux e)
+    | And es -> And (List.map aux es)
+    | Or es -> Or (List.map aux es)
+    | Iff (e1, e2) -> Iff (aux e1, aux e2)
+    | MethodPred (mp, args) ->
+        MethodPred (mp, List.map (fun lit -> aux_lit lit) args)
+    | Forall (u, e) ->
+        if StrMap.exists (fun x _ -> String.equal u.x x) m then
+          _failatwith __FILE__ __LINE__ ""
+        else Forall (u, aux e)
+    | Exists (u, e) ->
+        if StrMap.exists (fun x _ -> String.equal u.x x) m then
+          _failatwith __FILE__ __LINE__ ""
+        else Exists (u, aux e)
+  in
+  aux t
+
 let simp_conj_disj t =
   let is_bool b' = function Lit (ACbool b) -> b == b' | _ -> false in
   let rec aux t =
@@ -133,19 +169,6 @@ let simp_exists eqv t =
       | [] -> (true, t)
       | lit :: _ -> (false, subst_id_with_lit t eqv lit))
   | _ -> (true, t)
-
-(* let rec simp_lit_lit t = *)
-(*   match t with *)
-(*   | ACint _ -> t *)
-(*   | ACbool _ -> t *)
-(*   | AVar _ -> t *)
-(*   | AOp2 (op, a, b) -> ( *)
-(*       match (op, simp_lit_lit a, simp_lit_lit b) with *)
-(*       | "==", AVar id, AVar id' when String.equal id.x id'.x -> ACbool true *)
-(*       | "==", ACint i, ACint i' -> ACbool (i == i') *)
-(*       | "==", ACbool i, ACbool i' -> ACbool (i == i') *)
-(*       | "==", a, b when lit_strict_eq a b -> ACbool true *)
-(*       | op, a, b -> AOp2 (op, a, b)) *)
 
 let simp_lit t =
   let rec aux t =
@@ -567,6 +590,52 @@ let instantiate_uqvs_in_uprop file line prop choices =
     | Exists (_, _) ->
         _failatwith file line
           (spf "instantiate_uqvs_in_uprop: exists, %s" @@ Frontend.layout prop)
+  in
+  aux prop
+
+let instantiate_uqvs_in_uprop_no_eq_ file line prop choices =
+  let uqvs, prop = assume_fe file line prop in
+  let len = List.length uqvs in
+  let filter_dup_aux = function
+    | [ a; b ] -> not (typed_eq a b)
+    | _ -> _failatwith __FILE__ __LINE__ ""
+  in
+  let settings = List.filter filter_dup_aux @@ List.choose_n choices len in
+  let settings =
+    List.slow_rm_dup
+      (fun a b ->
+        let a = List.map (sexp_of_typed Sexplib.Std.sexp_of_string) a in
+        let b = List.map (sexp_of_typed Sexplib.Std.sexp_of_string) b in
+        let a = List.sort Sexplib.Sexp.compare a in
+        let b = List.sort Sexplib.Sexp.compare b in
+        0 == List.compare Sexplib.Sexp.compare a b)
+      settings
+  in
+  let props =
+    List.map
+      (fun uqvs' ->
+        List.fold_right
+          (fun (x, y) prop -> subst_id prop x.x y.x)
+          (List.combine uqvs uqvs') prop)
+      settings
+  in
+  match props with [] -> mk_true | _ -> And props
+
+let instantiate_uqvs_in_uprop_no_eq file line prop choices =
+  let rec aux prop =
+    match prop with
+    | Lit _ | MethodPred (_, _) -> prop
+    | Implies (e1, e2) -> Implies (aux e1, aux e2)
+    | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+    | Not e -> Not (aux e)
+    | Iff (e1, e2) -> Iff (aux e1, aux e2)
+    | And es -> And (List.map aux es)
+    | Or es -> Or (List.map aux es)
+    | Forall (_, _) -> instantiate_uqvs_in_uprop_no_eq_ file line prop choices
+    | Exists (_, _) ->
+        _failatwith file line
+          (spf "instantiate_uqvs_in_uprop_no_eq: exists, %s"
+          @@ Frontend.layout prop)
   in
   aux prop
 

@@ -42,7 +42,7 @@ let core ctx nu ((eqvs1, uprop1), prop2) =
         let uprop1' = P.rename_prop uprop1 (List.combine eqvs1 eqvs1') in
         let uprop1' = P.peval uprop1' in
         let uprop2 = P.peval uprop2 in
-        (* let _ = failwith "end" in *)
+
         (nu :: eqvs2, eqvs1', uprop2, uprop1')
     | Some (ctx, (x, xty)) ->
         let xty = UT.conjunct_list xty in
@@ -174,11 +174,13 @@ let check file line pres q =
       Autov._failwithmodel file line "Subtyping check: rejected by the verifier"
         m
 
+(* let counter = ref 0 *)
+
 let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
     (target_ty : UT.t) =
   let open UT in
+  (* let () = if !counter == 1 then failwith "end" else counter := !counter + 1 in *)
   let () = Typectx.pretty_print_subtyping ctx (inferred_ty, target_ty) in
-  (* let counter = ref 0 in *)
   let rec aux ctx1 ctx2 (t1, t2) =
     match (t1, t2) with
     | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },

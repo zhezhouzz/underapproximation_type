@@ -10,5 +10,6 @@ let tail =
     (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list])
   in
   ( vf (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list]),
-    vr (fun (u : [%forall: int]) -> implies (mem v u) (hd f u) : [%v: int list])
-  )
+    vr
+      (fun (u : [%forall: int]) -> (not (empty v)) && implies (mem v u) (hd f u)
+        : [%v: int list]) )
