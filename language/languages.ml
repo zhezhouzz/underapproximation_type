@@ -47,17 +47,17 @@ module Lemma = struct
         (List.split_by_comma (fun x -> x.x) basics1)
         (P.size vcl_body1)
     in
-    (* let basics2 = get_basics @@ P.tvar_fv res.vcl_body in *)
-    (* let vcl_body2 = *)
-    (*   P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics2 *)
-    (* in *)
-    (* let () = *)
-    (*   Pp.printf *)
-    (*     "@{<bold>body_instantiate_uqvs:@} basics2(%i)(%s) --> vc_body(%i)\n" *)
-    (*     (List.length basics2) *)
-    (*     (List.split_by_comma (fun x -> x.x) basics2) *)
-    (*     (P.size vcl_body2) *)
-    (* in *)
+    let basics2 = get_basics @@ P.tvar_fv res.vcl_body in
+    let vcl_body2 =
+      P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics2
+    in
+    let () =
+      Pp.printf
+        "@{<bold>body_instantiate_uqvs:@} basics2(%i)(%s) --> vc_body(%i)\n"
+        (List.length basics2)
+        (List.split_by_comma (fun x -> x.x) basics2)
+        (P.size vcl_body2)
+    in
     { res with vcl_body = vcl_body1 }
 
   let add_lemmas lemmas
