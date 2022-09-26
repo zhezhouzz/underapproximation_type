@@ -4,6 +4,8 @@
 
 + A parser: https://github.com/zhezhouzz/ocaml_parser
 + A util lib: https://github.com/zhezhouzz/zzdatatype
++ A util lib: https://github.com/zhezhouzz/utils.git
++ A type lib: https://github.com/zhezhouzz/normalty.git
 
 You can install them via the following commands:
 
@@ -22,6 +24,7 @@ merlin                     4.5-412     Editor helper, provides completion, typin
 dolog                      6.0.0       pinned to version 6.0.0 at git+file:///Users/zhezhou/workspace/research/dolog#master
 core_unix                  v0.14.0     Unix-specific portions of Core
 core                       v0.14.1     Industrial strength alternative to OCaml's standard library
+ocolor                      1.3.0       Print with style in your terminal using Format's semantic tags
 ```
 
 ## Example
