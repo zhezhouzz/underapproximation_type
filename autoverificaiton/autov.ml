@@ -36,7 +36,8 @@ let _check pre q =
   match res with
   | SmtUnsat -> None
   | SmtSat model ->
-      Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model;
+      Printf.printf "model:\n%s\n"
+      @@ Sugar.short_str 100 @@ Z3.Model.to_string model;
       (* pretty_print_model model; *)
       Some model
   | Timeout -> raise SMTTIMEOUT

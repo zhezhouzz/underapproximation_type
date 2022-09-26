@@ -22,7 +22,7 @@ let whitespace = ' ' | '\t'
 let newline = "\r\n" | '\r' | '\n'
 let lowercase = ['a'-'z' '_']
 let uppercase = ['A'-'Z']
-let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9']
+let identchar = ['A'-'Z' 'a'-'z' '_' '\'' '0'-'9' '!']
 
 let ident = (lowercase | uppercase) identchar*
 let number = ['0'-'9'] ['0'-'9' '_']*
@@ -40,20 +40,27 @@ rule next_token = parse
 (* YOUR TOKENS HERE... *)
   | '(' { LPAR }
   | ')' { RPAR }
+  | "-" {MINUS}
   | "=" {EQ}
+  | "<" {LT}
+  | ">" {GT}
+  | "<=" {LE}
+  | ">=" {GE}
+  | "ite" {ITE}
+  | "let" {LET}
   | "not" {NOT}
   | "and" {AND}
   | "true" {TRUE}
   | "false" {FALSE}
   | "or" {OR}
   | "(:var" {LPARVAR}
-(* lex identifiers last, so keywords are not lexed as identifiers *)
-| number as number { NUMBER (int_of_string number) }
-  (* | ident as ident { IDENT ident } *)
-(* no match? raise exception *)
+  (* lex identifiers last, so keywords are not lexed as identifiers *)
+  | number as number { NUMBER (int_of_string number) }
+  | ident as ident { IDENT ident }
+  (* no match? raise exception *)
   | _ as c { illegal c }
 and read_string buf =
-parse
+  parse
   | '"'       { STRING (Buffer.contents buf) }
   | '\\' '/'  { Buffer.add_char buf '/'; read_string buf lexbuf }
   | '\\' '\\' { Buffer.add_char buf '\\'; read_string buf lexbuf }
