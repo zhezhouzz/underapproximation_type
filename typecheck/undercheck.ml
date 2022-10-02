@@ -1,6 +1,4 @@
 open Languages
-module Typectx = Languages.UnderTypectx
-module Nctx = Simpletypectx.UTSimpleTypectx
 open Zzdatatype.Datatype
 open Abstraction
 open Sugar
@@ -9,35 +7,16 @@ open Sugar
 (* module P = Autov.Prop *)
 include Checkaux
 
-type uctx = { ctx : Typectx.t; nctx : Nctx.t; libctx : Typectx.t }
+let value_set_bot (a : NL.value NL.typed) =
+  let open UL in
+  { ty = UT.nt_to_exn_type (snd a.ty); x = Exn }
 
-let rec id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
-  let ty =
-    try Typectx.get_ty uctx.ctx id.x
-    with _ -> (
-      try Typectx.get_ty uctx.libctx id.x
-      with _ -> Prim.get_primitive_under_ty (id.x, snd id.ty))
-  in
-  erase_check_mk_id __FILE__ __LINE__ id ty
+let term_set_bot (a : NL.term NL.typed) =
+  let open UL in
+  { ty = UT.nt_to_exn_type (snd a.ty); x = V Exn }
 
-and id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
-    NL.id UL.typed =
-  let id = id_type_infer uctx id in
-  let () = subtyping_check __FILE__ __LINE__ uctx.ctx id.UL.ty ty in
-  id
-
-and lit_type_infer (uctx : uctx) (lit : NL.smt_lit NL.typed) :
-    UL.smt_lit UL.typed =
-  let open NL in
-  let open UT in
-  match lit.x with
-  | ConstI n -> { ty = make_basic_from_const_int n; x = ConstI n }
-  | ConstB b -> { ty = make_basic_from_const_bool b; x = ConstB b }
-  | Var id ->
-      UL.(typed_map (fun x -> Var x))
-      @@ id_type_infer uctx { ty = lit.ty; x = id }
-
-and value_type_infer (uctx : uctx) (a : NL.value NL.typed) : UL.value UL.typed =
+let rec value_type_infer (uctx : uctx) (a : NL.value NL.typed) :
+    UL.value UL.typed =
   let aty = a.ty in
   let open UL in
   match a.x with
@@ -250,11 +229,31 @@ and handle_match uctx (matched, cases) =
           (argty, loop (args, ts))
       | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
     in
-    let ctx' = Typectx.conjunct uctx.ctx (matched.x, retty) in
-    let ctx' = Typectx.add_to_rights ctx' args in
-    let exp = term_type_infer { uctx with ctx = ctx' } exp in
-    ( Typectx.close_by_diff ctx' uctx.ctx exp.ty,
-      UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
+    let trivial_res =
+      let ty = UT.make_basic_bot (snd exp.NL.ty) in
+      ( ty,
+        UL.
+          {
+            constructor;
+            args = List.map (fun x -> x.x) args;
+            exp = term_set_bot exp;
+          } )
+    in
+    try
+      let () = subtyping_check __FILE__ __LINE__ uctx.ctx matched.ty retty in
+      let ctx' = Typectx.update uctx.ctx (matched.x, [ retty ]) in
+      let ctx'' = Typectx.add_to_rights ctx' args in
+      let exp = term_type_infer { uctx with ctx = ctx'' } exp in
+      ( Typectx.close_by_diff ctx'' ctx' exp.ty,
+        UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
+    with
+    | Autov.FailWithModel (msg, _) ->
+        let () = Pp.printf "@{<orange>Match failed:@}%s\n" msg in
+        trivial_res
+    | Autov.SMTTIMEOUT ->
+        let () = Pp.printf "@{<orange>Match failed:@}%s\n" "timeout" in
+        trivial_res
+    | e -> raise e
   in
   let tys, cases = List.split @@ List.map handle_case cases in
   (* { ty = List.nth tys 1; x = Match { matched; cases } } *)
@@ -270,12 +269,6 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
     | LetTu { tu; args; body } -> handle_lettu uctx (tu, args, body) None
     | LetDeTu { tu; args; body } -> handle_letdetu uctx (tu, args, body) None
     | LetOp { ret; op; args; body } ->
-        (* let opty = *)
-        (*   unify __FILE__ __LINE__ *)
-        (*     (Prim.get_primitive_under_ty (Op.op_to_string op)) *)
-        (*     (NT.construct_arrow_tp *)
-        (*        (List.map (fun x -> snd x.ty) args, snd ret.ty)) *)
-        (* in *)
         let opty =
           Prim.get_primitive_under_ty
             ( Op.op_to_string op,
@@ -318,12 +311,6 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
       in
       { ty; x = LetApp { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
-      (* let opty = *)
-      (*   unify __FILE__ __LINE__ *)
-      (*     (Prim.get_primitive_under_ty (Op.op_to_string op)) *)
-      (*     (NT.construct_arrow_tp *)
-      (*        (List.map (fun x -> snd x.ty) args, snd ret.ty)) *)
-      (* in *)
       let opty =
         Prim.get_primitive_under_ty
           ( Op.op_to_string op,

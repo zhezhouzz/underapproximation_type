@@ -1,57 +1,10 @@
+let[@library] concat0 =
+  let l1 = (empty v : [%v: int list]) in
+  let l2 = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list]) in
+  (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list])
+
 let concat =
-  let l1 =
-    (fun (u : [%forall: int]) -> implies (mem v u) (hd v u) : [%v: int list])
-  in
-  let l2 =
-    (fun (u : [%forall: int]) -> implies (mem v u) (hd l1 u) : [%v: int list])
-  in
-  (fun (u : [%forall: int]) -> implies (mem v u) (hd l1 u) : [%v: int list])
-
-(* let concat = *)
-(*   let l1 = (v : int list) (empty v) in *)
-(*   let l2 = (v : int list) (empty v) in *)
-(*   (v : int list) (empty v) *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) (implies (mem v u) (hd v u)) *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) *)
-(*     ((iff (mem v u) (mem l1 u || mem l2 u) && iff (hd v u) (hd l1 u || hd l2 u)) *)
-(*     && implies (mem v u) (hd v u)) *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) *)
-(*     (iff (mem v u) (mem l1 u || mem l2 u) && iff (hd v u) (hd l1 u || hd l2 u)) *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) false *)
-
-(* test *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) (iff (mem v u) (mem l1 u || mem l2 u)) *)
-
-(* let concat = *)
-(*   let l1 = *)
-(*     (fun (u : [%forall: int]) -> implies (mem v u) (hd v u) : [%v: int list]) *)
-(*   in *)
-(*   let l2 = *)
-(*     (fun (u : [%forall: int]) -> implies (mem v u) (hd l1 u) : [%v: int list]) *)
-(*   in *)
-(*   (fun (u : [%forall: int]) -> not (empty v) : [%v: int list]) *)
-
-(* let concat (u : [%forall: int]) = *)
-(*   let l1 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   let l2 = (v : int list) (implies (mem v u) (hd v u)) in *)
-(*   (v : int list) (iff (hd v u) (hd l1 u || hd l2 u)) *)
+  let l1 = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list]) in
+  let l2 = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list]) in
+  (fun (u : [%forall: int]) -> implies (not (hd v u)) (not (ord v u u))
+    : [%v: int list])

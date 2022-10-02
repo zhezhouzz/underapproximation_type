@@ -198,6 +198,15 @@ module UnderTypectx = struct
   open Ntyped
   open Sugar
 
+  let update ctx (name, tys) =
+    let rec aux res = function
+      | [] -> _failatwith __FILE__ __LINE__ ""
+      | (name', tys') :: rest ->
+          if String.equal name name' then res @ ((name', tys) :: rest)
+          else aux (res @ [ (name', tys') ]) rest
+    in
+    aux [] ctx
+
   let close_by_diff ctx ctx' uty =
     let diff = subtract ctx ctx' in
     (* let () = *)

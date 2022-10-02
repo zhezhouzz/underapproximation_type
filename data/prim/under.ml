@@ -38,17 +38,13 @@ let[@library] minus =
   let (b : [%poly: int]) = () in
   (v == a - b : [%v: int])
 
-let[@library] nil = (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
+let[@library] nil = (empty v : [%v: int list])
 
 let[@library] cons =
   let (h : [%poly: int]) = () in
-  let t =
-    (fun (u : [%forall: int]) ->
-       iff (hd v u) (u == h) && implies (mem v u) (u == h)
-      : [%v: int list])
-  in
+  let t = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list]) in
   (fun (u : [%forall: int]) ->
-     implies (mem v u) (u == h) && iff (hd v u) (u == h)
+     hd v h && implies (not (u == h)) (not (ord v u u))
     : [%v: int list])
 
 let[@library] leaf =

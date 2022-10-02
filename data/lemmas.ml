@@ -15,6 +15,12 @@ let il4 (l : [%forall: int list]) (u : [%exists: int]) =
 let il5 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
   implies (hd l u && hd l w) (u == w)
 
+let il6 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (ord l u w) (mem l u && mem l w)
+
+let il7 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (mem l u && mem l w && u != w) (ord l u w || ord l w u)
+
 (* int tree *)
 let it1 (l : [%forall: int tree]) (u : [%forall: int]) =
   implies (empty l) (not (mem l u))

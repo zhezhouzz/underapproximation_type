@@ -1,13 +1,12 @@
-let[@library] nil = (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
+let[@library] nil = (empty v : [%v: int list])
 
 let[@library] cons =
   let l =
-    (fun (u : [%forall: int]) -> implies (mem v u) (hd v u) && not (empty v)
+    (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
       : [%v: int list])
   in
   ( h (fun (u : [%forall: int]) -> iff (hd l u) (v == u) : [%v: int]),
-    t (fun (u : [%forall: int]) -> implies (mem v u) (mem l u) : [%v: int list])
-  )
+    t (empty v : [%v: int list]) )
 
 let[@library] leaf =
   (fun (u : [%forall: int]) -> not (mem v u) : [%v: int tree])

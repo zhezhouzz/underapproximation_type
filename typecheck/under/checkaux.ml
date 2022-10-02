@@ -114,3 +114,34 @@ let merge_case_tys tys =
 (*         @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody; *)
 (*     } *)
 (* in *)
+module Typectx = Languages.UnderTypectx
+module Nctx = Simpletypectx.UTSimpleTypectx
+open Abstraction
+
+type uctx = { ctx : Typectx.t; nctx : Nctx.t; libctx : Typectx.t }
+
+let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
+  let ty =
+    try Typectx.get_ty uctx.ctx id.x
+    with _ -> (
+      try Typectx.get_ty uctx.libctx id.x
+      with _ -> Prim.get_primitive_under_ty (id.x, snd id.ty))
+  in
+  erase_check_mk_id __FILE__ __LINE__ id ty
+
+let id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
+    NL.id UL.typed =
+  let id = id_type_infer uctx id in
+  let () = subtyping_check __FILE__ __LINE__ uctx.ctx id.UL.ty ty in
+  id
+
+let lit_type_infer (uctx : uctx) (lit : NL.smt_lit NL.typed) :
+    UL.smt_lit UL.typed =
+  let open NL in
+  let open UT in
+  match lit.x with
+  | ConstI n -> { ty = make_basic_from_const_int n; x = ConstI n }
+  | ConstB b -> { ty = make_basic_from_const_bool b; x = ConstB b }
+  | Var id ->
+      UL.(typed_map (fun x -> Var x))
+      @@ id_type_infer uctx { ty = lit.ty; x = id }
