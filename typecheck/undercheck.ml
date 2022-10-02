@@ -163,8 +163,8 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
         (* let () = erase_check __FILE__ __LINE__ (arg.ty, (arg.x, argnty)) in *)
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
-    | arg :: args, UnderTy_arrow { argname; retty; _ } ->
-        (* let () = subtyping_check __FILE__ __LINE__ uctx.ctx arg.ty argty in *)
+    | arg :: args, UnderTy_arrow { argname; retty; argty } ->
+        let () = subtyping_check __FILE__ __LINE__ uctx.ctx arg.ty argty in
         let retty = subst_id retty argname arg.x in
         aux (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -374,6 +374,11 @@ let struc_check l notations libs r =
             (spf "The source code of given refinement type '%s' is missing."
                name')
       | Some { body; _ } -> (
+          let _ =
+            Dependentcheck.dependent_check
+              (List.map fst notations @ List.map fst libs)
+              body
+          in
           let () = Pp.printf "@{<bold>TY:@} %s\n" (UT.pretty_layout ty) in
           let nctx =
             Nctx.(

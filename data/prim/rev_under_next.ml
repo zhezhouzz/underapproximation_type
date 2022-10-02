@@ -3,11 +3,11 @@ let[@library] nil = (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])
 let[@library] cons =
   let l =
     (fun (u : [%forall: int]) (w : [%forall: int]) ->
-       implies (ord v u w) (u <= w) && not (empty v)
+       implies (next v u w) (u <= w)
       : [%v: int list])
   in
-  ( h (fun (u : [%forall: int]) -> iff (hd l u) (v == u) : [%v: int]),
-    t
+  ( t
       (fun (u : [%forall: int]) (w : [%forall: int]) ->
-         implies (ord v u w) (u <= w) && implies (hd l u && hd v w) (u <= w)
-        : [%v: int list]) )
+         implies (next v u w) (u <= w)
+        : [%v: int list]),
+    h (fun (u : [%forall: int]) -> implies (mem t u) (v <= u) : [%v: int]) )

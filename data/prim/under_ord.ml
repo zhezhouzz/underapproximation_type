@@ -44,9 +44,11 @@ let[@library] cons =
   let (h : [%poly: int]) = () in
   let t =
     (fun (u : [%forall: int]) (w : [%forall: int]) ->
-       implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
+       implies (ord v u w) (u <= w) && not (empty v)
       : [%v: int list])
   in
   (fun (u : [%forall: int]) (w : [%forall: int]) ->
-     iff (hd v u) (h == u) && implies (ord v u w) (u <= w)
+     iff (hd v u) (h == u)
+     && implies (ord v u w && not (hd v u)) (u <= w)
+     && implies (mem t u) (ord v h u)
     : [%v: int list])

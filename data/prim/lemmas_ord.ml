@@ -17,3 +17,6 @@ let il5 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
 
 let il6 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
   iff (ord l u w || ord l w u) (mem l u && mem l w)
+
+(* let il7 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) = *)
+(*   implies (hd l u && mem l w && not (u == w)) (ord l u w) *)

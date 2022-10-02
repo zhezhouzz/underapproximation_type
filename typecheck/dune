@@ -16,5 +16,6 @@
    undercheck
    undertycheck
    overtycheck
+   dependentcheck
    ; well_found
  ))
