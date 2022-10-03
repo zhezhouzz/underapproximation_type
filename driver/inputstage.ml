@@ -7,7 +7,7 @@ let load_ssa libs source_file =
   let ctx =
     NSimpleTypectx.(
       List.fold_left
-        ~f:(fun ctx (x, ty) -> add_to_right ctx (UT.erase ty, x))
+        ~f:(fun ctx (x, ty) -> add_to_right ctx (x, UT.erase ty))
         ~init:empty libs)
   in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in

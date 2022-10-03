@@ -1,3 +1,3 @@
 let abs =
-  let x = (v : int) (v > 0) in
-  (v : int) (v > 0)
+  let x = (v > 0 : [%v: int]) in
+  (v > 0 : [%v: int])

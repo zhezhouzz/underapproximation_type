@@ -24,7 +24,7 @@ let produce_raw_ids (ctx : ctx) ids =
     (fun ctx (id, tt) ->
       match StrMap.find_opt ctx id with
       | None ->
-          let () = Printf.printf "@{<bold>Produce:@} %s\n" id in
+          (* let () = Printf.printf "@{<bold>Produce:@} %s\n" id in *)
           StrMap.add id tt ctx
       | Some _ ->
           _failatwith __FILE__ __LINE__

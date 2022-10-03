@@ -70,6 +70,7 @@ let erase_check_mk_id file line id underfty =
 (* UL.{ ty = underfty; x = id.x } *)
 
 let subtyping_check = Undersub.subtyping_check
+let subtyping_check_bool = Undersub.subtyping_check_bool
 
 let term_subtyping_check file line ctx UL.{ x; ty } t2 =
   let () = Undersub.subtyping_check file line ctx ty t2 in
@@ -84,11 +85,6 @@ let merge_case_tys tys =
   (*     (fun i ty -> *)
   (*       Pp.printf "@{<bold>Case(%i) ty@}: %s\n" i @@ UT.pretty_layout ty) *)
   (*     tys *)
-  (* in *)
-  (* let () = *)
-  (*   Pp.printf "@{<bold>Compare@}\n"; *)
-  (*   Frontend.Typectx.pretty_print ctx; *)
-  (*   Frontend.Typectx.pretty_print true_branch_ctx *)
   (* in *)
   let ty = UT.disjunct_list tys in
   (* let () = *)
@@ -118,14 +114,16 @@ module Typectx = Languages.UnderTypectx
 module Nctx = Simpletypectx.UTSimpleTypectx
 open Abstraction
 
-type uctx = { ctx : Typectx.t; nctx : Nctx.t; libctx : Typectx.t }
+type uctx = { ctx : Nctx.t; nctx : Nctx.t; libctx : Typectx.t }
 
 let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
   let ty =
-    try Typectx.get_ty uctx.ctx id.x
+    try Nctx.get_ty uctx.ctx id.x
     with _ -> (
-      try Typectx.get_ty uctx.libctx id.x
-      with _ -> Prim.get_primitive_under_ty (id.x, snd id.ty))
+      try Nctx.get_ty uctx.libctx id.x
+      with _ ->
+        let ty = Prim.get_primitive_under_ty (id.x, snd id.ty) in
+        ty)
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
@@ -133,7 +131,7 @@ let id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
     NL.id UL.typed =
   let id = id_type_infer uctx id in
   let () = subtyping_check __FILE__ __LINE__ uctx.ctx id.UL.ty ty in
-  id
+  UL.{ x = id.x; ty }
 
 let lit_type_infer (uctx : uctx) (lit : NL.smt_lit NL.typed) :
     UL.smt_lit UL.typed =

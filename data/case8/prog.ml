@@ -1,1 +1,1 @@
-let foo (x : int) = []
+let foo (x : int) : int list = []

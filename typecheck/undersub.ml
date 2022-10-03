@@ -25,93 +25,6 @@ let _assume_basety file line (x, ty) =
 
 let typed_to_smttyped = Languages.Ntyped.to_smttyped
 
-type mode = InIn | InNotin | NotinIn | NotinNotin
-
-let core ctx nu ((eqvs1, uprop1), prop2) =
-  let open P in
-  let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
-  let rec aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) =
-    match Typectx.destrct_right ctx with
-    | None ->
-        let _ =
-          Printf.printf "%s, %s\n"
-            (List.split_by_comma (fun x -> x.x) eqvs2)
-            (Autov.pretty_layout_prop uprop2)
-        in
-        let eqvs1' = List.map (fun x -> Ntyped.map Rename.unique x) eqvs1 in
-        let uprop1' = P.rename_prop uprop1 (List.combine eqvs1 eqvs1') in
-        let uprop1' = P.peval uprop1' in
-        let uprop2 = P.peval uprop2 in
-
-        (nu :: eqvs2, eqvs1', uprop2, uprop1')
-    | Some (ctx, (x, xty)) ->
-        let xty = UT.conjunct_list xty in
-        let eqvs1, uprop1 =
-          let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-          conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
-        in
-        let eqvs2, uprop2 =
-          if check_in x uprop2 then
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs2, uprop2)
-          else (eqvs2, uprop2)
-        in
-        (* let update (eqvs, uprop) = *)
-        (*   if check_in x uprop then *)
-        (*     let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-        (*     conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs, uprop) *)
-        (*   else (eqvs, uprop) *)
-        (* in *)
-        (* aux ctx (update (eqvs1, uprop1), update (eqvs2, uprop2)) *)
-        aux ctx ((eqvs1, uprop1), (eqvs2, uprop2))
-    (* let in1, in2 = (check_in x uprop1, check_in x uprop2) in *)
-    (* match (in1, in2) with *)
-    (* | false, false -> aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) *)
-    (* | true, false -> *)
-    (*     let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (*     let eqvs1, prop1 = *)
-    (*       conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1) *)
-    (*     in *)
-    (*     aux ctx ((eqvs1, prop1), (eqvs2, uprop2)) *)
-    (* | _, true -> *)
-    (*     let x, _ = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (*     aux ctx ((eqvs1 [ x ], uprop1), (eqvs2 @ [ x ], uprop2)) *)
-    (* let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (* aux ctx ((x :: uqvs, xprop :: upre), (eqvs1, uprop1), (uqvs2, prop2)) *)
-  in
-  let eqvs2, uprop2 = assume_tope_uprop __FILE__ __LINE__ prop2 in
-  let _ = Printf.printf "%s\n" (Autov.pretty_layout_prop prop2) in
-  let _ = Printf.printf "%s\n" (Autov.pretty_layout_prop uprop2) in
-  aux ctx ((eqvs1, uprop1), (eqvs2, uprop2))
-
-let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
-  (* let () = Pp.printf "%s\n" (Autov.pretty_layout_prop prop1) in *)
-  let eq1, prop1 = P.assume_tope_uprop __FILE__ __LINE__ prop1 in
-  (* let uq2, prop2 = P.assume_tope_uprop __FILE__ __LINE__ prop2 in *)
-  let final_uqvs, final_eqvs, final_pre, final_post =
-    core ctx nu ((eq1, prop1), prop2)
-  in
-  let () =
-    Typectx.pretty_print_q
-      (List.map (fun x -> x.x) final_uqvs)
-      (List.map (fun x -> x.x) final_eqvs)
-      final_pre final_post
-  in
-  let pres, uqvs, q =
-    with_lemma_to_query (Prim.lemmas_to_pres ())
-      (final_uqvs, final_eqvs, final_pre, final_post)
-  in
-  match
-    List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)
-  with
-  | [] -> (pres, q)
-  | fv ->
-      let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
-      let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
-      let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
-      _failatwith __FILE__ __LINE__
-        (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
-
 let to_query (nu, prop1, prop2) =
   (* let () = *)
   (*   Typectx.pretty_print_q *)
@@ -191,7 +104,7 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
           else (name1, prop1, P.subst_id prop2 name2 name1)
         in
         let nu = { ty = nt; x = typeself } in
-        let prop1' = Typectx.close_prop ctx1 prop1 in
+        let prop1' = Typectx.close_prop_drop_independt ctx1 prop1 in
         (* let _ = *)
         (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
         (*     (Autov.pretty_layout_prop prop1') *)
@@ -215,7 +128,10 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
           | (_, ty1) :: ts1, (name2, ty2) :: ts2 ->
               let () = aux ctx1 ctx2 (ty1, ty2) in
               (* let ctx1 = Typectx.add_to_right ctx1 { x = name1; ty = ty1 } in *)
-              let ctx2 = Typectx.add_to_right ctx2 { x = name2; ty = ty2 } in
+              let ctx2 =
+                Typectx.force_add_to_right ctx2 { x = name2; ty = ty2 }
+              in
+
               let () = Typectx.pretty_print ctx2 in
               loop ctx1 ctx2 (ts1, ts2)
           | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -224,10 +140,24 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
     | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
         UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
         let () = aux ctx1 ctx2 (t21, t11) in
-        let ctx1 = Typectx.add_to_right ctx1 { x = x1; ty = t11 } in
-        let ctx2 = Typectx.add_to_right ctx2 { x = x2; ty = t21 } in
+        let ctx1 = Typectx.force_add_to_right ctx1 { x = x1; ty = t11 } in
+        let ctx2 = Typectx.force_add_to_right ctx2 { x = x2; ty = t21 } in
         let () = aux ctx1 ctx2 (t12, t22) in
         ()
     | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
   in
   aux ctx ctx (inferred_ty, target_ty)
+
+let subtyping_check_bool file line (ctx : Typectx.t) (inferred_ty : UT.t)
+    (target_ty : UT.t) =
+  try
+    let _ = subtyping_check file line ctx inferred_ty target_ty in
+    true
+  with
+  | Autov.FailWithModel (msg, _) ->
+      let () = Pp.printf "@{<orange>Type Check failed:@}%s\n" msg in
+      false
+  | Autov.SMTTIMEOUT ->
+      let () = Pp.printf "@{<orange>Type Check failed:@}%s\n" "timeout" in
+      false
+  | e -> raise e

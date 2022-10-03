@@ -1,4 +1,4 @@
-let abs (x : int) =
+let abs (x : int) : int =
   let (b : bool) = x == 0 in
   if b then 0
   else

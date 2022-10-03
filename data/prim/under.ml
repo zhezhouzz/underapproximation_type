@@ -47,23 +47,14 @@ let[@library] cons =
      hd v h && implies (not (u == h)) (not (ord v u u))
     : [%v: int list])
 
-let[@library] leaf =
-  (fun (u : [%forall: int]) -> not (mem v u) : [%v: int tree])
+let[@library] leaf = (empty v : [%v: int tree])
 
 let[@library] node =
   let (root : [%poly: int]) = () in
-  let left =
-    (fun (u : [%forall: int]) ->
-       implies (hd v u) (u == root) && implies (mem v u) (u == root)
-      : [%v: int tree])
-  in
-  let right =
-    (fun (u : [%forall: int]) ->
-       implies (hd v u) (u == root) && implies (mem v u) (u == root)
-      : [%v: int tree])
-  in
+  let left = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int tree]) in
+  let right = (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int tree]) in
   (fun (u : [%forall: int]) ->
-     iff (hd v u) (u == root) && implies (mem v u) (u == root)
+     hd v root && implies (not (u == root)) (not (ord v u u))
     : [%v: int tree])
 
 (* leftisthp *)

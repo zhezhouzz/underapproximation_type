@@ -13,7 +13,6 @@ let subtyping_to_query (ctx : Typectx.t) typeself (prop1, prop2) =
   let ctx =
     Typectx.filter_map
       (fun (x, ty) ->
-        let ty = OT.conjunct_list ty in
         OT.(
           match ty with
           | OverTy_base { basename; prop; _ } ->
@@ -39,7 +38,7 @@ let subtyping_to_query (ctx : Typectx.t) typeself (prop1, prop2) =
 let subtyping_check (ctx : Typectx.t) (t1 : OT.t) (t2 : OT.t) =
   let open OT in
   let rec aux ctx (t1, t2) =
-    let () = Printf.printf "Subtype: \n%s\n" @@ layout_subtyping ctx (t1, t2) in
+    (* let () = Printf.printf "Subtype: \n%s\n" @@ layout_subtyping ctx (t1, t2) in *)
     match (t1, t2) with
     | ( OverTy_base { basename = name1; prop = prop1; _ },
         OverTy_base { basename = name2; prop = prop2; _ } ) -> (

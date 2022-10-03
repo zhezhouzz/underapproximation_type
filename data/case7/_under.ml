@@ -1,9 +1,9 @@
+(* Should fail *)
+
 let foo =
   let l = (true : [%v: int list]) in
   (fun (u : [%forall: int]) -> (not (empty v)) && implies (mem v u) (hd l u)
     : [%v: int list])
-
-(* Should fail *)
 
 (* let foo = *)
 (*   let l = (true : [%v: int list]) in *)

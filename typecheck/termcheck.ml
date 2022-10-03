@@ -113,7 +113,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
       { ty = Some ty; x = Tu es }
   | Lam (idty, id, body), Ty_arrow (t1, t2) ->
       let idty = (fst idty, _type_unify __FILE__ __LINE__ (snd idty) t1) in
-      let ctx' = Typectx.add_to_right ctx (snd idty, id) in
+      let ctx' = Typectx.add_to_right ctx (id, snd idty) in
       let body = bidirect_type_check ctx' body (None, t2) in
       { ty = Some ty; x = Lam (idty, id, body) }
   | App (f, args), ty ->
@@ -166,12 +166,13 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
       let rhs = bidirect_type_check ctx rhs rhsty in
       let ctx' =
         List.fold_left Typectx.add_to_right ctx
-          (List.map (fun ((_, ty), id) -> (ty, id)) args)
+          (List.map (fun ((_, ty), id) -> (id, ty)) args)
       in
+      (* TODO: why here is a f? *)
       let ctx' =
         if if_rec then
           Typectx.add_to_right ctx
-            (construct_arrow_tp (List.map snd xsty, snd ty), "f")
+            ("f", construct_arrow_tp (List.map snd xsty, snd ty))
         else ctx'
       in
       let body = bidirect_type_check ctx' body ty in
@@ -209,7 +210,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
         (*     (List.split_by_comma layout argsty) *)
         (* in *)
         let ctx' =
-          List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
+          List.fold_left Typectx.add_to_right ctx (List.combine args argsty)
         in
         let exp = bidirect_type_check ctx' exp ty in
         let case = { constructor; args; exp } in
@@ -245,7 +246,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let ty = Ty_tuple esty in
       ({ ty = Some (None, ty); x = Tu es }, ty)
   | Lam (idty, id, body) ->
-      let ctx' = Typectx.add_to_right ctx (snd idty, id) in
+      let ctx' = Typectx.add_to_right ctx (id, snd idty) in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = Ty_arrow (snd idty, bodyty) in
       ({ ty = Some (None, ty); x = Lam (idty, id, body) }, ty)
@@ -307,7 +308,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let rhs = bidirect_type_check ctx rhs rhsty in
       let ctx' =
         List.fold_left Typectx.add_to_right ctx
-          (List.map (fun ((_, ty), id) -> (ty, id)) args)
+          (List.map (fun ((_, ty), id) -> (id, ty)) args)
       in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = bodyty in
@@ -341,7 +342,7 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
           }
         in
         let ctx' =
-          List.fold_left Typectx.add_to_right ctx (List.combine argsty args)
+          List.fold_left Typectx.add_to_right ctx (List.combine args argsty)
         in
         let exp, expty = bidirect_type_infer ctx' exp in
         let case = { constructor; args; exp } in
@@ -376,14 +377,14 @@ let struc_check ctx l =
         | _ -> ( match e.ty with None -> None | Some (_, t) -> Some t)
       in
       match (if_rec, get_fty body) with
-      | false, _ -> { if_rec; name; body = check ctx body }
-      | true, None ->
+      | _, None ->
           _failatwith __FILE__ __LINE__
-            "cannot infer ret type of recursive function"
+            "require the return type of the function"
+      | false, _ -> { if_rec; name; body = check ctx body }
       | true, Some ty ->
           let body =
             bidirect_type_check
-              Typectx.(add_to_right ctx (ty, name))
+              Typectx.(add_to_right ctx (name, ty))
               body (None, ty)
           in
           { if_rec; name; body })

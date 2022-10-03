@@ -113,12 +113,12 @@ and value_type_check (ctx : Typectx.t) (a : NL.value NL.typed) (ty : OT.t) :
   | NL.Lam (id, body), OT.(OverTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = OT.subst_id retty argname id.x in
-      let ctx' = Typectx.add_to_right ctx (argty, id.x) in
+      let ctx' = Typectx.add_to_right ctx (id.x, argty) in
       let body = term_type_check ctx' body retty in
       { ty; x = Lam ({ ty = argty; x = id.x }, body) }
   | NL.Fix (f, body), ty ->
       let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
-      let ctx' = Typectx.add_to_right ctx (ty, f.x) in
+      let ctx' = Typectx.add_to_right ctx (f.x, ty) in
       let body = value_type_check ctx' body ty in
       { ty; x = Fix ({ ty; x = f.x }, body) }
   | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -129,7 +129,7 @@ and handle_lettu ctx (tu, args, body) self =
   let tuty = OT.OverTy_tuple (List.map (fun x -> x.ty) args) in
   let tu = erase_check_mk_id __FILE__ __LINE__ tu tuty in
   let tu = { x = tu.x; ty = tuty } in
-  let ctx' = Typectx.add_to_right ctx (tu.ty, tu.x) in
+  let ctx' = Typectx.add_to_right ctx (tu.x, tu.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
@@ -152,7 +152,7 @@ and handle_letdetu ctx (tu, args, body) self =
   let ctx' =
     List.fold_left
       (fun ctx' id ->
-        let ctx' = Typectx.add_to_right ctx' (id.ty, id.x) in
+        let ctx' = Typectx.add_to_right ctx' (id.x, id.ty) in
         ctx')
       ctx args
   in
@@ -173,7 +173,7 @@ and handle_letapp ctx (ret, fty, args, body) self =
     List.fold_left
       (fun ctx (arg, (ty, id)) ->
         let () = Oversub.subtyping_check ctx arg.ty ty in
-        let ctx' = Typectx.add_to_right ctx (ty, id) in
+        let ctx' = Typectx.add_to_right ctx (id, ty) in
         ctx')
       ctx
     @@ List.combine args argsty
@@ -187,7 +187,7 @@ and handle_letapp ctx (ret, fty, args, body) self =
       x = ret.x;
     }
   in
-  let ctx' = Typectx.add_to_right ctx (ret.ty, ret.x) in
+  let ctx' = Typectx.add_to_right ctx (ret.x, ret.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   (OT.forall_quantify_variable_in_ty ret.x ret.ty body.ty, (ret, args, body))
@@ -196,7 +196,7 @@ and handle_letval ctx (lhs, rhs, body) self =
   let open OL in
   let rhs = value_type_infer ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let ctx' = Typectx.add_to_right ctx (lhs.ty, lhs.x) in
+  let ctx' = Typectx.add_to_right ctx (lhs.x, lhs.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
@@ -239,7 +239,7 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
 
 and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
     OL.term OL.typed =
-  let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
+  (* let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in *)
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let self ctx e = term_type_check ctx e ty in
   let open NL in
@@ -275,11 +275,11 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
       in
       let true_branch_ctx =
         Typectx.add_to_right ctx
-          (OT.base_type_add_conjunction true_branch_prop cond.ty, cond.x)
+          (cond.x, OT.base_type_add_conjunction true_branch_prop cond.ty)
       in
       let false_branch_ctx =
         Typectx.add_to_right ctx
-          (OT.base_type_add_conjunction false_branch_prop cond.ty, cond.x)
+          (cond.x, OT.base_type_add_conjunction false_branch_prop cond.ty)
       in
       let e_t = term_type_check true_branch_ctx e_t ty in
       let e_f = term_type_check false_branch_ctx e_f ty in
@@ -303,8 +303,9 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
             | _ -> _failatwith __FILE__ __LINE__ "bad constructor type")
         in
         let ctx' =
-          Typectx.add_to_rights ctx @@ args
-          @ [ (OT.base_type_add_conjunction retty_prop matched.ty, matched.x) ]
+          Typectx.add_to_rights ctx
+          @@ List.map (fun (a, b) -> (b, a)) args
+          @ [ (matched.x, OT.base_type_add_conjunction retty_prop matched.ty) ]
         in
         let exp = term_type_check ctx' exp ty in
         OL.{ constructor; args = List.map snd args; exp }

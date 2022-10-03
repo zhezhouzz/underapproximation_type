@@ -134,7 +134,7 @@ let rec_post_shrink infer_ctx uctx (f, prog) uty =
               {
                 uctx with
                 libctx =
-                  Typectx.add_to_right uctx.libctx
+                  Typectx.force_add_to_right uctx.libctx
                     UL.{ x = f.NL.x; ty = uty_in_ctx };
               }
               prog uty')
@@ -173,7 +173,8 @@ let rec_post_shrink_v2 infer_ctx uctx (f, prog) uty =
               {
                 uctx with
                 libctx =
-                  Typectx.add_to_right uctx.libctx UL.{ x = f.NL.x; ty = uty' };
+                  Typectx.force_add_to_right uctx.libctx
+                    UL.{ x = f.NL.x; ty = uty' };
               }
               prog uty')
         in
@@ -236,12 +237,12 @@ let struc_post_shrink infer_ctx_file l notations libs (r : (string * UT.t) list)
           let nctx =
             Nctx.(
               List.fold_left
-                (fun ctx (name, ty) -> add_to_right ctx (ty, name))
+                (fun ctx (name, ty) -> add_to_right ctx (name, ty))
                 empty notations)
           in
           let libctx =
             List.fold_left
-              (fun ctx (x, ty) -> Typectx.add_to_right ctx { x; ty })
+              (fun ctx (x, ty) -> Typectx.force_add_to_right ctx { x; ty })
               Typectx.empty libs
           in
           let ctx = Typectx.empty in

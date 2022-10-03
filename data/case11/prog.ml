@@ -1,4 +1,4 @@
-let rec merge (l1 : int list) (l2 : int list) =
+let rec merge (l1 : int list) (l2 : int list) : int list =
   match l1 with
   | [] -> l2
   | hd1 :: tl1 -> (

@@ -192,21 +192,40 @@ module UT = struct
 end
 
 module UnderTypectx = struct
-  include Frontend.Utypectx
-  include UnderTypectx
+  include Frontend.Typectx
+  include UTSimpleTypectx
   open UT
   open Ntyped
   open Sugar
 
-  let update ctx (name, tys) =
+  let update ctx (name, f) =
     let rec aux res = function
       | [] -> _failatwith __FILE__ __LINE__ ""
-      | (name', tys') :: rest ->
-          if String.equal name name' then res @ ((name', tys) :: rest)
-          else aux (res @ [ (name', tys') ]) rest
+      | (name', ty) :: rest ->
+          if String.equal name name' then res @ ((name', f ty) :: rest)
+          else aux (res @ [ (name', ty) ]) rest
     in
     aux [] ctx
 
+  let force_add_to_right ctx id = add_to_right ctx (id.UL.x, id.ty)
+
+  let force_add_to_rights ctx ids =
+    List.fold_left (fun ctx id -> force_add_to_right ctx id) ctx ids
+
+  let add_to_right reachability_check ctx id =
+    if reachability_check ctx id.UL.ty then
+      Some (add_to_right ctx (id.UL.x, id.ty))
+    else None
+
+  let add_to_rights reachability_check ctx ids =
+    List.fold_left
+      (fun ctx id ->
+        match ctx with
+        | None -> None
+        | Some ctx -> add_to_right reachability_check ctx id)
+      (Some ctx) ids
+
+  (* Assume everything in the type context is not bot *)
   let close_by_diff ctx ctx' uty =
     let diff = subtract ctx ctx' in
     (* let () = *)
@@ -218,9 +237,8 @@ module UnderTypectx = struct
     (*     diff *)
     (* in *)
     List.fold_right
-      (fun (ifq, (x, tys)) uty ->
-        if List.exists (String.equal x) (fv uty) || not ifq then
-          add_ex_uprop ifq x (conjunct_list tys) uty
+      (fun (x, ty) uty ->
+        if List.exists (String.equal x) (fv uty) then add_ex_uprop true x ty uty
         else uty)
       diff uty
 
@@ -241,7 +259,7 @@ module UnderTypectx = struct
       match destrct_right ctx with
       | None -> prop
       | Some (ctx, (x, xty)) ->
-          let xty = conjunct_list xty in
+          (* let xty = conjunct_list xty in *)
           (* NOTE: the lambda type always indicates values, thus are reachable *)
           if is_base_type xty then
             let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in

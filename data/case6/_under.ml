@@ -1,7 +1,12 @@
-(* let tail = *)
-(*   let x = (v : int) true in *)
-(*   let l = (v : int list) true in *)
-(*   (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == x)) *)
+let tail =
+  let x = (true : [%v: int]) in
+  let l = (true : [%v: int list]) in
+  (empty v : [%v: int list])
+
+let tail =
+  let x = (true : [%v: int]) in
+  let l = (true : [%v: int list]) in
+  (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list])
 
 (* let tail = *)
 (*   let x = (v : int) true in *)
@@ -43,12 +48,12 @@
 (*   let l = (v : int list) true in *)
 (*   (v : int list) (mem v x) *)
 
-let tail =
-  let x = (v : int) true in
-  let l =
-    (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == x))
-  in
-  (v : int list) (fun (u : [%forall: int]) -> mem v x)
+(* let tail = *)
+(*   let x = (v : int) true in *)
+(*   let l = *)
+(*     (v : int list) (fun (u : [%forall: int]) -> implies (mem v u) (u == x)) *)
+(*   in *)
+(*   (v : int list) (fun (u : [%forall: int]) -> mem v x) *)
 
 (* let tail = *)
 (*   let x = (v : int) true in *)

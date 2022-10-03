@@ -5,24 +5,44 @@ let[@library] cons =
     (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
       : [%v: int list])
   in
-  ( h (fun (u : [%forall: int]) -> iff (hd l u) (v == u) : [%v: int]),
-    t (empty v : [%v: int list]) )
+  (h (hd l v : [%v: int]), t (empty v : [%v: int list]))
 
-let[@library] leaf =
-  (fun (u : [%forall: int]) -> not (mem v u) : [%v: int tree])
+let[@library] cons =
+  let l =
+    (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
+      : [%v: int list])
+  in
+  ( h (false : [%v: int]),
+    t (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int list]) )
+
+let[@library] leaf = (empty v : [%v: int tree])
 
 let[@library] node =
   let tree =
-    (fun (u : [%forall: int]) -> implies (mem v u) (hd v u) && not (empty v)
+    (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
       : [%v: int tree])
   in
-  ( root (fun (u : [%forall: int]) -> iff (hd tree v) (v == u) : [%v: int]),
-    left
-      (fun (u : [%forall: int]) -> implies (mem v u) (hd tree u)
-        : [%v: int tree]),
-    right
-      (fun (u : [%forall: int]) -> implies (mem v u) (hd tree u)
-        : [%v: int tree]) )
+  ( root (hd tree v : [%v: int]),
+    left (empty v : [%v: int tree]),
+    right (empty v : [%v: int tree]) )
+
+let[@library] node =
+  let tree =
+    (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
+      : [%v: int tree])
+  in
+  ( root (false : [%v: int]),
+    left (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int tree]),
+    right (empty v : [%v: int tree]) )
+
+let[@library] node =
+  let tree =
+    (fun (u : [%forall: int]) -> (not (ord v u u)) && not (empty v)
+      : [%v: int tree])
+  in
+  ( root (false : [%v: int]),
+    left (empty v : [%v: int tree]),
+    right (fun (u : [%forall: int]) -> not (ord v u u) : [%v: int tree]) )
 
 (* leftisthp *)
 

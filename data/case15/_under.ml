@@ -1,5 +1,5 @@
-let[@notation] t_y = (v : int) (v > 0)
+let[@notation] t_y = (v > 0 : [%v: int])
 
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v > 1)
+  let x = (v > 0 : [%v: int]) in
+  (v > 1 : [%v: int])
