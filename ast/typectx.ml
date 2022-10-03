@@ -97,7 +97,7 @@ module F (R : Refinement.T) = struct
   (*   try match subtract ctx ctx' with [] -> true | _ -> false with _ -> false *)
 end
 
-module UnderTypectx = struct
+module MultiUnderTypectx = struct
   include F (Underty.T)
 
   (* open Underty.T *)

@@ -110,8 +110,9 @@ let merge_case_tys tys =
 (*         @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody; *)
 (*     } *)
 (* in *)
+(* module MultiTypectx = Languages.MultiUnderTypectx *)
+module Nctx = Languages.UTSimpleTypectx
 module Typectx = Languages.UnderTypectx
-module Nctx = Simpletypectx.UTSimpleTypectx
 open Abstraction
 
 type uctx = { ctx : Nctx.t; nctx : Nctx.t; libctx : Typectx.t }
@@ -120,7 +121,18 @@ let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
   let ty =
     try Nctx.get_ty uctx.ctx id.x
     with _ -> (
-      try Nctx.get_ty uctx.libctx id.x
+      try Typectx.get_ty uctx.libctx id.x
+      with _ ->
+        let ty = Prim.get_primitive_under_ty (id.x, snd id.ty) in
+        ty)
+  in
+  erase_check_mk_id __FILE__ __LINE__ id ty
+
+let id_multitype_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
+  let ty =
+    try Nctx.get_ty uctx.ctx id.x
+    with _ -> (
+      try Typectx.get_ty uctx.libctx id.x
       with _ ->
         let ty = Prim.get_primitive_under_ty (id.x, snd id.ty) in
         ty)
