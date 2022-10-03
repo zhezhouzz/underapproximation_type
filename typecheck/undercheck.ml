@@ -348,6 +348,13 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
           handle_letapp uctx (ret, f.ty, args, body) None
         in
         { ty; x = LetApp { ret; f; args; body } }
+    | LetDtConstructor { ret; f; args; body } ->
+        let fnty = recover_dt_constructor_ty (ret, args) in
+        let fty = Prim.get_primitive_under_ty (f, snd fnty) in
+        let ty, (ret, args, body) =
+          handle_letapp uctx (ret, fty, args, body) None
+        in
+        { ty; x = LetDtConstructor { ret; f; args; body } }
     | LetVal { lhs; rhs; body } -> handle_letval uctx (lhs, rhs, body) None
     | Ite { cond; e_t; e_f } -> handle_ite uctx (cond, e_t, e_f)
     | Match { matched; cases } -> handle_match uctx (matched, cases)
@@ -373,6 +380,13 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
         handle_letapp uctx (ret, f.ty, args, body) (Some ty)
       in
       { ty; x = LetApp { ret; f; args; body } }
+  | LetDtConstructor { ret; f; args; body }, _ ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_under_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp uctx (ret, fty, args, body) (Some ty)
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
   | LetOp { ret; op; args; body }, _ ->
       let opty =
         Prim.get_primitive_under_ty

@@ -5,6 +5,7 @@ module Type = NT
 module Typed = NNtyped
 open S
 open Sugar
+open Abstraction
 
 let get_tp e =
   match e.ty with
@@ -124,12 +125,24 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
   | App (e, es) ->
       convert
         (fun f ->
-          convert_multi
-            (fun args ->
-              let ret = { ty = ety; x = force_naming ename } in
-              let body = cont ret in
-              { ty = body.ty; x = LetApp { ret; f; args; body } })
-            es)
+          try
+            let _ = Prim.get_primitive_normal_ty f.x in
+            convert_multi
+              (fun args ->
+                let ret = { ty = ety; x = force_naming ename } in
+                let body = cont ret in
+                {
+                  ty = body.ty;
+                  x = LetDtConstructor { ret; f = f.x; args; body };
+                })
+              es
+          with _ ->
+            convert_multi
+              (fun args ->
+                let ret = { ty = ety; x = force_naming ename } in
+                let body = cont ret in
+                { ty = body.ty; x = LetApp { ret; f; args; body } })
+              es)
         e None
   | Let (false, lhs, rhs, body) -> (
       let body = convert cont body ename in
@@ -233,6 +246,16 @@ let to_term e =
               {
                 ty = Some ret.Typed.ty;
                 x = App (to_var f, List.map to_var args);
+              },
+              aux body )
+      | T.LetDtConstructor { ret; f; args; body } ->
+          let fty = T.recover_dt_constructor_ty (ret, args) in
+          Let
+            ( false,
+              [ to_tid ret ],
+              {
+                ty = Some ret.Typed.ty;
+                x = App (S.{ ty = Some fty; x = Var f }, List.map to_var args);
               },
               aux body )
       | T.LetOp { ret; op; args; body } ->

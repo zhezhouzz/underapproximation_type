@@ -42,10 +42,7 @@ let hide_depedent_var ctx name ty =
   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
 let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
-  let ty =
-    try Typectx.get_ty ctx id.x
-    with _ -> Prim.get_primitive_over_ty (id.x, snd id.ty)
-  in
+  let ty = Typectx.get_ty ctx id.x in
   let ty =
     OT.(
       match ty with
@@ -232,6 +229,13 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
         handle_letapp ctx (ret, f.ty, args, body) term_type_infer
       in
       { ty; x = LetApp { ret; f; args; body } }
+  | LetDtConstructor { ret; f; args; body } ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_over_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, fty, args, body) term_type_infer
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
   | LetVal { lhs; rhs; body } ->
       handle_letval ctx (lhs, rhs, body) term_type_infer
   | Ite _ -> _failatwith __FILE__ __LINE__ "should not infer ite"
@@ -266,6 +270,13 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
         handle_letapp ctx (ret, f.ty, args, body) self
       in
       { ty; x = LetApp { ret; f; args; body } }
+  | LetDtConstructor { ret; f; args; body }, _ ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_over_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, fty, args, body) self
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
   | Ite { cond; e_t; e_f }, _ ->
       let cond = id_type_infer ctx cond in

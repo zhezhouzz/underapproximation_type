@@ -24,6 +24,12 @@ module F (Typed : Type.Typed) = struct
         args : id typed list;
         body : term typed;
       }
+    | LetDtConstructor of {
+        ret : id typed;
+        f : id;
+        args : id typed list;
+        body : term typed;
+      }
     | LetOp of {
         ret : id typed;
         op : Op.T.op;
@@ -87,6 +93,14 @@ module F (Typed : Type.Typed) = struct
             let body = if String.equal ret.x y then body else aux body in
             LetApp
               { ret; f = subst_tid f; args = List.map subst_tid args; body }
+        | LetDtConstructor { ret; f; args; body } ->
+            let body = if String.equal ret.x y then body else aux body in
+            if String.equal y f then
+              failwith
+                "the name is the same with the datatype constructor, should \
+                 not happen"
+            else
+              LetDtConstructor { ret; f; args = List.map subst_tid args; body }
         | LetOp { ret; op; args; body } ->
             (* let () = *)
             (*   Printf.printf "subst_op (%s) %s -> %s\n" *)
@@ -139,6 +153,8 @@ module F (Typed : Type.Typed) = struct
         | V _ -> e.x
         | LetApp { ret; f; args; body } ->
             LetApp { ret; f; args; body = aux body }
+        | LetDtConstructor { ret; f; args; body } ->
+            LetDtConstructor { ret; f; args; body = aux body }
         | LetOp { ret; op; args; body } ->
             LetOp { ret; op; args; body = aux body }
         | LetVal { lhs; rhs; body } -> LetVal { lhs; rhs; body = aux body }
@@ -157,6 +173,17 @@ module F (Typed : Type.Typed) = struct
     aux term
 end
 
-module NormalAnormal = F (Normalty.Ast.NNtyped)
+module NormalAnormal = struct
+  include F (Normalty.Ast.NNtyped)
+  open Normalty.Ast
+
+  let recover_dt_constructor_ty (ret, args) =
+    match args with
+    | [] -> ret.ty
+    | _ ->
+        let argsty = List.map (fun x -> snd @@ x.ty) args in
+        (None, T.construct_arrow_tp (argsty, snd @@ ret.ty))
+end
+
 module OverAnormal = F (Overty.Otyped)
 module UnderAnormal = F (Underty.Utyped)

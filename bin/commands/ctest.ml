@@ -213,6 +213,16 @@ let init =
         let () = Config.load_default () in
         ())
 
+let qcheck =
+  Command.basic ~summary:"init"
+    Command.Let_syntax.(
+      let%map_open num = anon ("num" %: int) in
+      fun () ->
+        let open Sugar in
+        let () = Printf.printf "QCheck\n" in
+        let () = Cgen.test num in
+        ())
+
 let test =
   Command.group ~summary:"test"
     [
@@ -226,6 +236,7 @@ let test =
       ("under-type-check", under_type_check);
       ("under-post-shrink", under_post_shrink);
       ("test-mk-features", test_mk_features);
+      ("qcheck", qcheck);
       ("init", init);
     ]
 

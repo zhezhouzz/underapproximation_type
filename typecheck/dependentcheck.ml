@@ -74,6 +74,10 @@ let rec term_dependent_check (ctx : ctx) (term : term typed) : ctx =
         let ctx = consume_ids ctx args in
         let ctx = produce_ids ctx [ ret ] in
         aux ctx body
+    | LetDtConstructor { ret; args; body; _ } ->
+        let ctx = consume_ids ctx args in
+        let ctx = produce_ids ctx [ ret ] in
+        aux ctx body
     | LetVal { lhs; rhs; body } ->
         let ctx' = value_dependent_check ctx rhs in
         let ctx = merge [ ctx; ctx' ] in

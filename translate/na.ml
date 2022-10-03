@@ -18,6 +18,8 @@ let remove_dummy_eq e =
           V v.x
       | LetApp { ret; f; args; body } ->
           LetApp { ret; f; args; body = aux body }
+      | LetDtConstructor { ret; f; args; body } ->
+          LetDtConstructor { ret; f; args; body = aux body }
       | LetOp { ret; op; args; body } ->
           LetOp { ret; op; args; body = aux body }
       | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }
@@ -62,6 +64,8 @@ let remove_dummy_let e =
           V v.x
       | LetApp { ret; f; args; body } ->
           LetApp { ret; f; args; body = aux body }
+      | LetDtConstructor { ret; f; args; body } ->
+          LetDtConstructor { ret; f; args; body = aux body }
       | LetOp { ret; op; args; body } ->
           LetOp { ret; op; args; body = aux body }
       | LetTu { tu; args; body } -> LetTu { tu; args; body = aux body }

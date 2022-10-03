@@ -128,6 +128,8 @@ module T = struct
     | UnderTy_tuple tys -> tys
     | _ -> _failatwith file line ""
 
+  (* let assume_arrow_destruct_ *)
+
   (* let mk_int_id name = P.{ ty = T.Int; x = name } *)
 
   let default_v_name = "v"

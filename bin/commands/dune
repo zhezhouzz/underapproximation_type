@@ -1,9 +1,10 @@
 (library
  (name commands)
- (libraries utils core core_unix.sys_unix ocaml_parser frontend translate typecheck env driver inference)
+ (libraries utils core core_unix.sys_unix ocaml_parser frontend translate typecheck env driver inference qcheck)
  (modules
    caux
    ctest
+   cgen
  )
  (preprocess (pps ppx_inline_test ppx_assert ppx_jane))
  (inline_tests)
