@@ -214,7 +214,7 @@ let get_inpout prog uty =
     | NL.(V (Fix (_, body))), _ -> aux NL.(V body.x) uty
     | _, UnderTy_base { basename; normalty; _ } ->
         ([], { x = basename; ty = normalty })
-    | NL.(V (Lam (arg, body))), UnderTy_arrow { argname; argty; retty } ->
+    | NL.(V (Lam (arg, _, body))), UnderTy_arrow { argname; argty; retty } ->
         let args, ret = aux body.NL.x retty in
         if is_base_type argty then
           let _, ty, _ = assume_base __FILE__ __LINE__ argty in
@@ -224,16 +224,24 @@ let get_inpout prog uty =
   in
   aux prog.NL.x uty
 
-let struc_post_shrink infer_ctx_file l notations libs (r : (string * UT.t) list)
-    =
+open Checkaux
+
+let struc_post_shrink infer_ctx_file l notations libs r =
   let open SNA in
   List.fold_lefti
-    (fun tab id ((name' : string), ty) ->
+    (fun tab id (info, ((name' : string), ty)) ->
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
       | Some { body; _ } ->
+          let () =
+            match info with
+            | None -> Pp.printf "@{<bold>No Inv:@}\n"
+            | Some (id, prop) ->
+                Pp.printf "@{<bold>Inv:@} %s = %s\n" id
+                  (Autov.pretty_layout_lit prop)
+          in
           let nctx =
             Nctx.(
               List.fold_left
@@ -248,6 +256,22 @@ let struc_post_shrink infer_ctx_file l notations libs (r : (string * UT.t) list)
           let ctx = Typectx.empty in
           let args, retv = get_inpout body ty in
           let infer_ctx = load infer_ctx_file args retv in
-          let uty = post_shrink infer_ctx { nctx; ctx; libctx } body ty in
+          let param_ctx = Param.empty in
+          let rec_info =
+            match (info, body.x) with
+            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
+                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | None, NL.(V (Fix (fix_name, _))) ->
+                failwith
+                  (spf "No ranking function for rec function %s" fix_name.x)
+            | Some (rank_lhs, _), _ ->
+                failwith (spf "Useless ranking function %s" rank_lhs)
+            | None, _ -> None
+          in
+          let uty =
+            post_shrink infer_ctx
+              { param_ctx; nctx; ctx; libctx; rec_info }
+              body ty
+          in
           tab @ [ (id, name', uty, Check_false.check infer_ctx uty) ])
     [] r

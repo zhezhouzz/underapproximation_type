@@ -109,8 +109,10 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
             let body = cont tu in
             { ty = body.ty; x = LetTu { tu; args; body } })
         es
-  | Lam (ty, x, body) ->
-      let rhs = { ty = ety; x = Lam ({ ty; x }, to_anormal body None) } in
+  | Lam (ty, x, rankfunc, body) ->
+      let rhs =
+        { ty = ety; x = Lam ({ ty; x }, rankfunc, to_anormal body None) }
+      in
       let lhs = { ty = ety; x = force_naming ename } in
       T.make_letval lhs.x rhs (cont lhs)
   (* NOTE: zero arguments applicaition is still need a name *)
@@ -223,7 +225,7 @@ let to_term e =
       match e.Typed.x with
       | T.Exn -> Exn
       | T.Lit lit -> aux_lit lit
-      | T.Lam (x, body) -> Lam (x.ty, x.x, aux body)
+      | T.Lam (x, rankfunc, body) -> Lam (x.ty, x.x, rankfunc, aux body)
       | T.Fix (_, body) -> (aux_value body).x
     in
     { ty = Some e.Typed.ty; x }

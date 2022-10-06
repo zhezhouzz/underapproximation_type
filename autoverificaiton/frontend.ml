@@ -404,6 +404,6 @@ let _pretty_layout s =
   in
   pretty_layout
 
-let pretty_layout = _pretty_layout psetting
+let pretty_layout = _pretty_layout (* detailssetting *) psetting
 let pretty_layout_lit = lit_pretty_layout_ psetting
-let coq_layout = _pretty_layout coqsetting
+let coq_layout = _pretty_layout (* detailssetting *) coqsetting

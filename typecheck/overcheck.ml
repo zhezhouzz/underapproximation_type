@@ -95,7 +95,7 @@ and value_type_infer (ctx : Typectx.t) (a : NL.value NL.typed) :
   | NL.Lit lit ->
       let lit = lit_type_infer ctx { ty = aty; x = lit } in
       OL.{ ty = lit.ty; x = Lit lit.x }
-  | NL.Lam (_, _) ->
+  | NL.Lam (_, _, _) ->
       (* NOTE: Can we infer a type of the lambda function without the argment type? *)
       _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
@@ -107,12 +107,12 @@ and value_type_check (ctx : Typectx.t) (a : NL.value NL.typed) (ty : OT.t) :
       let x = value_type_infer ctx a in
       let () = Oversub.subtyping_check ctx x.ty ty in
       x
-  | NL.Lam (id, body), OT.(OverTy_arrow { argname; argty; retty }) ->
+  | NL.Lam (id, rankfunc, body), OT.(OverTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = OT.subst_id retty argname id.x in
       let ctx' = Typectx.add_to_right ctx (id.x, argty) in
       let body = term_type_check ctx' body retty in
-      { ty; x = Lam ({ ty = argty; x = id.x }, body) }
+      { ty; x = Lam ({ ty = argty; x = id.x }, rankfunc, body) }
   | NL.Fix (f, body), ty ->
       let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
       let ctx' = Typectx.add_to_right ctx (f.x, ty) in

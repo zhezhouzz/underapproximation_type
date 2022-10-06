@@ -41,16 +41,18 @@ let pretty_print x =
   pretty_print Underty.pretty_layout x;
   print_newline ()
 
-let pretty_print_infer ctx (e, (r : UT.t)) =
+let pretty_print_infer pre ctx (e, (r : UT.t)) =
   let () = Pp.printf "@{<bold>Type Infer:@}\n" in
+  Pp.printf "@{<bold>%s@}\n" pre;
   pretty_print ctx;
   Pp.printf "⊢ @{<magenta>%s@} ⇨ " (short_str 100 e);
   Pp.printf "@{<cyan>%s@}\n\n" @@ Underty.pretty_layout r
 
-let pretty_print_judge ctx (e, (r : UT.t)) =
+let pretty_print_judge pre ctx (e, (r : UT.t)) =
   let () = Pp.printf "@{<bold>Type Check:@}\n" in
+  Pp.printf "@{<bold>%s@}\n" pre;
   pretty_print ctx;
-  Pp.printf "⊢ @{<magenta>%s@} ⇦ " (short_str 100 e);
+  Pp.printf "⊢ @{<magenta>%s@} ⇦ " (short_str 10000 e);
   Pp.printf "@{<cyan>%s@}\n\n" @@ Underty.pretty_layout r
 
 let pretty_print_app_judge ctx (args, r) =

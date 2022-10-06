@@ -7,6 +7,7 @@
    ; under/
    litcheck
    checkaux
+   param
    ; ./
    opcheck
    termcheck

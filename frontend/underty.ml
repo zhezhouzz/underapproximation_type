@@ -36,10 +36,14 @@ let pretty_layout x =
         let argname_f ty =
           if L.is_fv_in argname retty then Sugar.spf "%s:%s" argname ty else ty
         in
-        Sugar.spf "%s → %s" (argname_f @@ aux argty) (aux retty)
+        Sugar.spf "%s→%s" (argname_f @@ aux argty) (aux retty)
+    | UnderTy_ghost_arrow { argname; argnty; retty } ->
+        Sugar.spf "%s⤍%s"
+          (spf "(%s:%s)" argname (Type.layout argnty))
+          (aux retty)
     | UnderTy_poly_arrow { argname; argnty; retty } ->
-        Sugar.spf "%s → %s"
-          (spf "%s:[%s | '%s ]" argname (Type.layout argnty) argname)
+        Sugar.spf "%s→%s"
+          (spf "(%s:%s)" argname (Type.layout argnty))
           (aux retty)
     | UnderTy_tuple ts ->
         (* let () = Printf.printf "len(ts) = %i\n" @@ List.length ts in *)
@@ -86,6 +90,9 @@ let undertype_of_ocamlexpr expr =
         match argname.ty with
         | Some (Some "poly", argnty) ->
             L.UnderTy_poly_arrow
+              { argname = argname.x; argnty; retty = aux body }
+        | Some (Some "ghost", argnty) ->
+            L.UnderTy_ghost_arrow
               { argname = argname.x; argnty; retty = aux body }
         | Some _ -> _failatwith __FILE__ __LINE__ ""
         | None ->

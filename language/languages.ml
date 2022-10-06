@@ -198,6 +198,12 @@ module UnderTypectx = struct
   open Ntyped
   open Sugar
 
+  let get_by_nt ctx nt =
+    List.filter_map
+      (fun (name, ty) ->
+        if eq nt (erase ty) then Some { x = name; ty = nt } else None)
+      ctx
+
   let update ctx (name, f) =
     let rec aux res = function
       | [] -> _failatwith __FILE__ __LINE__ ""
@@ -226,22 +232,14 @@ module UnderTypectx = struct
       (Some ctx) ids
 
   (* Assume everything in the type context is not bot *)
-  let close_by_diff ctx ctx' uty =
-    let diff = subtract ctx ctx' in
-    (* let () = *)
-    (*   Printf.printf "Diff:\n"; *)
-    (*   List.iter *)
-    (*     (fun (ifq, (x, tys)) -> *)
-    (*       Printf.printf "%b|%s:[%s]\n" ifq x *)
-    (*         (UT.pretty_layout (conjunct_list tys))) *)
-    (*     diff *)
-    (* in *)
+  let close_by_diff_ diff uty =
     List.fold_right
       (fun (x, ty) uty ->
         if List.exists (String.equal x) (fv uty) then add_ex_uprop true x ty uty
         else uty)
       diff uty
 
+  let close_by_diff ctx ctx' uty = close_by_diff_ (subtract ctx ctx') uty
   let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p
 
   let _assume_basety file line (x, ty) =
@@ -369,7 +367,7 @@ module UL = struct
     let open Anormal.NormalAnormal in
     let rec aux body =
       match body.x with
-      | V (Lam (x, body)) ->
+      | V (Lam (x, _, body)) ->
           let args, retv = aux body in
           (NNtyped.to_ntyped x :: args, retv)
       | _ -> ([], NNtyped.to_ntyped { x = retname; ty = body.ty })

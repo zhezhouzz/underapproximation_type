@@ -8,10 +8,11 @@ module F (Typed : Type.Typed) = struct
   let tupleC = "tuple"
 
   type smt_lit = ConstB of bool | ConstI of int | Var of id [@@deriving sexp]
+  type rankfunc = (string * Autov.Prop.lit) option [@@deriving sexp]
 
   (* NOTE: the function arguments have no quantified types *)
   type value =
-    | Lam of id typed * term typed
+    | Lam of id typed * rankfunc * term typed
     | Fix of id typed * value typed
     | Lit of smt_lit
     | Exn
@@ -78,7 +79,7 @@ module F (Typed : Type.Typed) = struct
       let x =
         match e.x with
         | Lit x -> Lit (aux_lit x)
-        | Lam (xs, body) -> Lam (xs, aux body)
+        | Lam (xs, rankfunc, body) -> Lam (xs, rankfunc, aux body)
         | Fix (f, body) -> Fix (f, aux_value body)
         | Exn -> Exn
       in

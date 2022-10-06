@@ -45,7 +45,7 @@ let layout_one { name; if_rec; body } =
 
 let layout l = spf "%s\n" (List.split_by "\n" layout_one l)
 
-type ext = NoExt | NotationExt | LibraryExt
+type ext = NoExt | NotationExt | LibraryExt | Inv of (string * Autov.Prop.lit)
 
 let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
   match structure.pstr_desc with
@@ -54,6 +54,23 @@ let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
         match value_binding.pvb_attributes with
         | [ x ] when String.equal x.attr_name.txt "notation" -> NotationExt
         | [ x ] when String.equal x.attr_name.txt "library" -> LibraryExt
+        | [ x ] when String.equal x.attr_name.txt "inv" -> (
+            match x.attr_payload with
+            | PPat (pat, Some expr) -> (
+                match (pat.ppat_desc, expr.pexp_desc) with
+                | Ppat_tuple _, Pexp_tuple _ ->
+                    failwith "inv extension: tuple error"
+                    (* let ids = *)
+                    (*   List.map (fun id -> id.L.x) @@ Pat.patten_to_typed_ids pat *)
+                    (* in *)
+                    (* if List.length es != List.length ids then *)
+                    (*   failwith "inv extension: length error" *)
+                    (* else *)
+                    (*   let props = List.map Autov.prop_of_ocamlexpr es in *)
+                    (*   Inv (List.combine ids props) *)
+                | Ppat_var name, _ -> Inv (name.txt, Autov.lit_of_ocamlexpr expr)
+                | _ -> _failatwith __FILE__ __LINE__ "unknown extension")
+            | _ -> _failatwith __FILE__ __LINE__ "unknown extension")
         | [] -> NoExt
         | _ -> _failatwith __FILE__ __LINE__ "unknown extension"
       in

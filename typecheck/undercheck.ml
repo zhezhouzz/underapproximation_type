@@ -38,7 +38,7 @@ let rec value_type_infer (uctx : uctx) (a : NL.value NL.typed) :
   | NL.Exn -> { ty = UT.nt_to_exn_type (snd aty); x = Exn }
   | NL.Lit lit ->
       typed_map (fun x -> Lit x) @@ lit_type_infer uctx { ty = aty; x = lit }
-  | NL.Lam (id, body) -> (
+  | NL.Lam (id, rankfunc, body) -> (
       let typename =
         match fst id.ty with
         | None -> _failatwith __FILE__ __LINE__ "die"
@@ -64,13 +64,13 @@ let rec value_type_infer (uctx : uctx) (a : NL.value NL.typed) :
       match Typectx.add_to_right reachability_check uctx.ctx id with
       | None ->
           let body = term_set_bot body in
-          { ty = body.ty; x = Lam (id, body) }
+          { ty = body.ty; x = Lam (id, rankfunc, body) }
       | Some ctx ->
           let body = term_type_infer { uctx with ctx } body in
           let ty =
             UT.UnderTy_arrow { argname = id.x; argty = id.ty; retty = body.ty }
           in
-          { ty; x = Lam (id, body) })
+          { ty; x = Lam (id, rankfunc, body) })
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
 and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
@@ -80,43 +80,115 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
     match (a.NL.x, ty) with
     | NL.Exn, _ ->
         let x = value_type_infer uctx a in
-        term_subtyping_check __FILE__ __LINE__ uctx.ctx x ty
+        term_subtyping_check __FILE__ __LINE__ uctx x ty
     | NL.Lit _, _ ->
         let x = value_type_infer uctx a in
-        term_subtyping_check __FILE__ __LINE__ uctx.ctx x ty
-    | NL.Lam (id, body), UnderTy_arrow { argname; argty; retty } -> (
+        term_subtyping_check __FILE__ __LINE__ uctx x ty
+    | NL.Lam (id, rankfunc, body), UnderTy_poly_arrow { argname; argnty; retty }
+      ->
+        let () =
+          match Nctx.get_opt uctx.nctx id.x with
+          | Some _ -> _failatwith __FILE__ __LINE__ "die"
+          | None -> ()
+        in
+        let idty =
+          _check_equality __FILE__ __LINE__ NTyped.eq (snd id.NL.ty) argnty
+        in
+        let retty = UT.subst_id retty argname id.x in
+        (* let () = failwith (spf "replace: %s --> %s" argname id.x) in *)
+        (* let uctx = *)
+        (*   { *)
+        (*     uctx with *)
+        (*     param_ctx = Param.pre_subst_id uctx.param_ctx argname id.x; *)
+        (*   } *)
+        (* in *)
+        let iduty =
+          match rankfunc with
+          | None -> UT.make_basic_top idty
+          | Some (name, lit) ->
+              let prop =
+                P.(MethodPred ("==", [ AVar { x = name; ty = Ty_int }; lit ]))
+              in
+              Param.type_infer uctx.param_ctx
+              @@ UT.make_basic_from_prop idty (fun v ->
+                     P.subst_id prop id.x v.x)
+        in
+        let body =
+          term_type_check
+            {
+              uctx with
+              param_ctx = Param.add_to_right uctx.param_ctx (id.x, iduty);
+            }
+            body retty
+        in
+        let id = UL.{ x = id.x; ty = iduty } in
+        (* let () = *)
+        (*   subtyping_check __FILE__ __LINE__ uctx.param_ctx uctx.ctx body.UL.ty *)
+        (*     retty *)
+        (* in *)
+        UL.
+          {
+            ty = UnderTy_poly_arrow { argname; argnty; retty = body.ty };
+            x = Lam (id, rankfunc, body);
+          }
+    | NL.Lam (id, rankfunc, body), UnderTy_arrow { argname; argty; retty } -> (
         let () =
           match Nctx.get_opt uctx.nctx id.x with
           | Some _ -> _failatwith __FILE__ __LINE__ "die"
           | None -> ()
         in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
+        let retty = Typectx.close_by_diff_ [ (argname, argty) ] retty in
         let retty = UT.subst_id retty argname id.x in
-        (* let body = term_type_check { uctx with ctx = Typectx.force_add_to_right uctx.ctx id } body retty in *)
-        (* { *)
-        (*   ty = UnderTy_arrow { argname; argty; retty = body.ty }; *)
-        (*   x = Lam (id, body); *)
-        (* } *)
         match Typectx.add_to_right reachability_check uctx.ctx id with
         | None ->
             let body = term_set_bot body in
-            let () = subtyping_check __FILE__ __LINE__ uctx.ctx body.ty retty in
-            { ty = retty; x = Lam (id, body) }
+            let body = term_subtyping_check __FILE__ __LINE__ uctx body retty in
+            { ty = body.ty; x = Lam (id, rankfunc, body) }
         | Some ctx ->
             let body = term_type_check { uctx with ctx } body retty in
             {
               ty = UnderTy_arrow { argname; argty; retty = body.ty };
-              x = Lam (id, body);
+              x = Lam (id, rankfunc, body);
             })
-    | NL.Fix (f, _), ty ->
+    | NL.Fix (f, body), ty ->
         let _ = erase_check_mk_id __FILE__ __LINE__ f ty in
-        _failatwith __FILE__ __LINE__ "unimp"
-        (* let body = *)
-        (*   value_type_check *)
-        (*     { uctx with ctx = Typectx.add_to_right uctx.ctx f } *)
-        (*     body ty *)
+        let f_base = UL.{ x = f.x; ty = derive_base_pre_ty uctx ty } in
+        let uctx_base = add_rank_var_base uctx in
+        let uctx_base =
+          {
+            uctx_base with
+            ctx = Typectx.force_add_to_right uctx_base.ctx f_base;
+          }
+        in
+        let ty_base = derive_base_post_ty uctx_base ty in
+        (* let () = *)
+        (*   Pp.printf "@{<bold>Current -> : %s@}\n" *)
+        (*     (Param.to_string uctx_base.param_ctx) *)
         (* in *)
-        (* { ty = body.ty; x = Fix (f, body) } *)
+        let () =
+          Typectx.pretty_print_judge
+            (Param.to_string uctx_base.param_ctx)
+            uctx_base.ctx
+            (NL.layout_value body, ty_base)
+        in
+        (* let () = failwith "end" in *)
+        let _ = value_type_check uctx_base body ty_base in
+        let uctx_ind = add_rank_var_ind uctx in
+        let f_ind = UL.{ x = f.x; ty = derive_ind_pre_ty uctx_ind ty } in
+        let uctx_ind =
+          { uctx_ind with ctx = Typectx.force_add_to_right uctx_ind.ctx f_ind }
+        in
+        let ty_ind = derive_ind_post_ty uctx_ind ty in
+        let () =
+          Typectx.pretty_print_judge
+            (Param.to_string uctx_ind.param_ctx)
+            uctx_ind.ctx
+            (NL.layout_value body, ty_ind)
+        in
+        (* let () = failwith "end" in *)
+        let body = value_type_check uctx_ind body ty_ind in
+        { ty; x = Fix ({ x = f.x; ty }, body) }
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result
@@ -124,17 +196,16 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
 and handle_let_body (uctx : uctx) ctx' body target_type =
   let trivial_res =
     let body = term_set_bot body in
-    (body.ty, body)
+    body
   in
   match (ctx', target_type) with
-  | None, None -> trivial_res
+  | None, None -> (trivial_res.ty, trivial_res)
   | Some ctx', None ->
       let body = term_type_infer { uctx with ctx = ctx' } body in
       (Typectx.close_by_diff ctx' uctx.ctx body.ty, body)
   | None, Some ty ->
-      let ty', _ = trivial_res in
-      let () = subtyping_check __FILE__ __LINE__ uctx.ctx ty' ty in
-      trivial_res
+      let res = term_subtyping_check __FILE__ __LINE__ uctx trivial_res ty in
+      (res.ty, res)
   | Some ctx', Some ty ->
       let body = term_type_check { uctx with ctx = ctx' } body ty in
       (ty, body)
@@ -178,16 +249,36 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
   let args = List.map (id_type_infer uctx) args in
   let () = Typectx.pretty_print_app_judge uctx.ctx (args, fty) in
   (* arguments type check *)
-  let rec aux = function
-    | [], ty -> ty
+  let rec aux uctx' = function
+    | [], ty -> (uctx', ty)
+    | args, UnderTy_ghost_arrow { argnty; argname; retty } -> (
+        let candidates = candidate_vars_by_nt uctx' argnty in
+        let () =
+          Pp.printf "@{<bold>%s@}\n"
+            (List.split_by_comma (fun x -> x.NTyped.x) candidates)
+        in
+        let res =
+          List.filter_map
+            (fun candiate ->
+              let retty = subst_id retty argname candiate.Ntyped.x in
+              try Some (aux uctx' (args, retty)) with _ -> None)
+            candidates
+        in
+        match res with
+        | [] -> _failatwith __FILE__ __LINE__ "ghost application fail"
+        | [ res ] -> res
+        | _ -> _failatwith __FILE__ __LINE__ "ghost application multi succ")
     | arg :: args, UnderTy_poly_arrow { argname; retty; _ } ->
         (* let () = erase_check __FILE__ __LINE__ (arg.ty, (arg.x, argnty)) in *)
         let retty = subst_id retty argname arg.x in
-        aux (args, retty)
+        aux uctx' (args, retty)
     | arg :: args, UnderTy_arrow { argname; retty; argty } ->
-        let () = subtyping_check __FILE__ __LINE__ uctx.ctx arg.ty argty in
-        let retty = subst_id retty argname arg.x in
-        aux (args, retty)
+        let _ = term_subtyping_check __FILE__ __LINE__ uctx' arg argty in
+        let retty = Typectx.close_by_diff_ [ (argname, argty) ] retty in
+        let ctx' =
+          Typectx.update uctx'.ctx (arg.x, fun uty -> make_basic_bot (erase uty))
+        in
+        aux { uctx' with ctx = ctx' } (args, retty)
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   (* let () = Pp.printf "@{<bold>Begin@}\n" in *)
@@ -198,9 +289,9 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
   in
   let ret =
     try
-      let retty = aux (args, fty) in
+      let uctx', retty = aux uctx (args, fty) in
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
-      Some ret
+      Some (uctx', ret)
     with
     | Autov.FailWithModel (msg, _) ->
         let () = Pp.printf "@{<orange>1Application failed:@}%s\n" msg in
@@ -212,9 +303,9 @@ and handle_letapp (uctx : uctx) (ret, fty, args, body) target_type =
   in
   match ret with
   | None -> trivial_res
-  | Some ret ->
-      let ctx' = Typectx.add_to_right reachability_check uctx.ctx ret in
-      let ty, body = handle_let_body uctx ctx' body target_type in
+  | Some (uctx', ret) ->
+      let ctx' = Typectx.add_to_right reachability_check uctx'.ctx ret in
+      let ty, body = handle_let_body uctx' ctx' body target_type in
       (ty, (ret, args, body))
 
 and handle_letval (uctx : uctx) (lhs, rhs, body) target_type =
@@ -290,7 +381,7 @@ and handle_match uctx (matched, cases) =
           } )
     in
     try
-      let () = subtyping_check __FILE__ __LINE__ uctx.ctx matched.ty retty in
+      let _ = term_subtyping_check __FILE__ __LINE__ uctx matched retty in
       let ctx' = Typectx.update uctx.ctx (matched.x, fun _ -> retty) in
       let ctx'' = Typectx.force_add_to_rights ctx' args in
       let exp = term_type_infer { uctx with ctx = ctx'' } exp in
@@ -359,12 +450,22 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
     | Ite { cond; e_t; e_f } -> handle_ite uctx (cond, e_t, e_f)
     | Match { matched; cases } -> handle_match uctx (matched, cases)
   in
-  let () = Typectx.pretty_print_infer uctx.ctx (NL.layout a, res.UL.ty) in
+  let () =
+    Typectx.pretty_print_infer
+      (Param.to_string uctx.param_ctx)
+      uctx.ctx
+      (NL.layout a, res.UL.ty)
+  in
   res
 
 and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
     UL.term UL.typed =
-  let () = Typectx.pretty_print_judge uctx.ctx (NL.layout x, ty) in
+  let () =
+    Typectx.pretty_print_judge
+      (Param.to_string uctx.param_ctx)
+      uctx.ctx
+      (NL.layout x, ty)
+  in
   let _ = _check_equality __FILE__ __LINE__ NT.eq (UT.erase ty) (snd @@ x.ty) in
   let open NL in
   match (x.x, ty) with
@@ -399,16 +500,14 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
       in
       { ty; x = LetOp { ret; op; args; body } }
   | LetVal { lhs; rhs; body }, _ ->
-      let () =
-        Pp.printf "@{<bold>lhs: %s; rhs: %s;@}\n" (NL.layout_id lhs)
-          (NL.layout_value rhs)
-      in
+      (* let () = *)
+      (*   Pp.printf "@{<bold>lhs: %s; rhs: %s;@}\n" (NL.layout_id lhs) *)
+      (*     (NL.layout_value rhs) *)
+      (* in *)
       handle_letval uctx (lhs, rhs, body) (Some ty)
   | Ite _, _ | Match _, _ ->
       let x = term_type_infer uctx x in
-      let () = subtyping_check __FILE__ __LINE__ uctx.ctx x.ty ty in
-      (* NOTE: underappproximate here *)
-      { ty; x = x.x }
+      term_subtyping_check __FILE__ __LINE__ uctx x ty
 
 let type_check (uctx : uctx) x ty =
   (* let ty = Well_found.reduction ty in *)
@@ -429,7 +528,7 @@ let struc_check l notations libs r =
   (* in *)
   (* let () = failwith "zz" in *)
   List.iteri
-    (fun id (name', ty) ->
+    (fun id (info, (name', ty)) ->
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
@@ -438,10 +537,17 @@ let struc_check l notations libs r =
             (spf "The source code of given refinement type '%s' is missing."
                name')
       | Some { body; _ } -> (
-          let _ =
-            Dependentcheck.dependent_check
-              (List.map fst notations @ List.map fst libs)
-              body
+          (* let _ = *)
+          (*   Dependentcheck.dependent_check *)
+          (*     (List.map fst notations @ List.map fst libs) *)
+          (*     body *)
+          (* in *)
+          let () =
+            match info with
+            | None -> Pp.printf "@{<bold>No Inv:@}\n"
+            | Some (id, prop) ->
+                Pp.printf "@{<bold>Inv:@} %s = %s\n" id
+                  (Autov.pretty_layout_lit prop)
           in
           let () = Pp.printf "@{<bold>TY:@} %s\n" (UT.pretty_layout ty) in
           let nctx =
@@ -456,8 +562,22 @@ let struc_check l notations libs r =
               Typectx.empty libs
           in
           let ctx = Typectx.empty in
+          let param_ctx = Param.empty in
+          let rec_info =
+            match (info, body.x) with
+            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
+                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | None, NL.(V (Fix (fix_name, _))) ->
+                failwith
+                  (spf "No ranking function for rec function %s" fix_name.x)
+            | Some (rank_lhs, _), _ ->
+                failwith (spf "Useless ranking function %s" rank_lhs)
+            | None, _ -> None
+          in
           try
-            let _ = type_check { nctx; ctx; libctx } body ty in
+            let _ =
+              type_check { param_ctx; nctx; ctx; libctx; rec_info } body ty
+            in
             let _ =
               Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
                 id

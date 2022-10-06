@@ -25,14 +25,14 @@ let _assume_basety file line (x, ty) =
 
 let typed_to_smttyped = Languages.Ntyped.to_smttyped
 
-let to_query (nu, prop1, prop2) =
+let to_query (param, nu, prop1, prop2) =
   (* let () = *)
   (*   Typectx.pretty_print_q *)
   (*     (List.map (fun x -> x.x) [ nu ]) *)
   (*     (List.map (fun x -> x.x) []) *)
   (*     prop2 prop1 *)
   (* in *)
-  let eq2, final_pre = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
+  let eq2, pre2 = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
   (* let _ = *)
   (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
   (*     (Autov.pretty_layout_prop uprop2) *)
@@ -50,7 +50,9 @@ let to_query (nu, prop1, prop2) =
   (*     (Autov.pretty_layout_prop final_post) *)
   (* in *)
   (* let () = failwith "zz" in *)
-  let final_uqvs = nu :: eq2 in
+  let param_uqvs, param_pre = Param.to_prop param in
+  let final_pre = P.And [ param_pre; pre2 ] in
+  let final_uqvs = param_uqvs @ (nu :: eq2) in
   let () =
     let hol_q =
       P.(
@@ -89,8 +91,8 @@ let check file line pres q =
 
 (* let counter = ref 0 *)
 
-let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
-    (target_ty : UT.t) =
+let subtyping_check file line (param : Param.t) (ctx : Typectx.t)
+    (inferred_ty : UT.t) (target_ty : UT.t) =
   let open UT in
   (* let () = if !counter == 1 then failwith "end" else counter := !counter + 1 in *)
   let () = Typectx.pretty_print_subtyping ctx (inferred_ty, target_ty) in
@@ -113,9 +115,16 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
         (* in *)
         (* let () = failwith "zz" in *)
         let prop2' = Typectx.close_prop_drop_independt ctx2 prop2 in
-        let () = Typectx.pretty_print_q [ nu.x ] [] prop2' prop1' in
+        let param_uqvs, param_pre = Param.to_prop param in
+        let () =
+          Typectx.pretty_print_q
+            (List.map (fun x -> x.x) param_uqvs @ [ nu.x ])
+            []
+            (Implies (param_pre, prop2'))
+            prop1'
+        in
         (* let () = failwith "zz" in *)
-        let pres, q = to_query (nu, prop1', prop2') in
+        let pres, q = to_query (param, nu, prop1', prop2') in
         (* let () = *)
         (*   if !counter == 1 then failwith "zz" else counter := !counter + 1 *)
         (* in *)
@@ -148,10 +157,10 @@ let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
   in
   aux ctx ctx (inferred_ty, target_ty)
 
-let subtyping_check_bool file line (ctx : Typectx.t) (inferred_ty : UT.t)
+let subtyping_check_bool file line param (ctx : Typectx.t) (inferred_ty : UT.t)
     (target_ty : UT.t) =
   try
-    let _ = subtyping_check file line ctx inferred_ty target_ty in
+    let _ = subtyping_check file line param ctx inferred_ty target_ty in
     true
   with
   | Autov.FailWithModel (msg, _) ->

@@ -41,8 +41,11 @@ let[@library] minus =
 let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
+  let (s : [%ghost: int]) = () in
   let (h : [%poly: int]) = () in
-  let (t : [%poly: int list]) = () in
-  (fun (u : [%forall: int]) (w : [%forall: int]) ->
-     implies (len t w && len v u) (u == w + 1)
+  let t =
+    (len v s && fun (u : [%forall: int]) -> implies (mem v u) (u == h)
+      : [%v: int list])
+  in
+  (len v (s + 1) && fun (u : [%forall: int]) -> implies (mem v u) (u == h)
     : [%v: int list])

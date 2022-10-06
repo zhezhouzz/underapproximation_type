@@ -72,10 +72,6 @@ let erase_check_mk_id file line id underfty =
 let subtyping_check = Undersub.subtyping_check
 let subtyping_check_bool = Undersub.subtyping_check_bool
 
-let term_subtyping_check file line ctx UL.{ x; ty } t2 =
-  let () = Undersub.subtyping_check file line ctx ty t2 in
-  UL.{ x; ty = t2 }
-
 (* let subtyping_check__with_hidden_vars = *)
 (*   Undersub.subtyping_check_with_hidden_vars *)
 
@@ -115,19 +111,98 @@ module Nctx = Languages.UTSimpleTypectx
 module Typectx = Languages.UnderTypectx
 (* open Abstraction *)
 
-type uctx = { ctx : Nctx.t; nctx : Nctx.t; libctx : Typectx.t }
+type rec_info = {
+  fix_name : string;
+  rank_lhs : string;
+  rank_rhs : Autov.Prop.lit;
+}
+
+type uctx = {
+  rec_info : rec_info option;
+  param_ctx : Param.t;
+  ctx : Nctx.t;
+  nctx : Nctx.t;
+  libctx : Typectx.t;
+}
+
+let add_rank_var_base (uctx : uctx) =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      let ty =
+        UT.make_basic_from_prop NT.Ty_int (fun v ->
+            P.(MethodPred ("==", [ AVar v; ACint 0 ])))
+      in
+      let ty = Param.type_infer uctx.param_ctx ty in
+      { uctx with param_ctx = Param.add_to_right uctx.param_ctx (rank_lhs, ty) }
+
+let add_rank_var_ind (uctx : uctx) =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      let ty =
+        UT.make_basic_from_prop NT.Ty_int (fun v ->
+            P.(MethodPred (">", [ AVar v; ACint 0 ])))
+      in
+      let ty = Param.type_infer uctx.param_ctx ty in
+      { uctx with param_ctx = Param.add_to_right uctx.param_ctx (rank_lhs, ty) }
+
+let derive_base_pre_ty uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some _ -> UT.nt_to_exn_type (UT.erase ty)
+
+let derive_base_post_ty uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_rhs; _ } ->
+      let ind_prop = P.(MethodPred ("==", [ rank_rhs; ACint 0 ])) in
+      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
+      Param.type_infer uctx.param_ctx ty
+
+let derive_ind_pre_ty uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; rank_rhs; _ } ->
+      let ind_prop =
+        P.(MethodPred ("<", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ]))
+      in
+      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
+      Param.type_infer uctx.param_ctx ty
+
+let derive_ind_post_ty uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; rank_rhs; _ } ->
+      let ind_prop =
+        P.(MethodPred ("==", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ]))
+      in
+      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
+      Param.type_infer uctx.param_ctx ty
+
+let candidate_vars_by_nt { ctx; param_ctx; _ } nt =
+  Typectx.get_by_nt ctx nt @ Param.get_by_nt param_ctx nt
+
+let term_subtyping_check file line uctx UL.{ x; ty } t2 =
+  let () = Undersub.subtyping_check file line uctx.param_ctx uctx.ctx ty t2 in
+  UL.{ x; ty = t2 }
 
 let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
+  (* let () = Pp.printf "@{<yellow>infer id: %s@}\n" id.x in *)
   let ty =
-    try Nctx.get_ty uctx.ctx id.x with _ -> Typectx.get_ty uctx.libctx id.x
+    try Nctx.get_ty uctx.ctx id.x
+    with _ -> (
+      try Typectx.get_ty uctx.libctx id.x
+      with _ -> Param.get_ty uctx.param_ctx id.x)
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
 let id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
     NL.id UL.typed =
   let id = id_type_infer uctx id in
-  let () = subtyping_check __FILE__ __LINE__ uctx.ctx id.UL.ty ty in
-  UL.{ x = id.x; ty }
+  term_subtyping_check __FILE__ __LINE__ uctx id ty
+(* let () = subtyping_check __FILE__ __LINE__ uctx id.UL.ty ty in *)
+(* UL.{ x = id.x; ty } *)
 
 let lit_type_infer (uctx : uctx) (lit : NL.smt_lit NL.typed) :
     UL.smt_lit UL.typed =

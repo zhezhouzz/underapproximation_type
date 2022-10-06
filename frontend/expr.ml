@@ -91,7 +91,22 @@ and expr_to_ocamlexpr_desc expr =
             cs
         in
         Pexp_match (case_target, cases)
-    | L.Lam (ty, x, body) ->
+    | L.Lam (ty, x, rankfunc, body) ->
+        let ext =
+          match rankfunc with
+          | None -> []
+          | Some (name, lit) ->
+              [
+                {
+                  attr_name = Location.mknoloc "rankfunc";
+                  attr_payload =
+                    PPat
+                      ( Pat.dest_to_pat (Ppat_var (Location.mknoloc name)),
+                        Some (Autov.lit_to_ocamlexpr lit) );
+                  attr_loc = Location.none;
+                };
+              ]
+        in
         let flag = Asttypes.Nolabel in
         (* let body = *)
         (*   let e = expr_to_ocamlexpr body in *)
@@ -103,7 +118,10 @@ and expr_to_ocamlexpr_desc expr =
         Pexp_fun
           ( flag,
             None,
-            Pat.slang_to_pattern L.{ ty = Some ty; x = Var x },
+            {
+              (Pat.slang_to_pattern L.{ ty = Some ty; x = Var x }) with
+              ppat_attributes = ext;
+            },
             expr_to_ocamlexpr body )
     (* | L.Lam (x :: t, body) -> *)
     (*     let flag = Asttypes.Nolabel in *)
@@ -241,6 +259,20 @@ let expr_of_ocamlexpr expr =
         in
         L.(make_untyped @@ Match (aux case_target, cs))
     | Pexp_fun (_, _, arg, expr) ->
+        let () = Printf.printf "has ext: %s\n" (Pat.layout_ arg) in
+        let rank_func =
+          match arg.ppat_attributes with
+          | [] -> None
+          | [ x ] when String.equal x.attr_name.txt "rankfunc" -> (
+              match x.attr_payload with
+              | PPat (pat, Some expr) -> (
+                  match (pat.ppat_desc, expr.pexp_desc) with
+                  | Ppat_var name, _ ->
+                      Some (name.txt, Autov.lit_of_ocamlexpr expr)
+                  | _ -> failwith "unknown extension")
+              | _ -> failwith "unknown extension")
+          | _ -> failwith "unknown extension"
+        in
         let arg = Pat.pattern_to_slang arg in
         let ty =
           match arg.L.ty with
@@ -253,7 +285,7 @@ let expr_of_ocamlexpr expr =
           | L.Var x -> x
           | _ -> failwith "Syntax error: lambda function wrong argument"
         in
-        L.(make_untyped @@ Lam (ty, x, aux expr))
+        L.(make_untyped @@ Lam (ty, x, rank_func, aux expr))
         (* un-curry *)
     | _ ->
         raise

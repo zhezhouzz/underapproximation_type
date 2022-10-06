@@ -16,6 +16,8 @@ module T = struct
   type t =
     | UnderTy_base of { basename : id; normalty : normalty; prop : P.t }
     | UnderTy_arrow of { argname : id; argty : t; retty : t }
+      (* Should at the top level *)
+    | UnderTy_ghost_arrow of { argname : id; argnty : normalty; retty : t }
     | UnderTy_poly_arrow of { argname : id; argnty : normalty; retty : t }
     | UnderTy_tuple of (id * t) list
   [@@deriving sexp]
@@ -28,6 +30,8 @@ module T = struct
           UnderTy_base { basename; normalty; prop = P.mk_false }
       | UnderTy_tuple ts ->
           UnderTy_tuple (List.map (fun (a, t) -> (a, aux t)) ts)
+      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
       | UnderTy_poly_arrow { argname; argnty; retty } ->
           UnderTy_poly_arrow { argname; argnty; retty = aux retty }
       | UnderTy_arrow { argname; argty; retty } ->
@@ -60,6 +64,8 @@ module T = struct
           let names, tys = List.split ts in
           let s = add names s in
           List.fold_left aux s tys
+      | UnderTy_ghost_arrow { argname; retty; _ } ->
+          add (argname :: (StrMap.to_key_list @@ aux StrMap.empty retty)) s
       | UnderTy_poly_arrow { argname; retty; _ } ->
           add (argname :: (StrMap.to_key_list @@ aux StrMap.empty retty)) s
       | UnderTy_arrow { argname; argty; retty } ->
@@ -74,6 +80,7 @@ module T = struct
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
     | UnderTy_arrow { argty; retty; _ } -> NT.Ty_arrow (erase argty, erase retty)
+    | UnderTy_ghost_arrow { retty; _ } -> erase retty
     | UnderTy_poly_arrow { argnty; retty; _ } ->
         NT.Ty_arrow (argnty, erase retty)
     | UnderTy_tuple ts -> NT.Ty_tuple (List.map (fun x -> erase @@ snd x) ts)
@@ -84,6 +91,12 @@ module T = struct
       | UnderTy_base { basename; normalty; prop } ->
           if String.equal basename x then t
           else UnderTy_base { basename; normalty; prop = P.subst_id prop x y }
+      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+          let retty =
+            if List.exists (String.equal x) [ argname ] then retty
+            else aux retty
+          in
+          UnderTy_ghost_arrow { argname; argnty; retty }
       | UnderTy_poly_arrow { argname; argnty; retty } ->
           let retty =
             if List.exists (String.equal x) [ argname ] then retty
@@ -183,6 +196,13 @@ module T = struct
           String.equal argname1 argname2
           && aux (argty1, argty2)
           && aux (retty1, retty2)
+      | ( UnderTy_ghost_arrow
+            { argname = argname1; argnty = argty1; retty = retty1 },
+          UnderTy_ghost_arrow
+            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+          String.equal argname1 argname2
+          && NT.eq argty1 argty2
+          && aux (retty1, retty2)
       | ( UnderTy_poly_arrow
             { argname = argname1; argnty = argty1; retty = retty1 },
           UnderTy_poly_arrow
@@ -244,6 +264,17 @@ module T = struct
           in
           let retty = aux (retty1, retty2) in
           UnderTy_arrow { argname; argty; retty }
+      | ( UnderTy_ghost_arrow
+            { argname = argname1; argnty = argty1; retty = retty1 },
+          UnderTy_ghost_arrow
+            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+          (* NOTE: we ask the argument should be exactly the same *)
+          let argname =
+            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
+          in
+          let argnty = _check_equality __FILE__ __LINE__ NT.eq argty1 argty2 in
+          let retty = aux (retty1, retty2) in
+          UnderTy_ghost_arrow { argname; argnty; retty }
       | ( UnderTy_poly_arrow
             { argname = argname1; argnty = argty1; retty = retty1 },
           UnderTy_poly_arrow
@@ -296,6 +327,9 @@ module T = struct
           let fv_retty = remove argname (aux retty) in
           let fv_argty = aux argty in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv_retty @ fv_argty)
+      | UnderTy_ghost_arrow { argname; retty; _ } ->
+          let fv_retty = remove argname (aux retty) in
+          Zzdatatype.Datatype.List.slow_rm_dup String.equal fv_retty
       | UnderTy_poly_arrow { argname; retty; _ } ->
           let fv_retty = remove argname (aux retty) in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal fv_retty
@@ -313,6 +347,8 @@ module T = struct
           UnderTy_tuple (List.map (fun (a, b) -> (a, aux b)) ts)
       | UnderTy_arrow { argname; argty; retty } ->
           UnderTy_arrow { argname; argty; retty = aux retty }
+      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
       | UnderTy_poly_arrow { argname; argnty; retty } ->
           UnderTy_poly_arrow { argname; argnty; retty = aux retty }
     in
@@ -349,6 +385,11 @@ module T = struct
             if List.exists if_apply [ argname ] then retty else aux retty
           in
           UnderTy_arrow { argname; argty; retty }
+      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+          let retty =
+            if List.exists if_apply [ argname ] then retty else aux retty
+          in
+          UnderTy_ghost_arrow { argname; argnty; retty }
       | UnderTy_poly_arrow { argname; argnty; retty } ->
           let retty =
             if List.exists if_apply [ argname ] then retty else aux retty

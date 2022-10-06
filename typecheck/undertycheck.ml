@@ -49,7 +49,11 @@ let infer_prop ctx t =
 module Ntyped = Languages.Ntyped
 
 let infer uqvs t =
-  (* let () = Printf.printf "infer: %s\n" @@ Frontend.Underty.pretty_layout t in *)
+  (* let () = *)
+  (*   Printf.printf "%s infer: %s\n" *)
+  (*     (List.split_by_comma (fun x -> spf "(%s:%s)" x.x @@ NT.layout x.ty) uqvs) *)
+  (*   @@ Frontend.Underty.pretty_layout t *)
+  (* in *)
   let open UT in
   let rec aux ctx = function
     | UnderTy_base { basename; normalty; prop } ->
@@ -62,6 +66,9 @@ let infer uqvs t =
         (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
         (* in *)
         UnderTy_arrow { argname; argty; retty = aux ctx retty }
+    | UnderTy_ghost_arrow { argname; argnty; retty } ->
+        let ctx = add_to_right ctx (argname, argnty) in
+        UnderTy_ghost_arrow { argname; argnty; retty = aux ctx retty }
     | UnderTy_poly_arrow { argname; argnty; retty } ->
         let ctx = add_to_right ctx (argname, argnty) in
         UnderTy_poly_arrow { argname; argnty; retty = aux ctx retty }
