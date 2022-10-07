@@ -22,9 +22,13 @@ let close_post uty =
                 And [ P.subst_id argty.prop argty.basename argname; aux retty ]
               )
         | false -> aux retty)
-    | UnderTy_ghost_arrow { argname; retty; argnty } -> (
+    | UnderTy_ghost_arrow { argname; retty; argty } -> (
         match List.exists (String.equal argname) @@ fv retty with
-        | true -> Exists ({ x = argname; ty = argnty }, aux retty)
+        | true ->
+            Exists
+              ( { x = argname; ty = argty.normalty },
+                And [ P.subst_id argty.prop argty.basename argname; aux retty ]
+              )
         | false -> aux retty)
     | _ -> _failatwith __FILE__ __LINE__ ""
   in

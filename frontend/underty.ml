@@ -55,9 +55,9 @@ let pretty_layout x =
           if Ast.UT.is_base_type argty then arg_str else spf "(%s)" arg_str
         in
         Sugar.spf "%s→%s" arg_str (aux retty)
-    | UnderTy_ghost_arrow { argname; argnty; retty } ->
+    | UnderTy_ghost_arrow { argname; argty; retty } ->
         Sugar.spf "%s⤍%s"
-          (spf "(%s:%s)" argname (Type.layout argnty))
+          (spf "%s:%s" argname (ot_pretty_layout argty))
           (aux retty)
     | UnderTy_over_arrow { argname; argty; retty } ->
         Sugar.spf "%s→%s"
@@ -110,15 +110,26 @@ let undertype_of_ocamlexpr expr =
             L.UnderTy_over_arrow
               { argname = argname.x; argty; retty = aux body }
         | Some (Some "ghost", argnty) ->
+            let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
+            let _ =
+              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty argty.normalty
+            in
             L.UnderTy_ghost_arrow
-              { argname = argname.x; argnty; retty = aux body }
+              { argname = argname.x; argty; retty = aux body }
         | Some (Some "under", argnty) ->
             let argty = aux vb.pvb_expr in
             let _ =
               _check_equality __FILE__ __LINE__ Ast.NT.eq argnty (erase argty)
             in
             let _ =
-              _check_equality __FILE__ __LINE__ String.equal "dummy" argname.x
+              try
+                _check_equality __FILE__ __LINE__ String.equal "dummy" argname.x
+              with e ->
+                Printf.printf
+                  "\n\
+                   The unused varaible should use name 'dummy', instead of %s\n\n"
+                  argname.x;
+                raise e
             in
             L.UnderTy_under_arrow { argty; retty = aux body }
         | _ ->

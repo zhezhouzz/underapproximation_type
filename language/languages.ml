@@ -214,7 +214,7 @@ module MustMayTypectx = struct
   let get_by_nt (ctx : ctx) nt =
     List.filter_map
       (fun (name, ty) ->
-        if eq nt (erase ty) then Some { x = name; ty = nt } else None)
+        if eq nt (erase ty) then Some ({ x = name; ty = nt }, ty) else None)
       ctx
 
   let ut_update reachability_check ctx (name, f) =

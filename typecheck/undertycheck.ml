@@ -72,9 +72,10 @@ let infer uqvs t =
         (*   Printf.printf "[infer] ctx: %s\n" @@ List.split_by_comma fst ctx *)
         (* in *)
         UnderTy_under_arrow { argty; retty = aux ctx retty }
-    | UnderTy_ghost_arrow { argname; argnty; retty } ->
-        let ctx = add_to_right ctx (argname, argnty) in
-        UnderTy_ghost_arrow { argname; argnty; retty = aux ctx retty }
+    | UnderTy_ghost_arrow { argname; argty; retty } ->
+        let argty = ot_infer ctx argty in
+        let ctx = add_to_right ctx (argname, argty.normalty) in
+        UnderTy_ghost_arrow { argname; argty; retty = aux ctx retty }
     | UnderTy_over_arrow { argname; argty; retty } ->
         let argty = ot_infer ctx argty in
         let ctx = add_to_right ctx (argname, argty.normalty) in

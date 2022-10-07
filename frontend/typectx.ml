@@ -63,7 +63,7 @@ let pretty_print_app_judge ctx (args, r) =
   let () = Pp.printf "@{<bold>Application Type Check:@}\n" in
   pretty_print ctx;
   Pp.printf "⊢ @{<hi_magenta>%s → ? @} ⇦ "
-    (List.split_by " → " (fun x -> x.UL.x) args);
+    (List.split_by " → " (fun x -> x.NL.x) args);
   Pp.printf "@{<cyan>%s@}\n\n" @@ mmt_pretty_layout r
 
 let pretty_print_subtyping ctx (r1, r2) =

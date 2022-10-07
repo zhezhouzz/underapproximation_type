@@ -43,12 +43,6 @@ let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
   let (s : [%ghost: int]) = (true : [%v: int]) in
-  let (h : [%over: int]) = (true : [%v: int]) in
-  let (dummy : [%under: int list]) =
-    (len v s && fun (u : [%forall: int]) (w : [%forall: int]) ->
-     implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
-      : [%v: int list])
-  in
-  (len v (s + 1) && fun (u : [%forall: int]) (w : [%forall: int]) ->
-   implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
-    : [%v: int list])
+  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (dummy : [%under: int list]) = (len v s : [%v: int list]) in
+  (len v (s + 1) : [%v: int list])

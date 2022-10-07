@@ -19,12 +19,14 @@ module T = struct
     | UnderTy_base of { basename : id; normalty : normalty; prop : P.t }
     | UnderTy_under_arrow of { argty : t; retty : t }
     | UnderTy_over_arrow of { argname : id; argty : ot; retty : t }
-      (* Should at the top level *)
-    | UnderTy_ghost_arrow of { argname : id; argnty : normalty; retty : t }
+    | UnderTy_ghost_arrow of { argname : id; argty : ot; retty : t }
     | UnderTy_tuple of t list
   [@@deriving sexp]
 
   open Zzdatatype.Datatype
+
+  let ot_to_ut { basename; normalty; prop } =
+    UnderTy_base { basename; normalty; prop }
 
   let default_v_name = "v"
 
@@ -60,8 +62,8 @@ module T = struct
       | UnderTy_base { basename; normalty; _ } ->
           UnderTy_base { basename; normalty; prop = P.mk_false }
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
-      | UnderTy_ghost_arrow { argname; argnty; retty } ->
-          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
+      | UnderTy_ghost_arrow { argname; argty; retty } ->
+          UnderTy_ghost_arrow { argname; argty; retty = aux retty }
       | UnderTy_over_arrow { argname; argty; retty } ->
           UnderTy_over_arrow { argname; argty; retty = aux retty }
       | UnderTy_under_arrow { argty; retty } ->
@@ -126,12 +128,13 @@ module T = struct
       | UnderTy_base { basename; normalty; prop } ->
           if String.equal basename x then t
           else UnderTy_base { basename; normalty; prop = P.subst_id prop x y }
-      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+      | UnderTy_ghost_arrow { argname; argty; retty } ->
+          let argty = ot_subst_id argty x y in
           let retty =
             if List.exists (String.equal x) [ argname ] then retty
             else aux retty
           in
-          UnderTy_ghost_arrow { argname; argnty; retty }
+          UnderTy_ghost_arrow { argname; argty; retty }
       | UnderTy_over_arrow { argname; argty; retty } ->
           let argty = ot_subst_id argty x y in
           let retty =
@@ -200,11 +203,11 @@ module T = struct
           && ot_strict_eq argty1 argty2
           && aux (retty1, retty2)
       | ( UnderTy_ghost_arrow
-            { argname = argname1; argnty = argty1; retty = retty1 },
+            { argname = argname1; argty = argty1; retty = retty1 },
           UnderTy_ghost_arrow
-            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+            { argname = argname2; argty = argty2; retty = retty2 } ) ->
           String.equal argname1 argname2
-          && NT.eq argty1 argty2
+          && ot_strict_eq argty1 argty2
           && aux (retty1, retty2)
       | ( UnderTy_under_arrow { argty = argty1; retty = retty1 },
           UnderTy_under_arrow { argty = argty2; retty = retty2 } ) ->
@@ -229,11 +232,11 @@ module T = struct
           && ot_strict_eq argty1 argty2
           && aux (retty1, retty2)
       | ( UnderTy_ghost_arrow
-            { argname = argname1; argnty = argty1; retty = retty1 },
+            { argname = argname1; argty = argty1; retty = retty1 },
           UnderTy_ghost_arrow
-            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
+            { argname = argname2; argty = argty2; retty = retty2 } ) ->
           String.equal argname1 argname2
-          && NT.eq argty1 argty2
+          && ot_strict_eq argty1 argty2
           && aux (retty1, retty2)
       | ( UnderTy_under_arrow { argty = argty1; retty = retty1 },
           UnderTy_under_arrow { argty = argty2; retty = retty2 } ) ->
@@ -287,8 +290,8 @@ module T = struct
       | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
       | UnderTy_over_arrow { argname; argty; retty } ->
           UnderTy_over_arrow { argname; argty; retty = aux retty }
-      | UnderTy_ghost_arrow { argname; argnty; retty } ->
-          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
+      | UnderTy_ghost_arrow { argname; argty; retty } ->
+          UnderTy_ghost_arrow { argname; argty; retty = aux retty }
       | UnderTy_under_arrow { argty; retty } ->
           UnderTy_under_arrow { argty; retty = aux retty }
     in
@@ -389,6 +392,73 @@ module T = struct
           prop
         else prop)
       t
+
+  let map_by_ghost_name t (x, f) =
+    let rec aux t =
+      match t with
+      | UnderTy_base _ | UnderTy_tuple _ -> _failatwith __FILE__ __LINE__ ""
+      | UnderTy_under_arrow { argty; retty } ->
+          UnderTy_under_arrow { argty; retty = aux retty }
+      | UnderTy_ghost_arrow { argname; retty; argty } ->
+          if String.equal argname x then
+            match f argty with
+            | None -> retty
+            | Some argty -> UnderTy_ghost_arrow { argname; retty; argty }
+          else UnderTy_ghost_arrow { argname; retty; argty }
+      | UnderTy_over_arrow { argname; retty; argty } ->
+          UnderTy_over_arrow { argname; retty = aux retty; argty }
+    in
+    aux t
+
+  let reduce_inv_type_by_name t name =
+    let rec aux ghost_t t =
+      match t with
+      | UnderTy_base { basename; normalty; prop } -> (
+          match ghost_t with
+          | None -> _failatwith __FILE__ __LINE__ ""
+          | Some (x, xprop) ->
+              let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in
+              let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in
+              let prop =
+                P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
+              in
+              UnderTy_base { basename; normalty; prop })
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux ghost_t) ts)
+      | UnderTy_under_arrow { argty; retty } ->
+          UnderTy_under_arrow { argty; retty = aux ghost_t retty }
+      | UnderTy_ghost_arrow { argname; retty; argty } ->
+          if String.equal argname name then
+            let x = { x = argname; ty = argty.normalty } in
+            let xprop = P.subst_id argty.prop argty.basename argname in
+            match ghost_t with
+            | Some _ -> _failatwith __FILE__ __LINE__ ""
+            | None -> aux (Some (x, xprop)) retty
+          else UnderTy_ghost_arrow { argname; retty = aux ghost_t retty; argty }
+      | UnderTy_over_arrow { argname; retty; argty } ->
+          UnderTy_over_arrow { argname; retty = aux ghost_t retty; argty }
+    in
+    aux None t
+
+  let reduce_arrow_type_to_post t =
+    let rec aux t =
+      match t with
+      | UnderTy_base _ -> t
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
+      | UnderTy_under_arrow { retty; _ } -> aux retty
+      | UnderTy_ghost_arrow { argname; retty; argty } ->
+          let retty = aux retty in
+          let { basename; normalty; prop } = argty in
+          retty_add_ex_uprop
+            (argname, UnderTy_base { basename; normalty; prop })
+            retty
+      | UnderTy_over_arrow { argname; retty; argty } ->
+          let retty = aux retty in
+          let { basename; normalty; prop } = argty in
+          retty_add_ex_uprop
+            (argname, UnderTy_base { basename; normalty; prop })
+            retty
+    in
+    aux t
 end
 
 module MMT = struct

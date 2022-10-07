@@ -120,6 +120,14 @@ let subtyping_check file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
         UnderTy_under_arrow { argty = t21; retty = t22 } ) ->
         aux ctx (t21, t11);
         aux ctx (t12, t22)
+    | ( UnderTy_over_arrow { argname = x1; argty = t11; retty = t12 },
+        UnderTy_over_arrow { argname = x2; argty = t21; retty = t22 } ) ->
+        let () = aux ctx (ot_to_ut t11, ot_to_ut t21) in
+        let x' = Rename.unique x2 in
+        let t12 = subst_id t12 x1 x' in
+        let t22 = subst_id t22 x2 x' in
+        let ctx = Typectx.ot_add_to_right ctx (x', t21) in
+        aux ctx (t12, t22)
     | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
   in
   aux ctx (inferred_ty, target_ty)

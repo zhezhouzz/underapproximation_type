@@ -28,6 +28,9 @@ let unify file line underfty normalty =
     | UnderTy_tuple uts, Ty_tuple ts ->
         let l = _safe_combine file line uts ts in
         UnderTy_tuple (List.map (aux m) l)
+    | UnderTy_ghost_arrow { argname; argty; retty }, nt ->
+        let retty = aux m (retty, nt) in
+        UnderTy_ghost_arrow { argname; argty; retty }
     | _, _ -> _failatwith file line "unify"
   in
   aux StrMap.empty (underfty, normalty)
@@ -99,10 +102,91 @@ type uctx = {
   libctx : Nctx.ctx;
 }
 
-(* let derive_base_pre_ty uctx ty = *)
-(*   match uctx.rec_info with *)
-(*   | None -> _failatwith __FILE__ __LINE__ "" *)
-(*   | Some _ -> UT.nt_to_exn_type (UT.erase ty) *)
+let full_projection_check uctx fty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } -> (
+      let right_ty = UT.map_by_ghost_name fty (rank_lhs, fun _ -> None) in
+      let left_ty = UT.reduce_inv_type_by_name fty rank_lhs in
+      let () = Pp.printf "Full Projection Check:\n" in
+      try
+        let () = Inv_check.check (left_ty, right_ty) in
+        Pp.printf "@{<bold>@{<yellow>Full Projection Check successed@}@}\n"
+      with Autov.FailWithModel (msg, e) ->
+        Pp.printf "@{<bold>@{<red>Full Projection Check failed@}@}\n";
+        raise (Autov.FailWithModel (msg, e)))
+
+let if_rec_call uctx fname argname =
+  match (uctx.rec_info, fname) with
+  | None, _ -> false
+  | _, None -> false
+  | Some { fix_name; rank_lhs; _ }, Some fname ->
+      let () = Pp.printf "@{<bold>if_rec_call %s  %s@}\n" fix_name fname in
+      String.equal fname fix_name && String.equal argname rank_lhs
+
+let right_ty_measure_0 uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      UT.map_by_ghost_name ty
+        ( rank_lhs,
+          fun { basename; normalty; prop } ->
+            let prop =
+              P.(
+                let x = Ntyped.{ x = basename; ty = normalty } in
+                let prop' = MethodPred ("==", [ ACint 0; AVar x ]) in
+                And [ prop; prop' ])
+            in
+            Some { basename; normalty; prop } )
+
+let right_ty_measure_ind uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      UT.map_by_ghost_name ty
+        ( rank_lhs,
+          fun { basename; normalty; prop } ->
+            let prop =
+              P.(
+                let x = Ntyped.{ x = basename; ty = normalty } in
+                And [ prop; MethodPred ("<", [ ACint 0; AVar x ]) ])
+            in
+            Some { basename; normalty; prop } )
+
+let left_ty_measure_0 uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      UT.map_by_ghost_name ty
+        ( rank_lhs,
+          fun { basename; normalty; _ } ->
+            Some { basename; normalty; prop = P.mk_false } )
+
+let left_ty_measure_i uctx ty =
+  match uctx.rec_info with
+  | None -> _failatwith __FILE__ __LINE__ ""
+  | Some { rank_lhs; _ } ->
+      UT.map_by_ghost_name ty
+        ( rank_lhs,
+          fun { basename; normalty; prop } ->
+            Some
+              {
+                basename;
+                normalty;
+                prop =
+                  P.(
+                    let x = Ntyped.{ x = basename; ty = normalty } in
+                    And
+                      [
+                        prop;
+                        MethodPred
+                          ( "<",
+                            [
+                              AVar x;
+                              AVar Ntyped.{ x = rank_lhs; ty = normalty };
+                            ] );
+                      ]);
+              } )
 
 (* let derive_base_post_ty uctx ty = *)
 (*   match uctx.rec_info with *)
@@ -132,7 +216,22 @@ type uctx = {
 (*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
 (*       Param.type_infer uctx.param_ctx ty *)
 
-let candidate_vars_by_nt { ctx; _ } nt = Typectx.get_by_nt ctx nt
+let candidate_vars_by_nt uctx nt =
+  let cs = Typectx.get_by_nt uctx.ctx nt in
+  List.filter_map
+    (fun (x, ty) ->
+      match ty with
+      | MMT.Ut ty ->
+          let b = Reachability_check.reachability_check uctx ty in
+          (* let () = *)
+          (*   Pp.printf "candidate_vars_by_nt: %s <%s>\n" x.Ntyped.x *)
+          (*     (UT.pretty_layout ty) *)
+          (* in *)
+          if b then Some x else None
+      | MMT.Ot _ ->
+          (* TODO: check ot *)
+          Some x)
+    cs
 
 let term_subtyping_check file line uctx UL.{ x; ty } t2 =
   let () = Undersub.subtyping_check file line uctx.ctx ty t2 in
