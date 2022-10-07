@@ -587,8 +587,18 @@ let struc_check l notations libs r =
           let ctx = Typectx.empty in
           let rec_info =
             match (info, body.x) with
-            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
-                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | Some (rank_lhs, init_case), NL.(V (Fix (f, _))) ->
+                let () =
+                  match init_case with
+                  | P.(ACint 0) -> ()
+                  | lit ->
+                      _failatwith __FILE__ __LINE__
+                        (spf
+                           "unimp: current only support setting the base case \
+                            as 0, instead of (%s)."
+                           (Autov.pretty_layout_lit lit))
+                in
+                Some { fix_name = f.x; rank_lhs }
             | None, NL.(V (Fix (fix_name, _))) ->
                 failwith
                   (spf "No ranking function for rec function %s" fix_name.x)

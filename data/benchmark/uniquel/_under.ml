@@ -1,4 +1,4 @@
-let[@inv? n when s] list_gen =
+let[@inv? n when 0] list_gen =
   let (s : [%over: int]) = (v >= 0 : [%v: int]) in
   let (x : [%over: int]) = (true : [%v: int]) in
   let (n : [%ghost: int]) = (v == s && v >= 0 : [%v: int]) in
@@ -14,7 +14,7 @@ let[@inv? n when s] list_gen =
 (*     : [%v: int list]) *)
 
 (* Wrong return type *)
-let[@inv? n when s] list_gen =
+let[@inv? n when 0] list_gen =
   let (s : [%over: int]) = (v >= 0 : [%v: int]) in
   let (x : [%over: int]) = (true : [%v: int]) in
   let (n : [%ghost: int]) = (v == s && v >= 0 : [%v: int]) in

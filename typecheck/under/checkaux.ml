@@ -54,46 +54,14 @@ let subtyping_check_bool = Undersub.subtyping_check_bool
 (*   Undersub.subtyping_check_with_hidden_vars *)
 
 let merge_case_tys tys =
-  (* let () = *)
-  (*   List.iteri *)
-  (*     (fun i ty -> *)
-  (*       Pp.printf "@{<bold>Case(%i) ty@}: %s\n" i @@ UT.pretty_layout ty) *)
-  (*     tys *)
-  (* in *)
   let ty = UT.disjunct_list tys in
-  (* let () = *)
-  (*   Pp.printf "@{<bold>Merged ty@}: %s\n" @@ Frontend.Underty.pretty_layout ty *)
-  (* in *)
   ty
 
-(* let close_term_by_diff ctx' ctx UL.{ ty; x } = *)
-(*   let _ = UL.{ x; ty = UnderTypectx.close_by_diff ctx' ctx ty } in *)
-(*   _failatwith __FILE__ __LINE__ "unimp" *)
-
-(* let () = *)
-(*   Pp.printf "@{<bold>Close:@}\n"; *)
-(*   Frontend.Typectx.pretty_print ctx'; *)
-(*   Pp.printf "@{<bold>-@}\n"; *)
-(*   Frontend.Typectx.pretty_print ctx; *)
-(*   Pp.printf "@{<bold>=@}\n"; *)
-(*   Frontend.Typectx.pretty_print *)
-(*     { *)
-(*       qvs = []; *)
-(*       qbody = *)
-(*         List.map (fun (b, (name, t)) -> (spf "|%b|%s" b name, t)) *)
-(*         @@ Languages.UnderTypectx.subtract ctx'.qbody ctx.qbody; *)
-(*     } *)
-(* in *)
-(* module MultiTypectx = Languages.MultiUnderTypectx *)
 module Nctx = Languages.UTSimpleTypectx
 module Typectx = Languages.MustMayTypectx
 (* open Abstraction *)
 
-type rec_info = {
-  fix_name : string;
-  rank_lhs : string;
-  rank_rhs : Autov.Prop.lit;
-}
+type rec_info = { fix_name : string; rank_lhs : string }
 
 type uctx = {
   rec_info : rec_info option;
@@ -187,34 +155,6 @@ let left_ty_measure_i uctx ty =
                             ] );
                       ]);
               } )
-
-(* let derive_base_post_ty uctx ty = *)
-(*   match uctx.rec_info with *)
-(*   | None -> _failatwith __FILE__ __LINE__ "" *)
-(*   | Some { rank_rhs; _ } -> *)
-(*       let ind_prop = P.(MethodPred ("==", [ rank_rhs; ACint 0 ])) in *)
-(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
-(*       Param.type_infer uctx.param_ctx ty *)
-
-(* let derive_ind_pre_ty uctx ty = *)
-(*   match uctx.rec_info with *)
-(*   | None -> _failatwith __FILE__ __LINE__ "" *)
-(*   | Some { rank_lhs; rank_rhs; _ } -> *)
-(*       let ind_prop = *)
-(*         P.(MethodPred ("<", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ])) *)
-(*       in *)
-(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
-(*       Param.type_infer uctx.param_ctx ty *)
-
-(* let derive_ind_post_ty uctx ty = *)
-(*   match uctx.rec_info with *)
-(*   | None -> _failatwith __FILE__ __LINE__ "" *)
-(*   | Some { rank_lhs; rank_rhs; _ } -> *)
-(*       let ind_prop = *)
-(*         P.(MethodPred ("==", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ])) *)
-(*       in *)
-(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
-(*       Param.type_infer uctx.param_ctx ty *)
 
 let candidate_vars_by_nt uctx nt =
   let cs = Typectx.get_by_nt uctx.ctx nt in
