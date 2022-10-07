@@ -45,14 +45,21 @@ let layout_one { name; if_rec; body } =
 
 let layout l = spf "%s\n" (List.split_by "\n" layout_one l)
 
-type ext = NoExt | NotationExt | LibraryExt | Inv of (string * Autov.Prop.lit)
+type ext =
+  | NoExt
+  | NotationExt of string
+  | LibraryExt
+  | Inv of (string * Autov.Prop.lit)
 
 let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
   match structure.pstr_desc with
   | Pstr_value (_, [ value_binding ]) ->
       let a =
         match value_binding.pvb_attributes with
-        | [ x ] when String.equal x.attr_name.txt "notation" -> NotationExt
+        | [ x ] when String.equal x.attr_name.txt "notation_over" ->
+            NotationExt "over"
+        | [ x ] when String.equal x.attr_name.txt "notation_under" ->
+            NotationExt "under"
         | [ x ] when String.equal x.attr_name.txt "library" -> LibraryExt
         | [ x ] when String.equal x.attr_name.txt "inv" -> (
             match x.attr_payload with

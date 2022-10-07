@@ -9,8 +9,25 @@ open Sugar
 
 type mode = Under | Tuple
 
+open L
+
+let ot_pretty_layout x =
+  match x with
+  | { basename; prop = Autov.Prop.(MethodPred ("==", [ AVar id; ACint i ])); _ }
+    when String.equal basename id.x ->
+      Sugar.spf "{%i}" i
+  | {
+   basename;
+   prop = Autov.Prop.(MethodPred ("==", [ AVar id; ACbool b ]));
+   _;
+  }
+    when String.equal basename id.x ->
+      Sugar.spf "{%b}" b
+  | { basename; normalty; prop } ->
+      Sugar.spf "{%s:%s | %s}" basename (Type.layout normalty)
+        (Autov.pretty_layout_prop prop)
+
 let pretty_layout x =
-  let open L in
   let rec aux x =
     match x with
     | UnderTy_base
@@ -32,25 +49,23 @@ let pretty_layout x =
     | UnderTy_base { basename; normalty; prop } ->
         Sugar.spf "[%s:%s | %s]" basename (Type.layout normalty)
           (Autov.pretty_layout_prop prop)
-    | UnderTy_arrow { argname; argty; retty } ->
-        let argname_f ty =
-          if L.is_fv_in argname retty then Sugar.spf "%s:%s" argname ty else ty
+    | UnderTy_under_arrow { argty; retty } ->
+        let arg_str = aux argty in
+        let arg_str =
+          if Ast.UT.is_base_type argty then arg_str else spf "(%s)" arg_str
         in
-        Sugar.spf "%s→%s" (argname_f @@ aux argty) (aux retty)
+        Sugar.spf "%s→%s" arg_str (aux retty)
     | UnderTy_ghost_arrow { argname; argnty; retty } ->
         Sugar.spf "%s⤍%s"
           (spf "(%s:%s)" argname (Type.layout argnty))
           (aux retty)
-    | UnderTy_poly_arrow { argname; argnty; retty } ->
+    | UnderTy_over_arrow { argname; argty; retty } ->
         Sugar.spf "%s→%s"
-          (spf "(%s:%s)" argname (Type.layout argnty))
+          (spf "%s:%s" argname (ot_pretty_layout argty))
           (aux retty)
     | UnderTy_tuple ts ->
         (* let () = Printf.printf "len(ts) = %i\n" @@ List.length ts in *)
-        Sugar.spf "(%s)"
-        @@ Zzdatatype.Datatype.List.split_by_comma
-             (fun (a, b) -> spf "%s:%s" a @@ aux b)
-             ts
+        Sugar.spf "(%s)" @@ Zzdatatype.Datatype.List.split_by_comma aux ts
   in
   aux x
 
@@ -59,47 +74,61 @@ let prop_of_ocamlexpr e =
   let _ = Autov.Prop.assume_tope_uprop __FILE__ __LINE__ prop in
   prop
 
-let mode_of_ocamlexpr e =
-  match (Expr.expr_of_ocamlexpr e).x with
-  | T.Var "under" -> Under
-  | T.Var "tuple" -> Tuple
-  | _ -> failwith "mode_of_ocamlexpr"
+(* let mode_of_ocamlexpr e = *)
+(*   match (Expr.expr_of_ocamlexpr e).x with *)
+(*   | T.Var "under" -> Under *)
+(*   | T.Var "tuple" -> Tuple *)
+(*   | _ -> failwith "mode_of_ocamlexpr" *)
+
+let ot_undertype_of_ocamlexpr expr =
+  match expr.pexp_desc with
+  | Pexp_constraint (e, ct) ->
+      let basename, normalty =
+        match Type.core_type_to_notated_t ct with
+        | Some basename, normalty -> (basename, normalty)
+        | _ -> _failatwith __FILE__ __LINE__ ""
+      in
+      let prop = prop_of_ocamlexpr e in
+      { basename; normalty; prop }
+  | _ -> _failatwith __FILE__ __LINE__ ""
 
 let undertype_of_ocamlexpr expr =
-  let open T in
   let rec aux expr =
     match expr.pexp_desc with
-    | Pexp_tuple es ->
-        (* let () = *)
-        (*   Printf.printf "ES: %s\n" *)
-        (*   @@ List.split_by_comma Pprintast.string_of_expression es *)
-        (* in *)
-        (* let () = *)
-        (*   Printf.printf "ES: %s\n" *)
-        (*   @@ List.split_by_comma *)
-        (*        (fun (name, ty) -> spf "%s:%s" name (Type.layout @@ L.erase ty)) *)
-        (*        (List.map aux_with_name es) *)
-        (* in *)
-        (* let () = failwith "zz" in *)
-        L.UnderTy_tuple (List.map aux_with_name es)
+    | Pexp_tuple es -> L.UnderTy_tuple (List.map aux es)
     | Pexp_let (_, [ vb ], body) -> (
         let id = Pat.patten_to_typed_ids vb.pvb_pat in
         let argname =
           match id with [ id ] -> id | _ -> failwith "undertype_of_ocamlexpr"
         in
         match argname.ty with
-        | Some (Some "poly", argnty) ->
-            L.UnderTy_poly_arrow
-              { argname = argname.x; argnty; retty = aux body }
+        | Some (Some "over", argnty) ->
+            let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
+            let _ =
+              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty argty.normalty
+            in
+            L.UnderTy_over_arrow
+              { argname = argname.x; argty; retty = aux body }
         | Some (Some "ghost", argnty) ->
             L.UnderTy_ghost_arrow
               { argname = argname.x; argnty; retty = aux body }
-        | Some _ -> _failatwith __FILE__ __LINE__ ""
-        | None ->
-            (* let () = Printf.printf "argname: %s\n" argname.x in *)
-            (* let () = failwith "zz" in *)
+        | Some (Some "under", argnty) ->
             let argty = aux vb.pvb_expr in
-            L.UnderTy_arrow { argname = argname.x; argty; retty = aux body })
+            let _ =
+              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty (erase argty)
+            in
+            let _ =
+              _check_equality __FILE__ __LINE__ String.equal "dummy" argname.x
+            in
+            L.UnderTy_under_arrow { argty; retty = aux body }
+        | _ ->
+            _failatwith __FILE__ __LINE__
+              (match argname.ty with
+              | None -> "none"
+              | Some ty ->
+                  spf "%s: %s"
+                    (match fst ty with None -> "none" | Some s -> s)
+                    (Type.layout @@ snd ty)))
     | Pexp_constraint (e, ct) ->
         let basename, normalty =
           match Type.core_type_to_notated_t ct with
@@ -112,70 +141,21 @@ let undertype_of_ocamlexpr expr =
         _failatwith __FILE__ __LINE__
           (spf "wrong refinement type: %s"
              (Pprintast.string_of_expression expr))
-  and aux_with_name expr =
-    match expr.pexp_desc with
-    | Pexp_apply (x, [ e ]) ->
-        let ty = aux @@ snd e in
-        let x =
-          match Expr.expr_of_ocamlexpr x with
-          | { x = Var x; _ } -> x
-          | _ -> _failatwith __FILE__ __LINE__ ""
-        in
-        (x, ty)
-    | _ -> _failatwith __FILE__ __LINE__ ""
+    (* and aux_with_name expr = *)
+    (*   match expr.pexp_desc with *)
+    (*   | Pexp_apply (x, [ e ]) -> *)
+    (*       let ty = aux @@ snd e in *)
+    (*       let x = *)
+    (*         match Expr.expr_of_ocamlexpr x with *)
+    (*         | { x = Var x; _ } -> x *)
+    (*         | _ -> _failatwith __FILE__ __LINE__ "" *)
+    (*       in *)
+    (*       (x, ty) *)
+    (*   | _ -> _failatwith __FILE__ __LINE__ "" *)
   in
   let uty = aux expr in
   (* let () = Printf.printf "TEST:%s\n" @@ pretty_layout uty in *)
   uty
 
 let undertype_to_ocamlexpr _ = _failatwith __FILE__ __LINE__ "unimp"
-(* let open L in *)
-(* let rec aux x = *)
-(*   match x with *)
-(*   | UnderTy_base { basename; normalty; prop } -> *)
-(*       let mode = Expr.expr_to_ocamlexpr { ty = None; x = Var "under" } in *)
-(*       let x = *)
-(*         Expr.expr_to_ocamlexpr *)
-(*           { ty = Some (None, normalty); x = Var basename } *)
-(*       in *)
-(*       let prop = Autov.prop_to_ocamlexpr prop in *)
-(*       Expr.desc_to_ocamlexpr *)
-(*       @@ Pexp_apply *)
-(*            (mode, List.map (fun x -> (Asttypes.Nolabel, x)) [ x; prop ]) *)
-(*   | UnderTy_arrow { argname; argty; retty } -> *)
-(*       Expr.desc_to_ocamlexpr *)
-(*       @@ Pexp_let *)
-(*            ( Asttypes.Nonrecursive, *)
-(*              [ *)
-(*                { *)
-(*                  pvb_pat = *)
-(*                    Pat.dest_to_pat @@ Ppat_var (Location.mknoloc argname); *)
-(*                  pvb_expr = aux argty; *)
-(*                  pvb_attributes = []; *)
-(*                  pvb_loc = Location.none; *)
-(*                }; *)
-(*              ], *)
-(*              aux retty ) *)
-(*   | UnderTy_poly_arrow { argname; argnty; retty } -> *)
-(*       Expr.desc_to_ocamlexpr *)
-(*       @@ Pexp_let *)
-(*            ( Asttypes.Nonrecursive, *)
-(*              [ *)
-(*                { *)
-(*                  pvb_pat = *)
-(*                    Pat.dest_to_pat @@ Ppat_var (Location.mknoloc argname); *)
-(*                  pvb_expr = *)
-(*                    Expr.desc_to_ocamlexpr *)
-(*                    @@ Pexp_extension *)
-(*                         ( Location.mknoloc "poly", *)
-(*                           PTyp (Type.t_to_core_type argnty) ); *)
-(*                  pvb_attributes = []; *)
-(*                  pvb_loc = Location.none; *)
-(*                }; *)
-(*              ], *)
-(*              aux retty ) *)
-(*   | UnderTy_tuple ts -> Expr.desc_to_ocamlexpr @@ Pexp_tuple (List.map aux ts) *)
-(* in *)
-(* aux x *)
-
 let layout x = Pprintast.string_of_expression @@ undertype_to_ocamlexpr x

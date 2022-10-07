@@ -63,7 +63,8 @@ let load_over_refinments refine_file =
         | Frontend.Structure.Inv _, _ -> _failatwith __FILE__ __LINE__ "die"
         | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ])
         | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
-        | Frontend.Structure.NotationExt, x -> (a @ [ x ], b, c))
+        | Frontend.Structure.NotationExt str, _ ->
+            _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
       ~init:([], [], []) refinements
   in
   let () =
@@ -93,7 +94,23 @@ let load_under_refinments refine_file =
         | Frontend.Structure.NoExt, x -> (a, b, c @ [ (None, x) ])
         | Frontend.Structure.Inv info, x -> (a, b, c @ [ (Some info, x) ])
         | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
-        | Frontend.Structure.NotationExt, x -> (a @ [ x ], b, c))
+        | Frontend.Structure.NotationExt "over", (name, ty) ->
+            ( a
+              @ [
+                  ( name,
+                    MMT.Ot
+                      UT.(
+                        let basename, normalty, prop =
+                          assume_base __FILE__ __LINE__ ty
+                        in
+                        { basename; normalty; prop }) );
+                ],
+              b,
+              c )
+        | Frontend.Structure.NotationExt "under", (name, ty) ->
+            (a @ [ (name, MMT.Ut ty) ], b, c)
+        | Frontend.Structure.NotationExt str, _ ->
+            _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
       ~init:([], [], []) refinements
   in
   (* let () = *)

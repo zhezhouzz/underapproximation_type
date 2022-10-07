@@ -3,7 +3,7 @@ open Sugar
 module F (Type : Type.T) = struct
   open Sexplib.Std
 
-  type t = (string * Type.t) list [@@deriving sexp]
+  type ctx = (string * Type.t) list [@@deriving sexp]
 
   let get_opt ctx id = List.find_opt (fun (y, _) -> String.equal y id) ctx
 
@@ -30,7 +30,7 @@ end
 module NSimpleTypectx = struct
   include F (Normalty.Ast.T)
 
-  let of_type_decls e : t = Type_dec.T.mk_ctx e
+  let of_type_decls e : ctx = Type_dec.T.mk_ctx e
 end
 
 module SMTSimpleTypectx = F (Normalty.Ast.Smtty)
@@ -54,3 +54,4 @@ module UTSimpleTypectx = struct
 end
 
 module OverTypectx = F (Overty.T)
+module MustMayTypectx = F (Underty.MMT)

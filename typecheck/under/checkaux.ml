@@ -12,50 +12,25 @@ open Zzdatatype.Datatype
 let unify file line underfty normalty =
   let open UT in
   let open Ntyped in
-  (* let () = *)
-  (*   Pp.printf "|_ %s _| ~> %s <=== %s\n" *)
-  (*     (Frontend.Underty.pretty_layout underfty) *)
-  (*     (NT.layout @@ UT.erase underfty) *)
-  (*     (NT.layout normalty) *)
-  (* in *)
   let rec aux m = function
     | UnderTy_base { basename; normalty; prop }, nt ->
         let m, normalty = NT._type_unify_ file line m normalty nt in
         let prop = P.type_update m prop in
         UnderTy_base { basename; normalty; prop }
-    | UnderTy_poly_arrow { argname; argnty; retty }, Ty_arrow (t1, t2) ->
-        let m, argnty = NT._type_unify_ file line m argnty t1 in
+    | UnderTy_over_arrow { argname; argty; retty }, Ty_arrow (t1, t2) ->
+        let m, _ = NT._type_unify_ file line m argty.normalty t1 in
         let retty = aux m (retty, t2) in
-        UnderTy_poly_arrow { argname; argnty; retty }
-    | UnderTy_arrow { argname; argty; retty }, Ty_arrow (t1, t2) ->
+        UnderTy_over_arrow { argname; argty; retty }
+    | UnderTy_under_arrow { argty; retty }, Ty_arrow (t1, t2) ->
         let argty = aux m (argty, t1) in
-        let m = StrMap.add argname (erase argty) m in
         let retty = aux m (retty, t2) in
-        UnderTy_arrow { argname; argty; retty }
-    | UnderTy_tuple bindings, Ty_tuple ts ->
-        let l = _safe_combine file line bindings ts in
-        let bindings, _ =
-          List.fold_left
-            (fun (bindings, m) ((x, ty), nt) ->
-              let ty = aux m (ty, nt) in
-              let m = StrMap.add x (erase ty) m in
-              (bindings @ [ (x, ty) ], m))
-            ([], m) l
-        in
-        UnderTy_tuple bindings
+        UnderTy_under_arrow { argty; retty }
+    | UnderTy_tuple uts, Ty_tuple ts ->
+        let l = _safe_combine file line uts ts in
+        UnderTy_tuple (List.map (aux m) l)
     | _, _ -> _failatwith file line "unify"
   in
   aux StrMap.empty (underfty, normalty)
-
-(* let erase_check file line (underfty, normalty) = *)
-(*   (\* let () = *\) *)
-(*   (\*   Pp.printf "|_ %s _| ~> %s = %s\n" *\) *)
-(*   (\*     (UT.pretty_layout underfty) *\) *)
-(*   (\*     (NT.layout @@ UT.erase underfty) *\) *)
-(*   (\*     (NT.layout @@ snd normalty) *\) *)
-(*   (\* in *\) *)
-(*   let _ = _check_equality file line NT.eq (UT.erase underfty) (snd normalty) in *)
-(*   () *)
 
 let erase_check_mk_id file line id underfty =
   (* let () = *)
@@ -108,7 +83,7 @@ let merge_case_tys tys =
 (* in *)
 (* module MultiTypectx = Languages.MultiUnderTypectx *)
 module Nctx = Languages.UTSimpleTypectx
-module Typectx = Languages.UnderTypectx
+module Typectx = Languages.MustMayTypectx
 (* open Abstraction *)
 
 type rec_info = {
@@ -119,81 +94,72 @@ type rec_info = {
 
 type uctx = {
   rec_info : rec_info option;
-  param_ctx : Param.t;
-  ctx : Nctx.t;
-  nctx : Nctx.t;
-  libctx : Typectx.t;
+  ctx : Typectx.ctx;
+  nctx : Typectx.ctx;
+  libctx : Nctx.ctx;
 }
 
-let add_rank_var_base (uctx : uctx) =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      let ty =
-        UT.make_basic_from_prop NT.Ty_int (fun v ->
-            P.(MethodPred ("==", [ AVar v; ACint 0 ])))
-      in
-      let ty = Param.type_infer uctx.param_ctx ty in
-      { uctx with param_ctx = Param.add_to_right uctx.param_ctx (rank_lhs, ty) }
+(* let derive_base_pre_ty uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some _ -> UT.nt_to_exn_type (UT.erase ty) *)
 
-let add_rank_var_ind (uctx : uctx) =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      let ty =
-        UT.make_basic_from_prop NT.Ty_int (fun v ->
-            P.(MethodPred (">", [ AVar v; ACint 0 ])))
-      in
-      let ty = Param.type_infer uctx.param_ctx ty in
-      { uctx with param_ctx = Param.add_to_right uctx.param_ctx (rank_lhs, ty) }
+(* let derive_base_post_ty uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_rhs; _ } -> *)
+(*       let ind_prop = P.(MethodPred ("==", [ rank_rhs; ACint 0 ])) in *)
+(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
+(*       Param.type_infer uctx.param_ctx ty *)
 
-let derive_base_pre_ty uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some _ -> UT.nt_to_exn_type (UT.erase ty)
+(* let derive_ind_pre_ty uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; rank_rhs; _ } -> *)
+(*       let ind_prop = *)
+(*         P.(MethodPred ("<", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ])) *)
+(*       in *)
+(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
+(*       Param.type_infer uctx.param_ctx ty *)
 
-let derive_base_post_ty uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_rhs; _ } ->
-      let ind_prop = P.(MethodPred ("==", [ rank_rhs; ACint 0 ])) in
-      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
-      Param.type_infer uctx.param_ctx ty
+(* let derive_ind_post_ty uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; rank_rhs; _ } -> *)
+(*       let ind_prop = *)
+(*         P.(MethodPred ("==", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ])) *)
+(*       in *)
+(*       let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in *)
+(*       Param.type_infer uctx.param_ctx ty *)
 
-let derive_ind_pre_ty uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; rank_rhs; _ } ->
-      let ind_prop =
-        P.(MethodPred ("<", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ]))
-      in
-      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
-      Param.type_infer uctx.param_ctx ty
-
-let derive_ind_post_ty uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; rank_rhs; _ } ->
-      let ind_prop =
-        P.(MethodPred ("==", [ rank_rhs; AVar { x = rank_lhs; ty = Ty_int } ]))
-      in
-      let ty = UT.map_on_retty (fun p -> P.(peval (And [ p; ind_prop ]))) ty in
-      Param.type_infer uctx.param_ctx ty
-
-let candidate_vars_by_nt { ctx; param_ctx; _ } nt =
-  Typectx.get_by_nt ctx nt @ Param.get_by_nt param_ctx nt
+let candidate_vars_by_nt { ctx; _ } nt = Typectx.get_by_nt ctx nt
 
 let term_subtyping_check file line uctx UL.{ x; ty } t2 =
-  let () = Undersub.subtyping_check file line uctx.param_ctx uctx.ctx ty t2 in
+  let () = Undersub.subtyping_check file line uctx.ctx ty t2 in
   UL.{ x; ty = t2 }
 
+let term_subtyping_check_opt file line uctx UL.{ x; ty } t2 =
+  if Undersub.subtyping_check_bool file line uctx.ctx ty t2 then
+    Some UL.{ x; ty = t2 }
+  else None
+
+open UT
+
+let id_type_infer_raw (uctx : uctx) (id : NL.id NL.typed) : MMT.t =
+  try Typectx.get_ty uctx.ctx id.x with _ -> Ut (Nctx.get_ty uctx.libctx id.x)
+
 let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
-  (* let () = Pp.printf "@{<yellow>infer id: %s@}\n" id.x in *)
   let ty =
-    try Nctx.get_ty uctx.ctx id.x
-    with _ -> (
-      try Typectx.get_ty uctx.libctx id.x
-      with _ -> Param.get_ty uctx.param_ctx id.x)
+    try
+      match Typectx.get_ty uctx.ctx id.x with
+      | Ot _ ->
+          (* let () = *)
+          (*   Pp.printf "@{<yellow>infer id: %s => %s@}\n" id.x *)
+          (*     (UT.ot_pretty_layout ot) *)
+          (* in *)
+          make_basic_from_eq_var { x = id.x; ty = snd id.ty }
+      | Ut ut -> ut
+    with _ -> Nctx.get_ty uctx.libctx id.x
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 

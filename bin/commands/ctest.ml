@@ -155,6 +155,7 @@ let under_post_shrink =
           Inputstage.load_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
+        let notations = failwith "zz" in
         let res =
           Inference.Infer.struc_post_shrink infer_ctx_file code notations libs
             refinements

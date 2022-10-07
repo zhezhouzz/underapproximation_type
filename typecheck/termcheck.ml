@@ -64,7 +64,7 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
+let rec bidirect_type_infer (ctx : Typectx.ctx) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
   match x.ty with
   | None ->
@@ -72,7 +72,7 @@ let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
       (e, ty)
   | Some ty -> (type_check ctx x.x ty, snd ty)
 
-and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
+and bidirect_type_check (ctx : Typectx.ctx) (x : Exp.term Exp.opttyped)
     (ty : NType.t) : Exp.term Exp.opttyped =
   match x.ty with
   | None -> type_check ctx x.x ty
@@ -86,7 +86,7 @@ and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
       (* let () = Pp.printf "@{<bold>sndty: %s@}\n" (NT.layout sndty) in *)
       type_check ctx x.x (fst ty, sndty)
 
-and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
+and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
     Exp.term Exp.opttyped =
   (* let () = *)
   (*   Printf.printf "Check:\n%s\n%s <== %s\n" *)
@@ -223,7 +223,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
            (Frontend.Expr.layout { ty = None; x = e })
            (layout_ty ty))
 
-and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
+and type_infer (ctx : Typectx.ctx) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
   match x with
   | Exn ->

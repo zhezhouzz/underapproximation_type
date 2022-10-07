@@ -191,130 +191,186 @@ module UT = struct
   include UT
 end
 
-module UnderTypectx = struct
+module MustMayTypectx = struct
   include Frontend.Typectx
-  include UTSimpleTypectx
-  open UT
-  open Ntyped
+  include MustMayTypectx
   open Sugar
+  open MMT
+  open Ntyped
 
-  let get_by_nt ctx nt =
+  let subtract ctx ctx' =
+    let rec aux = function
+      | ctx, [] -> ctx
+      | [], _ -> _failatwith __FILE__ __LINE__ ""
+      | (name, ty) :: ctx, (name', ty') :: ctx' ->
+          if String.equal name name' && MMT.eq ty ty' then aux (ctx, ctx')
+          else _failatwith __FILE__ __LINE__ ""
+    in
+    aux (ctx, ctx')
+
+  let destrct_right ctx =
+    match List.rev ctx with [] -> None | h :: t -> Some (List.rev t, h)
+
+  let get_by_nt (ctx : ctx) nt =
     List.filter_map
       (fun (name, ty) ->
         if eq nt (erase ty) then Some { x = name; ty = nt } else None)
       ctx
 
-  let update ctx (name, f) =
+  let ut_update reachability_check ctx (name, f) =
     let rec aux res = function
       | [] -> _failatwith __FILE__ __LINE__ ""
       | (name', ty) :: rest ->
-          if String.equal name name' then res @ ((name', f ty) :: rest)
+          if String.equal name name' then
+            match ty with
+            | Ut ty ->
+                let ty' = f ty in
+                if reachability_check ctx ty' then
+                  Some (res @ ((name', Ut ty') :: rest))
+                else None
+            | Ot _ -> _failatwith __FILE__ __LINE__ ""
           else aux (res @ [ (name', ty) ]) rest
     in
     aux [] ctx
 
-  let force_add_to_right ctx id = add_to_right ctx (id.UL.x, id.ty)
+  let ot_update reachability_check ctx (name, f) =
+    let open UT in
+    let rec aux res = function
+      | [] -> _failatwith __FILE__ __LINE__ ""
+      | (name', ty) :: rest ->
+          if String.equal name name' then
+            match ty with
+            | Ut _ -> _failatwith __FILE__ __LINE__ ""
+            | Ot ot ->
+                let { basename; normalty; prop } = f ot in
+                if
+                  reachability_check ctx
+                    (UT.UnderTy_base { basename; normalty; prop })
+                then
+                  Some (res @ ((name', Ot { basename; normalty; prop }) :: rest))
+                else None
+          else aux (res @ [ (name', ty) ]) rest
+    in
+    aux [] ctx
 
-  let force_add_to_rights ctx ids =
-    List.fold_left (fun ctx id -> force_add_to_right ctx id) ctx ids
+  let consume ctx name =
+    let rec aux res = function
+      | [] -> _failatwith __FILE__ __LINE__ ""
+      | (name', ty) :: rest ->
+          if String.equal name name' then
+            match ty with
+            | Ut ty ->
+                res @ ((name', Ut (UT.make_basic_bot (UT.erase ty))) :: rest)
+            | Ot _ -> _failatwith __FILE__ __LINE__ ""
+          else aux (res @ [ (name', ty) ]) rest
+    in
+    aux [] ctx
 
-  let add_to_right reachability_check ctx id =
-    if reachability_check ctx id.UL.ty then
-      Some (add_to_right ctx (id.UL.x, id.ty))
+  let ut_force_add_to_right ctx id = add_to_right ctx (id.UL.x, Ut id.ty)
+
+  let ut_force_add_to_rights ctx ids =
+    List.fold_left (fun ctx id -> ut_force_add_to_right ctx id) ctx ids
+
+  let ut_add_to_right reachability_check ctx id =
+    if reachability_check ctx id.UL.ty then Some (ut_force_add_to_right ctx id)
     else None
 
-  let add_to_rights reachability_check ctx ids =
+  let ut_add_to_rights reachability_check ctx ids =
     List.fold_left
       (fun ctx id ->
         match ctx with
         | None -> None
-        | Some ctx -> add_to_right reachability_check ctx id)
+        | Some ctx -> ut_add_to_right reachability_check ctx id)
       (Some ctx) ids
 
-  (* Assume everything in the type context is not bot *)
-  let close_by_diff_ diff uty =
-    List.fold_right
-      (fun (x, ty) uty ->
-        if List.exists (String.equal x) (fv uty) then add_ex_uprop true x ty uty
-        else uty)
-      diff uty
+  let ot_add_to_right ctx (id, ot) = add_to_right ctx (id, Ot ot)
 
-  let close_by_diff ctx ctx' uty = close_by_diff_ (subtract ctx ctx') uty
+  let ot_add_to_rights ctx ids =
+    List.fold_left (fun ctx id -> ot_add_to_right ctx id) ctx ids
+
+  (* Assume everything in the type context is not bot *)
+  let close_by_diff_ diff uty = List.fold_right UT.retty_add_ex_uprop diff uty
+
+  let close_by_diff ctx ctx' uty =
+    let diff = subtract ctx ctx' in
+    let diff =
+      List.map
+        (function
+          | x, Ut ut -> (x, ut) | _, Ot _ -> _failatwith __FILE__ __LINE__ "")
+        diff
+    in
+    close_by_diff_ diff uty
+
   let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p
 
-  let _assume_basety file line (x, ty) =
-    match ty with
-    | UnderTy_base { basename; prop; normalty } ->
-        let prop = P.subst_id prop basename x in
-        ({ ty = normalty; x }, prop)
-    | _ ->
-        let () = Printf.printf " %s: %s\n" x (pretty_layout ty) in
-        _failatwith file line "should not happen"
+  (* let _assume_basety file line (x, ty) = *)
+  (*   match ty with *)
+  (*   | UnderTy_base { basename; prop; normalty } -> *)
+  (*       let prop = P.subst_id prop basename x in *)
+  (*       ({ ty = normalty; x }, prop) *)
+  (*   | _ -> *)
+  (*       let () = Printf.printf " %s: %s\n" x (pretty_layout ty) in *)
+  (*       _failatwith file line "should not happen" *)
 
-  let close_prop_ if_drop_unused ctx prop =
-    let open P in
-    let rec aux ctx prop =
-      match destrct_right ctx with
-      | None -> prop
-      | Some (ctx, (x, xty)) ->
-          (* let xty = conjunct_list xty in *)
-          (* NOTE: the lambda type always indicates values, thus are reachable *)
-          if is_base_type xty then
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            if if_drop_unused && not (check_in x.x prop) then aux ctx prop
-            else
-              let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in
-              let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in
-              let prop' =
-                P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
-              in
-              (* let _ = *)
-              (*   Pp.printf "@{<bold>Conj:@} %s --> %s = %s\n" *)
-              (*     (Autov.pretty_layout_prop xprop) *)
-              (*     (Autov.pretty_layout_prop prop) *)
-              (*     (Autov.pretty_layout_prop prop') *)
-              (* in *)
-              aux ctx prop'
-          else aux ctx prop
-    in
-    let res = aux ctx prop in
-    let res' = peval res in
-    (* let () = *)
-    (*   Pp.printf "@{<bold>PEVAL:@}\n %s\n=%s\n" *)
-    (*     (Autov.pretty_layout_prop res) *)
-    (*     (Autov.pretty_layout_prop res') *)
-    (* in *)
-    res'
+  (* let close_prop_ if_drop_unused ctx prop = *)
+  (*   let open P in *)
+  (*   let rec aux ctx prop = *)
+  (*     match destrct_right ctx with *)
+  (*     | None -> prop *)
+  (*     | Some (ctx, (x, xty)) -> *)
+  (*         (\* let xty = conjunct_list xty in *\) *)
+  (*         (\* NOTE: the lambda type always indicates values, thus are reachable *\) *)
+  (*         if is_base_type xty then *)
+  (*           let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
+  (*           if if_drop_unused && not (check_in x.x prop) then aux ctx prop *)
+  (*           else *)
+  (*             let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in *)
+  (*             let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in *)
+  (*             let prop' = *)
+  (*               P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop) *)
+  (*             in *)
+  (*             (\* let _ = *\) *)
+  (*             (\*   Pp.printf "@{<bold>Conj:@} %s --> %s = %s\n" *\) *)
+  (*             (\*     (Autov.pretty_layout_prop xprop) *\) *)
+  (*             (\*     (Autov.pretty_layout_prop prop) *\) *)
+  (*             (\*     (Autov.pretty_layout_prop prop') *\) *)
+  (*             (\* in *\) *)
+  (*             aux ctx prop' *)
+  (*         else aux ctx prop *)
+  (*   in *)
+  (*   let res = aux ctx prop in *)
+  (*   let res' = peval res in *)
+  (*   (\* let () = *\) *)
+  (*   (\*   Pp.printf "@{<bold>PEVAL:@}\n %s\n=%s\n" *\) *)
+  (*   (\*     (Autov.pretty_layout_prop res) *\) *)
+  (*   (\*     (Autov.pretty_layout_prop res') *\) *)
+  (*   (\* in *\) *)
+  (*   res' *)
 
-  let close_prop = close_prop_ false
-  let close_prop_drop_independt = close_prop_ true
+  (* let close_prop = close_prop_ false *)
+  (* let close_prop_drop_independt = close_prop_ true *)
 
-  let close_type uty nu =
-    let open P in
-    let rec aux uty =
-      match uty with
-      | UnderTy_base _ ->
-          let _, prop = _assume_basety __FILE__ __LINE__ (nu, uty) in
-          prop
-      | UnderTy_arrow { argname; argty; retty } ->
-          (* let _ = *)
-          (*   Printf.printf "%s is base type: %b\n" (pretty_layout argty) *)
-          (*     (is_base_type argty) *)
-          (* in *)
-          if is_base_type argty then
-            let x, xprop = _assume_basety __FILE__ __LINE__ (argname, argty) in
-            Exists (x, And [ xprop; aux retty ])
-          else aux retty
-      | _ -> _failatwith __FILE__ __LINE__ ""
-    in
-    let res = aux uty in
-    let res' = peval res in
-    (* let () = *)
-    (*   Pp.printf "@{<bold>PEVAL:@}\n %s\n=%s\n" *)
-    (*     (Autov.pretty_layout_prop res) *)
-    (*     (Autov.pretty_layout_prop res') *)
-    (* in *)
-    res'
+  (* let close_type uty nu = *)
+  (*   let open P in *)
+  (*   let rec aux uty = *)
+  (*     match uty with *)
+  (*     | UnderTy_base _ -> *)
+  (*         let _, prop = _assume_basety __FILE__ __LINE__ (nu, uty) in *)
+  (*         prop *)
+  (*     | UnderTy_arrow { argname; argty; retty } -> *)
+  (*         (\* let _ = *\) *)
+  (*         (\*   Printf.printf "%s is base type: %b\n" (pretty_layout argty) *\) *)
+  (*         (\*     (is_base_type argty) *\) *)
+  (*         (\* in *\) *)
+  (*         if is_base_type argty then *)
+  (*           let x, xprop = _assume_basety __FILE__ __LINE__ (argname, argty) in *)
+  (*           Exists (x, And [ xprop; aux retty ]) *)
+  (*         else aux retty *)
+  (*     | _ -> _failatwith __FILE__ __LINE__ "" *)
+  (*   in *)
+  (*   let res = aux uty in *)
+  (*   let res' = peval res in *)
+  (*   res' *)
 end
 
 module Typedec = struct

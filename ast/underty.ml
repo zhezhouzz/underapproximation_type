@@ -13,29 +13,59 @@ module T = struct
 
   (* invariant: the prop here should be existensial quantified. *)
   (* the tuple now is the dependent tuple *)
+  type ot = { basename : id; normalty : normalty; prop : P.t } [@@deriving sexp]
+
   type t =
     | UnderTy_base of { basename : id; normalty : normalty; prop : P.t }
-    | UnderTy_arrow of { argname : id; argty : t; retty : t }
+    | UnderTy_under_arrow of { argty : t; retty : t }
+    | UnderTy_over_arrow of { argname : id; argty : ot; retty : t }
       (* Should at the top level *)
     | UnderTy_ghost_arrow of { argname : id; argnty : normalty; retty : t }
-    | UnderTy_poly_arrow of { argname : id; argnty : normalty; retty : t }
-    | UnderTy_tuple of (id * t) list
+    | UnderTy_tuple of t list
   [@@deriving sexp]
 
   open Zzdatatype.Datatype
+
+  let default_v_name = "v"
+
+  let make_basic basename normalty prop =
+    UnderTy_base
+      { basename; normalty; prop = prop { x = basename; ty = normalty } }
+
+  let make_basic_from_const_int (n : int) =
+    make_basic default_v_name NT.Ty_int (fun nu ->
+        P.(mk_lit_eq_lit (AVar nu) (ACint n)))
+
+  let make_basic_from_const_bool (b : bool) =
+    make_basic default_v_name NT.Ty_bool
+      P.(
+        fun nu ->
+          let nu = Lit (AVar nu) in
+          match b with true -> nu | false -> Not nu)
+
+  let make_basic_from_prop nt propf = make_basic default_v_name nt propf
+
+  let make_basic_from_eq_var x =
+    make_basic_from_prop x.ty (fun v ->
+        P.(MethodPred ("==", [ AVar v; AVar x ])))
+
+  let make_basic_top normalty =
+    make_basic default_v_name normalty (fun _ -> P.mk_true)
+
+  let make_basic_bot normalty =
+    make_basic default_v_name normalty (fun _ -> P.mk_false)
 
   let t_to_exn_type t =
     let rec aux = function
       | UnderTy_base { basename; normalty; _ } ->
           UnderTy_base { basename; normalty; prop = P.mk_false }
-      | UnderTy_tuple ts ->
-          UnderTy_tuple (List.map (fun (a, t) -> (a, aux t)) ts)
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
       | UnderTy_ghost_arrow { argname; argnty; retty } ->
           UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
-      | UnderTy_poly_arrow { argname; argnty; retty } ->
-          UnderTy_poly_arrow { argname; argnty; retty = aux retty }
-      | UnderTy_arrow { argname; argty; retty } ->
-          UnderTy_arrow { argname; argty; retty = aux retty }
+      | UnderTy_over_arrow { argname; argty; retty } ->
+          UnderTy_over_arrow { argname; argty; retty = aux retty }
+      | UnderTy_under_arrow { argty; retty } ->
+          UnderTy_under_arrow { argty; retty = aux retty }
     in
     aux t
 
@@ -44,32 +74,30 @@ module T = struct
       match t with
       | Ty_unknown | Ty_var _ -> _failatwith __FILE__ __LINE__ ""
       | Ty_unit | Ty_int | Ty_bool | Ty_list _ | Ty_tree _ | Ty_constructor _ ->
-          UnderTy_base
-            { basename = Rename.unique "v"; normalty = t; prop = P.mk_false }
+          make_basic_bot t
       | Ty_arrow (t1, t2) ->
-          UnderTy_poly_arrow
-            { argname = Rename.unique "v"; argnty = t1; retty = aux t2 }
-      | Ty_tuple ts ->
-          UnderTy_tuple (List.map (fun t -> (Rename.unique "v", aux t)) ts)
+          UnderTy_under_arrow { argty = aux t1; retty = aux t2 }
+      | Ty_tuple ts -> UnderTy_tuple (List.map aux ts)
     in
     aux t
 
   let var_space t =
     let add xs s = List.fold_left (fun s x -> StrMap.add x () s) s xs in
+    let aux_ot s { basename; prop; _ } =
+      let s = add (P.var_space prop) s in
+      add [ basename ] s
+    in
     let rec aux s = function
       | UnderTy_base { basename; prop; _ } ->
           let s = add (P.var_space prop) s in
           add [ basename ] s
-      | UnderTy_tuple ts ->
-          let names, tys = List.split ts in
-          let s = add names s in
-          List.fold_left aux s tys
+      | UnderTy_tuple ts -> List.fold_left aux s ts
       | UnderTy_ghost_arrow { argname; retty; _ } ->
           add (argname :: (StrMap.to_key_list @@ aux StrMap.empty retty)) s
-      | UnderTy_poly_arrow { argname; retty; _ } ->
+      | UnderTy_over_arrow { argname; retty; argty } ->
+          let s = aux_ot s argty in
           add (argname :: (StrMap.to_key_list @@ aux StrMap.empty retty)) s
-      | UnderTy_arrow { argname; argty; retty } ->
-          let s = add [ argname ] s in
+      | UnderTy_under_arrow { argty; retty } ->
           let space =
             StrMap.to_key_list @@ aux (aux StrMap.empty argty) retty
           in
@@ -79,11 +107,18 @@ module T = struct
 
   let rec erase = function
     | UnderTy_base { normalty; _ } -> normalty
-    | UnderTy_arrow { argty; retty; _ } -> NT.Ty_arrow (erase argty, erase retty)
+    | UnderTy_under_arrow { argty; retty; _ } ->
+        NT.Ty_arrow (erase argty, erase retty)
+    | UnderTy_over_arrow { argty; retty; _ } ->
+        NT.Ty_arrow (argty.normalty, erase retty)
     | UnderTy_ghost_arrow { retty; _ } -> erase retty
-    | UnderTy_poly_arrow { argnty; retty; _ } ->
-        NT.Ty_arrow (argnty, erase retty)
-    | UnderTy_tuple ts -> NT.Ty_tuple (List.map (fun x -> erase @@ snd x) ts)
+    | UnderTy_tuple ts -> NT.Ty_tuple (List.map erase ts)
+
+  let ot_subst_id t x y =
+    match t with
+    | { basename; normalty; prop } ->
+        if String.equal basename x then t
+        else { basename; normalty; prop = P.subst_id prop x y }
 
   let subst_id t x y =
     let rec aux t =
@@ -97,28 +132,16 @@ module T = struct
             else aux retty
           in
           UnderTy_ghost_arrow { argname; argnty; retty }
-      | UnderTy_poly_arrow { argname; argnty; retty } ->
+      | UnderTy_over_arrow { argname; argty; retty } ->
+          let argty = ot_subst_id argty x y in
           let retty =
             if List.exists (String.equal x) [ argname ] then retty
             else aux retty
           in
-          UnderTy_poly_arrow { argname; argnty; retty }
-      | UnderTy_arrow { argname; argty; retty } ->
-          let argty = aux argty in
-          let retty =
-            if List.exists (String.equal x) [ argname ] then retty
-            else aux retty
-          in
-          UnderTy_arrow { argname; argty; retty }
-      | UnderTy_tuple ts ->
-          let rec loop ts =
-            match ts with
-            | [] -> []
-            | (name, ty) :: ts ->
-                if String.equal name x then (name, aux ty) :: ts
-                else (name, aux ty) :: loop ts
-          in
-          UnderTy_tuple (loop ts)
+          UnderTy_over_arrow { argname; argty; retty }
+      | UnderTy_under_arrow { argty; retty } ->
+          UnderTy_under_arrow { argty = aux argty; retty = aux retty }
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
     in
     aux t
 
@@ -145,37 +168,17 @@ module T = struct
 
   (* let mk_int_id name = P.{ ty = T.Int; x = name } *)
 
-  let default_v_name = "v"
-
-  let make_basic basename normalty prop =
-    UnderTy_base
-      { basename; normalty; prop = prop { x = basename; ty = normalty } }
-
-  let make_basic_from_const_int (n : int) =
-    make_basic default_v_name NT.Ty_int (fun nu ->
-        P.(mk_lit_eq_lit (AVar nu) (ACint n)))
-
-  let make_basic_from_const_bool (b : bool) =
-    make_basic default_v_name NT.Ty_bool
-      P.(
-        fun nu ->
-          let nu = Lit (AVar nu) in
-          match b with true -> nu | false -> Not nu)
-
-  let make_basic_from_prop nt propf = make_basic default_v_name nt propf
-
-  let make_basic_top normalty =
-    make_basic default_v_name normalty (fun _ -> P.mk_true)
-
-  let make_basic_bot normalty =
-    make_basic default_v_name normalty (fun _ -> P.mk_false)
-
-  let make_arrow argname normalty argtyf rettyf =
+  let make_over_arrow argname normalty argtyf rettyf =
     let id = { ty = normalty; x = argname } in
-    UnderTy_arrow
+    UnderTy_over_arrow
       { argname; argty = argtyf argname normalty; retty = rettyf id }
 
   let is_base_type = function UnderTy_base _ -> true | _ -> false
+
+  let ot_strict_eq { basename = basename1; normalty = normalty1; prop = prop1 }
+      { basename = basename2; normalty = normalty2; prop = prop2 } =
+    String.equal basename1 basename2
+    && NT.eq normalty1 normalty2 && P.strict_eq prop1 prop2
 
   let strict_eq t1 t2 =
     let rec aux (t1, t2) =
@@ -187,14 +190,14 @@ module T = struct
           String.equal basename1 basename2
           && NT.eq normalty1 normalty2 && P.strict_eq prop1 prop2
       | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
-          List.for_all (fun ((a, aty), (b, bty)) ->
-              String.equal a b && aux (aty, bty))
+          List.for_all (fun (aty, bty) -> aux (aty, bty))
           @@ _safe_combine __FILE__ __LINE__ ts1 ts2
-      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
-          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
-        ->
+      | ( UnderTy_over_arrow
+            { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_over_arrow
+            { argname = argname2; argty = argty2; retty = retty2 } ) ->
           String.equal argname1 argname2
-          && aux (argty1, argty2)
+          && ot_strict_eq argty1 argty2
           && aux (retty1, retty2)
       | ( UnderTy_ghost_arrow
             { argname = argname1; argnty = argty1; retty = retty1 },
@@ -203,100 +206,107 @@ module T = struct
           String.equal argname1 argname2
           && NT.eq argty1 argty2
           && aux (retty1, retty2)
-      | ( UnderTy_poly_arrow
-            { argname = argname1; argnty = argty1; retty = retty1 },
-          UnderTy_poly_arrow
-            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
-          String.equal argname1 argname2
-          && NT.eq argty1 argty2
-          && aux (retty1, retty2)
+      | ( UnderTy_under_arrow { argty = argty1; retty = retty1 },
+          UnderTy_under_arrow { argty = argty2; retty = retty2 } ) ->
+          aux (argty1, argty2) && aux (retty1, retty2)
       | _, _ -> false
     in
     aux (t1, t2)
 
   let eq a b = strict_eq a b
 
-  let modify_prop_over_basetype f = function
-    | ( UnderTy_base { basename = basename1; normalty = normalty1; prop = prop1 },
-        UnderTy_base
-          { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
-        let normalty =
-          _check_equality __FILE__ __LINE__ NT.eq normalty1 normalty2
-        in
-        let prop2 =
-          if String.equal basename1 basename2 then prop2
-          else P.subst_id prop2 basename2 basename1
-        in
-        UnderTy_base { basename = basename1; normalty; prop = f prop1 prop2 }
-    | _, _ -> _failatwith __FILE__ __LINE__ ""
-
-  let modify_prop_in_ty f t1 t2 =
+  let strict_eq_besides_retty t1 t2 =
     let rec aux (t1, t2) =
       match (t1, t2) with
-      | UnderTy_base _, UnderTy_base _ -> modify_prop_over_basetype f (t1, t2)
+      | UnderTy_base _, UnderTy_base _ -> true
       | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
-          let names1, tys1 = List.split ts1 in
-          let rec loop = function
-            | [], [] -> []
-            | n1 :: names1, (n2, ty) :: ts2 ->
-                ty
-                :: loop
-                     ( names1,
-                       List.map (fun (a, ty) -> (a, subst_id ty n1 n2)) ts2 )
-            | _, _ -> _failatwith __FILE__ __LINE__ ""
-          in
-          let tys2 = loop (names1, ts2) in
-          (* let names = *)
-          (*   _check_equality __FILE__ __LINE__ (List.equal String.equal) names1 *)
-          (*     names2 *)
-          (* in *)
-          let tys = List.map aux @@ _safe_combine __FILE__ __LINE__ tys1 tys2 in
-          UnderTy_tuple (List.combine names1 tys)
-      | ( UnderTy_arrow { argname = argname1; argty = argty1; retty = retty1 },
-          UnderTy_arrow { argname = argname2; argty = argty2; retty = retty2 } )
-        ->
-          (* NOTE: we ask the argument should be exactly the same *)
-          let argname =
-            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
-          in
-          let argty =
-            _check_equality __FILE__ __LINE__ strict_eq argty1 argty2
-          in
-          let retty = aux (retty1, retty2) in
-          UnderTy_arrow { argname; argty; retty }
+          List.for_all aux @@ _safe_combine __FILE__ __LINE__ ts1 ts2
+      | ( UnderTy_over_arrow
+            { argname = argname1; argty = argty1; retty = retty1 },
+          UnderTy_over_arrow
+            { argname = argname2; argty = argty2; retty = retty2 } ) ->
+          String.equal argname1 argname2
+          && ot_strict_eq argty1 argty2
+          && aux (retty1, retty2)
       | ( UnderTy_ghost_arrow
             { argname = argname1; argnty = argty1; retty = retty1 },
           UnderTy_ghost_arrow
             { argname = argname2; argnty = argty2; retty = retty2 } ) ->
-          (* NOTE: we ask the argument should be exactly the same *)
-          let argname =
-            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
-          in
-          let argnty = _check_equality __FILE__ __LINE__ NT.eq argty1 argty2 in
-          let retty = aux (retty1, retty2) in
-          UnderTy_ghost_arrow { argname; argnty; retty }
-      | ( UnderTy_poly_arrow
-            { argname = argname1; argnty = argty1; retty = retty1 },
-          UnderTy_poly_arrow
-            { argname = argname2; argnty = argty2; retty = retty2 } ) ->
-          (* NOTE: we ask the argument should be exactly the same *)
-          let argname =
-            _check_equality __FILE__ __LINE__ String.equal argname1 argname2
-          in
-          let argnty = _check_equality __FILE__ __LINE__ NT.eq argty1 argty2 in
-          let retty = aux (retty1, retty2) in
-          UnderTy_poly_arrow { argname; argnty; retty }
-      | _, _ -> _failatwith __FILE__ __LINE__ ""
+          String.equal argname1 argname2
+          && NT.eq argty1 argty2
+          && aux (retty1, retty2)
+      | ( UnderTy_under_arrow { argty = argty1; retty = retty1 },
+          UnderTy_under_arrow { argty = argty2; retty = retty2 } ) ->
+          strict_eq argty1 argty2 && aux (retty1, retty2)
+      | _, _ -> false
     in
     aux (t1, t2)
 
+  let _map_base_type f { basename; normalty; prop } =
+    let x = { x = basename; ty = normalty } in
+    { basename; normalty; prop = f x prop }
+
+  let map_base_type f = function
+    | UnderTy_base { basename; normalty; prop } ->
+        let { basename; normalty; prop } =
+          _map_base_type f { basename; normalty; prop }
+        in
+        UnderTy_base { basename; normalty; prop }
+    | _ -> _failatwith __FILE__ __LINE__ ""
+
+  let _zip_base_type f
+      { basename = basename1; normalty = normalty1; prop = prop1 }
+      { basename = basename2; normalty = normalty2; prop = prop2 } =
+    let normalty =
+      _check_equality __FILE__ __LINE__ NT.eq normalty1 normalty2
+    in
+    let prop2 =
+      if String.equal basename1 basename2 then prop2
+      else P.subst_id prop2 basename2 basename1
+    in
+    { basename = basename1; normalty; prop = f prop1 prop2 }
+
+  let ot_zip_base_type f t1 t2 = _zip_base_type f t1 t2
+
+  let zip_base_type f = function
+    | ( UnderTy_base { basename = basename1; normalty = normalty1; prop = prop1 },
+        UnderTy_base
+          { basename = basename2; normalty = normalty2; prop = prop2 } ) ->
+        let { basename; normalty; prop } =
+          _zip_base_type f
+            { basename = basename1; normalty = normalty1; prop = prop1 }
+            { basename = basename2; normalty = normalty2; prop = prop2 }
+        in
+        UnderTy_base { basename; normalty; prop }
+    | _, _ -> _failatwith __FILE__ __LINE__ ""
+
+  let map_in_retty (f : t -> t) t =
+    let rec aux t =
+      match t with
+      | UnderTy_base _ -> f t
+      | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts)
+      | UnderTy_over_arrow { argname; argty; retty } ->
+          UnderTy_over_arrow { argname; argty; retty = aux retty }
+      | UnderTy_ghost_arrow { argname; argnty; retty } ->
+          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
+      | UnderTy_under_arrow { argty; retty } ->
+          UnderTy_under_arrow { argty; retty = aux retty }
+    in
+    aux t
+
+  let zip f t1 t2 =
+    if not (strict_eq_besides_retty t1 t2) then _failatwith __FILE__ __LINE__ ""
+    else
+      map_in_retty
+        (fun retty1 ->
+          map_in_retty (fun retty2 -> zip_base_type f (retty1, retty2)) t2)
+        t1
+
   let disjunct =
-    modify_prop_in_ty (fun x y ->
-        P.disjunct_tope_uprop __FILE__ __LINE__ [ x; y ])
+    zip (fun p1 p2 -> P.disjunct_tope_uprop __FILE__ __LINE__ [ p1; p2 ])
 
   let conjunct =
-    modify_prop_in_ty (fun x y ->
-        P.conjunct_tope_uprop __FILE__ __LINE__ [ x; y ])
+    zip (fun p1 p2 -> P.conjunct_tope_uprop __FILE__ __LINE__ [ p1; p2 ])
 
   let disjunct_list ts =
     match ts with
@@ -310,6 +320,10 @@ module T = struct
     | [ t ] -> t
     | h :: t -> List.fold_left conjunct h t
 
+  let ot_fv { basename; prop; _ } =
+    let fv = Autov.prop_fv prop in
+    List.filter (fun x -> not @@ String.equal basename x) fv
+
   let fv bodyt =
     let remove name = List.filter (fun x -> not @@ String.equal x name) in
     let rec aux = function
@@ -318,41 +332,24 @@ module T = struct
           List.filter (fun x -> not @@ String.equal basename x) fv
       | UnderTy_tuple ts ->
           let rec loop ts =
-            match ts with
-            | [] -> []
-            | (name, ty) :: ts -> aux ty @ remove name (loop ts)
+            match ts with [] -> [] | ty :: ts -> aux ty @ loop ts
           in
           loop ts
-      | UnderTy_arrow { argname; argty; retty } ->
-          let fv_retty = remove argname (aux retty) in
+      | UnderTy_under_arrow { argty; retty } ->
+          let fv_retty = aux retty in
           let fv_argty = aux argty in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv_retty @ fv_argty)
       | UnderTy_ghost_arrow { argname; retty; _ } ->
           let fv_retty = remove argname (aux retty) in
           Zzdatatype.Datatype.List.slow_rm_dup String.equal fv_retty
-      | UnderTy_poly_arrow { argname; retty; _ } ->
+      | UnderTy_over_arrow { argname; retty; argty } ->
+          let fv_argty = ot_fv argty in
           let fv_retty = remove argname (aux retty) in
-          Zzdatatype.Datatype.List.slow_rm_dup String.equal fv_retty
+          Zzdatatype.Datatype.List.slow_rm_dup String.equal (fv_retty @ fv_argty)
     in
     aux bodyt
 
   let is_fv_in name ty = List.exists (String.equal name) @@ fv ty
-
-  let map_on_retty f t =
-    let rec aux t =
-      match t with
-      | UnderTy_base { basename; normalty; prop } ->
-          UnderTy_base { basename; normalty; prop = f prop }
-      | UnderTy_tuple ts ->
-          UnderTy_tuple (List.map (fun (a, b) -> (a, aux b)) ts)
-      | UnderTy_arrow { argname; argty; retty } ->
-          UnderTy_arrow { argname; argty; retty = aux retty }
-      | UnderTy_ghost_arrow { argname; argnty; retty } ->
-          UnderTy_ghost_arrow { argname; argnty; retty = aux retty }
-      | UnderTy_poly_arrow { argname; argnty; retty } ->
-          UnderTy_poly_arrow { argname; argnty; retty = aux retty }
-    in
-    aux t
 
   let eqv_to_bodyt { ty; x } =
     UnderTy_base { basename = x; normalty = ty; prop = P.mk_true }
@@ -361,112 +358,52 @@ module T = struct
     | UnderTy_tuple ts -> UnderTy_tuple (ts @ [ t ])
     | _ -> _failatwith __FILE__ __LINE__ ""
 
-  (* let add_ex_prop_qv_basic_raw (id, idprop) (basename, normalty, prop) = *)
-  (*   UnderTy_base *)
-  (*     { basename; normalty; prop = P.Exists (to_smttyped id, prop) } *)
+  let modify_retty f t =
+    map_in_retty (fun retty -> map_base_type (fun x prop -> f x prop) retty) t
 
-  let work_on_retty if_apply (t_apply, f_apply) t =
-    let rec aux t =
-      match t with
-      | UnderTy_base { basename; normalty; prop } ->
-          if if_apply basename then
-            UnderTy_base { basename; normalty; prop = t_apply prop }
-          else UnderTy_base { basename; normalty; prop = f_apply prop }
-      | UnderTy_tuple ts ->
-          let rec loop = function
-            | [] -> []
-            | (name, ty) :: ts ->
-                let ts = if if_apply name then ts else loop ts in
-                (name, aux ty) :: ts
+  let retty_add_bool_eq t x b =
+    let open P in
+    modify_retty
+      (fun _ prop ->
+        let prop' = MethodPred ("==", [ AVar { x; ty = Ty_bool }; ACbool b ]) in
+        P.conjunct_tope_uprop __FILE__ __LINE__ [ prop; prop' ])
+      t
+
+  let extract_refinement_from_base file line (id, idty) =
+    let bname, nt, prop = assume_base file line idty in
+    ({ x = id; ty = nt }, P.subst_id prop bname id)
+
+  let retty_add_ex_uprop (id, idty) t =
+    let open P in
+    modify_retty
+      (fun _ prop ->
+        if List.exists (String.equal id) @@ fv prop then
+          let x, xprop =
+            extract_refinement_from_base __FILE__ __LINE__ (id, idty)
           in
-          UnderTy_tuple (loop ts)
-      | UnderTy_arrow { argname; argty; retty } ->
-          let retty =
-            if List.exists if_apply [ argname ] then retty else aux retty
+          let xeqvs, xprop = P.assume_tope_uprop __FILE__ __LINE__ xprop in
+          let eqvs, prop = P.assume_tope_uprop __FILE__ __LINE__ prop in
+          let prop =
+            P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
           in
-          UnderTy_arrow { argname; argty; retty }
-      | UnderTy_ghost_arrow { argname; argnty; retty } ->
-          let retty =
-            if List.exists if_apply [ argname ] then retty else aux retty
-          in
-          UnderTy_ghost_arrow { argname; argnty; retty }
-      | UnderTy_poly_arrow { argname; argnty; retty } ->
-          let retty =
-            if List.exists if_apply [ argname ] then retty else aux retty
-          in
-          UnderTy_poly_arrow { argname; argnty; retty }
-    in
-    aux t
+          prop
+        else prop)
+      t
+end
 
-  let add_ex_uprop ifq id idty t =
-    let id, idprop =
-      match assume_base_destruct_opt idty with
-      | None -> _failatwith __FILE__ __LINE__ "invalid idty"
-      | Some (x', ty, prop) ->
-          let prop = P.subst_id prop x' id in
-          let id = { x = id; ty } in
-          let prop = if ifq then P.Exists (id, prop) else prop in
-          (id, prop)
-    in
-    (* let () = *)
-    (*   Printf.printf "id: %s; idprop: %s\n" id.x *)
-    (*     (Autov.pretty_layout_prop idprop) *)
-    (* in *)
-    let if_apply name = String.equal id.x name in
-    let t_apply _ = _failatwith __FILE__ __LINE__ "" in
-    let f_apply prop =
-      P.tope_to_prop
-      @@ P.conjunct_base_to_tope_uprop __FILE__ __LINE__ idprop prop
-    in
-    work_on_retty if_apply (t_apply, f_apply) t
+module MMT = struct
+  type t = Ot of T.ot | Ut of T.t [@@deriving sexp]
 
-  let add_ex_var id t =
-    let if_apply name = String.equal id.x name in
-    let t_apply prop = prop in
-    let f_apply prop = P.Exists (id, prop) in
-    work_on_retty if_apply (t_apply, f_apply) t
+  open T
 
-  let add_ex_vars ids t = List.fold_right add_ex_var ids t
+  let eq_ = function
+    | Ot ot1, Ot ot2 -> ot_strict_eq ot1 ot2
+    | Ut ut1, Ut ut2 -> strict_eq ut1 ut2
+    | _, _ -> false
 
-  (* let instantiate_reduction vars t = *)
-  (*   let rec aux t = *)
-  (*     match t with *)
-  (*     | UnderTy_base { basename; normalty; prop } -> *)
-  (*         let prop = Autov.vars_reduction vars prop in *)
-  (*         UnderTy_base { basename; normalty; prop } *)
-  (*     | UnderTy_tuple ts -> UnderTy_tuple (List.map aux ts) *)
-  (*     | UnderTy_arrow { argname; argty; retty } -> *)
-  (*         let argty = aux argty in *)
-  (*         let retty = aux retty in *)
-  (*         UnderTy_arrow { argname; argty; retty } *)
-  (*     | UnderTy_poly_arrow _ -> _failatwith __FILE__ __LINE__ "unimp" *)
-  (*   in *)
-  (*   aux t *)
-
-  (* let instantiate_universial m t = *)
-  (*   let mk_conj prop m = *)
-  (*     P.And *)
-  (*       (List.map *)
-  (*          (fun l -> *)
-  (*            List.fold_left (fun prop (x, y) -> P.subst_id prop x y) prop l) *)
-  (*          m) *)
-  (*   in *)
-  (*   let filter m name = *)
-  (*     List.map (List.filter (fun (x, _) -> not @@ String.equal name x)) m *)
-  (*   in *)
-  (*   let rec aux m t = *)
-  (*     match t with *)
-  (*     | UnderTy_base { basename; normalty; prop } -> *)
-  (*         let prop = mk_conj prop @@ filter m basename in *)
-  (*         UnderTy_base { basename; normalty; prop } *)
-  (*     | UnderTy_tuple ts -> UnderTy_tuple (List.map (aux m) ts) *)
-  (*     | UnderTy_arrow { argname; argty; retty } -> *)
-  (*         let argty = aux m argty in *)
-  (*         let retty = aux (filter m argname) retty in *)
-  (*         UnderTy_arrow { argname; argty; retty } *)
-  (*     | UnderTy_poly_arrow _ -> _failatwith __FILE__ __LINE__ "unimp" *)
-  (*   in *)
-  (*   aux m t *)
+  let eq a b = eq_ (a, b)
+  let erase = function Ot ot -> ot.normalty | Ut ut -> erase ut
+  let fv = function Ot ot -> ot_fv ot | Ut ut -> fv ut
 end
 
 module Utyped = struct

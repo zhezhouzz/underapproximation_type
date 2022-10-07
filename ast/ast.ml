@@ -12,6 +12,7 @@ end
 module Otyped = Overty.Otyped
 module OT = Overty.T
 module UT = Underty.T
+module MMT = Underty.MMT
 module Ntyped = Ntyped
 module NNtyped = NNtyped
 module NL = Anormal.NormalAnormal
@@ -29,3 +30,4 @@ module UTSimpleTypectx = Simpletypectx.UTSimpleTypectx
 module OverTypectx = Simpletypectx.OverTypectx
 module Typedec = Type_dec.T
 module Lemma = Lemma
+module MustMayTypectx = Simpletypectx.MustMayTypectx

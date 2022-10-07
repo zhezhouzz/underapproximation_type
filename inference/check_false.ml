@@ -1,5 +1,4 @@
 open Languages
-module Typectx = UnderTypectx
 module P = Autov.Prop
 open Ntyped
 open Zzdatatype.Datatype
@@ -14,15 +13,19 @@ let close_post uty =
   let rec aux uty =
     match uty with
     | UnderTy_base { prop; _ } -> prop
-    | UnderTy_arrow { argname; argty; retty } -> (
-        match
-          (List.exists (String.equal argname) @@ fv retty, is_base_type argty)
-        with
-        | true, true ->
-            let x, _, xprop = assume_base __FILE__ __LINE__ argty in
-            And [ P.subst_id xprop x argname; aux retty ]
-        | true, false -> _failatwith __FILE__ __LINE__ ""
-        | false, _ -> aux retty)
+    | UnderTy_under_arrow { retty; _ } -> aux retty
+    | UnderTy_over_arrow { argname; argty; retty } -> (
+        match List.exists (String.equal argname) @@ fv retty with
+        | true ->
+            Exists
+              ( { x = argname; ty = argty.normalty },
+                And [ P.subst_id argty.prop argty.basename argname; aux retty ]
+              )
+        | false -> aux retty)
+    | UnderTy_ghost_arrow { argname; retty; argnty } -> (
+        match List.exists (String.equal argname) @@ fv retty with
+        | true -> Exists ({ x = argname; ty = argnty }, aux retty)
+        | false -> aux retty)
     | _ -> _failatwith __FILE__ __LINE__ ""
   in
   aux uty
@@ -33,8 +36,8 @@ let mk_false_post uty =
     match uty with
     | UnderTy_base { basename; normalty; _ } ->
         UnderTy_base { basename; normalty; prop = P.mk_false }
-    | UnderTy_arrow { argname; argty; retty } ->
-        UnderTy_arrow { argname; argty; retty = aux retty }
+    | UnderTy_under_arrow { argty; retty } ->
+        UnderTy_under_arrow { argty; retty = aux retty }
     | _ -> _failatwith __FILE__ __LINE__ ""
   in
   aux uty

@@ -3,21 +3,21 @@ module F (R : Refinement.T) = struct
   open Sexplib.Std
   open Sugar
 
-  type t = (string * R.t list) list [@@deriving sexp]
+  type ctx = (string * R.t list) list [@@deriving sexp]
 
   let empty = []
 
   (* let add_to_left (ty, name) ctx = (name, [ ty ]) :: ctx *)
   let exists ctx name = List.exists (fun (x, _) -> String.equal x name) ctx
 
-  let get_tys_emp (ctx : t) id : 'a list =
+  let get_tys_emp (ctx : ctx) id : 'a list =
     match List.find_opt (fun (id', _) -> String.equal id id') ctx with
     | None -> []
     | Some (_, tys) -> tys
   (* let* _, t = List.find_opt (fun (id', _) -> String.equal id id') ctx in *)
   (* Some (R.conjunct_list t) *)
 
-  let get_tys (ctx : t) id : 'a =
+  let get_tys (ctx : ctx) id : 'a =
     match get_tys_emp ctx id with
     | [] -> failwith @@ Sugar.spf "no such name (%s) in the type context" id
     | tys -> tys

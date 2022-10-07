@@ -41,7 +41,8 @@ let hide_depedent_var ctx name ty =
       OT.forall_quantify_variable_in_ty name argty ty
   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
-let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
+let rec id_type_infer (ctx : Typectx.ctx) (id : NL.id NL.typed) : NL.id OL.typed
+    =
   let ty = Typectx.get_ty ctx id.x in
   let ty =
     OT.(
@@ -53,13 +54,13 @@ let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
-and id_type_check (ctx : Typectx.t) (id : NL.id NL.typed) (ty : OT.t) :
+and id_type_check (ctx : Typectx.ctx) (id : NL.id NL.typed) (ty : OT.t) :
     NL.id OL.typed =
   let id = id_type_infer ctx id in
   let () = Oversub.subtyping_check ctx id.OL.ty ty in
   id
 
-and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
+and lit_type_infer (ctx : Typectx.ctx) (lit : NL.smt_lit NL.typed) :
     OL.smt_lit OL.typed =
   let open NL in
   match lit.x with
@@ -87,7 +88,7 @@ and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
       let id = id_type_infer ctx { ty = lit.ty; x = id } in
       OL.{ ty = id.ty; x = Var id.x }
 
-and value_type_infer (ctx : Typectx.t) (a : NL.value NL.typed) :
+and value_type_infer (ctx : Typectx.ctx) (a : NL.value NL.typed) :
     OL.value OL.typed =
   let aty = a.ty in
   match a.x with
@@ -100,7 +101,7 @@ and value_type_infer (ctx : Typectx.t) (a : NL.value NL.typed) :
       _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
-and value_type_check (ctx : Typectx.t) (a : NL.value NL.typed) (ty : OT.t) :
+and value_type_check (ctx : Typectx.ctx) (a : NL.value NL.typed) (ty : OT.t) :
     OL.value OL.typed =
   match (a.x, ty) with
   | NL.Lit _, _ ->
@@ -201,8 +202,8 @@ and handle_letval ctx (lhs, rhs, body) self =
     x = LetVal { lhs; rhs; body };
   }
 
-and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
-    =
+and term_type_infer (ctx : Typectx.ctx) (a : NL.term NL.typed) :
+    OL.term OL.typed =
   let open NL in
   match a.x with
   | V v ->
@@ -241,7 +242,7 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
   | Ite _ -> _failatwith __FILE__ __LINE__ "should not infer ite"
   | Match _ -> _failatwith __FILE__ __LINE__ "should not infer match"
 
-and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
+and term_type_check (ctx : Typectx.ctx) (x : NL.term NL.typed) (ty : OT.t) :
     OL.term OL.typed =
   (* let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in *)
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
