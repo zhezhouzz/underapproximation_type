@@ -10,6 +10,9 @@ let typed_prim_of_string ctx = function
   | "::" ->
       let x = DtConstructor "cons" in
       (x, S.find_opt x ctx)
+  | "()" ->
+      let x = DtConstructor "tt" in
+      (x, S.find_opt x ctx)
   | name -> (
       match op_of_string_opt name with
       | Some op ->
@@ -33,7 +36,7 @@ let make_normal type_decls (normals : (string * NT.t) list) =
     List.fold_left
       (fun m (name, ty) ->
         match name with
-        | "nil" | "cons" -> S.add (DtConstructor name) ty m
+        | "nil" | "cons" | "tt" -> S.add (DtConstructor name) ty m
         | name -> (
             match op_of_alias_opt name with
             | Some op -> S.add (PrimOp op) ty m

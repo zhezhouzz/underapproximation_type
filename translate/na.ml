@@ -7,7 +7,8 @@ let remove_dummy_eq e =
   let rec aux_value e =
     match e.x with
     | Exn | Lit _ -> e
-    | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
+    | Lam (xs, rankfunc, body) ->
+        { ty = e.ty; x = Lam (xs, rankfunc, aux body) }
     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
   and aux e =
     (* let () = Printf.printf "%s\n" @@ layout e in *)
@@ -50,7 +51,8 @@ let remove_dummy_let e =
   let rec aux_value e =
     match e.x with
     | Exn | Lit _ -> e
-    | Lam (xs, body) -> { ty = e.ty; x = Lam (xs, aux body) }
+    | Lam (xs, rankfunc, body) ->
+        { ty = e.ty; x = Lam (xs, rankfunc, aux body) }
     | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
   and aux e =
     (* let () = *)

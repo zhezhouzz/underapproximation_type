@@ -142,6 +142,19 @@ let under_type_check =
         in
         ())
 
+let under_subtype_check =
+  Command.basic ~summary:"under_type_check"
+    Command.Let_syntax.(
+      let%map_open config_file = anon ("config file" %: regular_file)
+      and refine_file = anon ("refine_file" %: regular_file)
+      and left = anon ("left name" %: string)
+      and right = anon ("right name" %: string) in
+      fun () ->
+        let () = Config.load config_file in
+        let _, _, refinements = Inputstage.load_under_refinments refine_file in
+        let () = Typecheck.Inv_check.struc_check refinements (left, right) in
+        ())
+
 let under_post_shrink =
   Command.basic ~summary:"under_post_shrink"
     Command.Let_syntax.(
@@ -155,6 +168,7 @@ let under_post_shrink =
           Inputstage.load_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
+        let notations = failwith "zz" in
         let res =
           Inference.Infer.struc_post_shrink infer_ctx_file code notations libs
             refinements
@@ -238,6 +252,7 @@ let test =
       ("test-mk-features", test_mk_features);
       ("qcheck", qcheck);
       ("init", init);
+      ("under-subtype-check", under_subtype_check);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]

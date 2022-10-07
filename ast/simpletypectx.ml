@@ -3,7 +3,7 @@ open Sugar
 module F (Type : Type.T) = struct
   open Sexplib.Std
 
-  type t = (string * Type.t) list [@@deriving sexp]
+  type ctx = (string * Type.t) list [@@deriving sexp]
 
   let get_opt ctx id = List.find_opt (fun (y, _) -> String.equal y id) ctx
 
@@ -20,7 +20,8 @@ module F (Type : Type.T) = struct
     List.exists (fun (name', _) -> String.equal name name') ctx
 
   let add_to_right ctx (name, ty) =
-    if exists ctx name then _failatwith __FILE__ __LINE__ ""
+    if exists ctx name then
+      _failatwith __FILE__ __LINE__ (spf "name %s exists in ctx" name)
     else ctx @ [ (name, ty) ]
 
   let add_to_rights ctx l =
@@ -30,7 +31,7 @@ end
 module NSimpleTypectx = struct
   include F (Normalty.Ast.T)
 
-  let of_type_decls e : t = Type_dec.T.mk_ctx e
+  let of_type_decls e : ctx = Type_dec.T.mk_ctx e
 end
 
 module SMTSimpleTypectx = F (Normalty.Ast.Smtty)
@@ -54,3 +55,4 @@ module UTSimpleTypectx = struct
 end
 
 module OverTypectx = F (Overty.T)
+module MustMayTypectx = F (Underty.MMT)

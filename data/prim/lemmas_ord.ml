@@ -20,3 +20,8 @@ let il6 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
 
 (* let il7 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) = *)
 (*   implies (hd l u && mem l w && not (u == w)) (ord l u w) *)
+
+let il7 (l : [%forall: int list]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let il8 (l : [%forall: int list]) = implies (len l 0) (empty l)

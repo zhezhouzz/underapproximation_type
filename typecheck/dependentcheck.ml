@@ -102,7 +102,7 @@ and value_dependent_check (ctx : ctx) (term : value typed) : ctx =
   let rec aux ctx e =
     match e.x with
     | Exn -> ctx
-    | Lam (x, body) ->
+    | Lam (x, _, body) ->
         let ctx = produce_ids ctx [ x ] in
         term_dependent_check ctx body
     | Fix (f, body) ->

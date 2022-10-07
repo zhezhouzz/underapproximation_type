@@ -64,7 +64,7 @@ let rec check_against_value (c : Value.t) ty =
         @@ List.combine l tys
   | _, _ -> false
 
-let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
+let rec bidirect_type_infer (ctx : Typectx.ctx) (x : Exp.term Exp.opttyped) :
     Exp.term Exp.opttyped * t =
   match x.ty with
   | None ->
@@ -72,7 +72,7 @@ let rec bidirect_type_infer (ctx : Typectx.t) (x : Exp.term Exp.opttyped) :
       (e, ty)
   | Some ty -> (type_check ctx x.x ty, snd ty)
 
-and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
+and bidirect_type_check (ctx : Typectx.ctx) (x : Exp.term Exp.opttyped)
     (ty : NType.t) : Exp.term Exp.opttyped =
   match x.ty with
   | None -> type_check ctx x.x ty
@@ -86,7 +86,7 @@ and bidirect_type_check (ctx : Typectx.t) (x : Exp.term Exp.opttyped)
       (* let () = Pp.printf "@{<bold>sndty: %s@}\n" (NT.layout sndty) in *)
       type_check ctx x.x (fst ty, sndty)
 
-and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
+and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
     Exp.term Exp.opttyped =
   (* let () = *)
   (*   Printf.printf "Check:\n%s\n%s <== %s\n" *)
@@ -111,11 +111,11 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
         List.map (fun (e, ty) -> bidirect_type_check ctx e (None, ty)) estys
       in
       { ty = Some ty; x = Tu es }
-  | Lam (idty, id, body), Ty_arrow (t1, t2) ->
+  | Lam (idty, id, rankfunc, body), Ty_arrow (t1, t2) ->
       let idty = (fst idty, _type_unify __FILE__ __LINE__ (snd idty) t1) in
       let ctx' = Typectx.add_to_right ctx (id, snd idty) in
       let body = bidirect_type_check ctx' body (None, t2) in
-      { ty = Some ty; x = Lam (idty, id, body) }
+      { ty = Some ty; x = Lam (idty, id, rankfunc, body) }
   | App (f, args), ty ->
       let f, fty = bidirect_type_infer ctx f in
       let argsty, retty = _solve_by_retty __FILE__ __LINE__ fty ty in
@@ -223,7 +223,7 @@ and type_check (ctx : Typectx.t) (x : Exp.term) (ty : NType.t) :
            (Frontend.Expr.layout { ty = None; x = e })
            (layout_ty ty))
 
-and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
+and type_infer (ctx : Typectx.ctx) (x : Exp.term) : Exp.term Exp.opttyped * t =
   let open Exp in
   match x with
   | Exn ->
@@ -245,11 +245,11 @@ and type_infer (ctx : Typectx.t) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let es, esty = List.split @@ List.map (bidirect_type_infer ctx) es in
       let ty = Ty_tuple esty in
       ({ ty = Some (None, ty); x = Tu es }, ty)
-  | Lam (idty, id, body) ->
+  | Lam (idty, id, rankfunc, body) ->
       let ctx' = Typectx.add_to_right ctx (id, snd idty) in
       let body, bodyty = bidirect_type_infer ctx' body in
       let ty = Ty_arrow (snd idty, bodyty) in
-      ({ ty = Some (None, ty); x = Lam (idty, id, body) }, ty)
+      ({ ty = Some (None, ty); x = Lam (idty, id, rankfunc, body) }, ty)
   | Op (op, args) ->
       let args, argsty =
         List.split @@ List.map (bidirect_type_infer ctx) args
@@ -370,7 +370,7 @@ let struc_check ctx l =
       let open Exp in
       let rec get_fty e =
         match e.x with
-        | Lam (ty, _, body) ->
+        | Lam (ty, _, _, body) ->
             Sugar.(
               let* bty = get_fty body in
               Some (Ty_arrow (snd ty, bty)))

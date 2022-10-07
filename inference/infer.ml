@@ -1,5 +1,4 @@
 open Languages
-module Typectx = UnderTypectx
 module P = Autov.Prop
 open Ntyped
 open Zzdatatype.Datatype
@@ -54,18 +53,20 @@ let phi_rule_out_bv phi bv =
   if Hashtbl.mem phi bv then Hashtbl.remove phi bv
   else _failatwith __FILE__ __LINE__ ""
 
-let conjunct_ty_with_phi infer_ctx uty neg_phi =
-  UT.work_on_retty
-    (fun x -> String.equal x infer_ctx.retv.x)
-    ( (fun prop ->
-        And
-          [
-            prop;
-            P.topu_to_prop
-              (infer_ctx.qvs, P.Not (bv_to_prop_merge infer_ctx neg_phi));
-          ]),
-      fun _ -> _failatwith __FILE__ __LINE__ "" )
-    uty
+let conjunct_ty_with_phi _ _ _ =
+  (* infer_ctx uty neg_phi = *)
+  _failatwith __FILE__ __LINE__ "unimp"
+(* UT.work_on_retty *)
+(*   (fun x -> String.equal x infer_ctx.retv.x) *)
+(*   ( (fun prop -> *)
+(*       And *)
+(*         [ *)
+(*           prop; *)
+(*           P.topu_to_prop *)
+(*             (infer_ctx.qvs, P.Not (bv_to_prop_merge infer_ctx neg_phi)); *)
+(*         ]), *)
+(*     fun _ -> _failatwith __FILE__ __LINE__ "" ) *)
+(*   uty *)
 
 let add_to_phi bv bvs =
   if List.exists (fun x -> List.equal ( == ) x bv) bvs then
@@ -114,7 +115,7 @@ let lam_post_shrink infer_ctx uctx prog uty =
   in
   aux []
 
-let rec_post_shrink infer_ctx uctx (f, prog) uty =
+let rec_post_shrink infer_ctx uctx (_, prog) uty =
   let inner_counter = ref 0 in
   let outer_counter = ref 0 in
   let rec aux neg_phi_in_ctx neg_phi =
@@ -122,7 +123,7 @@ let rec_post_shrink infer_ctx uctx (f, prog) uty =
     let () =
       Pp.printf "@{<bold>Rec Iter: %i -- %i@}\n" !outer_counter !inner_counter
     in
-    let uty_in_ctx = conjunct_ty_with_phi infer_ctx uty neg_phi_in_ctx in
+    let _ = conjunct_ty_with_phi infer_ctx uty neg_phi_in_ctx in
     let uty' = conjunct_ty_with_phi infer_ctx uty neg_phi in
     (* let () = Printf.printf "uty_in_ctx: %s\n" @@ UT.pretty_layout uty_in_ctx in *)
     (* let () = Printf.printf "uty: %s\n" @@ UT.pretty_layout uty' in *)
@@ -134,8 +135,9 @@ let rec_post_shrink infer_ctx uctx (f, prog) uty =
               {
                 uctx with
                 libctx =
-                  Typectx.force_add_to_right uctx.libctx
-                    UL.{ x = f.NL.x; ty = uty_in_ctx };
+                  _failatwith __FILE__ __LINE__ "unimp"
+                  (* Typectx.force_add_to_right uctx.libctx *)
+                  (*   UL.{ x = f.NL.x; ty = uty_in_ctx }; *);
               }
               prog uty')
         in
@@ -159,6 +161,8 @@ let rec_post_shrink infer_ctx uctx (f, prog) uty =
   in
   loop []
 
+module Nctx = Simpletypectx.UTSimpleTypectx
+
 let rec_post_shrink_v2 infer_ctx uctx (f, prog) uty =
   let counter = ref 0 in
   let rec aux neg_phi =
@@ -172,9 +176,7 @@ let rec_post_shrink_v2 infer_ctx uctx (f, prog) uty =
             term_type_check
               {
                 uctx with
-                libctx =
-                  Typectx.force_add_to_right uctx.libctx
-                    UL.{ x = f.NL.x; ty = uty' };
+                libctx = Nctx.add_to_right uctx.libctx (f.NL.x, uty');
               }
               prog uty')
         in
@@ -205,7 +207,6 @@ let post_shrink infer_ctx uctx prog uty =
   | _ -> _failatwith __FILE__ __LINE__ ""
 
 module SNA = Languages.StrucNA
-module Nctx = Simpletypectx.UTSimpleTypectx
 
 let get_inpout prog uty =
   let open UT in
@@ -214,40 +215,61 @@ let get_inpout prog uty =
     | NL.(V (Fix (_, body))), _ -> aux NL.(V body.x) uty
     | _, UnderTy_base { basename; normalty; _ } ->
         ([], { x = basename; ty = normalty })
-    | NL.(V (Lam (arg, body))), UnderTy_arrow { argname; argty; retty } ->
-        let args, ret = aux body.NL.x retty in
-        if is_base_type argty then
-          let _, ty, _ = assume_base __FILE__ __LINE__ argty in
-          (({ x = arg.NL.x; ty }, { x = argname; ty }) :: args, ret)
-        else (args, ret)
+    (* | NL.(V (Lam (arg, _, body))), UnderTy_arrow { argname; argty; retty } -> *)
+    (*     let args, ret = aux body.NL.x retty in *)
+    (*     if is_base_type argty then *)
+    (*       let _, ty, _ = assume_base __FILE__ __LINE__ argty in *)
+    (*       (({ x = arg.NL.x; ty }, { x = argname; ty }) :: args, ret) *)
+    (*     else (args, ret) *)
     | _ -> _failatwith __FILE__ __LINE__ ""
   in
   aux prog.NL.x uty
 
-let struc_post_shrink infer_ctx_file l notations libs (r : (string * UT.t) list)
-    =
+open Checkaux
+
+let struc_post_shrink infer_ctx_file l notations libs r =
   let open SNA in
   List.fold_lefti
-    (fun tab id ((name' : string), ty) ->
+    (fun tab id (info, ((name' : string), ty)) ->
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
       | Some { body; _ } ->
+          let () =
+            match info with
+            | None -> Pp.printf "@{<bold>No Inv:@}\n"
+            | Some (id, prop) ->
+                Pp.printf "@{<bold>Inv:@} %s = %s\n" id
+                  (Autov.pretty_layout_lit prop)
+          in
           let nctx =
             Nctx.(
               List.fold_left
-                (fun ctx (name, ty) -> add_to_right ctx (name, ty))
+                (fun ctx (x, ty) -> Typectx.ut_force_add_to_right ctx { x; ty })
                 empty notations)
           in
           let libctx =
             List.fold_left
-              (fun ctx (x, ty) -> Typectx.force_add_to_right ctx { x; ty })
+              (fun ctx (x, ty) -> Nctx.add_to_right ctx (x, ty))
               Typectx.empty libs
           in
           let ctx = Typectx.empty in
           let args, retv = get_inpout body ty in
           let infer_ctx = load infer_ctx_file args retv in
-          let uty = post_shrink infer_ctx { nctx; ctx; libctx } body ty in
+          let rec_info =
+            match (info, body.x) with
+            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
+                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | None, NL.(V (Fix (fix_name, _))) ->
+                failwith
+                  (spf "No ranking function for rec function %s" fix_name.x)
+            | Some (rank_lhs, _), _ ->
+                failwith (spf "Useless ranking function %s" rank_lhs)
+            | None, _ -> None
+          in
+          let uty =
+            post_shrink infer_ctx { nctx; ctx; libctx; rec_info } body ty
+          in
           tab @ [ (id, name', uty, Check_false.check infer_ctx uty) ])
     [] r

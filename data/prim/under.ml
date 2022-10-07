@@ -38,6 +38,7 @@ let[@library] minus =
   let (b : [%poly: int]) = () in
   (v == a - b : [%v: int])
 
+let[@library] tt = (true : [%v: unit])
 let[@library] nil = (empty v : [%v: int list])
 
 let[@library] cons =

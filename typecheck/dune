@@ -7,6 +7,7 @@
    ; under/
    litcheck
    checkaux
+   param
    ; ./
    opcheck
    termcheck
@@ -17,5 +18,8 @@
    undertycheck
    overtycheck
    dependentcheck
+   inv_check
+   persistence_check
+   reachability_check
    ; well_found
  ))

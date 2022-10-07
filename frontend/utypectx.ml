@@ -38,10 +38,10 @@ let pretty_layout_under_subtyping ctx (r1, r2) =
     (pretty_layout Underty.pretty_layout ctx)
     (Underty.pretty_layout r1, Underty.pretty_layout r2)
 
-let pretty_layout_raw (x : t) = pretty_layout Underty.pretty_layout x
-let pretty_layout (x : t) = pretty_layout_raw x
+let pretty_layout_raw (x : ctx) = pretty_layout Underty.pretty_layout x
+let pretty_layout (x : ctx) = pretty_layout_raw x
 
-let pretty_print (x : t) =
+let pretty_print (x : ctx) =
   pretty_print Underty.pretty_layout x;
   print_newline ()
 
