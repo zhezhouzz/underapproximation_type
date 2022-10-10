@@ -42,6 +42,8 @@ let rec value_type_infer (uctx : uctx) (a : NL.value NL.typed) :
             @@ spf "cannot find the notation of %s (named %s)" id.x typename
       in
       match idty with
+      | Consumed _ | NoRefinement _ ->
+          _failatwith __FILE__ __LINE__ "wrong format"
       | Ut idty -> (
           let id = erase_check_mk_id __FILE__ __LINE__ id idty in
           match Typectx.ut_add_to_right reachability_check uctx.ctx id with
@@ -82,6 +84,10 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
     | NL.Lit _, _ ->
         let x = value_type_infer uctx a in
         term_subtyping_check __FILE__ __LINE__ uctx x ty
+    | NL.Lam (_, _, _), UnderTy_ghost_arrow { argname; argty; retty } ->
+        value_type_check
+          { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) }
+          a retty
     | NL.Lam (id, rankfunc, body), UnderTy_over_arrow { argname; argty; retty }
       ->
         let () =
@@ -123,16 +129,17 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
               ty = UnderTy_under_arrow { argty; retty = body.ty };
               x = Lam (id, rankfunc, body);
             })
+    | NL.Lam (_, _, _), _ -> _failatwith __FILE__ __LINE__ ""
     | NL.Fix (f, body), ty ->
         let _ = erase_check_mk_id __FILE__ __LINE__ f ty in
-        (* NOTE: step 1, full projection check *)
-        let _ = full_projection_check uctx ty in
+        (* NOTE: no step 1 (full projection check) any more *)
+        (* let _ = full_projection_check uctx ty in *)
         let uctx_base =
           {
             uctx with
             ctx =
-              Typectx.ut_force_add_to_right uctx.ctx
-                UL.{ x = f.x; ty = left_ty_measure_0 uctx ty };
+              Typectx.norefinement_force_add_to_right uctx.ctx
+                { x = f.x; ty = snd @@ f.ty };
           }
         in
         let ty_base = right_ty_measure_0 uctx_base ty in
@@ -141,12 +148,11 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
             (NL.layout_value body, ty_base)
         in
         let _ = value_type_check uctx_base body ty_base in
+        (* let _ = failwith "end" in *)
         let uctx_ind =
           {
             uctx with
-            ctx =
-              Typectx.ut_force_add_to_right uctx.ctx
-                UL.{ x = f.x; ty = left_ty_measure_i uctx ty };
+            ctx = Typectx.ut_force_add_to_right uctx.ctx UL.{ x = f.x; ty };
           }
         in
         let ty_ind = right_ty_measure_ind uctx_ind ty in
@@ -155,7 +161,6 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
         in
         let body = value_type_check uctx_ind body ty_ind in
         { ty; x = Fix ({ x = f.x; ty }, body) }
-    | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result
 
@@ -201,33 +206,64 @@ and handle_letdetu (uctx : uctx) (tu, args, body) target_type =
   let ty, body = handle_let_body uctx ctx' body target_type in
   UL.{ ty; x = LetDeTu { tu; args; body } }
 
-and handle_letapp (uctx : uctx) (ret, fname, fty, args, body) target_type =
+and handle_letapp (uctx : uctx) (ret, (if_rec, fname), fty, args, body)
+    target_type =
   let open UL in
   let open UT in
   (* arguments type check *)
-  let () = Typectx.pretty_print_app_judge uctx.ctx (args, Ut fty) in
-  let rec aux uctx (a, b) =
+  let args = List.map (id_type_infer uctx) args in
+  let () = Typectx.pretty_print_app_judge fname uctx.ctx (args, Ut fty) in
+  let rec aux uctx (a, b) : UT.t option =
     match (a, b) with
     | args, UnderTy_ghost_arrow { argty; argname; retty } -> (
-        if if_rec_call uctx fname argname then
-          let { basename; normalty; prop } = argty in
-          let ty' = UnderTy_base { basename; normalty; prop } in
-          if reachability_check uctx ty' then
-            aux uctx (args, retty_add_ex_uprop (argname, ty') retty)
-          else None
+        if if_rec && if_rec_measure_arg uctx argname then
+          let ghost_term = synthesize_ghost_term uctx in
+          let () =
+            Pp.printf "@{<bold> Ghost term type: %s:%s@}\n" ghost_term.x
+              (UT.pretty_layout ghost_term.ty)
+          in
+          (* NOTE: reduce to normal over type check *)
+          let uctx =
+            {
+              uctx with
+              ctx = Typectx.ut_force_add_to_right uctx.ctx ghost_term;
+            }
+          in
+          aux uctx
+            (ghost_term :: args, UnderTy_over_arrow { argty; argname; retty })
         else
+          let () = Pp.printf "@{<bold>GHOST: %s!@}\n" argname in
           let candidates = candidate_vars_by_nt uctx argty.normalty in
           (* NOTE: the candiate cannot be the rest arguments. *)
           let candidates =
             List.filter
-              (fun x ->
-                not (List.exists (fun y -> String.equal x.NTyped.x y.NL.x) args))
+              (fun (x, _) ->
+                not (List.exists (fun y -> String.equal x.NTyped.x y.UL.x) args))
               candidates
           in
           let () =
-            Pp.printf "@{<bold>Got candidates: %s@}\n"
-              (List.split_by_comma (fun x -> x.NTyped.x) candidates)
+            Pp.printf "@{<bold>Check candidates: %s@}\n"
+              (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates)
           in
+          let candidates =
+            List.filter
+              (fun (_, cty) ->
+                Undersub.subtyping_check_bool __FILE__ __LINE__ uctx.ctx
+                  (ot_to_ut argty) cty)
+              candidates
+          in
+          (* let candidates = *)
+          (*   List.filter *)
+          (*     (fun x -> *)
+          (*       String.equal x.Ntyped.x "lo" || String.equal x.Ntyped.x "hi") *)
+          (*     candidates *)
+          (* in *)
+          let () =
+            Pp.printf "@{<bold>Got candidates: %s@}\n"
+              (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates)
+          in
+          let candidates = List.map fst candidates in
+          (* let () = failwith "end" in *)
           let res =
             List.filter_map
               (fun candidate ->
@@ -239,89 +275,51 @@ and handle_letapp (uctx : uctx) (ret, fname, fty, args, body) target_type =
                         candidate.Ntyped.x
                     in
                     None
-                | Some (uctx, ty) ->
+                | Some ty ->
                     let () =
                       Pp.printf "@{<bold>candidates %s has been accepted@}\n"
                         candidate.Ntyped.x
                     in
-                    Some (candidate, uctx, ty))
+                    Some (candidate, ty))
               candidates
           in
           match res with
           | [] -> None
-          | [ (_, uctx, ty) ] -> Some (uctx, ty)
+          | [ (_, ty) ] -> Some ty
           | ress ->
               let () =
                 Pp.printf "succ candidates: %s\n"
-                @@ List.split_by_comma (fun (a, _, _) -> a.NTyped.x) ress
+                @@ List.split_by_comma (fun (a, _) -> a.NTyped.x) ress
               in
-              _failatwith __FILE__ __LINE__ "ghost application multi succ")
-    | [], ty -> Some (uctx, ty)
-    | arg :: args, UnderTy_over_arrow { argname; argty; retty } -> (
-        match id_type_infer_raw uctx arg with
-        | Ut idut -> (
-            let x, nt, prop = assume_base __FILE__ __LINE__ idut in
-            let nt =
-              _check_equality __FILE__ __LINE__ NT.eq nt argty.normalty
-            in
-            let prop' = P.subst_id argty.prop argname x in
-            let ty' =
-              make_basic x nt (fun _ -> P.(peval (And [ prop; prop' ])))
-            in
-            (* let () = Typectx.pretty_print_infer uctx.ctx (arg.x, arg.ty) in *)
-            (* let () = Typectx.pretty_print_infer uctx.ctx (arg.x, ty') in *)
-            match
-              Typectx.ut_update reachability_check uctx.ctx (arg.x, fun _ -> ty')
-            with
-            | None -> None
-            | Some ctx ->
-                let retty = subst_id retty argname arg.x in
-                aux { uctx with ctx } (args, retty))
-        | Ot ot -> (
-            let _ =
-              _check_equality __FILE__ __LINE__ NT.eq ot.normalty argty.normalty
-            in
-            let prop' = P.subst_id argty.prop argname ot.basename in
-            let ty' = { ot with prop = P.(peval (And [ ot.prop; prop' ])) } in
-            match
-              Typectx.ot_update reachability_check uctx.ctx (arg.x, fun _ -> ty')
-            with
-            | None -> None
-            | Some ctx ->
-                let retty = subst_id retty argname arg.x in
-                aux { uctx with ctx } (args, retty)))
+              let ty = merge_case_tys @@ List.map snd ress in
+              Some ty
+          (* _failatwith __FILE__ __LINE__ "ghost application multi succ" *))
+    | [], ty -> Some ty
+    | arg :: args, UnderTy_over_arrow { argname; argty; retty } ->
+        (* NOTE: special application rule *)
+        if
+          Undersub.mmt_check_bool __FILE__ __LINE__ uctx.ctx
+            (Ut (ot_to_ut argty))
+            (Ut arg.UL.ty)
+        then
+          let retty = subst_id retty argname arg.x in
+          aux uctx (args, retty)
+        else None
     | arg :: args, UnderTy_under_arrow { retty; argty } -> (
-        if not (reachability_check uctx argty) then
-          let () = Pp.printf "@{<bold>Bottom function type @}\n" in
-          None
-        else
-          match id_type_infer_raw uctx arg with
-          | Ut idut -> (
-              match
-                term_subtyping_check_opt __FILE__ __LINE__ uctx
-                  { x = arg.x; ty = idut } argty
-              with
-              | None -> None
-              | Some _ ->
-                  if persistence_check uctx idut then aux uctx (args, retty)
-                  else
-                    let uctx =
-                      { uctx with ctx = Typectx.consume uctx.ctx arg.x }
-                    in
-                    let () =
-                      Pp.printf "@{<bold>Consume variable %s@}\n" arg.x
-                    in
-                    let () = Typectx.pretty_print uctx.ctx in
-                    aux uctx (args, retty))
-          | Ot _ ->
-              (* TODO: persistence check *)
-              None)
+        match term_subtyping_check_opt __FILE__ __LINE__ uctx arg argty with
+        | None -> None
+        | Some _ ->
+            if persistence_check uctx arg.ty then aux uctx (args, retty)
+            else
+              let uctx = { uctx with ctx = Typectx.consume uctx.ctx arg.x } in
+              let () = Pp.printf "@{<bold>Consume variable %s@}\n" arg.x in
+              let () = Typectx.pretty_print uctx.ctx in
+              aux uctx (args, retty))
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
-  let uctx_retty = aux uctx (args, fty) in
+  let yty_opt = aux uctx (args, fty) in
   (* let () = Pp.printf "@{<bold>Begin@}\n" in *)
-  let args = List.map (id_type_infer uctx) args in
-  match uctx_retty with
+  match yty_opt with
   | None ->
       let retty = make_basic_bot (snd ret.NL.ty) in
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
@@ -331,7 +329,8 @@ and handle_letapp (uctx : uctx) (ret, fname, fty, args, body) target_type =
       (* let ctx' = Typectx.ut_force_add_to_right uctx.ctx ret in *)
       let ty, body = handle_let_body uctx None body target_type in
       (ty, (ret, args, body))
-  | Some (uctx', retty) ->
+  | Some retty ->
+      let uctx' = handle_consume uctx (args, fty) in
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
       let () =
         Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
@@ -370,10 +369,10 @@ and handle_ite uctx (cond, e_t, e_f) =
     | Some ctx' ->
         let uctx' = { uctx with ctx = ctx' } in
         let e' = term_type_infer uctx' e in
-        let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, ty) in
+        (* let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, ty) in *)
         let ty = UT.retty_add_bool_eq e'.ty cond.x b in
-        let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, e'.ty) in
-        let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, ty) in
+        (* let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, e'.ty) in *)
+        (* let () = Typectx.pretty_print_infer uctx'.ctx (NL.layout e, ty) in *)
         { x = e'.x; ty }
   in
   let e_t = handle_case true e_t in
@@ -453,23 +452,36 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.term UL.typed =
               NT.construct_arrow_tp
                 (List.map (fun x -> snd x.ty) args, snd ret.ty) )
         in
+        let fname = Op.op_to_string op in
         let ty, (ret, args, body) =
-          handle_letapp uctx (ret, None, opty, args, body) None
+          handle_letapp uctx
+            (ret, (if_rec_function uctx fname, fname), opty, args, body)
+            None
         in
         { ty; x = LetOp { ret; op; args; body } }
-    | LetApp { ret; f; args; body } ->
-        let f = id_type_infer uctx f in
-        (* let () = Printf.printf "2: op = %s\n" (layout a) in *)
-        let ty, (ret, args, body) =
-          handle_letapp uctx (ret, Some f.x, f.ty, args, body) None
+    | LetApp { ret; f; args; body } -> (
+        let f =
+          try Some (id_type_infer uctx f)
+          with FailTypeConsumedonsumed _ -> None
         in
-        { ty; x = LetApp { ret; f; args; body } }
+        match f with
+        | None -> term_set_bot a
+        | Some f ->
+            (* let () = Printf.printf "2: op = %s\n" (layout a) in *)
+            let ty, (ret, args, body) =
+              handle_letapp uctx
+                (ret, (if_rec_function uctx f.x, f.x), f.ty, args, body)
+                None
+            in
+            { ty; x = LetApp { ret; f; args; body } })
     | LetDtConstructor { ret; f; args; body } ->
         let fnty = recover_dt_constructor_ty (ret, args) in
         let fty = Prim.get_primitive_under_ty (f, snd fnty) in
         (* let () = Printf.printf "3: op = %s\n" (layout a) in *)
         let ty, (ret, args, body) =
-          handle_letapp uctx (ret, None, fty, args, body) None
+          handle_letapp uctx
+            (ret, (if_rec_function uctx f, f), fty, args, body)
+            None
         in
         { ty; x = LetDtConstructor { ret; f; args; body } }
     | LetVal { lhs; rhs; body } -> handle_letval uctx (lhs, rhs, body) None
@@ -484,53 +496,65 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
   let () = Typectx.pretty_print_judge uctx.ctx (NL.layout x, ty) in
   let _ = _check_equality __FILE__ __LINE__ NT.eq (UT.erase ty) (snd @@ x.ty) in
   let open NL in
-  match ty with
-  | UT.(UnderTy_ghost_arrow { argname; argty; retty }) ->
+  match (x.x, ty) with
+  | V v, _ ->
+      let v = value_type_check uctx { ty = x.ty; x = v } ty in
+      { ty = v.ty; x = V v.x }
+  | _, UT.(UnderTy_ghost_arrow { argname; argty; retty }) ->
       term_type_check
         { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) }
         x retty
-  | _ -> (
-      match (x.x, ty) with
-      | V v, _ ->
-          let v = value_type_check uctx { ty = x.ty; x = v } ty in
-          { ty = v.ty; x = V v.x }
-      | LetTu { tu; args; body }, _ ->
-          handle_lettu uctx (tu, args, body) (Some ty)
-      | LetDeTu { tu; args; body }, _ ->
-          handle_letdetu uctx (tu, args, body) (Some ty)
-      | LetApp { ret; f; args; body }, _ ->
-          let f = id_type_infer uctx f in
+  | LetTu { tu; args; body }, _ -> handle_lettu uctx (tu, args, body) (Some ty)
+  | LetDeTu { tu; args; body }, _ ->
+      handle_letdetu uctx (tu, args, body) (Some ty)
+  | LetApp { ret; f; args; body }, _ -> (
+      let f =
+        try Some (id_type_infer uctx f) with FailTypeConsumedonsumed _ -> None
+      in
+      match f with
+      | None ->
+          let x = term_set_bot x in
+          let x = term_subtyping_check __FILE__ __LINE__ uctx x ty in
+          x
+      | Some f ->
           let ty, (ret, args, body) =
-            handle_letapp uctx (ret, Some f.x, f.ty, args, body) (Some ty)
+            handle_letapp uctx
+              (ret, (if_rec_function uctx f.x, f.x), f.ty, args, body)
+              (Some ty)
           in
-          { ty; x = LetApp { ret; f; args; body } }
-      | LetDtConstructor { ret; f; args; body }, _ ->
-          let fnty = recover_dt_constructor_ty (ret, args) in
-          let fty = Prim.get_primitive_under_ty (f, snd fnty) in
-          let ty, (ret, args, body) =
-            handle_letapp uctx (ret, None, fty, args, body) (Some ty)
-          in
-          { ty; x = LetDtConstructor { ret; f; args; body } }
-      | LetOp { ret; op; args; body }, _ ->
-          let opty =
-            Prim.get_primitive_under_ty
-              ( Op.op_to_string op,
-                NT.construct_arrow_tp
-                  (List.map (fun x -> snd x.ty) args, snd ret.ty) )
-          in
-          let ty, (ret, args, body) =
-            handle_letapp uctx (ret, None, opty, args, body) (Some ty)
-          in
-          { ty; x = LetOp { ret; op; args; body } }
-      | LetVal { lhs; rhs; body }, _ ->
-          (* let () = *)
-          (*   Pp.printf "@{<bold>lhs: %s; rhs: %s;@}\n" (NL.layout_id lhs) *)
-          (*     (NL.layout_value rhs) *)
-          (* in *)
-          handle_letval uctx (lhs, rhs, body) (Some ty)
-      | Ite _, _ | Match _, _ ->
-          let x = term_type_infer uctx x in
-          term_subtyping_check __FILE__ __LINE__ uctx x ty)
+          { ty; x = LetApp { ret; f; args; body } })
+  | LetDtConstructor { ret; f; args; body }, _ ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_under_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp uctx
+          (ret, (if_rec_function uctx f, f), fty, args, body)
+          (Some ty)
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
+  | LetOp { ret; op; args; body }, _ ->
+      let opty =
+        Prim.get_primitive_under_ty
+          ( Op.op_to_string op,
+            NT.construct_arrow_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
+          )
+      in
+      let fname = Op.op_to_string op in
+      let ty, (ret, args, body) =
+        handle_letapp uctx
+          (ret, (if_rec_function uctx fname, fname), opty, args, body)
+          (Some ty)
+      in
+      { ty; x = LetOp { ret; op; args; body } }
+  | LetVal { lhs; rhs; body }, _ ->
+      (* let () = *)
+      (*   Pp.printf "@{<bold>lhs: %s; rhs: %s;@}\n" (NL.layout_id lhs) *)
+      (*     (NL.layout_value rhs) *)
+      (* in *)
+      handle_letval uctx (lhs, rhs, body) (Some ty)
+  | Ite _, _ | Match _, _ ->
+      let x = term_type_infer uctx x in
+      term_subtyping_check __FILE__ __LINE__ uctx x ty
 
 let type_check (uctx : uctx) x ty =
   (* let ty = Well_found.reduction ty in *)
@@ -570,7 +594,7 @@ let struc_check l notations libs r =
           _failatwith __FILE__ __LINE__
             (spf "The source code of given refinement type '%s' is missing."
                name')
-      | Some { body; _ } -> (
+      | Some { body; _ } ->
           (* let _ = *)
           (*   Dependentcheck.dependent_check *)
           (*     (List.map fst notations @ List.map fst libs) *)
@@ -587,8 +611,18 @@ let struc_check l notations libs r =
           let ctx = Typectx.empty in
           let rec_info =
             match (info, body.x) with
-            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
-                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | Some (rank_lhs, init_case), NL.(V (Fix (f, _))) ->
+                let () =
+                  match init_case with
+                  | P.(ACint 0) -> ()
+                  | lit ->
+                      _failatwith __FILE__ __LINE__
+                        (spf
+                           "unimp: current only support setting the base case \
+                            as 0, instead of (%s)."
+                           (Autov.pretty_layout_lit lit))
+                in
+                Some { fix_name = f.x; rank_lhs }
             | None, NL.(V (Fix (fix_name, _))) ->
                 failwith
                   (spf "No ranking function for rec function %s" fix_name.x)
@@ -596,13 +630,11 @@ let struc_check l notations libs r =
                 failwith (spf "Useless ranking function %s" rank_lhs)
             | None, _ -> None
           in
-          try
-            let _ = type_check { nctx; ctx; libctx; rec_info } body ty in
-            let _ =
-              Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
-                id
-            in
-            ()
-          with Autov.FailWithModel _ ->
-            Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id))
+          let res =
+            Undersub.type_err_to_false (fun () ->
+                type_check { nctx; ctx; libctx; rec_info } body ty)
+          in
+          if res then
+            Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n" id
+          else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id)
     r

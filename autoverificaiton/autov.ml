@@ -9,8 +9,7 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context
-    [ ("model", "true"); ("proof", "false"); ("timeout", "9999999") ]
+  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "9999") ]
 
 let pretty_print_model model =
   Z3.Model.to_string model |> fun s ->
@@ -38,7 +37,6 @@ let _check pre q =
   | SmtSat model ->
       Printf.printf "model:\n%s\n"
       @@ Sugar.short_str 100 @@ Z3.Model.to_string model;
-      (* pretty_print_model model; *)
       Some model
   | Timeout -> raise SMTTIMEOUT
 

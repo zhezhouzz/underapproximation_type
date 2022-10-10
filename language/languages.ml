@@ -40,23 +40,12 @@ module Lemma = struct
     let vcl_body1 =
       P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics1
     in
-    let () =
-      Pp.printf
-        "@{<bold>body_instantiate_uqvs:@} basics1(%i)(%s) --> vc_body(%i)\n"
-        (List.length basics1)
-        (List.split_by_comma (fun x -> x.x) basics1)
-        (P.size vcl_body1)
-    in
-    (* let basics2 = get_basics @@ P.tvar_fv res.vcl_body in *)
-    (* let vcl_body2 = *)
-    (*   P.instantiate_uqvs_in_uprop __FILE__ __LINE__ res.vcl_body basics2 *)
-    (* in *)
     (* let () = *)
     (*   Pp.printf *)
-    (*     "@{<bold>body_instantiate_uqvs:@} basics2(%i)(%s) --> vc_body(%i)\n" *)
-    (*     (List.length basics2) *)
-    (*     (List.split_by_comma (fun x -> x.x) basics2) *)
-    (*     (P.size vcl_body2) *)
+    (*     "@{<bold>body_instantiate_uqvs:@} basics1(%i)(%s) --> vc_body(%i)\n" *)
+    (*     (List.length basics1) *)
+    (*     (List.split_by_comma (fun x -> x.x) basics1) *)
+    (*     (P.size vcl_body1) *)
     (* in *)
     { res with vcl_body = vcl_body1 }
 
@@ -229,29 +218,31 @@ module MustMayTypectx = struct
                   Some (res @ ((name', Ut ty') :: rest))
                 else None
             | Ot _ -> _failatwith __FILE__ __LINE__ ""
+            | Consumed _ -> _failatwith __FILE__ __LINE__ ""
+            | NoRefinement _ -> _failatwith __FILE__ __LINE__ ""
           else aux (res @ [ (name', ty) ]) rest
     in
     aux [] ctx
 
-  let ot_update reachability_check ctx (name, f) =
-    let open UT in
-    let rec aux res = function
-      | [] -> _failatwith __FILE__ __LINE__ ""
-      | (name', ty) :: rest ->
-          if String.equal name name' then
-            match ty with
-            | Ut _ -> _failatwith __FILE__ __LINE__ ""
-            | Ot ot ->
-                let { basename; normalty; prop } = f ot in
-                if
-                  reachability_check ctx
-                    (UT.UnderTy_base { basename; normalty; prop })
-                then
-                  Some (res @ ((name', Ot { basename; normalty; prop }) :: rest))
-                else None
-          else aux (res @ [ (name', ty) ]) rest
-    in
-    aux [] ctx
+  (* let ot_update reachability_check ctx (name, f) = *)
+  (*   let open UT in *)
+  (*   let rec aux res = function *)
+  (*     | [] -> _failatwith __FILE__ __LINE__ "" *)
+  (*     | (name', ty) :: rest -> *)
+  (*         if String.equal name name' then *)
+  (*           match ty with *)
+  (*           | Ut _ -> _failatwith __FILE__ __LINE__ "" *)
+  (*           | Ot ot -> *)
+  (*               let { basename; normalty; prop } = f ot in *)
+  (*               if *)
+  (*                 reachability_check ctx *)
+  (*                   (UT.UnderTy_base { basename; normalty; prop }) *)
+  (*               then *)
+  (*                 Some (res @ ((name', Ot { basename; normalty; prop }) :: rest)) *)
+  (*               else None *)
+  (*         else aux (res @ [ (name', ty) ]) rest *)
+  (*   in *)
+  (*   aux [] ctx *)
 
   let consume ctx name =
     let rec aux res = function
@@ -259,12 +250,16 @@ module MustMayTypectx = struct
       | (name', ty) :: rest ->
           if String.equal name name' then
             match ty with
-            | Ut ty ->
-                res @ ((name', Ut (UT.make_basic_bot (UT.erase ty))) :: rest)
+            | Ut ty -> res @ ((name', Consumed ty) :: rest)
             | Ot _ -> _failatwith __FILE__ __LINE__ ""
+            | Consumed _ -> _failatwith __FILE__ __LINE__ ""
+            | NoRefinement _ -> _failatwith __FILE__ __LINE__ ""
           else aux (res @ [ (name', ty) ]) rest
     in
     aux [] ctx
+
+  let norefinement_force_add_to_right ctx id =
+    add_to_right ctx (id.Ntyped.x, NoRefinement id.Ntyped.ty)
 
   let ut_force_add_to_right ctx id = add_to_right ctx (id.UL.x, Ut id.ty)
 
@@ -289,14 +284,18 @@ module MustMayTypectx = struct
     List.fold_left (fun ctx id -> ot_add_to_right ctx id) ctx ids
 
   (* Assume everything in the type context is not bot *)
-  let close_by_diff_ diff uty = List.fold_right UT.retty_add_ex_uprop diff uty
+  let close_by_diff_ diff uty =
+    List.fold_right UT.retty_add_ex_uprop_always_add diff uty
 
   let close_by_diff ctx ctx' uty =
     let diff = subtract ctx ctx' in
     let diff =
-      List.map
+      List.filter_map
         (function
-          | x, Ut ut -> (x, ut) | _, Ot _ -> _failatwith __FILE__ __LINE__ "")
+          | x, Ut ut -> Some (x, ut)
+          | x, Consumed ut -> Some (x, ut)
+          | _, NoRefinement _ -> None
+          | _, Ot _ -> _failatwith __FILE__ __LINE__ "")
         diff
     in
     close_by_diff_ diff uty

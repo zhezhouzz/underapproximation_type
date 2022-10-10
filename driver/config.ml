@@ -25,6 +25,7 @@ let load fname =
     }
   in
   let open Abstraction in
+  let all_mps = j |> member "all_mps" |> to_list |> List.map to_string in
   let underr =
     match Inputstage.load_under_refinments prim_path.underp with
     | [], underr, [] -> underr
@@ -36,7 +37,16 @@ let load fname =
     | _, _, _ -> failwith "wrong under prim"
   in
   let lemmas = Inputstage.load_lemmas prim_path.lemmas in
+  let lemmas =
+    List.filter (fun (_, lemma) -> Lemma.filter_by_mps all_mps lemma) lemmas
+  in
   let functional_lemmas = Inputstage.load_lemmas prim_path.functional_lemmas in
+  let functional_lemmas =
+    List.filter
+      (fun (_, lemma) -> Lemma.filter_by_mps all_mps lemma)
+      functional_lemmas
+  in
+  (* let () = failwith "end" in *)
   let () =
     Prim.init
       ( Inputstage.load_type_decls prim_path.type_decls,
@@ -47,7 +57,7 @@ let load fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { mode; prim_path }
+  config := Some { mode; all_mps; prim_path }
 
 let get_prim_path () =
   match !config with

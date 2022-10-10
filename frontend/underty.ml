@@ -92,6 +92,12 @@ let ot_undertype_of_ocamlexpr expr =
       { basename; normalty; prop }
   | _ -> _failatwith __FILE__ __LINE__ ""
 
+let _check_eq_nt file line t1 t2 =
+  try _check_equality file line Ast.NT.eq t1 t2
+  with e ->
+    Printf.printf "Type %s != %s\n" (Type.layout t1) (Type.layout t2);
+    raise e
+
 let undertype_of_ocamlexpr expr =
   let rec aux expr =
     match expr.pexp_desc with
@@ -104,23 +110,17 @@ let undertype_of_ocamlexpr expr =
         match argname.ty with
         | Some (Some "over", argnty) ->
             let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
-            let _ =
-              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty argty.normalty
-            in
+            let _ = _check_eq_nt __FILE__ __LINE__ argnty argty.normalty in
             L.UnderTy_over_arrow
               { argname = argname.x; argty; retty = aux body }
         | Some (Some "ghost", argnty) ->
             let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
-            let _ =
-              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty argty.normalty
-            in
+            let _ = _check_eq_nt __FILE__ __LINE__ argnty argty.normalty in
             L.UnderTy_ghost_arrow
               { argname = argname.x; argty; retty = aux body }
         | Some (Some "under", argnty) ->
             let argty = aux vb.pvb_expr in
-            let _ =
-              _check_equality __FILE__ __LINE__ Ast.NT.eq argnty (erase argty)
-            in
+            let _ = _check_eq_nt __FILE__ __LINE__ argnty (erase argty) in
             let _ =
               try
                 _check_equality __FILE__ __LINE__ String.equal "dummy" argname.x

@@ -259,8 +259,8 @@ let struc_post_shrink infer_ctx_file l notations libs r =
           let infer_ctx = load infer_ctx_file args retv in
           let rec_info =
             match (info, body.x) with
-            | Some (rank_lhs, rank_rhs), NL.(V (Fix (f, _))) ->
-                Some { fix_name = f.x; rank_lhs; rank_rhs }
+            | Some (rank_lhs, _), NL.(V (Fix (f, _))) ->
+                Some { fix_name = f.x; rank_lhs }
             | None, NL.(V (Fix (fix_name, _))) ->
                 failwith
                   (spf "No ranking function for rec function %s" fix_name.x)

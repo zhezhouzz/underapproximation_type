@@ -62,6 +62,8 @@ let machine ctx expr = function
   | TExists u -> TStop (make_exists ctx [ u ] expr)
   | TStop _ -> _failatwith __FILE__ __LINE__ ""
 
+let known_mp = [ "hd"; "mem"; "ord"; "len"; "left"; "right"; "para"; "sorted" ]
+
 let to_z3_ ctx = function
   | Lit lit -> lit_to_z3 ctx lit
   | MethodPred ("==", [ a; b ]) ->
@@ -84,6 +86,10 @@ let to_z3_ ctx = function
       Z3.Arithmetic.mk_gt ctx (lit_to_z3 ctx a) (lit_to_z3 ctx b)
   | MethodPred (">", _) -> _failatwith __FILE__ __LINE__ ""
   | MethodPred (mp, args) ->
+      let () =
+        if List.exists (String.equal mp) known_mp then ()
+        else failwith (spf "unknown mp: %s" mp)
+      in
       let argsty = List.map lit_get_ty args in
       let args = List.map (lit_to_z3 ctx) args in
       let func = z3func ctx mp argsty Ty_bool in
