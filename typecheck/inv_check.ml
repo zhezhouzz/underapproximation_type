@@ -7,7 +7,7 @@ open Languages
 
 let check (t1, t2) =
   let () =
-    Pp.printf "@{<green>%s@} <: @{<yellow>%s@}\n" (UT.pretty_layout t1)
+    Pp.printf "@{<green>%s@}\n<:\n@{<yellow>%s@}\n" (UT.pretty_layout t1)
       (UT.pretty_layout t2)
   in
   let open UT in

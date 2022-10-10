@@ -26,7 +26,7 @@ let[@library] le =
 let[@library] ge =
   let (a : [%over: int]) = (true : [%v: int]) in
   let (b : [%over: int]) = (true : [%v: int]) in
-  (iff v (a => b) : [%v: bool])
+  (iff v (a >= b) : [%v: bool])
 
 let[@library] plus =
   let (a : [%over: int]) = (true : [%v: int]) in
@@ -49,6 +49,27 @@ let[@library] cons =
      implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
       : [%v: int list])
   in
-  (len v (s + 1) && fun (u : [%forall: int]) (w : [%forall: int]) ->
-   implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
+  (fun (u : [%forall: int]) (w : [%forall: int]) ->
+     implies (u == s + 1) (len v u)
+     && implies (mem v u) (h <= u)
+     && implies (ord v u w) (u <= w)
     : [%v: int list])
+
+let[@library] leaf = (len v 0 : [%v: int tree])
+
+let[@library] node =
+  let (lo : [%ghost: int]) = (true : [%v: int]) in
+  let (hi : [%ghost: int]) = (true : [%v: int]) in
+  let (root : [%over: int]) = (lo < v && v < hi : [%v: int]) in
+  let (dummy : [%under: int tree]) =
+    (fun (u : [%forall: int]) ->
+       implies (mem v u) (lo < u && u < root) && sorted v
+      : [%v: int tree])
+  in
+  let (dummy : [%under: int tree]) =
+    (fun (u : [%forall: int]) ->
+       implies (mem v u) (root < u && u < hi) && sorted v
+      : [%v: int tree])
+  in
+  (fun (u : [%forall: int]) -> implies (mem v u) (lo < u && u < hi) && sorted v
+    : [%v: int tree])

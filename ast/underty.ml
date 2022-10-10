@@ -47,6 +47,11 @@ module T = struct
 
   let make_basic_from_prop nt propf = make_basic default_v_name nt propf
 
+  let ot_make_basic_from_prop nt propf =
+    match make_basic default_v_name nt propf with
+    | UnderTy_base { basename; normalty; prop } -> { basename; normalty; prop }
+    | _ -> _failatwith __FILE__ __LINE__ "die"
+
   let make_basic_from_eq_var x =
     make_basic_from_prop x.ty (fun v ->
         P.(MethodPred ("==", [ AVar v; AVar x ])))
@@ -376,11 +381,24 @@ module T = struct
     let bname, nt, prop = assume_base file line idty in
     ({ x = id; ty = nt }, P.subst_id prop bname id)
 
-  let retty_add_ex_uprop (id, idty) t =
+  let retty_add_ex_uprop_with_option if_allow_drop (id, idty) t =
     let open P in
     modify_retty
       (fun _ prop ->
-        if List.exists (String.equal id) @@ fv prop then
+        (* let fv_res = *)
+        (*   List.map (fun x -> (id, x, String.equal id x)) @@ fv prop *)
+        (* in *)
+        (* let () = *)
+        (*   Pp.printf "%s\n" *)
+        (*   @@ List.split_by "\n" *)
+        (*        (fun (id, x, b) -> *)
+        (*          spf "[allow_drop? %b]%s is equal to fv (%s): %b\n" *)
+        (*            if_allow_drop id x b) *)
+        (*        fv_res *)
+        (* in *)
+        if if_allow_drop && not (List.exists (String.equal id) @@ fv prop) then
+          prop
+        else
           let x, xprop =
             extract_refinement_from_base __FILE__ __LINE__ (id, idty)
           in
@@ -389,9 +407,14 @@ module T = struct
           let prop =
             P.conjunct_eprop_to_right_ (x :: xeqvs, xprop) (eqvs, prop)
           in
-          prop
-        else prop)
+          prop)
       t
+
+  let retty_add_ex_uprop_drop_independent (id, idty) t =
+    retty_add_ex_uprop_with_option true (id, idty) t
+
+  let retty_add_ex_uprop_always_add (id, idty) t =
+    retty_add_ex_uprop_with_option false (id, idty) t
 
   let map_by_ghost_name t (x, f) =
     let rec aux t =
@@ -448,13 +471,13 @@ module T = struct
       | UnderTy_ghost_arrow { argname; retty; argty } ->
           let retty = aux retty in
           let { basename; normalty; prop } = argty in
-          retty_add_ex_uprop
+          retty_add_ex_uprop_drop_independent
             (argname, UnderTy_base { basename; normalty; prop })
             retty
       | UnderTy_over_arrow { argname; retty; argty } ->
           let retty = aux retty in
           let { basename; normalty; prop } = argty in
-          retty_add_ex_uprop
+          retty_add_ex_uprop_drop_independent
             (argname, UnderTy_base { basename; normalty; prop })
             retty
     in
@@ -462,18 +485,33 @@ module T = struct
 end
 
 module MMT = struct
-  type t = Ot of T.ot | Ut of T.t [@@deriving sexp]
+  module NT = Normalty.Ast.NT
+
+  type t = Ot of T.ot | Ut of T.t | Consumed of T.t | NoRefinement of NT.t
+  [@@deriving sexp]
 
   open T
 
   let eq_ = function
     | Ot ot1, Ot ot2 -> ot_strict_eq ot1 ot2
     | Ut ut1, Ut ut2 -> strict_eq ut1 ut2
+    | Consumed ut1, Consumed ut2 -> strict_eq ut1 ut2
+    | NoRefinement nt1, NoRefinement nt2 -> NT.eq nt1 nt2
     | _, _ -> false
 
   let eq a b = eq_ (a, b)
-  let erase = function Ot ot -> ot.normalty | Ut ut -> erase ut
-  let fv = function Ot ot -> ot_fv ot | Ut ut -> fv ut
+
+  let erase = function
+    | Ot ot -> ot.normalty
+    | Ut ut -> erase ut
+    | Consumed ut -> erase ut
+    | NoRefinement nt -> nt
+
+  let fv = function
+    | Ot ot -> ot_fv ot
+    | Ut ut -> fv ut
+    | Consumed ut -> fv ut
+    | NoRefinement _ -> []
 end
 
 module Utyped = struct

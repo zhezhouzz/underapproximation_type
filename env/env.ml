@@ -13,6 +13,7 @@ type prim_path = {
 }
 [@@deriving sexp]
 
-type config = { mode : mode; prim_path : prim_path } [@@deriving sexp]
+type config = { mode : mode; all_mps : string list; prim_path : prim_path }
+[@@deriving sexp]
 
 let config : config option ref = ref None

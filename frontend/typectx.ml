@@ -7,6 +7,8 @@ let mmt_pretty_layout t =
   match t with
   | Ot t -> Underty.ot_pretty_layout t
   | Ut t -> Underty.pretty_layout t
+  | Consumed t -> spf "⟬ %s ⟭" (Underty.pretty_layout t)
+  | NoRefinement nt -> spf "⟬ %s ⟭" (Normalty.Frontend.layout nt)
 
 let pretty_layout f ctx =
   List.split_by ";\n"
@@ -16,10 +18,12 @@ let pretty_layout f ctx =
     ctx
 
 let pretty_print f ctx =
-  List.iter
-    (fun (name, ty) ->
-      Pp.printf "%s:@{<green>%s@}," name (f ty) (* (List.split_by "∧" f ty) *))
-    ctx
+  if List.length ctx == 0 then Pp.printf "@{<green>∅@}\n"
+  else
+    List.iter
+      (fun (name, ty) ->
+        Pp.printf "%s:@{<green>%s@}," name (f ty) (* (List.split_by "∧" f ty) *))
+      ctx
 
 let pretty_layout_over = pretty_layout Overty.pretty_layout
 let pretty_layout_judge ctx (e, ty) = Printf.sprintf "%s⊢\n%s :\n%s\n" ctx e ty
@@ -59,11 +63,13 @@ let pretty_print_judge ctx (e, (r : UT.t)) =
   Pp.printf "⊢ @{<hi_magenta>%s@} ⇦ " (short_str 10000 e);
   Pp.printf "@{<cyan>%s@}\n\n" @@ Underty.pretty_layout r
 
-let pretty_print_app_judge ctx (args, r) =
-  let () = Pp.printf "@{<bold>Application Type Check:@}\n" in
+let pretty_print_app_judge fname ctx (args, r) =
+  let () = Pp.printf "@{<bold>Application Type Check (%s):@}\n" fname in
   pretty_print ctx;
   Pp.printf "⊢ @{<hi_magenta>%s → ? @} ⇦ "
-    (List.split_by " → " (fun x -> x.NL.x) args);
+    (List.split_by " → "
+       (fun x -> spf "%s:%s" x.UL.x (Underty.pretty_layout x.UL.ty))
+       args);
   Pp.printf "@{<cyan>%s@}\n\n" @@ mmt_pretty_layout r
 
 let pretty_print_subtyping ctx (r1, r2) =

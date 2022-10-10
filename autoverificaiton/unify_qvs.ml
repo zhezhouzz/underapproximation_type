@@ -94,10 +94,13 @@ let assume_tope_uprop file line prop =
 
 let conjunct_eprop_to_right_ (eqv1, prop1) (eqv2, prop2) =
   let is_eq id = function
-    | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x -> Some lit
-    | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x -> Some lit
+    | MethodPred ("==", [ AVar x; ACint n ]) when String.equal x.x id.x ->
+        Some (ACint n)
+    | MethodPred ("==", [ ACint n; AVar x ]) when String.equal x.x id.x ->
+        Some (ACint n)
     | _ -> None
   in
+  (* let is_eq _ _ = None in *)
   let merge (eqv1, prop1) (eqv2, prop2) =
     let eqvs, prop1 =
       List.fold_right

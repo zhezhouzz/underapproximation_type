@@ -643,11 +643,12 @@ let conjunct_base_to_tope_uprop_ (xeqvs, xprop) (eqvs1, prop1) =
   match xeqvs with
   | [] -> (eqvs1, And [ xprop; prop1 ])
   | [ id ] -> (
+      (* (id :: eqvs1, And [ xprop; prop1 ]) *)
       let is_eq = function
-        | MethodPred ("==", [ AVar x; lit ]) when String.equal x.x id.x ->
-            Some lit
-        | MethodPred ("==", [ lit; AVar x ]) when String.equal x.x id.x ->
-            Some lit
+        | MethodPred ("==", [ AVar x; ACint n ]) when String.equal x.x id.x ->
+            Some (ACint n)
+        | MethodPred ("==", [ ACint n; AVar x ]) when String.equal x.x id.x ->
+            Some (ACint n)
         | _ -> None
       in
       match is_eq xprop with
