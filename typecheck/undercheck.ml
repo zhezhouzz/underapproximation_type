@@ -84,10 +84,10 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
     | NL.Lit _, _ ->
         let x = value_type_infer uctx a in
         term_subtyping_check __FILE__ __LINE__ uctx x ty
-    | NL.Lam (_, _, _), UnderTy_ghost_arrow { argname; argty; retty } ->
-        value_type_check
-          { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) }
-          a retty
+    (* | NL.Lam (_, _, _), UnderTy_ghost_arrow { argname; argty; retty } -> *)
+    (*     value_type_check *)
+    (*       { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) } *)
+    (*       a retty *)
     | NL.Lam (id, rankfunc, body), UnderTy_over_arrow { argname; argty; retty }
       ->
         let () =
@@ -130,37 +130,38 @@ and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) :
               x = Lam (id, rankfunc, body);
             })
     | NL.Lam (_, _, _), _ -> _failatwith __FILE__ __LINE__ ""
-    | NL.Fix (f, body), ty ->
+    | NL.Fix (f, _), ty ->
         let _ = erase_check_mk_id __FILE__ __LINE__ f ty in
         (* NOTE: no step 1 (full projection check) any more *)
         (* let _ = full_projection_check uctx ty in *)
-        let uctx_base =
-          {
-            uctx with
-            ctx =
-              Typectx.norefinement_force_add_to_right uctx.ctx
-                { x = f.x; ty = snd @@ f.ty };
-          }
-        in
-        let ty_base = right_ty_measure_0 uctx_base ty in
-        let () =
-          Typectx.pretty_print_judge uctx_base.ctx
-            (NL.layout_value body, ty_base)
-        in
-        let _ = value_type_check uctx_base body ty_base in
-        (* let _ = failwith "end" in *)
-        let uctx_ind =
-          {
-            uctx with
-            ctx = Typectx.ut_force_add_to_right uctx.ctx UL.{ x = f.x; ty };
-          }
-        in
-        let ty_ind = right_ty_measure_ind uctx_ind ty in
-        let () =
-          Typectx.pretty_print_judge uctx_ind.ctx (NL.layout_value body, ty_ind)
-        in
-        let body = value_type_check uctx_ind body ty_ind in
-        { ty; x = Fix ({ x = f.x; ty }, body) }
+        _failatwith __FILE__ __LINE__ "fix unimp"
+    (* let uctx_base = *)
+    (*   { *)
+    (*     uctx with *)
+    (*     ctx = *)
+    (*       Typectx.norefinement_force_add_to_right uctx.ctx *)
+    (*         { x = f.x; ty = snd @@ f.ty }; *)
+    (*   } *)
+    (* in *)
+    (* let ty_base = right_ty_measure_0 uctx_base ty in *)
+    (* let () = *)
+    (*   Typectx.pretty_print_judge uctx_base.ctx *)
+    (*     (NL.layout_value body, ty_base) *)
+    (* in *)
+    (* let _ = value_type_check uctx_base body ty_base in *)
+    (* (\* let _ = failwith "end" in *\) *)
+    (* let uctx_ind = *)
+    (*   { *)
+    (*     uctx with *)
+    (*     ctx = Typectx.ut_force_add_to_right uctx.ctx UL.{ x = f.x; ty }; *)
+    (*   } *)
+    (* in *)
+    (* let ty_ind = right_ty_measure_ind uctx_ind ty in *)
+    (* let () = *)
+    (*   Typectx.pretty_print_judge uctx_ind.ctx (NL.layout_value body, ty_ind) *)
+    (* in *)
+    (* let body = value_type_check uctx_ind body ty_ind in *)
+    (* { ty; x = Fix ({ x = f.x; ty }, body) } *)
   in
   result
 
@@ -206,8 +207,7 @@ and handle_letdetu (uctx : uctx) (tu, args, body) target_type =
   let ty, body = handle_let_body uctx ctx' body target_type in
   UL.{ ty; x = LetDeTu { tu; args; body } }
 
-and handle_letapp (uctx : uctx) (ret, (if_rec, fname), fty, args, body)
-    target_type =
+and handle_letapp (uctx : uctx) (ret, (_, fname), fty, args, body) target_type =
   let open UL in
   let open UT in
   (* arguments type check *)
@@ -215,85 +215,85 @@ and handle_letapp (uctx : uctx) (ret, (if_rec, fname), fty, args, body)
   let () = Typectx.pretty_print_app_judge fname uctx.ctx (args, Ut fty) in
   let rec aux uctx (a, b) : UT.t option =
     match (a, b) with
-    | args, UnderTy_ghost_arrow { argty; argname; retty } -> (
-        if if_rec && if_rec_measure_arg uctx argname then
-          let ghost_term = synthesize_ghost_term uctx in
-          let () =
-            Pp.printf "@{<bold> Ghost term type: %s:%s@}\n" ghost_term.x
-              (UT.pretty_layout ghost_term.ty)
-          in
-          (* NOTE: reduce to normal over type check *)
-          let uctx =
-            {
-              uctx with
-              ctx = Typectx.ut_force_add_to_right uctx.ctx ghost_term;
-            }
-          in
-          aux uctx
-            (ghost_term :: args, UnderTy_over_arrow { argty; argname; retty })
-        else
-          let () = Pp.printf "@{<bold>GHOST: %s!@}\n" argname in
-          let candidates = candidate_vars_by_nt uctx argty.normalty in
-          (* NOTE: the candiate cannot be the rest arguments. *)
-          let candidates =
-            List.filter
-              (fun (x, _) ->
-                not (List.exists (fun y -> String.equal x.NTyped.x y.UL.x) args))
-              candidates
-          in
-          let () =
-            Pp.printf "@{<bold>Check candidates: %s@}\n"
-              (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates)
-          in
-          let candidates =
-            List.filter
-              (fun (_, cty) ->
-                Undersub.subtyping_check_bool __FILE__ __LINE__ uctx.ctx
-                  (ot_to_ut argty) cty)
-              candidates
-          in
-          (* let candidates = *)
-          (*   List.filter *)
-          (*     (fun x -> *)
-          (*       String.equal x.Ntyped.x "lo" || String.equal x.Ntyped.x "hi") *)
-          (*     candidates *)
-          (* in *)
-          let () =
-            Pp.printf "@{<bold>Got candidates: %s@}\n"
-              (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates)
-          in
-          let candidates = List.map fst candidates in
-          (* let () = failwith "end" in *)
-          let res =
-            List.filter_map
-              (fun candidate ->
-                let retty = subst_id retty argname candidate.Ntyped.x in
-                match aux uctx (args, retty) with
-                | None ->
-                    let () =
-                      Pp.printf "@{<bold>candidates %s has been rejected@}\n"
-                        candidate.Ntyped.x
-                    in
-                    None
-                | Some ty ->
-                    let () =
-                      Pp.printf "@{<bold>candidates %s has been accepted@}\n"
-                        candidate.Ntyped.x
-                    in
-                    Some (candidate, ty))
-              candidates
-          in
-          match res with
-          | [] -> None
-          | [ (_, ty) ] -> Some ty
-          | ress ->
-              let () =
-                Pp.printf "succ candidates: %s\n"
-                @@ List.split_by_comma (fun (a, _) -> a.NTyped.x) ress
-              in
-              let ty = merge_case_tys @@ List.map snd ress in
-              Some ty
-          (* _failatwith __FILE__ __LINE__ "ghost application multi succ" *))
+    (* | args, UnderTy_ghost_arrow { argty; argname; retty } -> ( *)
+    (*     if if_rec && if_rec_measure_arg uctx argname then *)
+    (*       let ghost_term = synthesize_ghost_term uctx in *)
+    (*       let () = *)
+    (*         Pp.printf "@{<bold> Ghost term type: %s:%s@}\n" ghost_term.x *)
+    (*           (UT.pretty_layout ghost_term.ty) *)
+    (*       in *)
+    (*       (\* NOTE: reduce to normal over type check *\) *)
+    (*       let uctx = *)
+    (*         { *)
+    (*           uctx with *)
+    (*           ctx = Typectx.ut_force_add_to_right uctx.ctx ghost_term; *)
+    (*         } *)
+    (*       in *)
+    (*       aux uctx *)
+    (*         (ghost_term :: args, UnderTy_over_arrow { argty; argname; retty }) *)
+    (*     else *)
+    (*       let () = Pp.printf "@{<bold>GHOST: %s!@}\n" argname in *)
+    (*       let candidates = candidate_vars_by_nt uctx argty.normalty in *)
+    (*       (\* NOTE: the candiate cannot be the rest arguments. *\) *)
+    (*       let candidates = *)
+    (*         List.filter *)
+    (*           (fun (x, _) -> *)
+    (*             not (List.exists (fun y -> String.equal x.NTyped.x y.UL.x) args)) *)
+    (*           candidates *)
+    (*       in *)
+    (*       let () = *)
+    (*         Pp.printf "@{<bold>Check candidates: %s@}\n" *)
+    (*           (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates) *)
+    (*       in *)
+    (*       let candidates = *)
+    (*         List.filter *)
+    (*           (fun (_, cty) -> *)
+    (*             Undersub.subtyping_check_bool __FILE__ __LINE__ uctx.ctx *)
+    (*               (ot_to_ut argty) cty) *)
+    (*           candidates *)
+    (*       in *)
+    (*       (\* let candidates = *\) *)
+    (*       (\*   List.filter *\) *)
+    (*       (\*     (fun x -> *\) *)
+    (*       (\*       String.equal x.Ntyped.x "lo" || String.equal x.Ntyped.x "hi") *\) *)
+    (*       (\*     candidates *\) *)
+    (*       (\* in *\) *)
+    (*       let () = *)
+    (*         Pp.printf "@{<bold>Got candidates: %s@}\n" *)
+    (*           (List.split_by_comma (fun (x, _) -> x.NTyped.x) candidates) *)
+    (*       in *)
+    (*       let candidates = List.map fst candidates in *)
+    (*       (\* let () = failwith "end" in *\) *)
+    (*       let res = *)
+    (*         List.filter_map *)
+    (*           (fun candidate -> *)
+    (*             let retty = subst_id retty argname candidate.Ntyped.x in *)
+    (*             match aux uctx (args, retty) with *)
+    (*             | None -> *)
+    (*                 let () = *)
+    (*                   Pp.printf "@{<bold>candidates %s has been rejected@}\n" *)
+    (*                     candidate.Ntyped.x *)
+    (*                 in *)
+    (*                 None *)
+    (*             | Some ty -> *)
+    (*                 let () = *)
+    (*                   Pp.printf "@{<bold>candidates %s has been accepted@}\n" *)
+    (*                     candidate.Ntyped.x *)
+    (*                 in *)
+    (*                 Some (candidate, ty)) *)
+    (*           candidates *)
+    (*       in *)
+    (*       match res with *)
+    (*       | [] -> None *)
+    (*       | [ (_, ty) ] -> Some ty *)
+    (*       | ress -> *)
+    (*           let () = *)
+    (*             Pp.printf "succ candidates: %s\n" *)
+    (*             @@ List.split_by_comma (fun (a, _) -> a.NTyped.x) ress *)
+    (*           in *)
+    (*           let ty = merge_case_tys @@ List.map snd ress in *)
+    (*           Some ty *)
+    (*       (\* _failatwith __FILE__ __LINE__ "ghost application multi succ" *\)) *)
     | [], ty -> Some ty
     | arg :: args, UnderTy_over_arrow { argname; argty; retty } ->
         (* NOTE: special application rule *)
@@ -500,10 +500,10 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) :
   | V v, _ ->
       let v = value_type_check uctx { ty = x.ty; x = v } ty in
       { ty = v.ty; x = V v.x }
-  | _, UT.(UnderTy_ghost_arrow { argname; argty; retty }) ->
-      term_type_check
-        { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) }
-        x retty
+  (* | _, UT.(UnderTy_ghost_arrow { argname; argty; retty }) -> *)
+  (*     term_type_check *)
+  (*       { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (argname, argty) } *)
+  (*       x retty *)
   | LetTu { tu; args; body }, _ -> handle_lettu uctx (tu, args, body) (Some ty)
   | LetDeTu { tu; args; body }, _ ->
       handle_letdetu uctx (tu, args, body) (Some ty)

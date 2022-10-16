@@ -55,10 +55,6 @@ let pretty_layout x =
           if Ast.UT.is_base_type argty then arg_str else spf "(%s)" arg_str
         in
         Sugar.spf "%s→%s" arg_str (aux retty)
-    | UnderTy_ghost_arrow { argname; argty; retty } ->
-        Sugar.spf "%s⤍%s"
-          (spf "%s:%s" argname (ot_pretty_layout argty))
-          (aux retty)
     | UnderTy_over_arrow { argname; argty; retty } ->
         Sugar.spf "%s→%s"
           (spf "%s:%s" argname (ot_pretty_layout argty))
@@ -112,11 +108,6 @@ let undertype_of_ocamlexpr expr =
             let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
             let _ = _check_eq_nt __FILE__ __LINE__ argnty argty.normalty in
             L.UnderTy_over_arrow
-              { argname = argname.x; argty; retty = aux body }
-        | Some (Some "ghost", argnty) ->
-            let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
-            let _ = _check_eq_nt __FILE__ __LINE__ argnty argty.normalty in
-            L.UnderTy_ghost_arrow
               { argname = argname.x; argty; retty = aux body }
         | Some (Some "under", argnty) ->
             let argty = aux vb.pvb_expr in

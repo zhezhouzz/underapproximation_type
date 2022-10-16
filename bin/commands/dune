@@ -1,6 +1,8 @@
 (library
  (name commands)
- (libraries utils core core_unix.sys_unix ocaml_parser frontend translate typecheck env driver inference qcheck)
+ (libraries utils core core_unix.sys_unix ocaml_parser frontend translate typecheck env driver qcheck
+            ; inference
+ )
  (modules
    caux
    ctest

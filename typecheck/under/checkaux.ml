@@ -28,9 +28,6 @@ let unify file line underfty normalty =
     | UnderTy_tuple uts, Ty_tuple ts ->
         let l = _safe_combine file line uts ts in
         UnderTy_tuple (List.map (aux m) l)
-    | UnderTy_ghost_arrow { argname; argty; retty }, nt ->
-        let retty = aux m (retty, nt) in
-        UnderTy_ghost_arrow { argname; argty; retty }
     | _, _ -> _failatwith file line "unify"
   in
   aux StrMap.empty (underfty, normalty)
@@ -91,43 +88,43 @@ let if_rec_measure_arg uctx argname =
   | None -> false
   | Some { rank_lhs; _ } -> String.equal rank_lhs argname
 
-let right_ty_measure_0 uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      UT.map_by_ghost_name ty
-        ( rank_lhs,
-          fun { basename; normalty; prop } ->
-            let prop =
-              P.(
-                let x = Ntyped.{ x = basename; ty = normalty } in
-                let prop' = MethodPred ("==", [ ACint 0; AVar x ]) in
-                And [ prop; prop' ])
-            in
-            Some { basename; normalty; prop } )
+(* let right_ty_measure_0 uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; _ } -> *)
+(*       UT.map_by_ghost_name ty *)
+(*         ( rank_lhs, *)
+(*           fun { basename; normalty; prop } -> *)
+(*             let prop = *)
+(*               P.( *)
+(*                 let x = Ntyped.{ x = basename; ty = normalty } in *)
+(*                 let prop' = MethodPred ("==", [ ACint 0; AVar x ]) in *)
+(*                 And [ prop; prop' ]) *)
+(*             in *)
+(*             Some { basename; normalty; prop } ) *)
 
-let right_ty_measure_ind uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      UT.map_by_ghost_name ty
-        ( rank_lhs,
-          fun { basename; normalty; prop } ->
-            let prop =
-              P.(
-                let x = Ntyped.{ x = basename; ty = normalty } in
-                And [ prop; MethodPred ("<", [ ACint 0; AVar x ]) ])
-            in
-            Some { basename; normalty; prop } )
+(* let right_ty_measure_ind uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; _ } -> *)
+(*       UT.map_by_ghost_name ty *)
+(*         ( rank_lhs, *)
+(*           fun { basename; normalty; prop } -> *)
+(*             let prop = *)
+(*               P.( *)
+(*                 let x = Ntyped.{ x = basename; ty = normalty } in *)
+(*                 And [ prop; MethodPred ("<", [ ACint 0; AVar x ]) ]) *)
+(*             in *)
+(*             Some { basename; normalty; prop } ) *)
 
-let left_ty_measure_0 uctx ty =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      UT.map_by_ghost_name ty
-        ( rank_lhs,
-          fun { basename; normalty; _ } ->
-            Some { basename; normalty; prop = P.mk_false } )
+(* let left_ty_measure_0 uctx ty = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; _ } -> *)
+(*       UT.map_by_ghost_name ty *)
+(*         ( rank_lhs, *)
+(*           fun { basename; normalty; _ } -> *)
+(*             Some { basename; normalty; prop = P.mk_false } ) *)
 
 (* let left_ty_measure_i uctx ty = *)
 (*   match uctx.rec_info with *)
@@ -178,7 +175,6 @@ open UT
 
 let handle_consume uctx (args, uty) =
   let rec aux = function
-    | _, UnderTy_ghost_arrow { retty; _ } -> aux (args, retty)
     | [], _ -> []
     | _ :: args, UnderTy_over_arrow { retty; _ } -> aux (args, retty)
     | arg :: args, UnderTy_under_arrow { retty; _ } ->

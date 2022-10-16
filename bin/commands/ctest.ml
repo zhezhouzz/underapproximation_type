@@ -142,81 +142,81 @@ let under_type_check =
         in
         ())
 
-let under_subtype_check =
-  Command.basic ~summary:"under_type_check"
-    Command.Let_syntax.(
-      let%map_open config_file = anon ("config file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file)
-      and left = anon ("left name" %: string)
-      and right = anon ("right name" %: string) in
-      fun () ->
-        let () = Config.load config_file in
-        let _, _, refinements = Inputstage.load_under_refinments refine_file in
-        let () = Typecheck.Inv_check.struc_check refinements (left, right) in
-        ())
+(* let under_subtype_check = *)
+(*   Command.basic ~summary:"under_type_check" *)
+(*     Command.Let_syntax.( *)
+(*       let%map_open config_file = anon ("config file" %: regular_file) *)
+(*       and refine_file = anon ("refine_file" %: regular_file) *)
+(*       and left = anon ("left name" %: string) *)
+(*       and right = anon ("right name" %: string) in *)
+(*       fun () -> *)
+(*         let () = Config.load config_file in *)
+(*         let _, _, refinements = Inputstage.load_under_refinments refine_file in *)
+(*         let () = Typecheck.Inv_check.struc_check refinements (left, right) in *)
+(*         ()) *)
 
-let under_post_shrink =
-  Command.basic ~summary:"under_post_shrink"
-    Command.Let_syntax.(
-      let%map_open config_file = anon ("config file" %: regular_file)
-      and source_file = anon ("source file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file)
-      and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
-      fun () ->
-        let () = Config.load config_file in
-        let notations, libs, refinements =
-          Inputstage.load_under_refinments refine_file
-        in
-        let code = Inputstage.load_ssa libs source_file in
-        let notations = failwith "zz" in
-        let res =
-          Inference.Infer.struc_post_shrink infer_ctx_file code notations libs
-            refinements
-        in
-        let () =
-          List.iter res ~f:(fun (idx, name, uty, res) ->
-              let () =
-                Pp.printf "@{<bold>Task %i@}: %s\n%s\n" idx name
-                  (Languages.UT.pretty_layout uty)
-              in
-              let () = Inference.Check_false.(print_res res) in
-              ())
-        in
-        ())
+(* let under_post_shrink = *)
+(*   Command.basic ~summary:"under_post_shrink" *)
+(*     Command.Let_syntax.( *)
+(*       let%map_open config_file = anon ("config file" %: regular_file) *)
+(*       and source_file = anon ("source file" %: regular_file) *)
+(*       and refine_file = anon ("refine_file" %: regular_file) *)
+(*       and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in *)
+(*       fun () -> *)
+(*         let () = Config.load config_file in *)
+(*         let notations, libs, refinements = *)
+(*           Inputstage.load_under_refinments refine_file *)
+(*         in *)
+(*         let code = Inputstage.load_ssa libs source_file in *)
+(*         let notations = failwith "zz" in *)
+(*         let res = *)
+(*           Inference.Infer.struc_post_shrink infer_ctx_file code notations libs *)
+(*             refinements *)
+(*         in *)
+(*         let () = *)
+(*           List.iter res ~f:(fun (idx, name, uty, res) -> *)
+(*               let () = *)
+(*                 Pp.printf "@{<bold>Task %i@}: %s\n%s\n" idx name *)
+(*                   (Languages.UT.pretty_layout uty) *)
+(*               in *)
+(*               let () = Inference.Check_false.(print_res res) in *)
+(*               ()) *)
+(*         in *)
+(*         ()) *)
 
-let test_mk_features =
-  Command.basic ~summary:"test_mk_features"
-    Command.Let_syntax.(
-      let%map_open source_file = anon ("source file" %: regular_file)
-      and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in
-      fun () ->
-        let () = Config.load_default () in
-        let code = Inputstage.load_ssa [] source_file in
-        let settings =
-          List.map
-            ~f:
-              Languages.StrucNA.(
-                fun { name; body } ->
-                  let args, ret = Languages.UL.get_args_return_name "v" body in
+(* let test_mk_features = *)
+(*   Command.basic ~summary:"test_mk_features" *)
+(*     Command.Let_syntax.( *)
+(*       let%map_open source_file = anon ("source file" %: regular_file) *)
+(*       and infer_ctx_file = anon ("infer_ctx_file" %: regular_file) in *)
+(*       fun () -> *)
+(*         let () = Config.load_default () in *)
+(*         let code = Inputstage.load_ssa [] source_file in *)
+(*         let settings = *)
+(*           List.map *)
+(*             ~f: *)
+(*               Languages.StrucNA.( *)
+(*                 fun { name; body } -> *)
+(*                   let args, ret = Languages.UL.get_args_return_name "v" body in *)
 
-                  (name, (List.map ~f:(fun x -> (x, x)) args, ret)))
-            code
-        in
-        (* let () = *)
-        (*   Pp.printf "@{<bold>len@}(settings) = %i\n" @@ List.length settings *)
-        (* in *)
-        (* let () = failwith (Printf.sprintf "end: %i" @@ List.length settings) in *)
-        let () =
-          List.iter
-            ~f:(fun (name, (args, retv)) ->
-              let infer_ctx =
-                Inference.Infer_ctx.load infer_ctx_file args retv
-              in
-              let () = Inference.Infer_ctx.print infer_ctx in
-              ())
-            settings
-        in
-        ())
+(*                   (name, (List.map ~f:(fun x -> (x, x)) args, ret))) *)
+(*             code *)
+(*         in *)
+(*         (\* let () = *\) *)
+(*         (\*   Pp.printf "@{<bold>len@}(settings) = %i\n" @@ List.length settings *\) *)
+(*         (\* in *\) *)
+(*         (\* let () = failwith (Printf.sprintf "end: %i" @@ List.length settings) in *\) *)
+(*         let () = *)
+(*           List.iter *)
+(*             ~f:(fun (name, (args, retv)) -> *)
+(*               let infer_ctx = *)
+(*                 Inference.Infer_ctx.load infer_ctx_file args retv *)
+(*               in *)
+(*               let () = Inference.Infer_ctx.print infer_ctx in *)
+(*               ()) *)
+(*             settings *)
+(*         in *)
+(*         ()) *)
 
 let init =
   Command.basic ~summary:"init"
@@ -248,11 +248,10 @@ let test =
       ("parsing-type-decls", parsing_type_decls);
       ("over-type-check", over_type_check);
       ("under-type-check", under_type_check);
-      ("under-post-shrink", under_post_shrink);
-      ("test-mk-features", test_mk_features);
+      (* ("under-post-shrink", under_post_shrink); *)
+      (* ("test-mk-features", test_mk_features); *)
       ("qcheck", qcheck);
-      ("init", init);
-      ("under-subtype-check", under_subtype_check);
+      ("init", init) (* ("under-subtype-check", under_subtype_check); *);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]
