@@ -56,6 +56,10 @@ let get_primitive_under_ty (name, ty) =
   let _, entry = get_by_name (get_notation_m ()) name in
   get_primitive_ "under" entry.qunderty Ast.UT.erase (name, ty)
 
+let get_primitive_under_multi_ty (name, ty) =
+  let _, entry = get_by_name (get_notation_m ()) name in
+  get_primitive__ "under" entry.qunderty Ast.UT.erase (name, ty)
+
 let get_primitive_rev_under_ty (name, ty) =
   let _, entry = get_by_name (get_notation_m ()) name in
   get_primitive__ "under rev" entry.rev_qunderty Ast.UT.erase (name, ty)

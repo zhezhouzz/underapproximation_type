@@ -423,32 +423,43 @@ end
 
 module MMT = struct
   module NT = Normalty.Ast.NT
+  open Sexplib.Std
 
-  type t = Ot of T.ot | Ut of T.t | Consumed of T.t | NoRefinement of NT.t
+  type ut_with_copy =
+    | UtNormal of T.t
+    | UtCopy of string Normalty.Ast.Ntyped.typed
+  [@@deriving sexp]
+
+  type t = Ot of T.ot | Ut of ut_with_copy | Consumed of ut_with_copy
   [@@deriving sexp]
 
   open T
 
+  let ut_eq_ = function
+    | UtNormal ut1, UtNormal ut2 -> strict_eq ut1 ut2
+    | UtCopy id1, UtCopy id2 -> Normalty.Ast.Ntyped.typed_eq id1 id2
+    | _, _ -> false
+
   let eq_ = function
     | Ot ot1, Ot ot2 -> ot_strict_eq ot1 ot2
-    | Ut ut1, Ut ut2 -> strict_eq ut1 ut2
-    | Consumed ut1, Consumed ut2 -> strict_eq ut1 ut2
-    | NoRefinement nt1, NoRefinement nt2 -> NT.eq nt1 nt2
+    | Ut ut1, Ut ut2 -> ut_eq_ (ut1, ut2)
+    | Consumed ut1, Consumed ut2 -> ut_eq_ (ut1, ut2)
     | _, _ -> false
 
   let eq a b = eq_ (a, b)
+  let ut_erase_ = function UtNormal ut -> erase ut | UtCopy id -> id.ty
 
   let erase = function
     | Ot ot -> ot.normalty
-    | Ut ut -> erase ut
-    | Consumed ut -> erase ut
-    | NoRefinement nt -> nt
+    | Ut ut -> ut_erase_ ut
+    | Consumed ut -> ut_erase_ ut
+
+  let ut_fv = function UtNormal ut -> fv ut | UtCopy id -> [ id.x ]
 
   let fv = function
     | Ot ot -> ot_fv ot
-    | Ut ut -> fv ut
-    | Consumed ut -> fv ut
-    | NoRefinement _ -> []
+    | Consumed ut -> ut_fv ut
+    | Ut ut -> ut_fv ut
 end
 
 module Utyped = struct

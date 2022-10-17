@@ -25,14 +25,13 @@ let load_ssa libs source_file =
   let () =
     Printf.printf "[Typed program]:\n%s\n\n"
     @@ short_str 300 @@ Struc.layout code
-    (* (Struc.layout code) *)
   in
   let code = Trans.struc_term_to_nan code in
   let () =
     Printf.printf "[Typed A-normal from]:\n%s\n\n"
     @@ short_str 300 (StrucNA.layout code)
-    (* (StrucNA.layout code) *)
   in
+  (* let () = _failatwith __FILE__ __LINE__ "end" in *)
   code
 
 let load_normal_refinements refine_file =
@@ -46,36 +45,36 @@ let load_normal_refinements refine_file =
   (* in *)
   refinements
 
-let load_over_refinments refine_file =
-  let refinements =
-    Struc.refinement_of_ocamlstruct OT.overtype_of_ocamlexpr
-      (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
-  in
-  let refinements =
-    List.map
-      ~f:(fun ((a, name), ty) -> (a, (name, Overtycheck.infer ty)))
-      refinements
-  in
-  let notations, _, refinements =
-    List.fold_left
-      ~f:(fun (a, b, c) x ->
-        match x with
-        | Frontend.Structure.Inv _, _ -> _failatwith __FILE__ __LINE__ "die"
-        | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ])
-        | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
-        | Frontend.Structure.NotationExt str, _ ->
-            _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
-      ~init:([], [], []) refinements
-  in
-  let () =
-    Printf.printf "[Loading notations type]:\n%s"
-      (Struc.layout_refinements OT.pretty_layout notations)
-  in
-  (* let () = *)
-  (*   Printf.printf "[Loading refinement type]:\n%s" *)
-  (*     (Struc.layout_refinements OT.pretty_layout refinements) *)
-  (* in *)
-  refinements
+(* let load_over_refinments refine_file = *)
+(*   let refinements = *)
+(*     Struc.refinement_of_ocamlstruct OT.overtype_of_ocamlexpr *)
+(*       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file) *)
+(*   in *)
+(*   let refinements = *)
+(*     List.map *)
+(*       ~f:(fun ((a, name), ty) -> (a, (name, Overtycheck.infer ty))) *)
+(*       refinements *)
+(*   in *)
+(*   let notations, _, refinements = *)
+(*     List.fold_left *)
+(*       ~f:(fun (a, b, c) x -> *)
+(*         match x with *)
+(*         | Frontend.Structure.Inv _, _ -> _failatwith __FILE__ __LINE__ "die" *)
+(*         | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ]) *)
+(*         | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c) *)
+(*         | Frontend.Structure.NotationExt str, _ -> *)
+(*             _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str) *)
+(*       ~init:([], [], []) refinements *)
+(*   in *)
+(*   let () = *)
+(*     Printf.printf "[Loading notations type]:\n%s" *)
+(*       (Struc.layout_refinements OT.pretty_layout notations) *)
+(*   in *)
+(*   (\* let () = *\) *)
+(*   (\*   Printf.printf "[Loading refinement type]:\n%s" *\) *)
+(*   (\*     (Struc.layout_refinements OT.pretty_layout refinements) *\) *)
+(*   (\* in *\) *)
+(*   refinements *)
 
 let load_under_refinments refine_file =
   let refinements =
@@ -108,7 +107,7 @@ let load_under_refinments refine_file =
               b,
               c )
         | Frontend.Structure.NotationExt "under", (name, ty) ->
-            (a @ [ (name, MMT.Ut ty) ], b, c)
+            (a @ [ (name, MMT.Ut (UtNormal ty)) ], b, c)
         | Frontend.Structure.NotationExt str, _ ->
             _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
       ~init:([], [], []) refinements

@@ -3,12 +3,15 @@ open Ast
 open Sugar
 open MMT
 
+let ut_with_eq_pretty_layout = function
+  | UtNormal t -> Underty.pretty_layout t
+  | UtCopy id -> spf "[v = %s]" id.x
+
 let mmt_pretty_layout t =
   match t with
   | Ot t -> Underty.ot_pretty_layout t
-  | Ut t -> Underty.pretty_layout t
-  | Consumed t -> spf "⟬ %s ⟭" (Underty.pretty_layout t)
-  | NoRefinement nt -> spf "⟬ %s ⟭" (Normalty.Frontend.layout nt)
+  | Consumed t -> spf "⟬ %s ⟭" (ut_with_eq_pretty_layout t)
+  | Ut t -> ut_with_eq_pretty_layout t
 
 let pretty_layout f ctx =
   List.split_by ";\n"
@@ -18,7 +21,7 @@ let pretty_layout f ctx =
     ctx
 
 let pretty_print f ctx =
-  if List.length ctx == 0 then Pp.printf "@{<green>∅@}\n"
+  if List.length ctx == 0 then Pp.printf "@{<green>∅@}"
   else
     List.iter
       (fun (name, ty) ->
@@ -68,7 +71,7 @@ let pretty_print_app_judge fname ctx (args, r) =
   pretty_print ctx;
   Pp.printf "⊢ @{<hi_magenta>%s → ? @} ⇦ "
     (List.split_by " → "
-       (fun x -> spf "%s:%s" x.UL.x (Underty.pretty_layout x.UL.ty))
+       (fun (x, ty) -> spf "%s:%s" x (ut_with_eq_pretty_layout ty))
        args);
   Pp.printf "@{<cyan>%s@}\n\n" @@ mmt_pretty_layout r
 

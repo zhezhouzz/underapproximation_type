@@ -51,7 +51,8 @@ let load fname =
     Prim.init
       ( Inputstage.load_type_decls prim_path.type_decls,
         Inputstage.load_normal_refinements prim_path.normalp,
-        Inputstage.load_over_refinments prim_path.overp,
+        (* Inputstage.load_over_refinments prim_path.overp, *)
+        [],
         underr,
         rev_underr,
         lemmas,

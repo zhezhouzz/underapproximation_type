@@ -21,10 +21,10 @@ let filter_by_mps mps lemma =
           l)
       lemma_mps
   in
-  let () =
-    Printf.printf "lemma_mps: %s\n"
-    @@ Zzdatatype.Datatype.StrList.to_string lemma_mps
-  in
+  (* let () = *)
+  (*   Printf.printf "lemma_mps: %s\n" *)
+  (*   @@ Zzdatatype.Datatype.StrList.to_string lemma_mps *)
+  (* in *)
   match Zzdatatype.Datatype.List.substract String.equal lemma_mps mps with
   | [] -> true
   | _ -> false

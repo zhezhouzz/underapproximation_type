@@ -7,6 +7,7 @@ let check_empty_hidden file line hvs =
     _failatwith file line "do not allow hidden variables"
   else ()
 
+open Abstraction
 open Zzdatatype.Datatype
 
 let unify file line underfty normalty =
@@ -44,9 +45,6 @@ let erase_check_mk_id file line id underfty =
 (* let _ = _check_equality file line NT.eq (UT.erase underfty) (snd id.NL.ty) in *)
 (* UL.{ ty = underfty; x = id.x } *)
 
-let subtyping_check = Undersub.subtyping_check
-let subtyping_check_bool = Undersub.subtyping_check_bool
-
 (* let subtyping_check__with_hidden_vars = *)
 (*   Undersub.subtyping_check_with_hidden_vars *)
 
@@ -78,15 +76,15 @@ include Underctx
 (*       let () = Pp.printf "@{<bold>if_rec_call %s  %s@}\n" fix_name fname in *)
 (*       String.equal fname fix_name && String.equal argname rank_lhs *)
 
-let if_rec_function uctx fname =
-  match uctx.rec_info with
-  | None -> false
-  | Some { fix_name; _ } -> String.equal fname fix_name
+(* let if_rec_function uctx fname = *)
+(*   match uctx.rec_info with *)
+(*   | None -> false *)
+(*   | Some { fix_name; _ } -> String.equal fname fix_name *)
 
-let if_rec_measure_arg uctx argname =
-  match uctx.rec_info with
-  | None -> false
-  | Some { rank_lhs; _ } -> String.equal rank_lhs argname
+(* let if_rec_measure_arg uctx argname = *)
+(*   match uctx.rec_info with *)
+(*   | None -> false *)
+(*   | Some { rank_lhs; _ } -> String.equal rank_lhs argname *)
 
 (* let right_ty_measure_0 uctx ty = *)
 (*   match uctx.rec_info with *)
@@ -143,51 +141,51 @@ let if_rec_measure_arg uctx argname =
 (*                     And [ prop; MethodPred ("<", [ ACint 0; AVar x ]) ]); *)
 (*               } ) *)
 
-let synthesize_ghost_term uctx =
-  match uctx.rec_info with
-  | None -> _failatwith __FILE__ __LINE__ ""
-  | Some { rank_lhs; _ } ->
-      let n = Ntyped.{ x = rank_lhs; ty = Ty_int } in
-      let ty =
-        UT.make_basic_from_prop Ty_int (fun v ->
-            P.(MethodPred ("==", [ AVar v; AOp2 ("-", AVar n, ACint 1) ])))
-      in
-      let rank_lhs' = Rename.unique rank_lhs in
-      UL.{ x = rank_lhs'; ty }
+(* let synthesize_ghost_term uctx = *)
+(*   match uctx.rec_info with *)
+(*   | None -> _failatwith __FILE__ __LINE__ "" *)
+(*   | Some { rank_lhs; _ } -> *)
+(*       let n = Ntyped.{ x = rank_lhs; ty = Ty_int } in *)
+(*       let ty = *)
+(*         UT.make_basic_from_prop Ty_int (fun v -> *)
+(*             P.(MethodPred ("==", [ AVar v; AOp2 ("-", AVar n, ACint 1) ]))) *)
+(*       in *)
+(*       let rank_lhs' = Rename.unique rank_lhs in *)
+(*       UL.{ x = rank_lhs'; ty } *)
 
-let candidate_vars_by_nt uctx nt =
-  let cs = Typectx.get_by_nt uctx.ctx nt in
-  List.filter_map
-    (fun (x, ty) ->
-      match ty with
-      | MMT.Consumed _ -> None
-      | MMT.NoRefinement _ -> None
-      | MMT.Ut ty ->
-          Some (x, ty)
-          (* let b = Reachability_check.reachability_check uctx.ctx ty in *)
-          (* if b then Some x else None *)
-      | MMT.Ot ty ->
-          (* TODO: check ot *)
-          Some (x, UT.ot_to_ut ty))
-    cs
+(* let candidate_vars_by_nt uctx nt = *)
+(*   let cs = Typectx.get_by_nt uctx.ctx nt in *)
+(*   List.filter_map *)
+(*     (fun (x, ty) -> *)
+(*       match ty with *)
+(*       | MMT.Consumed _ -> None *)
+(*       | MMT.NoRefinement _ -> None *)
+(*       | MMT.Ut ty -> *)
+(*           Some (x, ty) *)
+(*           (\* let b = Reachability_check.reachability_check uctx.ctx ty in *\) *)
+(*           (\* if b then Some x else None *\) *)
+(*       | MMT.Ot ty -> *)
+(*           (\* TODO: check ot *\) *)
+(*           Some (x, UT.ot_to_ut ty)) *)
+(*     cs *)
 
 open UT
 
-let handle_consume uctx (args, uty) =
-  let rec aux = function
-    | [], _ -> []
-    | _ :: args, UnderTy_over_arrow { retty; _ } -> aux (args, retty)
-    | arg :: args, UnderTy_under_arrow { retty; _ } ->
-        arg.UL.x :: aux (args, retty)
-    | _, _ -> _failatwith __FILE__ __LINE__ ""
-  in
-  let consumed_vars = aux (args, uty) in
-  let ctx =
-    List.fold_left
-      (fun ctx arg -> Typectx.consume ctx arg)
-      uctx.ctx consumed_vars
-  in
-  { uctx with ctx }
+(* let handle_consume uctx (args, uty) = *)
+(*   let rec aux = function *)
+(*     | [], _ -> [] *)
+(*     | _ :: args, UnderTy_over_arrow { retty; _ } -> aux (args, retty) *)
+(*     | arg :: args, UnderTy_under_arrow { retty; _ } -> *)
+(*         arg.UL.x :: aux (args, retty) *)
+(*     | _, _ -> _failatwith __FILE__ __LINE__ "" *)
+(*   in *)
+(*   let consumed_vars = aux (args, uty) in *)
+(*   let ctx = *)
+(*     List.fold_left *)
+(*       (fun ctx arg -> Typectx.consume ctx arg) *)
+(*       uctx.ctx consumed_vars *)
+(*   in *)
+(*   { uctx with ctx } *)
 
 let term_subtyping_check file line uctx UL.{ x; ty } t2 =
   let () = Undersub.subtyping_check file line uctx.ctx ty t2 in
@@ -198,51 +196,117 @@ let term_subtyping_check_opt file line uctx UL.{ x; ty } t2 =
     Some UL.{ x; ty = t2 }
   else None
 
-let make_eq_type (id, idty) =
-  let id = Ntyped.{ x = id.NL.x; ty = snd id.NL.ty } in
-  match id.ty with
-  | NT.Ty_unit -> idty
-  | _ ->
-      if NT.is_basic_tp id.ty then make_basic_from_eq_var id
-      else if NT.is_dt id.ty then
-        (* HACK: assume the dt type will not change; when there is not pattern matching *)
-        if true then idty
-        else
-          let all_mps =
-            match !Env.config with
-            | None -> _failatwith __FILE__ __LINE__ ""
-            | Some config -> config.all_mps
-          in
-          let () = Pp.printf "all_mps: %s\n" @@ StrList.to_string all_mps in
-          Dt_eq.make_eq_type all_mps id
-      else idty
+(* let make_eq_type (id, idty) = *)
+(*   let id = Ntyped.{ x = id.NL.x; ty = snd id.NL.ty } in *)
+(*   match id.ty with *)
+(*   | NT.Ty_unit -> idty *)
+(*   | _ -> *)
+(*       if NT.is_basic_tp id.ty then make_basic_from_eq_var id *)
+(*       else if NT.is_dt id.ty then *)
+(*         (\* HACK: assume the dt type will not change; when there is not pattern matching *\) *)
+(*         if true then idty *)
+(*         else *)
+(*           let all_mps = *)
+(*             match !Env.config with *)
+(*             | None -> _failatwith __FILE__ __LINE__ "" *)
+(*             | Some config -> config.all_mps *)
+(*           in *)
+(*           let () = Pp.printf "all_mps: %s\n" @@ StrList.to_string all_mps in *)
+(*           Dt_eq.make_eq_type all_mps id *)
+(*       else idty *)
 
-let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : UL.id UL.typed =
-  let ty =
-    try Nctx.get_ty uctx.libctx id.x
+let ut_eq_to_ut_underctx (uctx : uctx) t =
+  match t with
+  | MMT.UtNormal t -> t
+  | MMT.UtCopy id -> (
+      match Typectx.get_ty uctx.ctx id.NTyped.x with
+      | Ot _ -> make_basic_from_eq_var id
+      | Ut (UtNormal idty) ->
+          if NT.is_basic_tp id.ty then make_basic_from_eq_var id
+          else if NT.is_dt id.ty then
+            (* HACK: assume the dt type will not change; when there is not pattern matching *)
+            if true then idty
+            else
+              let all_mps =
+                match !Env.config with
+                | None -> _failatwith __FILE__ __LINE__ ""
+                | Some config -> config.all_mps
+              in
+              let () = Pp.printf "all_mps: %s\n" @@ StrList.to_string all_mps in
+              Dt_eq.make_eq_type all_mps id
+          else idty
+      | _ -> _failatwith __FILE__ __LINE__ "")
+
+let subtyping_check file line uctx t1 t2 =
+  let t1 = ut_eq_to_ut_underctx uctx t1 in
+  Undersub.subtyping_check file line uctx.ctx t1 t2
+
+let subtyping_check_bool file line uctx t1 t2 =
+  let t1 = ut_eq_to_ut_underctx uctx t1 in
+  Undersub.subtyping_check_bool file line uctx.ctx t1 t2
+
+let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : MMT.ut_with_copy =
+  let () = Pp.printf "infer %s\n" id.x in
+  try MMT.UtNormal (Prim.get_primitive_under_ty (id.x, snd id.ty))
+  with _ -> (
+    try MMT.UtNormal (Nctx.get_ty uctx.libctx id.x)
     with _ -> (
       match Typectx.get_ty uctx.ctx id.x with
-      | Ot ot -> make_eq_type (id, UT.ot_to_ut ot)
-      | Ut ut -> make_eq_type (id, ut)
-      | NoRefinement _ ->
-          (* TODO: define a new exception *)
-          _err_consumed __FILE__ __LINE__ id.x
-      | Consumed _ -> _err_consumed __FILE__ __LINE__ id.x)
-  in
-  erase_check_mk_id __FILE__ __LINE__ id ty
+      | Ot _ -> MMT.UtCopy { x = id.x; ty = snd id.ty }
+      | Ut (UtCopy id) -> MMT.UtCopy id
+      | Ut (UtNormal uty) ->
+          if UT.is_base_type uty then
+            match UT.erase uty with
+            | NT.Ty_unit -> UtNormal uty
+            | _ -> MMT.UtCopy { x = id.x; ty = snd id.ty }
+          else UtNormal uty
+      | Consumed _ -> _err_consumed __FILE__ __LINE__ id.x))
 
-let id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) :
-    NL.id UL.typed =
+let id_type_check (uctx : uctx) (id : NL.id NL.typed) (ty : UT.t) : unit =
   let id = id_type_infer uctx id in
-  term_subtyping_check __FILE__ __LINE__ uctx id ty
+  subtyping_check __FILE__ __LINE__ uctx id ty
 
-let lit_type_infer (uctx : uctx) (lit : NL.smt_lit NL.typed) :
-    UL.smt_lit UL.typed =
+let lit_type_infer (lit : NL.smt_lit) : UL.t =
   let open NL in
   let open UT in
-  match lit.x with
-  | ConstI n -> { ty = make_basic_from_const_int n; x = ConstI n }
-  | ConstB b -> { ty = make_basic_from_const_bool b; x = ConstB b }
-  | Var id ->
-      UL.(typed_map (fun x -> Var x))
-      @@ id_type_infer uctx { ty = lit.ty; x = id }
+  match lit with
+  | ConstI n -> make_basic_from_const_int n
+  | ConstB b -> make_basic_from_const_bool b
+
+let close_ids ids ty = Typectx.close_by_diff_ ids ty
+
+let make_order_constraint a x ty =
+  let open NT in
+  match ty with
+  | Ty_int ->
+      P.(
+        And
+          [
+            MethodPred ("<", [ AVar { x; ty }; AVar { x = a; ty } ]);
+            MethodPred (">=", [ AVar { x; ty }; ACint 0 ]);
+          ])
+  | _ -> _failatwith __FILE__ __LINE__ "unimp"
+
+let dt_expand f argsty =
+  let argsty =
+    List.concat
+    @@ List.map
+         (fun uty ->
+           if NT.is_dt (MMT.ut_erase_ uty) then
+             match uty with
+             | UtNormal _ -> _failatwith __FILE__ __LINE__ "unimp"
+             | UtCopy id ->
+                 let sizeargty =
+                   UT.make_basic_from_prop NT.Ty_int (fun v ->
+                       P.(MethodPred ("len", [ AVar id; AVar v ])))
+                 in
+                 [ MMT.UtNormal sizeargty; uty ]
+           else [ uty ])
+         argsty
+  in
+  let fnty =
+    let _, retnty = NT.destruct_arrow_tp (snd f.NL.ty) in
+    let argsnty = List.map MMT.ut_erase_ argsty in
+    NT.construct_arrow_tp (argsnty, retnty)
+  in
+  (fnty, argsty)

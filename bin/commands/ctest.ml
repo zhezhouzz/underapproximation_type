@@ -65,25 +65,25 @@ let parse_to_anormal =
         in
         ())
 
-let parsing_over_refinements =
-  Command.basic ~summary:"parsing_over_refinements"
-    Command.Let_syntax.(
-      let%map_open refine_file = anon ("source file" %: regular_file) in
-      fun () ->
-        let () = Config.load_default () in
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
-        let refinements =
-          List.map ~f:(fun ((_, a), b) -> (a, b))
-          @@ Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x
-        in
-        let () =
-          Printf.printf "%s"
-            (Structure.layout_refinements Overty.pretty_layout refinements)
-        in
-        ())
+(* let parsing_over_refinements = *)
+(*   Command.basic ~summary:"parsing_over_refinements" *)
+(*     Command.Let_syntax.( *)
+(*       let%map_open refine_file = anon ("source file" %: regular_file) in *)
+(*       fun () -> *)
+(*         let () = Config.load_default () in *)
+(*         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in *)
+(*         let refinements = *)
+(*           List.map ~f:(fun ((_, a), b) -> (a, b)) *)
+(*           @@ Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x *)
+(*         in *)
+(*         let () = *)
+(*           Printf.printf "%s" *)
+(*             (Structure.layout_refinements Overty.pretty_layout refinements) *)
+(*         in *)
+(*         ()) *)
 
 let parsing_under_refinements =
-  Command.basic ~summary:"parsing_over_refinements"
+  Command.basic ~summary:"parsing_under_refinements"
     Command.Let_syntax.(
       let%map_open refine_file = anon ("source file" %: regular_file) in
       fun () ->
@@ -111,19 +111,19 @@ let parsing_type_decls =
         let () = Printf.printf "%s\n" (Typedec.layout type_decls) in
         ())
 
-let over_type_check =
-  Command.basic ~summary:"over_type_check"
-    Command.Let_syntax.(
-      let%map_open source_file = anon ("source file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file) in
-      fun () ->
-        let () = Config.load_default () in
-        let code = Inputstage.load_ssa [] source_file in
-        let refinements = Inputstage.load_over_refinments refine_file in
-        let () = Printf.printf "[Type checking]:\n" in
-        let code = Typecheck.Overcheck.struc_check code refinements in
-        let () = Printf.printf "[Type check]: OK\n" in
-        ())
+(* let over_type_check = *)
+(*   Command.basic ~summary:"over_type_check" *)
+(*     Command.Let_syntax.( *)
+(*       let%map_open source_file = anon ("source file" %: regular_file) *)
+(*       and refine_file = anon ("refine_file" %: regular_file) in *)
+(*       fun () -> *)
+(*         let () = Config.load_default () in *)
+(*         let code = Inputstage.load_ssa [] source_file in *)
+(*         let refinements = Inputstage.load_over_refinments refine_file in *)
+(*         let () = Printf.printf "[Type checking]:\n" in *)
+(*         let code = Typecheck.Overcheck.struc_check code refinements in *)
+(*         let () = Printf.printf "[Type check]: OK\n" in *)
+(*         ()) *)
 
 let under_type_check =
   Command.basic ~summary:"under_type_check"
@@ -243,10 +243,10 @@ let test =
       ("parse-to-anormal", parse_to_anormal);
       ("parse-to-typed-term", parse_to_typed_term);
       ("parse-structure", parsing_structure);
-      ("parse-over-refinements", parsing_over_refinements);
+      (* ("parse-over-refinements", parsing_over_refinements); *)
       ("parse-under-refinements", parsing_under_refinements);
       ("parsing-type-decls", parsing_type_decls);
-      ("over-type-check", over_type_check);
+      (* ("over-type-check", over_type_check); *)
       ("under-type-check", under_type_check);
       (* ("under-post-shrink", under_post_shrink); *)
       (* ("test-mk-features", test_mk_features); *)

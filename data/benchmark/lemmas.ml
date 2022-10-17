@@ -77,3 +77,20 @@ let it8 (l : [%forall: int tree]) (u : [%forall: int]) =
 
 let it9 (l : [%forall: int tree]) (u : [%forall: int]) (w : [%forall: int]) =
   implies (len l u && len l w) (u == w)
+
+let rbt1 (l : [%forall: int rbtree]) = implies (len l 0) (not (hdcolor l false))
+
+let rbt2 (l : [%forall: int rbtree]) (u : [%forall: int]) =
+  implies (len l u && u > 0) (hdcolor l true || hdcolor l false)
+
+let rbt3 (l : [%forall: int rbtree]) =
+  implies (not (hdcolor l true || hdcolor l false)) (len l 0)
+
+let rbt4 (l : [%forall: int rbtree]) = implies (hdcolor l false) (not (len l 0))
+let rbt5 (l : [%forall: int rbtree]) = not (hdcolor l true && hdcolor l false)
+
+let rbt8 (l : [%forall: int rbtree]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let rbt9 (l : [%forall: int rbtree]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)

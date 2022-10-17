@@ -42,16 +42,49 @@ let[@library] tt = (true : [%v: unit])
 let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
-  let (s : [%ghost: int]) = (v >= 0 : [%v: int]) in
-  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (h : [%over: int]) = (true : [%v: int]) in
+  let (s : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int list]) = (len v s : [%v: int list]) in
   (fun (u : [%forall: int]) -> implies (u == s + 1) (len v u) : [%v: int list])
 
 let[@library] batchedq =
-  let (s : [%ghost: int]) = (v >= 0 : [%v: int]) in
+  let (s1 : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int list]) = (len v s1 : [%v: int list]) in
+  let (s2 : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int list]) =
-    (fun (u : [%forall: int]) -> implies (0 <= u && u <= s) (len v u)
+    (fun (u : [%forall: int]) -> implies (0 <= u && u <= s1) (len v u)
       : [%v: int list])
   in
-  let (dummy : [%under: int list]) = (len v s : [%v: int list]) in
-  (len v s : [%v: int batchedq])
+  (len v s1 : [%v: int batchedq])
+
+let[@library] rbtleaf = (len v 0 : [%v: int rbtree])
+
+(* color black *)
+let[@library] rbtnode =
+  let (c : [%over: bool]) = (not v : [%v: bool]) in
+  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int rbtree]) =
+    (len v sizel && implies (sizel == 0) (hdcolor v true) : [%v: int rbtree])
+  in
+  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
+  let (dummy : [%under: int rbtree]) =
+    (len v sizer && implies (sizer == 0) (hdcolor v true) : [%v: int rbtree])
+  in
+  (fun (u : [%forall: int]) ->
+     hdcolor v false && implies (u == sizel + 1) (len v u)
+    : [%v: int rbtree])
+
+(* color red *)
+let[@library] rbtnode =
+  let (c : [%over: bool]) = (v : [%v: bool]) in
+  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int rbtree]) =
+    (len v sizel && hdcolor v false : [%v: int rbtree])
+  in
+  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
+  let (dummy : [%under: int rbtree]) =
+    (len v sizer && hdcolor v false : [%v: int rbtree])
+  in
+  (hdcolor v true && len v sizel : [%v: int rbtree])

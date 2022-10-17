@@ -3,7 +3,6 @@ let nat_gen =
     let (x : [%over: unit]) = (true : [%v: unit]) in
     (true : [%v: int])
   in
-  let (y : [%over: unit]) = (true : [%v: unit]) in
   (v >= 0 : [%v: int])
 
 (* should fail *)

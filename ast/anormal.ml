@@ -7,131 +7,114 @@ module F (Typed : Type.Typed) = struct
 
   let tupleC = "tuple"
 
-  type smt_lit = ConstB of bool | ConstI of int | Var of id [@@deriving sexp]
-  type rankfunc = (string * Autov.Prop.lit) option [@@deriving sexp]
+  (* constant *)
+  type smt_lit = ConstB of bool | ConstI of int [@@deriving sexp]
 
   (* NOTE: the function arguments have no quantified types *)
   type value =
-    | Lam of id typed * rankfunc * term typed
-    | Fix of id typed * value typed
+    | Var of id typed
+    | Lam of { lamarg : id typed; lambody : term typed }
+    | Fix of { fixname : id typed; fstarg : id typed; lambody : term typed }
     | Lit of smt_lit
     | Exn
 
   and term =
-    | V of value
+    | V of value typed
     | LetApp of {
         ret : id typed;
         f : id typed;
-        args : id typed list;
+        args : value typed list;
         body : term typed;
       }
     | LetDtConstructor of {
         ret : id typed;
-        f : id;
-        args : id typed list;
+        f : id typed;
+        args : value typed list;
         body : term typed;
       }
     | LetOp of {
         ret : id typed;
         op : Op.T.op;
-        args : id typed list;
+        args : value typed list;
         body : term typed;
       }
-    | LetTu of { tu : id typed; args : id typed list; body : term typed }
-    | LetDeTu of { tu : id typed; args : id typed list; body : term typed }
+    | LetTu of { tu : id typed; args : value typed list; body : term typed }
+    | LetDeTu of { tu : value typed; args : id typed list; body : term typed }
     | LetVal of { lhs : id typed; rhs : value typed; body : term typed }
       (* branches, we will copy the continuations for branches *)
-    | Ite of { cond : id typed; e_t : term typed; e_f : term typed }
-    | Match of { matched : id typed; cases : case list }
+    | Ite of { cond : value typed; e_t : term typed; e_f : term typed }
+    | Match of { matched : value typed; cases : case list }
 
-  and case = { constructor : id typed; args : id list; exp : term typed }
+  and case = { constructor : id typed; args : id typed list; exp : term typed }
   [@@deriving sexp]
+
+  let fix_to_lam e =
+    match e.x with
+    | V { x = Fix { fstarg; lambody; _ }; ty } ->
+        (true, { x = V { x = Lam { lamarg = fstarg; lambody }; ty }; ty })
+    | _ -> (false, e)
 
   let make_letval x rhs body =
     { ty = body.ty; x = LetVal { lhs = { ty = rhs.ty; x }; rhs; body } }
 
-  let value_to_term value = { ty = value.ty; x = V value.x }
-  let id_to_lit (id : id typed) = { ty = id.ty; x = Var id.x }
+  let value_to_term value = { ty = value.ty; x = V value }
+  (* let id_to_lit (id : id typed) = { ty = id.ty; x = Var id.x } *)
 
-  let id_to_value (id : id typed) =
-    let v = id_to_lit id in
-    { ty = v.ty; x = Lit v.x }
+  let id_to_value (id : id typed) = { x = Var id; ty = id.ty }
 
   let term_to_value file line e =
-    match e.x with
-    | V v -> { ty = e.ty; x = v }
-    | _ -> Sugar._failatwith file line "not a value"
+    match e.x with V v -> v | _ -> Sugar._failatwith file line "not a value"
 
-  let subst (y, y') e =
-    let subst_tid id =
-      if String.equal id.x y then { ty = id.ty; x = y' } else id
-    in
-    let aux_lit x =
-      match x with
-      | ConstI _ | ConstB _ -> x
-      | Var id -> if String.equal id y then Var y' else x
-    in
-    (* let subst_tlit e = { ty = e.ty; x = aux_lit e.x } in *)
-    (* let in_tlits name tlits = *)
-    (*   List.exists (function Var id -> String.equal id name | _ -> false) tlits *)
-    (* in *)
+  let subst_id (y, y') e =
+    let eq_tid id = String.equal id.x y in
+    let subst_tid id = if eq_tid id then { ty = id.ty; x = y' } else id in
+    let exists_in_tids = List.exists (fun x -> String.equal x.x y) in
     let rec aux_value e =
       let x =
         match e.x with
-        | Lit x -> Lit (aux_lit x)
-        | Lam (xs, rankfunc, body) -> Lam (xs, rankfunc, aux body)
-        | Fix (f, body) -> Fix (f, aux_value body)
-        | Exn -> Exn
+        | Exn | Lit _ -> e.x
+        | Var id -> Var (subst_tid id)
+        | Lam { lamarg; lambody } ->
+            if eq_tid lamarg then e.x else Lam { lamarg; lambody = aux lambody }
+        | Fix { fixname; fstarg; lambody } ->
+            if exists_in_tids [ fixname; fstarg ] then e.x
+            else Fix { fixname; fstarg; lambody = aux lambody }
       in
       { ty = e.ty; x }
     and aux e =
       let x =
         match e.x with
-        | V v ->
-            let v = aux_value { ty = e.ty; x = v } in
-            V v.x
+        | V v -> V (aux_value v)
         | LetApp { ret; f; args; body } ->
-            let body = if String.equal ret.x y then body else aux body in
+            let body = if eq_tid ret then body else aux body in
             LetApp
-              { ret; f = subst_tid f; args = List.map subst_tid args; body }
+              { ret; f = subst_tid f; args = List.map aux_value args; body }
         | LetDtConstructor { ret; f; args; body } ->
-            let body = if String.equal ret.x y then body else aux body in
-            if String.equal y f then
+            let body = if eq_tid ret then body else aux body in
+            if eq_tid f then
               failwith
                 "the name is the same with the datatype constructor, should \
                  not happen"
             else
-              LetDtConstructor { ret; f; args = List.map subst_tid args; body }
+              LetDtConstructor { ret; f; args = List.map aux_value args; body }
         | LetOp { ret; op; args; body } ->
-            (* let () = *)
-            (*   Printf.printf "subst_op (%s) %s -> %s\n" *)
-            (*     (Zzdatatype.Datatype.List.split_by_comma (fun x -> x.x) args) *)
-            (*     y y' *)
-            (* in *)
-            let body = if String.equal ret.x y then body else aux body in
-            LetOp { ret; op; args = List.map subst_tid args; body }
+            let body = if eq_tid ret then body else aux body in
+            LetOp { ret; op; args = List.map aux_value args; body }
         | LetVal { lhs; rhs; body } ->
-            (* let () = *)
-            (*   Printf.printf "subst_val (V) %s -> %s | %b\n" y y' *)
-            (*     (String.equal lhs.x y) *)
-            (* in *)
-            let body = if String.equal lhs.x y then body else aux body in
+            let body = if eq_tid lhs then body else aux body in
             LetVal { lhs; rhs = aux_value rhs; body }
         | LetTu { tu; args; body } ->
-            let body = if String.equal tu.x y then body else aux body in
-            LetTu { tu; args = List.map subst_tid args; body }
+            let body = if eq_tid tu then body else aux body in
+            LetTu { tu; args = List.map aux_value args; body }
         | LetDeTu { tu; args; body } ->
-            let body =
-              if List.exists (fun x -> String.equal x.x y) args then body
-              else aux body
-            in
-            LetDeTu { tu = subst_tid tu; args; body }
+            let body = if exists_in_tids args then body else aux body in
+            LetDeTu { tu = aux_value tu; args; body }
         | Ite { cond; e_t; e_f } ->
-            Ite { cond = subst_tid cond; e_t = aux e_t; e_f = aux e_f }
+            Ite { cond = aux_value cond; e_t = aux e_t; e_f = aux e_f }
         | Match { matched; cases } ->
             Match
               {
-                matched = subst_tid matched;
+                matched = aux_value matched;
                 cases =
                   List.map (fun case -> { case with exp = aux case.exp }) cases;
               }
@@ -150,7 +133,7 @@ module F (Typed : Type.Typed) = struct
     let rec aux e =
       let x =
         match e.x with
-        | V (Lit (Var "Exn")) -> V Exn
+        | V { x = Var { x = "Exn"; _ }; ty } -> V { x = Exn; ty }
         | V _ -> e.x
         | LetApp { ret; f; args; body } ->
             LetApp { ret; f; args; body = aux body }

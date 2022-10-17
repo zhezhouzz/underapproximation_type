@@ -13,11 +13,13 @@ let bst_gen_v1 =
   (len v 0 : [%v: int tree])
 
 let[@inv? n when 0] bst_gen_v2 =
-  let (n : [%ghost: int]) = (0 <= v : [%v: int]) in
+  let (d : [%over: int]) = (0 <= v : [%v: int]) in
   let (lo : [%over: int]) = (true : [%v: int]) in
-  let (hi : [%over: int]) = (v <= lo + n + 1 : [%v: int]) in
-  ((fun (u : [%forall: int]) -> implies (mem v u) (lo < u && u < hi))
-   && sorted v
+  let (hi : [%over: int]) = (v == lo + d : [%v: int]) in
+  (fun (u : [%forall: int]) ->
+     implies (mem v u) (lo < u && u < hi)
+     && sorted v
+     && implies (u < d) (len v u)
     : [%v: int tree])
 
 (* let[@inv? n when 0] bst_gen_v3 = *)

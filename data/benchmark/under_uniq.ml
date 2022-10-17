@@ -42,8 +42,8 @@ let[@library] tt = (true : [%v: unit])
 let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
-  let (s : [%ghost: int]) = (v >= 0 : [%v: int]) in
   let (h : [%over: int]) = (true : [%v: int]) in
+  let (s : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int list]) =
     (len v s && fun (u : [%forall: int]) -> implies (mem v u) (u == h)
       : [%v: int list])

@@ -92,6 +92,11 @@ let rec lit_of_ocamlexpr e =
   | Pexp_ident id -> L.AVar (handle_id id)
   | Pexp_constant (Pconst_integer (istr, None)) -> L.ACint (int_of_string istr)
   | Pexp_constant _ -> raise @@ failwith "do not support complicate literal"
+  | Pexp_construct (id, None) -> (
+      match Longident.last id.txt with
+      | "true" -> L.ACbool true
+      | "false" -> L.ACbool false
+      | _ -> raise @@ failwith "do not support complicate literal")
   | Pexp_apply (func, [ a; b ]) ->
       let a = lit_of_ocamlexpr @@ snd a in
       let b = lit_of_ocamlexpr @@ snd b in

@@ -6,7 +6,7 @@ verbose = True
 
 cmd_prefix = ["dune", "exec", "--", "bin/main.exe"]
 
-workdir = "data/benchmark/"
+workdir = ""
 
 def invoc_cmd(cmd, output_file):
     if output_file is not None:
@@ -28,7 +28,7 @@ def invoc_cmd(cmd, output_file):
 
 if __name__ == '__main__':
     name = sys.argv[1]
-    dir_str = "{}/{}".format(workdir, name)
+    dir_str =name
     cmd = cmd_prefix + ["test", "under-type-check",
                         "{}/{}".format(dir_str, "config.json"),
                         "{}/{}".format(dir_str, "prog.ml"),

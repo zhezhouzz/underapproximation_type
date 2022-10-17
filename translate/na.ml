@@ -6,17 +6,16 @@ let remove_dummy_eq e =
   let open NL in
   let rec aux_value e =
     match e.x with
-    | Exn | Lit _ -> e
-    | Lam (xs, rankfunc, body) ->
-        { ty = e.ty; x = Lam (xs, rankfunc, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
+    | Exn | Lit _ | Var _ -> e
+    | Lam { lamarg; lambody } ->
+        { ty = e.ty; x = Lam { lamarg; lambody = aux lambody } }
+    | Fix { fixname; fstarg; lambody } ->
+        { ty = e.ty; x = Fix { fixname; fstarg; lambody = aux lambody } }
   and aux e =
     (* let () = Printf.printf "%s\n" @@ layout e in *)
     let x =
       match e.x with
-      | V v ->
-          let v = aux_value { ty = e.ty; x = v } in
-          V v.x
+      | V v -> V (aux_value v)
       | LetApp { ret; f; args; body } ->
           LetApp { ret; f; args; body = aux body }
       | LetDtConstructor { ret; f; args; body } ->
@@ -28,9 +27,9 @@ let remove_dummy_eq e =
       | LetVal { lhs; rhs; body } -> (
           let rhs = aux_value rhs in
           match rhs.x with
-          | Lit (Var id') ->
+          | Var id' ->
               (* let () = Printf.printf "subst: %s -> %s\n" lhs.x id' in *)
-              (aux (subst (lhs.x, id') body)).x
+              (aux (subst_id (lhs.x, id'.x) body)).x
           | _ -> LetVal { lhs; rhs; body = aux body })
       | Ite { cond; e_t; e_f } -> Ite { cond; e_t = aux e_t; e_f = aux e_f }
       | Match { matched; cases } ->
@@ -50,10 +49,11 @@ let remove_dummy_let e =
   (* let () = Printf.printf "start simplify\n" in *)
   let rec aux_value e =
     match e.x with
-    | Exn | Lit _ -> e
-    | Lam (xs, rankfunc, body) ->
-        { ty = e.ty; x = Lam (xs, rankfunc, aux body) }
-    | Fix (f, body) -> { ty = e.ty; x = Fix (f, aux_value body) }
+    | Exn | Lit _ | Var _ -> e
+    | Lam { lamarg; lambody } ->
+        { ty = e.ty; x = Lam { lamarg; lambody = aux lambody } }
+    | Fix { fixname; fstarg; lambody } ->
+        { ty = e.ty; x = Fix { fixname; fstarg; lambody = aux lambody } }
   and aux e =
     (* let () = *)
     (*   Printf.printf "working on: %s\n" *)
@@ -61,9 +61,7 @@ let remove_dummy_let e =
     (* in *)
     let x =
       match e.x with
-      | V v ->
-          let v = aux_value { ty = e.ty; x = v } in
-          V v.x
+      | V v -> V (aux_value v)
       | LetApp { ret; f; args; body } ->
           LetApp { ret; f; args; body = aux body }
       | LetDtConstructor { ret; f; args; body } ->
@@ -75,9 +73,8 @@ let remove_dummy_let e =
       | LetVal { lhs; rhs; body } -> (
           let body = aux body in
           match body.x with
-          | V (Lit (Var id')) when String.equal lhs.x id' ->
-              let v = aux_value rhs in
-              V v.x
+          | V { x = Var id'; _ } when String.equal lhs.x id'.x ->
+              V (aux_value rhs)
           | _ -> LetVal { lhs; rhs = aux_value rhs; body })
       | Ite { cond; e_t; e_f } -> Ite { cond; e_t = aux e_t; e_f = aux e_f }
       | Match { matched; cases } ->

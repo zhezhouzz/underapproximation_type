@@ -42,8 +42,8 @@ let[@library] tt = (true : [%v: unit])
 let[@library] nil = (len v 0 : [%v: int list])
 
 let[@library] cons =
-  let (s : [%ghost: int]) = (true : [%v: int]) in
   let (h : [%over: int]) = (true : [%v: int]) in
+  let (s : [%over: int]) = (true : [%v: int]) in
   let (dummy : [%under: int list]) =
     (len v s && fun (u : [%forall: int]) (w : [%forall: int]) ->
      implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
@@ -58,18 +58,21 @@ let[@library] cons =
 let[@library] leaf = (len v 0 : [%v: int tree])
 
 let[@library] node =
-  let (lo : [%ghost: int]) = (true : [%v: int]) in
-  let (hi : [%ghost: int]) = (true : [%v: int]) in
-  let (root : [%over: int]) = (lo < v && v < hi : [%v: int]) in
+  let (root : [%over: int]) = (true : [%v: int]) in
+  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int tree]) =
     (fun (u : [%forall: int]) ->
-       implies (mem v u) (lo < u && u < root) && sorted v
+       implies (mem v u) (root - sizel < u && u < root)
+       && sorted v && len v sizel
       : [%v: int tree])
   in
+  let (sizer : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int tree]) =
     (fun (u : [%forall: int]) ->
-       implies (mem v u) (root < u && u < hi) && sorted v
+       implies (mem v u) (root < u && u < root + sizer)
+       && sorted v && len v sizer
       : [%v: int tree])
   in
-  (fun (u : [%forall: int]) -> implies (mem v u) (lo < u && u < hi) && sorted v
+  (fun (u : [%forall: int]) ->
+     implies (mem v u) (root - sizel < u && u < root + sizer) && sorted v
     : [%v: int tree])

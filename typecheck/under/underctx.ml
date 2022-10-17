@@ -2,10 +2,10 @@ module Nctx = Languages.UTSimpleTypectx
 module Typectx = Languages.MustMayTypectx
 (* open Abstraction *)
 
-type rec_info = { fix_name : string; rank_lhs : string }
+(* type rec_info = { fix_name : string; rank_lhs : string } *)
 
 type uctx = {
-  rec_info : rec_info option;
+  (* rec_info : rec_info option; *)
   ctx : Typectx.ctx;
   nctx : Typectx.ctx;
   libctx : Nctx.ctx;

@@ -10,6 +10,7 @@ open Underctx
 let with_lemma_to_query lemmas x =
   let pre, a, b = Lemma.query_with_lemma_to_prop @@ Lemma.with_lemma lemmas x in
   (* let () = Lemma.print_with_lemma (pre, b) in *)
+  (* let () = failwith "end" in *)
   (pre, a, b)
 
 let typed_to_smttyped = Languages.Ntyped.to_smttyped
@@ -113,12 +114,17 @@ let check_under_ctx file line ctx (t1, t2) =
   let rec aux pres ctx (t1, t2) =
     match Typectx.destrct_right ctx with
     | None -> (pres, (t1, t2))
-    | Some (ctx, (_, MMT.NoRefinement _)) -> aux pres ctx (t1, t2)
     | Some (ctx, (id, MMT.Ot oty)) -> aux ([ (id, oty) ] @ pres) ctx (t1, t2)
-    | Some (ctx, (id, MMT.Consumed uty)) | Some (ctx, (id, MMT.Ut uty)) ->
+    | Some (ctx, (id, MMT.Consumed (UtCopy id')))
+    | Some (ctx, (id, MMT.Ut (UtCopy id'))) ->
+        let t1 = UT.subst_id t1 id id'.x in
+        let t2 = UT.subst_id t2 id id'.x in
+        aux pres ctx (t1, t2)
+    | Some (ctx, (id, MMT.Consumed (UtNormal uty)))
+    | Some (ctx, (id, MMT.Ut (UtNormal uty))) ->
         let t1 = force_add (id, uty) t1 in
-        (* let t2 = UT.retty_add_ex_uprop_drop_independent (id, uty) t2 in *)
         let t2 = force_add (id, uty) t2 in
+        (* let t2 = match UT.fv t2 with [] -> t2 | _ -> force_add (id, uty) t2 in *)
         aux pres ctx (t1, t2)
     (* (match (check_in id t1, check_in id t2) with *)
     (* | false, false -> *)
@@ -146,7 +152,10 @@ let subtyping_check_ot_ file line ctx t1 t2 =
   let () = Pp.printf "@{<bold>OVERCHECK Converted@}\n" in
   let t1' = UT.ot_to_ut t1 in
   let t2' = UT.ot_to_ut t2 in
-  let () = Typectx.pretty_print_subtyping ctx (MMT.Ut t2', MMT.Ut t1') in
+  let () =
+    Typectx.pretty_print_subtyping ctx
+      (MMT.Ut (MMT.UtNormal t2'), MMT.Ut (MMT.UtNormal t1'))
+  in
   check_under_ctx file line ctx (t2', t1')
 
 (* let subtyping_check_ot_ file line ctx t1 t2 = *)
@@ -171,7 +180,8 @@ let subtyping_check_ file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
   let open UT in
   (* let () = if !counter == 1 then failwith "end" else counter := !counter + 1 in *)
   let () =
-    Typectx.pretty_print_subtyping ctx (MMT.Ut inferred_ty, MMT.Ut target_ty)
+    Typectx.pretty_print_subtyping ctx
+      (MMT.(Ut (UtNormal inferred_ty)), MMT.(Ut (UtNormal target_ty)))
   in
   let rec aux ctx (t1, t2) =
     match (t1, t2) with
@@ -245,9 +255,8 @@ let mmt_check file line ctx t1 t2 =
   match (t1, t2) with
   | Consumed _, _ -> _err_consumed file line "??"
   | _, Consumed _ -> _err_consumed file line "??"
-  | _, NoRefinement _ -> _failatwith __FILE__ __LINE__ ""
-  | NoRefinement _, _ -> _failatwith __FILE__ __LINE__ ""
-  | Ut t1, Ut t2 -> subtyping_check file line ctx t1 t2
+  | Ut (UtNormal t1), Ut (UtNormal t2) -> subtyping_check file line ctx t1 t2
+  | Ut _, Ut _ -> _failatwith __FILE__ __LINE__ "never happen"
   | Ut _, Ot _ -> raise (FailUnderAgainstOver (file, line))
   | Ot _, Ut _ -> raise (FailOverAgainstUnder (file, line))
   | Ot t1, Ot t2 -> subtyping_check_ot file line ctx t1 t2

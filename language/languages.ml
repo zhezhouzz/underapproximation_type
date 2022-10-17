@@ -206,23 +206,22 @@ module MustMayTypectx = struct
         if eq nt (erase ty) then Some ({ x = name; ty = nt }, ty) else None)
       ctx
 
-  let ut_update reachability_check ctx (name, f) =
-    let rec aux res = function
-      | [] -> _failatwith __FILE__ __LINE__ ""
-      | (name', ty) :: rest ->
-          if String.equal name name' then
-            match ty with
-            | Ut ty ->
-                let ty' = f ty in
-                if reachability_check ctx ty' then
-                  Some (res @ ((name', Ut ty') :: rest))
-                else None
-            | Ot _ -> _failatwith __FILE__ __LINE__ ""
-            | Consumed _ -> _failatwith __FILE__ __LINE__ ""
-            | NoRefinement _ -> _failatwith __FILE__ __LINE__ ""
-          else aux (res @ [ (name', ty) ]) rest
-    in
-    aux [] ctx
+  (* let ut_update reachability_check ctx (name, f) = *)
+  (*   let rec aux res = function *)
+  (*     | [] -> _failatwith __FILE__ __LINE__ "" *)
+  (*     | (name', ty) :: rest -> *)
+  (*         if String.equal name name' then *)
+  (*           match ty with *)
+  (*           | Ut ty -> *)
+  (*               let ty' = f ty in *)
+  (*               if reachability_check ctx ty' then *)
+  (*                 Some (res @ ((name', Ut ty') :: rest)) *)
+  (*               else None *)
+  (*           | Ot _ -> _failatwith __FILE__ __LINE__ "" *)
+  (*           | Consumed _ -> _failatwith __FILE__ __LINE__ "" *)
+  (*         else aux (res @ [ (name', ty) ]) rest *)
+  (*   in *)
+  (*   aux [] ctx *)
 
   (* let ot_update reachability_check ctx (name, f) = *)
   (*   let open UT in *)
@@ -253,30 +252,57 @@ module MustMayTypectx = struct
             | Ut ty -> res @ ((name', Consumed ty) :: rest)
             | Ot _ -> _failatwith __FILE__ __LINE__ ""
             | Consumed _ -> _failatwith __FILE__ __LINE__ ""
-            | NoRefinement _ -> _failatwith __FILE__ __LINE__ ""
           else aux (res @ [ (name', ty) ]) rest
     in
     aux [] ctx
 
-  let norefinement_force_add_to_right ctx id =
-    add_to_right ctx (id.Ntyped.x, NoRefinement id.Ntyped.ty)
+  let check_appear_in_rest name ctx =
+    List.iter
+      (fun (name', ty) ->
+        if String.equal name name' then
+          _failatwith __FILE__ __LINE__ "alpha renaming error"
+        else if List.exists (String.equal name) @@ MMT.fv ty then
+          _failatwith __FILE__ __LINE__ "inv broken"
+        else ())
+      ctx
 
-  let ut_force_add_to_right ctx id = add_to_right ctx (id.UL.x, Ut id.ty)
+  (* HACK *)
+  let extract ctx name =
+    let rec aux res = function
+      | [] -> _failatwith __FILE__ __LINE__ ""
+      | (name', ty) :: rest ->
+          if String.equal name name' then
+            match ty with
+            | Ut (UtNormal ty) ->
+                let () = check_appear_in_rest name' rest in
+                let ctx = res @ rest in
+                (ctx, ty)
+            | Ut (UtCopy _) -> _failatwith __FILE__ __LINE__ ""
+            | Ot _ -> _failatwith __FILE__ __LINE__ ""
+            | Consumed _ -> _failatwith __FILE__ __LINE__ ""
+          else aux (res @ [ (name', ty) ]) rest
+    in
+    aux [] ctx
+
+  (* let norefinement_force_add_to_right ctx id = *)
+  (*   add_to_right ctx (id.Ntyped.x, NoRefinement id.Ntyped.ty) *)
+
+  let ut_force_add_to_right ctx (id, ty) = add_to_right ctx (id, Ut ty)
 
   let ut_force_add_to_rights ctx ids =
     List.fold_left (fun ctx id -> ut_force_add_to_right ctx id) ctx ids
 
-  let ut_add_to_right reachability_check ctx id =
-    if reachability_check ctx id.UL.ty then Some (ut_force_add_to_right ctx id)
-    else None
+  (* let ut_add_to_right reachability_check ctx id = *)
+  (*   if reachability_check ctx id.UL.ty then Some (ut_force_add_to_right ctx id) *)
+  (*   else None *)
 
-  let ut_add_to_rights reachability_check ctx ids =
-    List.fold_left
-      (fun ctx id ->
-        match ctx with
-        | None -> None
-        | Some ctx -> ut_add_to_right reachability_check ctx id)
-      (Some ctx) ids
+  (* let ut_add_to_rights reachability_check ctx ids = *)
+  (*   List.fold_left *)
+  (*     (fun ctx id -> *)
+  (*       match ctx with *)
+  (*       | None -> None *)
+  (*       | Some ctx -> ut_add_to_right reachability_check ctx id) *)
+  (*     (Some ctx) ids *)
 
   let ot_add_to_right ctx (id, ot) = add_to_right ctx (id, Ot ot)
 
@@ -285,7 +311,12 @@ module MustMayTypectx = struct
 
   (* Assume everything in the type context is not bot *)
   let close_by_diff_ diff uty =
-    List.fold_right UT.retty_add_ex_uprop_always_add diff uty
+    List.fold_right
+      (fun (x, xty) uty ->
+        match xty with
+        | UtNormal xty -> UT.retty_add_ex_uprop_always_add (x, xty) uty
+        | UtCopy id -> UT.subst_id uty x id.x)
+      diff uty
 
   let close_by_diff ctx ctx' uty =
     let diff = subtract ctx ctx' in
@@ -294,7 +325,6 @@ module MustMayTypectx = struct
         (function
           | x, Ut ut -> Some (x, ut)
           | x, Consumed ut -> Some (x, ut)
-          | _, NoRefinement _ -> None
           | _, Ot _ -> _failatwith __FILE__ __LINE__ "")
         diff
     in
@@ -388,8 +418,8 @@ module NL = struct
   include NL
 
   let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
-  let layout_value v = layout { x = V v.x; ty = v.ty }
-  let layout_id x = layout_value { x = Lit (Var x.x); ty = x.ty }
+  let layout_value v = layout { x = V v; ty = v.ty }
+  let layout_id x = layout_value { x = Var x; ty = x.ty }
 end
 
 module StrucNA = struct
@@ -422,9 +452,9 @@ module UL = struct
     let open Anormal.NormalAnormal in
     let rec aux body =
       match body.x with
-      | V (Lam (x, _, body)) ->
-          let args, retv = aux body in
-          (NNtyped.to_ntyped x :: args, retv)
+      | V { x = Lam { lamarg; lambody }; _ } ->
+          let args, retv = aux lambody in
+          (NNtyped.to_ntyped lamarg :: args, retv)
       | _ -> ([], NNtyped.to_ntyped { x = retname; ty = body.ty })
     in
     aux body

@@ -13,15 +13,15 @@
    termcheck
    oversub
    undersub
-   overcheck
+   ; overcheck
    undercheck
    undertycheck
-   overtycheck
-   dependentcheck
+   ; overtycheck
+   ; dependentcheck
    ; inv_check
    underctx
-   persistence_check
-   reachability_check
+   ; persistence_check
+   ; reachability_check
    dt_eq
    ; well_found
  ))

@@ -62,7 +62,8 @@ let machine ctx expr = function
   | TExists u -> TStop (make_exists ctx [ u ] expr)
   | TStop _ -> _failatwith __FILE__ __LINE__ ""
 
-let known_mp = [ "hd"; "mem"; "ord"; "len"; "left"; "right"; "para"; "sorted" ]
+let known_mp =
+  [ "hd"; "mem"; "ord"; "len"; "left"; "right"; "para"; "sorted"; "hdcolor" ]
 
 let to_z3_ ctx = function
   | Lit lit -> lit_to_z3 ctx lit
