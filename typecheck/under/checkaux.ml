@@ -288,6 +288,11 @@ let make_order_constraint a x ty =
   | _ -> _failatwith __FILE__ __LINE__ "unimp"
 
 let dt_expand f argsty =
+  let measure =
+    match !Env.config with
+    | None -> _failatwith __FILE__ __LINE__ ""
+    | Some c -> c.measure
+  in
   let argsty =
     List.concat
     @@ List.map
@@ -298,7 +303,7 @@ let dt_expand f argsty =
              | UtCopy id ->
                  let sizeargty =
                    UT.make_basic_from_prop NT.Ty_int (fun v ->
-                       P.(MethodPred ("len", [ AVar id; AVar v ])))
+                       P.(MethodPred (measure, [ AVar id; AVar v ])))
                  in
                  [ MMT.UtNormal sizeargty; uty ]
            else [ uty ])

@@ -5,6 +5,8 @@ type 'a leftisthp =
 
 type 'a pairinghp = Phpleaf | Phpnode of 'a * 'a pairinghp list
 type 'a tree = Leaf | Node of 'a * 'a tree * 'a tree
+type 'a heap = Hempty | Hnode of 'a * 'a heap * 'a heap
+type 'a set = Sempty | Snode of 'a * 'a set * 'a set
 type 'a binomialhp = Bhpleaf | Bhpnode of int * 'a * 'a binomialhp list
 type 'a rbtree = Rbtleaf | Rbtnode of bool * 'a rbtree * 'a * 'a rbtree
 type 'a skewhp = Shpnode of int * 'a * 'a list * 'a skewhp list

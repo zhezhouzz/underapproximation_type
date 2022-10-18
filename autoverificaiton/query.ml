@@ -32,6 +32,8 @@ let lit_to_z3 ctx lit =
         match mp with
         | "+" -> Z3.Arithmetic.mk_add ctx [ a; b ]
         | "-" -> Z3.Arithmetic.mk_sub ctx [ a; b ]
+        | "*" -> Z3.Arithmetic.mk_mul ctx [ a; b ]
+        | "/" -> Z3.Arithmetic.mk_div ctx a b
         | _ -> failwith @@ spf "unknown operator: %s" mp)
   in
   aux lit
@@ -63,7 +65,21 @@ let machine ctx expr = function
   | TStop _ -> _failatwith __FILE__ __LINE__ ""
 
 let known_mp =
-  [ "hd"; "mem"; "ord"; "len"; "left"; "right"; "para"; "sorted"; "hdcolor" ]
+  [
+    "hd";
+    "mem";
+    "ord";
+    "len";
+    "left";
+    "right";
+    "para";
+    "sorted";
+    "numblack";
+    "hdcolor";
+    "complete";
+    "rng";
+    "heap";
+  ]
 
 let to_z3_ ctx = function
   | Lit lit -> lit_to_z3 ctx lit

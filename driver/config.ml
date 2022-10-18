@@ -26,6 +26,7 @@ let load fname =
   in
   let open Abstraction in
   let all_mps = j |> member "all_mps" |> to_list |> List.map to_string in
+  let measure = j |> member "measure" |> to_string in
   let underr =
     match Inputstage.load_under_refinments prim_path.underp with
     | [], underr, [] -> underr
@@ -58,7 +59,7 @@ let load fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { mode; all_mps; prim_path }
+  config := Some { mode; all_mps; prim_path; measure }
 
 let get_prim_path () =
   match !config with

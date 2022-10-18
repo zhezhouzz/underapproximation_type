@@ -57,37 +57,24 @@ let[@library] batchedq =
   in
   (len v s1 : [%v: int batchedq])
 
-let[@library] leaf = (len v 0 : [%v: int tree])
-
-let[@library] node =
-  let (dummy : [%under: int]) = (true : [%v: int]) in
-  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
-  let (dummy : [%under: int tree]) =
-    (fun (u : [%forall: int]) -> len v sizel : [%v: int tree])
-  in
-  let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
-  let (dummy : [%under: int tree]) =
-    (fun (u : [%forall: int]) -> len v sizer : [%v: int tree])
-  in
-  (fun (u : [%forall: int]) -> implies (u == sizel + 1) (len v u)
-    : [%v: int tree])
-
 (* color black *)
-let[@library] rbtleaf = (len v 0 : [%v: int rbtree])
+let[@library] rbtleaf = (numblack v 0 : [%v: int rbtree])
 
 let[@library] rbtnode =
   let (c : [%over: bool]) = (not v : [%v: bool]) in
   let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (len v sizel && implies (sizel == 0) (hdcolor v true) : [%v: int rbtree])
+    (numblack v sizel && implies (sizel == 0) (hdcolor v true)
+      : [%v: int rbtree])
   in
   let (dummy : [%under: int]) = (true : [%v: int]) in
   let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (len v sizer && implies (sizer == 0) (hdcolor v true) : [%v: int rbtree])
+    (numblack v sizer && implies (sizer == 0) (hdcolor v true)
+      : [%v: int rbtree])
   in
   (fun (u : [%forall: int]) ->
-     hdcolor v false && implies (u == sizel + 1) (len v u)
+     hdcolor v false && implies (u == sizel + 1) (numblack v u)
     : [%v: int rbtree])
 
 (* color red *)
@@ -95,32 +82,11 @@ let[@library] rbtnode =
   let (c : [%over: bool]) = (v : [%v: bool]) in
   let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (len v sizel && hdcolor v false : [%v: int rbtree])
+    (numblack v sizel && hdcolor v false : [%v: int rbtree])
   in
   let (dummy : [%under: int]) = (true : [%v: int]) in
   let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (len v sizer && hdcolor v false : [%v: int rbtree])
+    (numblack v sizer && hdcolor v false : [%v: int rbtree])
   in
-  (hdcolor v true && len v sizel : [%v: int rbtree])
-
-(* heap *)
-let[@library] hempty = (len v 0 : [%v: int heap])
-
-let[@library] hnode =
-  let (root : [%over: int]) = (true : [%v: int]) in
-  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
-  let (dummy : [%under: int heap]) =
-    (fun (u : [%forall: int]) ->
-       len v sizel && heap v && implies (hd v u) (u <= root)
-      : [%v: int heap])
-  in
-  let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
-  let (dummy : [%under: int heap]) =
-    (fun (u : [%forall: int]) ->
-       len v sizer && heap v && implies (hd v u) (u <= root)
-      : [%v: int heap])
-  in
-  (fun (u : [%forall: int]) ->
-     hd v root && heap v && implies (u == sizel + 1) (len v u)
-    : [%v: int heap])
+  (hdcolor v true && numblack v sizel : [%v: int rbtree])

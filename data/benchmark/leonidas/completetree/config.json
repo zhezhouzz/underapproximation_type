@@ -2,11 +2,13 @@
     "mode": "debug",
     "logfile": ".log",
     "all_mps": [
-        "len"
+        "len",
+        "complete"
     ],
+    "measure": "len",
     "prim_path": {
         "overp": "data/prim/over.ml",
-        "underp": "data/benchmark/under_len.ml",
+        "underp": "data/benchmark/under_complete.ml",
         "rev_underp": "data/benchmark/rev_under.ml",
         "normalp": "data/prim/normal.mli",
         "type_decls": "data/typedecs.ml",
