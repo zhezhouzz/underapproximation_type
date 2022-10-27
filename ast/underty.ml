@@ -27,6 +27,26 @@ module T = struct
   let ot_to_ut { basename; normalty; prop } =
     UnderTy_base { basename; normalty; prop }
 
+  let stat ty =
+    let max_mps = ref 0 in
+    let max_qvs = ref 0 in
+    let update_mps n = if n > !max_mps then max_mps := n else () in
+    let update_qvs n = if n > !max_qvs then max_qvs := n else () in
+    let rec aux = function
+      | UnderTy_base { prop; _ } ->
+          update_mps (Autov.Prop.count_mps prop);
+          update_qvs (Autov.Prop.count_qvs prop)
+      | UnderTy_under_arrow { argty; retty } ->
+          aux argty;
+          aux retty
+      | UnderTy_over_arrow { argty; retty; _ } ->
+          aux @@ ot_to_ut argty;
+          aux retty
+      | UnderTy_tuple ts -> List.iter aux ts
+    in
+    let () = aux ty in
+    (!max_mps, !max_qvs)
+
   let default_v_name = "v"
 
   let make_basic basename normalty prop =

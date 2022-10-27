@@ -185,3 +185,191 @@ let iset15 (l : [%forall: int set]) (u : [%forall: int]) (w : [%forall: int]) =
 
 let iset16 (l : [%forall: int set]) (u : [%exists: int]) = rng l u
 let iset17 (l : [%forall: int set]) = implies (rng l 0) (sorted l)
+
+(* int batchedq *)
+
+let ibatchedq8 (l : [%forall: int batchedq]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let ibatchedq9 (l : [%forall: int batchedq]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let ibatchedq10 (l : [%forall: int batchedq]) (u : [%exists: int]) = len l u
+
+(* int stream *)
+let istream1 (l : [%forall: int stream]) (u : [%forall: int]) =
+  implies (len l 0) (not (mem l u))
+
+let istream2 (l : [%forall: int stream]) (u : [%forall: int]) =
+  implies (hd l u) (mem l u)
+
+let istream3 (l : [%forall: int stream]) (u : [%exists: int]) =
+  implies (not (len l 0)) (mem l u)
+
+let istream4 (l : [%forall: int stream]) (u : [%exists: int]) =
+  implies (not (len l 0)) (hd l u)
+
+let istream5 (l : [%forall: int stream]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (hd l u && hd l w) (u == w)
+
+let istream6 (l : [%forall: int stream]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (ord l u w || ord l w u) (mem l u && mem l w)
+
+let istream7 (l : [%forall: int stream]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (mem l u && mem l w && not (u == w)) (ord l u w || ord l w u)
+
+let istream8 (l : [%forall: int stream]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let istream9 (l : [%forall: int stream]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let istream10 (l : [%forall: int stream]) (u : [%exists: int]) = len l u
+
+let istream11 (l : [%forall: int stream]) (u : [%forall: int]) =
+  implies (rng l 0) (not (mem l u))
+
+let istream12 (l : [%forall: int stream]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (mem l u)
+
+let istream13 (l : [%forall: int stream]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (hd l u)
+
+let istream14 (l : [%forall: int stream]) (u : [%forall: int]) =
+  implies (rng l u) (u >= 0)
+
+let istream15 (l : [%forall: int stream]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (rng l u && rng l w) (u == w)
+
+let istream16 (l : [%forall: int stream]) (u : [%exists: int]) = rng l u
+
+(* int stream lazyty *)
+let istreamlazy1 (l : [%forall: int stream lazyty]) (u : [%forall: int]) =
+  implies (len l 0) (not (mem l u))
+
+let istreamlazy2 (l : [%forall: int stream lazyty]) (u : [%forall: int]) =
+  implies (hd l u) (mem l u)
+
+let istreamlazy3 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  implies (not (len l 0)) (mem l u)
+
+let istreamlazy4 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  implies (not (len l 0)) (hd l u)
+
+let istreamlazy5 (l : [%forall: int stream lazyty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (hd l u && hd l w) (u == w)
+
+let istreamlazy6 (l : [%forall: int stream lazyty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (ord l u w || ord l w u) (mem l u && mem l w)
+
+let istreamlazy7 (l : [%forall: int stream lazyty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (mem l u && mem l w && not (u == w)) (ord l u w || ord l w u)
+
+let istreamlazy8 (l : [%forall: int stream lazyty]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let istreamlazy9 (l : [%forall: int stream lazyty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let istreamlazy10 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  len l u
+
+let istreamlazy11 (l : [%forall: int stream lazyty]) (u : [%forall: int]) =
+  implies (rng l 0) (not (mem l u))
+
+let istreamlazy12 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (mem l u)
+
+let istreamlazy13 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (hd l u)
+
+let istreamlazy14 (l : [%forall: int stream lazyty]) (u : [%forall: int]) =
+  implies (rng l u) (u >= 0)
+
+let istreamlazy15 (l : [%forall: int stream lazyty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (rng l u && rng l w) (u == w)
+
+let istreamlazy16 (l : [%forall: int stream lazyty]) (u : [%exists: int]) =
+  rng l u
+
+(* int bankersq *)
+
+let ibankersq8 (l : [%forall: int bankersq]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let ibankersq9 (l : [%forall: int bankersq]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let ibankersq10 (l : [%forall: int bankersq]) (u : [%exists: int]) = len l u
+
+(* int leftisthp *)
+
+let ileftisthp8 (l : [%forall: int leftisthp]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let ileftisthp9 (l : [%forall: int leftisthp]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let ileftisthp10 (l : [%forall: int leftisthp]) (u : [%exists: int]) = len l u
+
+(* int unbset *)
+
+let unbset1 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (len l 0) (not (mem l u))
+
+let unbset2 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (hd l u) (mem l u)
+
+let unbset3 (l : [%forall: int unbset]) (u : [%exists: int]) =
+  implies (not (len l 0)) (mem l u)
+
+let unbset4 (l : [%forall: int unbset]) (u : [%exists: int]) =
+  implies (not (len l 0)) (hd l u)
+
+let unbset5 (l : [%forall: int unbset]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (hd l u && hd l w) (u == w)
+
+let unbset6 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (len l 0) (sorted l)
+
+let unbset8 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let unbset9 (l : [%forall: int unbset]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let unbset10 (l : [%forall: int unbset]) (u : [%exists: int]) = len l u
+
+let unbset11 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (rng l 0) (not (mem l u))
+
+let unbset12 (l : [%forall: int unbset]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (mem l u)
+
+let unbset13 (l : [%forall: int unbset]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (hd l u)
+
+let unbset14 (l : [%forall: int unbset]) (u : [%forall: int]) =
+  implies (rng l u) (u >= 0)
+
+let unbset15 (l : [%forall: int unbset]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (rng l u && rng l w) (u == w)
+
+let unbset16 (l : [%forall: int unbset]) (u : [%exists: int]) = rng l u
+let unbset17 (l : [%forall: int unbset]) = implies (rng l 0) (sorted l)

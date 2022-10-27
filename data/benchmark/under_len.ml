@@ -124,3 +124,49 @@ let[@library] hnode =
   (fun (u : [%forall: int]) ->
      hd v root && heap v && implies (u == sizel + 1) (len v u)
     : [%v: int heap])
+
+(* stream *)
+let[@library] lazyty =
+  let (s : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int stream]) = (len v s : [%v: int stream]) in
+  (len v s : [%v: int stream lazyty])
+
+let[@library] streamnil = (len v 0 : [%v: int stream])
+
+let[@library] streamlazycons =
+  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (s : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int stream lazyty]) =
+    (len v s : [%v: int stream lazyty])
+  in
+  (fun (u : [%forall: int]) -> implies (u == s + 1) (len v u)
+    : [%v: int stream])
+
+(* bankersq *)
+let[@library] bankersq =
+  let (lenf : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (s1 : [%over: int]) = (v == lenf : [%v: int]) in
+  let (dummy : [%under: int stream]) = (len v s1 : [%v: int stream]) in
+  let (dummy : [%under: int]) = (v >= 0 && v <= lenf : [%v: int]) in
+  let (s2 : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int stream]) =
+    (fun (u : [%forall: int]) -> implies (0 <= u && u <= lenf) (len v u)
+      : [%v: int stream])
+  in
+  (len v lenf : [%v: int bankersq])
+
+(* leftisthp *)
+let[@library] lhpleaf = (len v 0 : [%v: int leftisthp])
+
+let[@library] lhpnode =
+  let (dummy : [%under: int]) = (true : [%v: int]) in
+  let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int leftisthp]) = (len v sizel : [%v: int leftisthp]) in
+  let (sizer : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int leftisthp]) =
+    (fun (u : [%forall: int]) -> implies (0 <= u && u <= sizel) (len v u)
+      : [%v: int leftisthp])
+  in
+  let (dummy : [%under: int]) = (v == sizer : [%v: int]) in
+  (fun (u : [%forall: int]) -> implies (u == sizel + 1) (len v u)
+    : [%v: int leftisthp])

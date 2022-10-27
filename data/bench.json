@@ -33,19 +33,7 @@
             "source": "QuickCheck"
         },
         {
-            "name": "bankersq",
-            "source": "Elrond"
-        },
-        {
             "name": "batchedq",
-            "source": "Elrond"
-        },
-        {
-            "name": "lestisthp",
-            "source": "Elrond"
-        },
-        {
-            "name": "splayhp",
             "source": "Elrond"
         },
         {
@@ -53,12 +41,16 @@
             "source": "Elrond"
         },
         {
-            "name": "trie",
+            "name": "bankersq",
             "source": "Elrond"
         },
         {
-            "name": "???",
-            "source": "Vocal"
+            "name": "lestisthp",
+            "source": "Elrond"
+        },
+        {
+            "name": "unbset",
+            "source": "Elrond"
         }
     ]
 }

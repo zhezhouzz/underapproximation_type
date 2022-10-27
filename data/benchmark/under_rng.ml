@@ -104,3 +104,29 @@ let[@library] snode =
      && implies (mem v u) (root - range1 < u && u < root + ranger)
      && sorted v
     : [%v: int set])
+
+(* unbset *)
+
+let[@library] usleaf = (rng v 0 : [%v: int unbset])
+
+let[@library] usnode =
+  let (root : [%over: int]) = (true : [%v: int]) in
+  let (range1 : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int unbset]) =
+    (fun (u : [%forall: int]) ->
+       implies (mem v u) (root - range1 < u && u < root)
+       && sorted v && rng v range1
+      : [%v: int unbset])
+  in
+  let (ranger : [%over: int]) = (v >= 0 : [%v: int]) in
+  let (dummy : [%under: int unbset]) =
+    (fun (u : [%forall: int]) ->
+       implies (mem v u) (root < u && u < root + ranger)
+       && sorted v && rng v ranger
+      : [%v: int unbset])
+  in
+  (fun (u : [%forall: int]) ->
+     implies (u == range1 + ranger) (rng v u)
+     && implies (mem v u) (root - range1 < u && u < root + ranger)
+     && sorted v
+    : [%v: int unbset])

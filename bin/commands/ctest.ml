@@ -137,9 +137,24 @@ let under_type_check =
           Inputstage.load_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
-        let () =
-          Typecheck.Undercheck.struc_check code notations libs refinements
+        let runtime, () =
+          Sugar.clock (fun () ->
+              Typecheck.Undercheck.struc_check code notations libs refinements)
         in
+        let stats =
+          List.iter ~f:(fun (name, num_branches, num_localvars) ->
+              Printf.printf "%s\n $%i$ & $%i$ & " name num_branches
+                num_localvars)
+          @@ Ast.StrucNA.stat code
+        in
+        let () =
+          match refinements with
+          | [ (_, (_, ty)) ] ->
+              let num_mps, _ = Ast.UT.stat ty in
+              Printf.printf "$%i$ & " num_mps
+          | _ -> failwith "unimp"
+        in
+        let () = Printf.printf "$%0.2f$\n" runtime in
         ())
 
 (* let under_subtype_check = *)

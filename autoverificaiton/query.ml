@@ -79,6 +79,7 @@ let known_mp =
     "complete";
     "rng";
     "heap";
+    "rank";
   ]
 
 let to_z3_ ctx = function

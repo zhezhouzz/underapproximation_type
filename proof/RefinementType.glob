@@ -1,0 +1,1268 @@
+DIGEST 0d97d7efd003aed758af97a7867bef9d
+FPLF.RefinementType
+R131:134 PLF.Maps <> <> lib
+R161:168 PLF.CoreLang <> <> lib
+R195:207 PLF.LinearContext <> <> lib
+R234:243 Coq.Lists.List <> <> lib
+def 487:493 <> context
+R498:511 PLF.LinearContext <> linear_context def
+R513:516 PLF.CoreLang <> outy ind
+def 531:555 <> constant_basic_type_infer
+R561:568 PLF.CoreLang <> constant ind
+binder 558:558 <> c:1
+R582:582 PLF.RefinementType <> c:1 var
+R593:597 PLF.CoreLang <> cbool constr
+R604:608 PLF.CoreLang <> TBool constr
+R614:617 PLF.CoreLang <> cnat constr
+R624:627 PLF.CoreLang <> TNat constr
+R633:636 PLF.CoreLang <> cnil constr
+R643:647 PLF.CoreLang <> TList constr
+R655:659 PLF.CoreLang <> cleaf constr
+R666:670 PLF.CoreLang <> TTree constr
+R678:682 PLF.CoreLang <> ccons constr
+R693:697 PLF.CoreLang <> TList constr
+R705:709 PLF.CoreLang <> cnode constr
+R722:726 PLF.CoreLang <> TTree constr
+def 749:775 <> name_not_free_in_refinement
+R784:789 Coq.Strings.String <> string ind
+binder 778:781 <> name:3
+R798:807 PLF.CoreLang <> refinement def
+binder 793:795 <> phi:4
+binder 828:832 <> state:5
+binder 834:834 <> c:6
+binder 836:840 <> cself:7
+R858:861 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R843:845 PLF.RefinementType <> phi:4 var
+R847:851 PLF.RefinementType <> state:5 var
+R853:857 PLF.RefinementType <> cself:7 var
+R862:864 PLF.RefinementType <> phi:4 var
+R867:874 PLF.Maps <> t_update def
+R887:887 PLF.RefinementType <> c:6 var
+R882:885 PLF.RefinementType <> name:3 var
+R876:880 PLF.RefinementType <> state:5 var
+R890:894 PLF.RefinementType <> cself:7 var
+def 907:926 <> name_not_free_in_uty
+R935:940 Coq.Strings.String <> string ind
+binder 929:932 <> name:8
+R949:951 PLF.CoreLang <> uty ind
+binder 944:946 <> uty:9
+R971:973 PLF.RefinementType <> uty:9 var
+R984:992 PLF.CoreLang <> BaseUnder constr
+R1009:1035 PLF.RefinementType <> name_not_free_in_refinement def
+R1037:1040 PLF.RefinementType <> name:8 var
+R1050:1060 PLF.CoreLang <> DependArrow constr
+R1065:1072 PLF.CoreLang <> BaseOver constr
+R1152:1155 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R1132:1143 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R1096:1122 PLF.RefinementType <> name_not_free_in_refinement def
+R1124:1127 PLF.RefinementType <> name:8 var
+R1145:1147 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1148:1151 PLF.RefinementType <> name:8 var
+R1156:1175 PLF.RefinementType <> name_not_free_in_uty:10 def
+R1177:1180 PLF.RefinementType <> name:8 var
+R1192:1204 PLF.CoreLang <> IndependArrow constr
+R1249:1252 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R1221:1240 PLF.RefinementType <> name_not_free_in_uty:10 def
+R1242:1245 PLF.RefinementType <> name:8 var
+R1253:1272 PLF.RefinementType <> name_not_free_in_uty:10 def
+R1274:1277 PLF.RefinementType <> name:8 var
+def 1301:1320 <> name_not_free_in_oty
+R1329:1334 Coq.Strings.String <> string ind
+binder 1323:1326 <> name:12
+R1343:1345 PLF.CoreLang <> oty ind
+binder 1338:1340 <> oty:13
+R1365:1367 PLF.RefinementType <> oty:13 var
+R1379:1386 PLF.CoreLang <> BaseOver constr
+R1398:1424 PLF.RefinementType <> name_not_free_in_refinement def
+R1426:1429 PLF.RefinementType <> name:12 var
+def 1454:1474 <> name_not_free_in_outy
+R1483:1488 Coq.Strings.String <> string ind
+binder 1477:1480 <> name:15
+R1498:1501 PLF.CoreLang <> outy ind
+binder 1492:1495 <> outy:16
+R1521:1524 PLF.RefinementType <> outy:16 var
+R1535:1537 PLF.CoreLang <> Uty constr
+R1546:1565 PLF.RefinementType <> name_not_free_in_uty def
+R1567:1570 PLF.RefinementType <> name:15 var
+R1580:1582 PLF.CoreLang <> Oty constr
+R1591:1610 PLF.RefinementType <> name_not_free_in_oty def
+R1612:1615 PLF.RefinementType <> name:15 var
+def 1640:1658 <> name_not_free_in_tm
+R1667:1672 Coq.Strings.String <> string ind
+binder 1661:1664 <> name:18
+R1680:1681 PLF.CoreLang <> tm ind
+binder 1676:1677 <> tm:19
+def 1713:1736 <> name_not_free_in_context
+R1745:1750 Coq.Strings.String <> string ind
+binder 1739:1742 <> name:20
+R1761:1767 PLF.RefinementType <> context def
+binder 1754:1758 <> Gamma:21
+def 1799:1821 <> fresh_name_in_inference
+R1830:1835 Coq.Strings.String <> string ind
+binder 1824:1827 <> name:22
+R1846:1852 PLF.RefinementType <> context def
+binder 1839:1843 <> Gamma:23
+R1859:1860 PLF.CoreLang <> tm ind
+binder 1856:1856 <> e:24
+R1914:1932 PLF.RefinementType <> name_not_free_in_tm prfax
+not 1891:1891 <> :::x_'\NewInTm'_x
+R1989:2012 PLF.RefinementType <> name_not_free_in_context prfax
+not 1963:1963 <> :::x_'\NewInCtx'_x
+R2078:2100 PLF.RefinementType <> fresh_name_in_inference prfax
+not 2045:2045 <> :::x_'\NewInI'_x_'\and'_x
+def 2138:2157 <> avaliable_in_context
+binder 2159:2159 <> x:25
+R2169:2175 PLF.RefinementType <> context def
+binder 2162:2166 <> Gamma:26
+binder 2190:2190 <> y:27
+binder 2192:2196 <> uty_y:28
+R2224:2227 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2211:2213 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2199:2202 PLF.LinearContext <> find prfax
+R2210:2210 PLF.RefinementType <> y:27 var
+R2204:2208 PLF.RefinementType <> Gamma:26 var
+R2214:2217 Coq.Init.Datatypes <> Some constr
+R2219:2223 PLF.RefinementType <> uty_y:28 var
+R2228:2248 PLF.RefinementType <> name_not_free_in_outy def
+R2250:2250 PLF.RefinementType <> x:25 var
+R2252:2256 PLF.RefinementType <> uty_y:28 var
+def 2271:2281 <> context_inv
+R2291:2297 PLF.RefinementType <> context def
+binder 2284:2288 <> Gamma:29
+binder 2312:2312 <> x:30
+binder 2314:2314 <> y:31
+binder 2316:2316 <> z:32
+binder 2318:2322 <> uty_x:33
+binder 2324:2328 <> uty_y:34
+binder 2330:2334 <> uty_z:35
+R2366:2369 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2353:2355 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2341:2344 PLF.LinearContext <> find prfax
+R2352:2352 PLF.RefinementType <> x:30 var
+R2346:2350 PLF.RefinementType <> Gamma:29 var
+R2356:2359 Coq.Init.Datatypes <> Some constr
+R2361:2365 PLF.RefinementType <> uty_x:33 var
+R2395:2398 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2382:2384 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2370:2373 PLF.LinearContext <> find prfax
+R2381:2381 PLF.RefinementType <> y:31 var
+R2375:2379 PLF.RefinementType <> Gamma:29 var
+R2385:2388 Coq.Init.Datatypes <> Some constr
+R2390:2394 PLF.RefinementType <> uty_y:34 var
+R2424:2431 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2411:2413 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2399:2402 PLF.LinearContext <> find prfax
+R2410:2410 PLF.RefinementType <> z:32 var
+R2404:2408 PLF.RefinementType <> Gamma:29 var
+R2414:2417 Coq.Init.Datatypes <> Some constr
+R2419:2423 PLF.RefinementType <> uty_z:35 var
+R2432:2435 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2498:2498 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2465:2468 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2436:2456 PLF.RefinementType <> name_not_free_in_outy def
+R2458:2458 PLF.RefinementType <> x:30 var
+R2460:2464 PLF.RefinementType <> uty_y:34 var
+R2469:2489 PLF.RefinementType <> name_not_free_in_outy def
+R2491:2491 PLF.RefinementType <> x:30 var
+R2493:2497 PLF.RefinementType <> uty_z:35 var
+def 2513:2526 <> mk_eq_constant
+binder 2528:2528 <> c:36
+R2533:2537 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2565:2567 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2593:2595 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2538:2562 PLF.RefinementType <> constant_basic_type_infer def
+R2564:2564 PLF.RefinementType <> c:36 var
+R2568:2575 PLF.CoreLang <> closed_r def
+binder 2582:2582 <> v:37
+R2588:2590 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2587:2587 PLF.RefinementType <> v:37 var
+R2591:2591 PLF.RefinementType <> c:36 var
+def 2609:2614 <> mk_bot
+binder 2616:2617 <> ty:38
+R2622:2626 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2629:2631 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2657:2659 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2627:2628 PLF.RefinementType <> ty:38 var
+R2632:2639 PLF.CoreLang <> closed_r def
+R2651:2655 Coq.Init.Logic <> False ind
+def 2673:2678 <> mk_top
+binder 2680:2681 <> ty:39
+R2686:2690 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2693:2695 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2720:2722 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2691:2692 PLF.RefinementType <> ty:39 var
+R2696:2703 PLF.CoreLang <> closed_r def
+R2715:2718 Coq.Init.Logic <> True ind
+def 2736:2744 <> mk_eq_var
+binder 2746:2747 <> ty:40
+binder 2749:2752 <> name:41
+R2757:2761 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2764:2767 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2799:2802 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R2762:2763 PLF.RefinementType <> ty:40 var
+binder 2772:2776 <> state:42
+binder 2778:2778 <> v:43
+R2784:2787 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2798:2798 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2783:2783 PLF.RefinementType <> v:43 var
+R2788:2792 PLF.RefinementType <> state:42 var
+R2794:2797 PLF.RefinementType <> name:41 var
+def 2815:2820 <> add_to
+R2828:2837 PLF.CoreLang <> refinement def
+binder 2823:2825 <> phi:44
+R2845:2847 PLF.CoreLang <> uty ind
+binder 2841:2842 <> ty:45
+R2851:2853 PLF.CoreLang <> uty ind
+R2866:2867 PLF.RefinementType <> ty:45 var
+R2878:2886 PLF.CoreLang <> BaseUnder constr
+R2898:2906 PLF.CoreLang <> BaseUnder constr
+binder 2915:2916 <> st:48
+binder 2918:2918 <> v:49
+R2931:2934 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2923:2925 PLF.RefinementType <> phi:44 var
+R2927:2928 PLF.RefinementType <> st:48 var
+R2930:2930 PLF.RefinementType <> v:49 var
+R2940:2941 PLF.RefinementType <> st:48 var
+R2943:2943 PLF.RefinementType <> v:49 var
+R2950:2960 PLF.CoreLang <> DependArrow constr
+R2965:2972 PLF.CoreLang <> BaseOver constr
+R2992:3002 PLF.CoreLang <> DependArrow constr
+R3007:3014 PLF.CoreLang <> BaseOver constr
+R3026:3031 PLF.RefinementType <> add_to:46 def
+R3033:3035 PLF.RefinementType <> phi:44 var
+R3048:3060 PLF.CoreLang <> IndependArrow constr
+R3071:3083 PLF.CoreLang <> IndependArrow constr
+R3089:3094 PLF.RefinementType <> add_to:46 def
+R3096:3098 PLF.RefinementType <> phi:44 var
+R3144:3149 PLF.RefinementType <> add_to def
+not 3121:3121 <> :::x_'u-/\'_x
+def 3185:3193 <> exists_in
+binder 3195:3198 <> name:50
+R3206:3208 PLF.CoreLang <> uty ind
+binder 3201:3203 <> uty:51
+R3222:3224 PLF.RefinementType <> uty:51 var
+R3235:3243 PLF.CoreLang <> BaseUnder constr
+R3254:3262 PLF.CoreLang <> BaseUnder constr
+binder 3271:3272 <> st:54
+binder 3274:3274 <> v:55
+R3279:3285 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3287:3288 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3286:3286 <> c:56
+R3294:3301 PLF.Maps <> t_update def
+R3311:3311 PLF.RefinementType <> c:56 var
+R3306:3309 PLF.RefinementType <> name:50 var
+R3303:3304 PLF.RefinementType <> st:54 var
+R3314:3314 PLF.RefinementType <> v:55 var
+R3321:3331 PLF.CoreLang <> DependArrow constr
+R3336:3343 PLF.CoreLang <> BaseOver constr
+R3367:3377 PLF.CoreLang <> DependArrow constr
+R3382:3389 PLF.CoreLang <> BaseOver constr
+binder 3398:3399 <> st:57
+binder 3401:3401 <> v:58
+binder 3413:3413 <> c:59
+R3421:3428 PLF.Maps <> t_update def
+R3438:3438 PLF.RefinementType <> c:59 var
+R3433:3436 PLF.RefinementType <> name:50 var
+R3430:3431 PLF.RefinementType <> st:57 var
+R3441:3441 PLF.RefinementType <> v:58 var
+R3446:3454 PLF.RefinementType <> exists_in:52 def
+R3456:3459 PLF.RefinementType <> name:50 var
+R3472:3484 PLF.CoreLang <> IndependArrow constr
+R3495:3507 PLF.CoreLang <> IndependArrow constr
+R3510:3518 PLF.RefinementType <> exists_in:52 def
+R3520:3523 PLF.RefinementType <> name:50 var
+R3530:3538 PLF.RefinementType <> exists_in:52 def
+R3540:3543 PLF.RefinementType <> name:50 var
+R3595:3603 PLF.RefinementType <> exists_in def
+not 3566:3566 <> :::'u-exists'_x_';'_x
+ind 3638:3654 <> exists_uty_in_uty
+R3663:3666 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3657:3662 Coq.Strings.String <> string ind
+R3670:3673 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3667:3669 PLF.CoreLang <> uty ind
+R3677:3680 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3674:3676 PLF.CoreLang <> uty ind
+R3684:3687 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3681:3683 PLF.CoreLang <> uty ind
+R3752:3768 PLF.RefinementType <> exists_uty_in_uty ind
+not 3706:3706 <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x
+ind 3813:3817 <> merge
+R3823:3826 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3820:3822 PLF.CoreLang <> uty ind
+R3830:3833 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3827:3829 PLF.CoreLang <> uty ind
+R3837:3840 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3834:3836 PLF.CoreLang <> uty ind
+def 3862:3886 <> apply_op_over_refinements
+binder 3888:3889 <> op:64
+R3903:3912 PLF.CoreLang <> refinement def
+binder 3892:3895 <> phi1:65
+binder 3897:3900 <> phi2:66
+R3916:3925 PLF.CoreLang <> refinement def
+binder 3937:3938 <> st:67
+binder 3940:3940 <> v:68
+binder 3957:3958 <> n1:69
+binder 3960:3961 <> n2:70
+R3981:3984 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3964:3967 PLF.RefinementType <> phi1:65 var
+R3969:3970 PLF.RefinementType <> st:67 var
+R3973:3976 PLF.CoreLang <> cnat constr
+R3978:3979 PLF.RefinementType <> n1:69 var
+R4002:4019 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3985:3988 PLF.RefinementType <> phi2:66 var
+R3990:3991 PLF.RefinementType <> st:67 var
+R3994:3997 PLF.CoreLang <> cnat constr
+R3999:4000 PLF.RefinementType <> n2:70 var
+R4021:4024 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4042:4042 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4020:4020 PLF.RefinementType <> v:68 var
+R4025:4032 PLF.CoreLang <> apply_op def
+R4034:4035 PLF.RefinementType <> op:64 var
+R4037:4038 PLF.RefinementType <> n1:69 var
+R4040:4041 PLF.RefinementType <> n2:70 var
+def 4058:4068 <> mk_op_retty
+binder 4070:4071 <> op:71
+R4085:4094 PLF.CoreLang <> refinement def
+binder 4074:4077 <> phi1:72
+binder 4079:4082 <> phi2:73
+R4103:4111 PLF.CoreLang <> BaseUnder constr
+R4114:4122 PLF.CoreLang <> op_ret_ty def
+R4124:4125 PLF.RefinementType <> op:71 var
+R4129:4153 PLF.RefinementType <> apply_op_over_refinements def
+R4155:4156 PLF.RefinementType <> op:71 var
+R4158:4161 PLF.RefinementType <> phi1:72 var
+R4163:4166 PLF.RefinementType <> phi2:73 var
+def 4183:4209 <> apply_cons_over_refinements
+binder 4211:4211 <> T:74
+R4225:4234 PLF.CoreLang <> refinement def
+binder 4214:4217 <> phi1:75
+binder 4219:4222 <> phi2:76
+R4238:4247 PLF.CoreLang <> refinement def
+binder 4259:4260 <> st:77
+binder 4262:4262 <> v:78
+binder 4275:4275 <> h:79
+binder 4277:4277 <> t:80
+R4289:4292 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4280:4283 PLF.RefinementType <> phi1:75 var
+R4285:4286 PLF.RefinementType <> st:77 var
+R4288:4288 PLF.RefinementType <> h:79 var
+R4302:4305 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4293:4296 PLF.RefinementType <> phi2:76 var
+R4298:4299 PLF.RefinementType <> st:77 var
+R4301:4301 PLF.RefinementType <> t:80 var
+R4307:4309 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4306:4306 PLF.RefinementType <> v:78 var
+R4310:4314 PLF.CoreLang <> ccons constr
+R4316:4316 PLF.RefinementType <> T:74 var
+R4318:4318 PLF.RefinementType <> h:79 var
+R4320:4320 PLF.RefinementType <> t:80 var
+def 4336:4348 <> mk_cons_retty
+binder 4350:4350 <> T:81
+R4364:4373 PLF.CoreLang <> refinement def
+binder 4353:4356 <> phi1:82
+binder 4358:4361 <> phi2:83
+R4382:4390 PLF.CoreLang <> BaseUnder constr
+R4392:4392 PLF.RefinementType <> T:81 var
+R4395:4421 PLF.RefinementType <> apply_cons_over_refinements def
+R4423:4423 PLF.RefinementType <> T:81 var
+R4425:4428 PLF.RefinementType <> phi1:82 var
+R4430:4433 PLF.RefinementType <> phi2:83 var
+def 4450:4476 <> apply_node_over_refinements
+binder 4478:4478 <> T:84
+R4497:4506 PLF.CoreLang <> refinement def
+binder 4481:4484 <> phi1:85
+binder 4486:4489 <> phi2:86
+binder 4491:4494 <> phi3:87
+R4510:4519 PLF.CoreLang <> refinement def
+binder 4531:4532 <> st:88
+binder 4534:4534 <> v:89
+binder 4546:4549 <> root:90
+binder 4551:4552 <> lt:91
+binder 4554:4555 <> rt:92
+R4570:4573 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4558:4561 PLF.RefinementType <> phi1:85 var
+R4563:4564 PLF.RefinementType <> st:88 var
+R4566:4569 PLF.RefinementType <> root:90 var
+R4584:4587 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4574:4577 PLF.RefinementType <> phi2:86 var
+R4579:4580 PLF.RefinementType <> st:88 var
+R4582:4583 PLF.RefinementType <> lt:91 var
+R4598:4601 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4588:4591 PLF.RefinementType <> phi3:87 var
+R4593:4594 PLF.RefinementType <> st:88 var
+R4596:4597 PLF.RefinementType <> rt:92 var
+R4603:4605 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4602:4602 PLF.RefinementType <> v:89 var
+R4606:4610 PLF.CoreLang <> cnode constr
+R4612:4612 PLF.RefinementType <> T:84 var
+R4614:4617 PLF.RefinementType <> root:90 var
+R4619:4620 PLF.RefinementType <> lt:91 var
+R4622:4623 PLF.RefinementType <> rt:92 var
+def 4639:4651 <> mk_node_retty
+binder 4653:4653 <> T:93
+R4672:4681 PLF.CoreLang <> refinement def
+binder 4656:4659 <> phi1:94
+binder 4661:4664 <> phi2:95
+binder 4666:4669 <> phi3:96
+R4690:4698 PLF.CoreLang <> BaseUnder constr
+R4700:4700 PLF.RefinementType <> T:93 var
+R4703:4729 PLF.RefinementType <> apply_node_over_refinements def
+R4731:4731 PLF.RefinementType <> T:93 var
+R4733:4736 PLF.RefinementType <> phi1:94 var
+R4738:4741 PLF.RefinementType <> phi2:95 var
+R4743:4746 PLF.RefinementType <> phi3:96 var
+def 4763:4771 <> uty_subst
+R4780:4783 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4774:4779 Coq.Strings.String <> string ind
+R4790:4793 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4784:4789 Coq.Strings.String <> string ind
+R4797:4800 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4794:4796 PLF.CoreLang <> uty ind
+R4801:4803 PLF.CoreLang <> uty ind
+def 4826:4843 <> phi_is_subtype_aux
+R4853:4859 PLF.RefinementType <> context def
+binder 4846:4850 <> Gamma:97
+R4869:4878 PLF.CoreLang <> refinement def
+binder 4863:4866 <> phi1:98
+R4888:4897 PLF.CoreLang <> refinement def
+binder 4882:4885 <> phi2:99
+R4911:4915 PLF.RefinementType <> Gamma:97 var
+R4926:4928 Coq.Init.Datatypes <> nil constr
+R4933:4933 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4938:4939 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4944:4944 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4934:4937 PLF.RefinementType <> phi1:98 var
+R4940:4943 PLF.RefinementType <> phi2:99 var
+R4950:4953 Coq.Init.Datatypes <> cons constr
+R4955:4955 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4957:4958 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4982:4982 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4959:4961 PLF.CoreLang <> Uty constr
+R4964:4974 PLF.CoreLang <> DependArrow constr
+R4993:5010 PLF.RefinementType <> phi_is_subtype_aux:100 def
+R5023:5026 PLF.RefinementType <> phi2:99 var
+R5018:5021 PLF.RefinementType <> phi1:98 var
+R5012:5016 PLF.RefinementType <> Gamma:97 var
+R5032:5035 Coq.Init.Datatypes <> cons constr
+R5037:5037 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5039:5040 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5064:5064 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5041:5043 PLF.CoreLang <> Uty constr
+R5046:5058 PLF.CoreLang <> IndependArrow constr
+R5075:5092 PLF.RefinementType <> phi_is_subtype_aux:100 def
+R5105:5108 PLF.RefinementType <> phi2:99 var
+R5100:5103 PLF.RefinementType <> phi1:98 var
+R5094:5098 PLF.RefinementType <> Gamma:97 var
+R5114:5117 Coq.Init.Datatypes <> cons constr
+R5119:5119 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5121:5122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5146:5146 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5123:5125 PLF.CoreLang <> Uty constr
+R5128:5136 PLF.CoreLang <> BaseUnder constr
+R5184:5201 PLF.RefinementType <> phi_is_subtype_aux:100 def
+R5214:5217 PLF.RefinementType <> phi2:99 var
+R5209:5212 PLF.RefinementType <> phi1:98 var
+R5203:5207 PLF.RefinementType <> Gamma:97 var
+binder 5169:5172 <> phi1:102
+binder 5175:5178 <> phi2:103
+R5229:5230 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5304:5316 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5390:5391 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+binder 5235:5236 <> st:104
+binder 5238:5238 <> v:105
+R5243:5249 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5253:5254 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 5250:5252 <> v_x:106
+R5278:5281 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5263:5267 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5271:5272 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5273:5274 PLF.RefinementType <> st:104 var
+R5268:5270 PLF.RefinementType <> v_x:106 var
+R5277:5277 PLF.RefinementType <> v:105 var
+R5282:5285 PLF.RefinementType <> phi1:102 var
+R5289:5293 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5297:5298 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5299:5300 PLF.RefinementType <> st:104 var
+R5294:5296 PLF.RefinementType <> v_x:106 var
+R5303:5303 PLF.RefinementType <> v:105 var
+binder 5321:5322 <> st:107
+binder 5324:5324 <> v:108
+R5329:5335 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5339:5340 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 5336:5338 <> v_x:109
+R5364:5367 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5349:5353 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5357:5358 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5359:5360 PLF.RefinementType <> st:107 var
+R5354:5356 PLF.RefinementType <> v_x:109 var
+R5363:5363 PLF.RefinementType <> v:108 var
+R5368:5371 PLF.RefinementType <> phi2:103 var
+R5375:5379 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5383:5384 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5385:5386 PLF.RefinementType <> st:107 var
+R5380:5382 PLF.RefinementType <> v_x:109 var
+R5389:5389 PLF.RefinementType <> v:108 var
+R5405:5408 Coq.Init.Datatypes <> cons constr
+R5410:5410 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5412:5413 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5436:5436 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5414:5416 PLF.CoreLang <> Oty constr
+R5419:5426 PLF.CoreLang <> BaseOver constr
+R5474:5491 PLF.RefinementType <> phi_is_subtype_aux:100 def
+R5504:5507 PLF.RefinementType <> phi2:99 var
+R5499:5502 PLF.RefinementType <> phi1:98 var
+R5493:5497 PLF.RefinementType <> Gamma:97 var
+binder 5459:5462 <> phi1:110
+binder 5465:5468 <> phi2:111
+R5519:5520 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5594:5606 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5680:5681 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+binder 5525:5526 <> st:112
+binder 5528:5528 <> v:113
+binder 5540:5542 <> v_x:114
+R5568:5571 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5553:5557 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5561:5562 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5563:5564 PLF.RefinementType <> st:112 var
+R5558:5560 PLF.RefinementType <> v_x:114 var
+R5567:5567 PLF.RefinementType <> v:113 var
+R5572:5575 PLF.RefinementType <> phi1:110 var
+R5579:5583 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5587:5588 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5589:5590 PLF.RefinementType <> st:112 var
+R5584:5586 PLF.RefinementType <> v_x:114 var
+R5593:5593 PLF.RefinementType <> v:113 var
+binder 5611:5612 <> st:115
+binder 5614:5614 <> v:116
+binder 5626:5628 <> v_x:117
+R5654:5657 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5639:5643 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5647:5648 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5649:5650 PLF.RefinementType <> st:115 var
+R5644:5646 PLF.RefinementType <> v_x:117 var
+R5653:5653 PLF.RefinementType <> v:116 var
+R5658:5661 PLF.RefinementType <> phi2:111 var
+R5665:5669 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5673:5674 PLF.Maps <> :::x_'!->'_x_';'_x not
+R5675:5676 PLF.RefinementType <> st:115 var
+R5670:5672 PLF.RefinementType <> v_x:117 var
+R5679:5679 PLF.RefinementType <> v:116 var
+def 5710:5723 <> phi_is_subtype
+R5733:5739 PLF.RefinementType <> context def
+binder 5726:5730 <> Gamma:118
+R5749:5758 PLF.CoreLang <> refinement def
+binder 5743:5746 <> phi1:119
+R5768:5777 PLF.CoreLang <> refinement def
+binder 5762:5765 <> phi2:120
+R5805:5822 PLF.RefinementType <> phi_is_subtype_aux def
+R5824:5828 PLF.RefinementType <> Gamma:118 var
+R5830:5833 PLF.RefinementType <> phi1:119 var
+R5835:5838 PLF.RefinementType <> phi2:120 var
+binder 5790:5793 <> phi1:121
+binder 5796:5799 <> phi2:122
+binder 5852:5853 <> st:123
+binder 5855:5855 <> v:124
+R5867:5870 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5858:5861 PLF.RefinementType <> phi1:121 var
+R5863:5864 PLF.RefinementType <> st:123 var
+R5866:5866 PLF.RefinementType <> v:124 var
+R5871:5874 PLF.RefinementType <> phi2:122 var
+R5876:5877 PLF.RefinementType <> st:123 var
+R5879:5879 PLF.RefinementType <> v:124 var
+R5926:5939 PLF.RefinementType <> phi_is_subtype def
+not 5891:5891 <> :::x_'\C-'_x_'===>'_x
+ind 6046:6055 <> is_subtype
+constr 6094:6106 <> Sub_Base_Base
+constr 6221:6251 <> Sub_IndependArrow_IndependArrow
+constr 6412:6438 <> Sub_DependArrow_DependArrow
+constr 6717:6745 <> Sub_DependArrow_IndependArrow
+R6066:6069 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6059:6065 PLF.RefinementType <> context def
+R6073:6076 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6070:6072 PLF.CoreLang <> uty ind
+R6080:6083 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6077:6079 PLF.CoreLang <> uty ind
+R7032:7041 PLF.RefinementType <> is_subtype:126 ind
+binder 6116:6120 <> Gamma:127
+binder 6122:6122 <> T:128
+binder 6124:6127 <> phi1:129
+binder 6129:6132 <> phi2:130
+R6163:6170 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6144:6148 PLF.RefinementType <> :::x_'\C-'_x_'===>'_x not
+R6153:6158 PLF.RefinementType <> :::x_'\C-'_x_'===>'_x not
+R6139:6143 PLF.RefinementType <> Gamma:127 var
+R6149:6152 PLF.RefinementType <> phi2:130 var
+R6159:6162 PLF.RefinementType <> phi1:129 var
+R6176:6180 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6197:6201 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6171:6175 PLF.RefinementType <> Gamma:127 var
+R6181:6185 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6187:6189 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6194:6196 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6186:6186 PLF.RefinementType <> T:128 var
+R6190:6193 PLF.RefinementType <> phi1:129 var
+R6202:6206 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6208:6210 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6215:6217 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6207:6207 PLF.RefinementType <> T:128 var
+R6211:6214 PLF.RefinementType <> phi2:130 var
+binder 6261:6265 <> Gamma:131
+binder 6267:6271 <> tau11:132
+binder 6273:6277 <> tau12:133
+binder 6279:6283 <> tau21:134
+binder 6285:6289 <> tau22:135
+R6321:6328 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6301:6305 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6311:6315 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6296:6300 PLF.RefinementType <> Gamma:131 var
+R6306:6310 PLF.RefinementType <> tau21:134 var
+R6316:6320 PLF.RefinementType <> tau11:132 var
+R6354:6361 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6334:6338 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6344:6348 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6329:6333 PLF.RefinementType <> Gamma:131 var
+R6339:6343 PLF.RefinementType <> tau12:133 var
+R6349:6353 PLF.RefinementType <> tau22:135 var
+R6367:6371 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6388:6392 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6362:6366 PLF.RefinementType <> Gamma:131 var
+R6377:6382 PLF.CoreLang <> :::x_'u-->'_x not
+R6372:6376 PLF.RefinementType <> tau11:132 var
+R6383:6387 PLF.RefinementType <> tau12:133 var
+R6398:6403 PLF.CoreLang <> :::x_'u-->'_x not
+R6393:6397 PLF.RefinementType <> tau21:134 var
+R6404:6408 PLF.RefinementType <> tau22:135 var
+binder 6448:6452 <> Gamma:136
+binder 6454:6454 <> T:137
+binder 6456:6457 <> x1:138
+binder 6459:6463 <> phi11:139
+binder 6465:6469 <> tau12:140
+binder 6471:6472 <> x2:141
+binder 6474:6478 <> phi21:142
+binder 6480:6484 <> tau22:143
+R6540:6547 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6496:6500 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6518:6522 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6491:6495 PLF.RefinementType <> Gamma:136 var
+R6501:6505 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6507:6509 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6515:6517 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6506:6506 PLF.RefinementType <> T:137 var
+R6510:6514 PLF.RefinementType <> phi11:139 var
+R6523:6527 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6529:6531 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6537:6539 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6528:6528 PLF.RefinementType <> T:137 var
+R6532:6536 PLF.RefinementType <> phi21:142 var
+R6623:6630 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6548:6548 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6584:6590 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6612:6617 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6549:6554 PLF.LinearContext <> update prfax
+R6566:6570 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6572:6574 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6580:6582 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6571:6571 PLF.RefinementType <> T:137 var
+R6575:6579 PLF.RefinementType <> phi21:142 var
+R6562:6563 PLF.RefinementType <> x2:141 var
+R6556:6560 PLF.RefinementType <> Gamma:136 var
+R6591:6599 PLF.RefinementType <> uty_subst prfax
+R6601:6602 PLF.RefinementType <> x1:138 var
+R6604:6605 PLF.RefinementType <> x2:141 var
+R6607:6611 PLF.RefinementType <> tau12:140 var
+R6618:6622 PLF.RefinementType <> tau22:143 var
+R6636:6640 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6675:6679 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6631:6635 PLF.RefinementType <> Gamma:136 var
+R6643:6646 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6664:6669 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6641:6642 PLF.RefinementType <> x1:138 var
+R6647:6651 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6653:6655 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6661:6663 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6652:6652 PLF.RefinementType <> T:137 var
+R6656:6660 PLF.RefinementType <> phi11:139 var
+R6670:6674 PLF.RefinementType <> tau12:140 var
+R6682:6685 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6703:6708 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6680:6681 PLF.RefinementType <> x2:141 var
+R6686:6690 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6692:6694 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6700:6702 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6691:6691 PLF.RefinementType <> T:137 var
+R6695:6699 PLF.RefinementType <> phi21:142 var
+R6709:6713 PLF.RefinementType <> tau22:143 var
+binder 6755:6759 <> Gamma:144
+binder 6761:6761 <> T:145
+binder 6763:6764 <> x1:146
+binder 6766:6770 <> phi11:147
+binder 6772:6776 <> tau12:148
+binder 6778:6782 <> phi21:149
+binder 6784:6788 <> tau22:150
+R6844:6851 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6800:6804 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6822:6826 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6795:6799 PLF.RefinementType <> Gamma:144 var
+R6805:6809 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6811:6813 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6819:6821 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6810:6810 PLF.RefinementType <> T:145 var
+R6814:6818 PLF.RefinementType <> phi11:147 var
+R6827:6831 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6833:6835 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6841:6843 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6832:6832 PLF.RefinementType <> T:145 var
+R6836:6840 PLF.RefinementType <> phi21:149 var
+R6909:6916 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6852:6852 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6888:6893 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6899:6903 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6853:6858 PLF.LinearContext <> update prfax
+R6870:6874 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6876:6878 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6884:6886 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6875:6875 PLF.RefinementType <> T:145 var
+R6879:6883 PLF.RefinementType <> phi11:147 var
+R6866:6867 PLF.RefinementType <> x1:146 var
+R6860:6864 PLF.RefinementType <> Gamma:144 var
+R6894:6898 PLF.RefinementType <> tau12:148 var
+R6904:6908 PLF.RefinementType <> tau22:150 var
+R6922:6926 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6961:6965 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R6917:6921 PLF.RefinementType <> Gamma:144 var
+R6929:6932 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6950:6955 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R6927:6928 PLF.RefinementType <> x1:146 var
+R6933:6937 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6939:6941 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6947:6949 PLF.CoreLang <> :::'{{v:'_x_'|'_x_'}}' not
+R6938:6938 PLF.RefinementType <> T:145 var
+R6942:6946 PLF.RefinementType <> phi11:147 var
+R6956:6960 PLF.RefinementType <> tau12:148 var
+R6983:6988 PLF.CoreLang <> :::x_'u-->'_x not
+R6966:6970 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6972:6974 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6980:6982 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R6971:6971 PLF.RefinementType <> T:145 var
+R6975:6979 PLF.RefinementType <> phi21:149 var
+R6989:6993 PLF.RefinementType <> tau22:150 var
+R7032:7041 PLF.RefinementType <> is_subtype ind
+not 7002:7002 <> :::x_'\C-'_x_'\<:'_x
+def 7188:7198 <> const_order
+R7209:7212 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7201:7208 PLF.CoreLang <> constant ind
+R7221:7224 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7213:7220 PLF.CoreLang <> constant ind
+prf 7248:7274 <> const_order_is_well_founded
+R7277:7288 Coq.Init.Wf <> well_founded def
+R7290:7300 PLF.RefinementType <> const_order prfax
+ind 7324:7344 <> term_under_type_infer
+constr 7382:7396 <> UT_Infer_Random
+constr 7453:7466 <> UT_Infer_Value
+constr 7547:7559 <> UT_Infer_Lete
+constr 7778:7791 <> UT_Infer_LetOp
+constr 8114:8129 <> UT_Infer_LetCons
+constr 8450:8465 <> UT_Infer_LetNode
+constr 8851:8871 <> UT_Infer_LetAppDepend
+constr 9460:9482 <> UT_Infer_LetAppIndepend
+constr 9969:9980 <> UT_Infer_Ite
+ind 10406:10427 <> value_under_type_infer
+constr 10468:10483 <> UT_Infer_Contant
+constr 10550:10570 <> UT_Infer_VarUnderBase
+constr 10729:10751 <> UT_Infer_VarDependArrow
+constr 10892:10916 <> UT_Infer_VarIndependArrow
+constr 11049:11068 <> UT_Infer_VarOverBase
+constr 11190:11205 <> UT_Infer_LamOver
+constr 11355:11371 <> UT_Infer_LamUnder
+constr 11566:11577 <> UT_Infer_Fix
+constr 11936:11947 <> UT_Infer_Exn
+R7355:7358 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7348:7354 PLF.RefinementType <> context def
+R7361:7364 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7359:7360 PLF.CoreLang <> tm ind
+R7368:7371 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7365:7367 PLF.CoreLang <> uty ind
+R10438:10441 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10431:10437 PLF.RefinementType <> context def
+R10447:10450 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10442:10446 PLF.CoreLang <> value ind
+R10454:10457 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10451:10453 PLF.CoreLang <> uty ind
+R12034:12054 PLF.RefinementType <> term_under_type_infer:153 ind
+R12101:12122 PLF.RefinementType <> value_under_type_infer:154 ind
+binder 7406:7410 <> Gamma:155
+R7418:7422 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7430:7437 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7449:7449 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7413:7417 PLF.RefinementType <> Gamma:155 var
+R7423:7429 PLF.CoreLang <> trandom constr
+R7438:7443 PLF.RefinementType <> mk_top def
+R7445:7448 PLF.CoreLang <> TNat constr
+binder 7476:7480 <> Gamma:156
+binder 7482:7482 <> v:157
+binder 7484:7486 <> uty:158
+R7510:7513 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7494:7498 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7500:7506 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7489:7493 PLF.RefinementType <> Gamma:156 var
+R7499:7499 PLF.RefinementType <> v:157 var
+R7507:7509 PLF.RefinementType <> uty:158 var
+R7519:7524 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7533:7540 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7514:7518 PLF.RefinementType <> Gamma:156 var
+R7525:7530 PLF.CoreLang <> tvalue constr
+R7532:7532 PLF.RefinementType <> v:157 var
+R7541:7543 PLF.RefinementType <> uty:158 var
+binder 7569:7573 <> Gamma:159
+binder 7575:7575 <> y:160
+binder 7577:7579 <> e_y:161
+binder 7581:7585 <> uty_y:162
+binder 7587:7587 <> e:163
+binder 7589:7591 <> uty:164
+binder 7593:7596 <> uty':165
+R7628:7635 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7608:7612 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7616:7622 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7603:7607 PLF.RefinementType <> Gamma:159 var
+R7613:7615 PLF.RefinementType <> e_y:161 var
+R7623:7627 PLF.RefinementType <> uty_y:162 var
+R7674:7681 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7636:7636 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7657:7662 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7664:7670 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7638:7643 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R7649:7651 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R7652:7656 PLF.RefinementType <> Gamma:159 var
+R7637:7637 PLF.RefinementType <> y:160 var
+R7644:7648 PLF.RefinementType <> uty_y:162 var
+R7663:7663 PLF.RefinementType <> e:163 var
+R7671:7673 PLF.RefinementType <> uty:164 var
+R7712:7738 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7682:7688 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R7690:7692 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R7698:7700 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R7704:7707 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R7689:7689 PLF.RefinementType <> y:160 var
+R7693:7697 PLF.RefinementType <> uty_y:162 var
+R7701:7703 PLF.RefinementType <> uty:164 var
+R7708:7711 PLF.RefinementType <> uty':165 var
+R7744:7749 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7763:7770 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7739:7743 PLF.RefinementType <> Gamma:159 var
+R7750:7754 PLF.CoreLang <> tlete constr
+R7756:7756 PLF.RefinementType <> y:160 var
+R7758:7760 PLF.RefinementType <> e_y:161 var
+R7762:7762 PLF.RefinementType <> e:163 var
+R7771:7774 PLF.RefinementType <> uty':165 var
+binder 7801:7805 <> Gamma:166
+binder 7807:7807 <> y:167
+binder 7809:7810 <> op:168
+binder 7812:7813 <> v1:169
+binder 7815:7816 <> v2:170
+binder 7818:7821 <> phi1:171
+binder 7823:7826 <> phi2:172
+binder 7828:7832 <> uty_y:173
+binder 7834:7834 <> e:174
+binder 7836:7838 <> uty:175
+binder 7840:7843 <> uty':176
+R7888:7895 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7855:7859 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7862:7868 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7850:7854 PLF.RefinementType <> Gamma:166 var
+R7860:7861 PLF.RefinementType <> v1:169 var
+R7869:7873 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7878:7880 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7885:7887 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7874:7877 PLF.CoreLang <> TNat constr
+R7881:7884 PLF.RefinementType <> phi1:171 var
+R7934:7941 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7901:7905 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7908:7914 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R7896:7900 PLF.RefinementType <> Gamma:166 var
+R7906:7907 PLF.RefinementType <> v2:170 var
+R7915:7919 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7924:7926 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7931:7933 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R7920:7923 PLF.CoreLang <> TNat constr
+R7927:7930 PLF.RefinementType <> phi2:172 var
+R8002:8009 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7942:7943 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7985:7990 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7992:7998 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R7945:7951 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R7976:7979 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R7980:7984 PLF.RefinementType <> Gamma:166 var
+R7944:7944 PLF.RefinementType <> y:167 var
+R7952:7962 PLF.RefinementType <> mk_op_retty def
+R7964:7965 PLF.RefinementType <> op:168 var
+R7967:7970 PLF.RefinementType <> phi1:171 var
+R7972:7975 PLF.RefinementType <> phi2:172 var
+R7991:7991 PLF.RefinementType <> e:174 var
+R7999:8001 PLF.RefinementType <> uty:175 var
+R8040:8066 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8010:8016 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8018:8020 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8026:8028 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8032:8035 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8017:8017 PLF.RefinementType <> y:167 var
+R8021:8025 PLF.RefinementType <> uty_y:173 var
+R8029:8031 PLF.RefinementType <> uty:175 var
+R8036:8039 PLF.RefinementType <> uty':176 var
+R8072:8077 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8099:8106 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8067:8071 PLF.RefinementType <> Gamma:166 var
+R8078:8085 PLF.CoreLang <> tletbiop constr
+R8087:8087 PLF.RefinementType <> y:167 var
+R8089:8090 PLF.RefinementType <> op:168 var
+R8092:8093 PLF.RefinementType <> v1:169 var
+R8095:8096 PLF.RefinementType <> v2:170 var
+R8098:8098 PLF.RefinementType <> e:174 var
+R8107:8110 PLF.RefinementType <> uty':176 var
+binder 8139:8143 <> Gamma:177
+binder 8145:8145 <> T:178
+binder 8147:8147 <> y:179
+binder 8149:8150 <> v1:180
+binder 8152:8153 <> v2:181
+binder 8155:8158 <> phi1:182
+binder 8160:8163 <> phi2:183
+binder 8165:8169 <> uty_y:184
+binder 8171:8171 <> e:185
+binder 8173:8175 <> uty:186
+binder 8177:8180 <> uty':187
+R8222:8229 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8192:8196 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8199:8205 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8187:8191 PLF.RefinementType <> Gamma:177 var
+R8197:8198 PLF.RefinementType <> v1:180 var
+R8206:8210 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8212:8214 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8219:8221 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8211:8211 PLF.RefinementType <> T:178 var
+R8215:8218 PLF.RefinementType <> phi1:182 var
+R8271:8278 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8235:8239 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8242:8248 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8230:8234 PLF.RefinementType <> Gamma:177 var
+R8240:8241 PLF.RefinementType <> v2:181 var
+R8249:8253 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8261:8263 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8268:8270 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8254:8258 PLF.CoreLang <> TList constr
+R8260:8260 PLF.RefinementType <> T:178 var
+R8264:8267 PLF.RefinementType <> phi2:183 var
+R8339:8346 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8279:8279 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8322:8327 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8329:8335 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8281:8287 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R8313:8316 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R8317:8321 PLF.RefinementType <> Gamma:177 var
+R8280:8280 PLF.RefinementType <> y:179 var
+R8288:8300 PLF.RefinementType <> mk_cons_retty def
+R8302:8302 PLF.RefinementType <> T:178 var
+R8304:8307 PLF.RefinementType <> phi1:182 var
+R8309:8312 PLF.RefinementType <> phi2:183 var
+R8328:8328 PLF.RefinementType <> e:185 var
+R8336:8338 PLF.RefinementType <> uty:186 var
+R8377:8403 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8347:8353 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8355:8357 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8363:8365 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8369:8372 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8354:8354 PLF.RefinementType <> y:179 var
+R8358:8362 PLF.RefinementType <> uty_y:184 var
+R8366:8368 PLF.RefinementType <> uty:186 var
+R8373:8376 PLF.RefinementType <> uty':187 var
+R8409:8414 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8435:8442 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8404:8408 PLF.RefinementType <> Gamma:177 var
+R8415:8422 PLF.CoreLang <> tletcons constr
+R8424:8424 PLF.RefinementType <> y:179 var
+R8426:8426 PLF.RefinementType <> T:178 var
+R8428:8429 PLF.RefinementType <> v1:180 var
+R8431:8432 PLF.RefinementType <> v2:181 var
+R8434:8434 PLF.RefinementType <> e:185 var
+R8443:8446 PLF.RefinementType <> uty':187 var
+binder 8475:8479 <> Gamma:188
+binder 8481:8481 <> T:189
+binder 8483:8483 <> y:190
+binder 8485:8486 <> v1:191
+binder 8488:8489 <> v2:192
+binder 8491:8492 <> v3:193
+binder 8494:8497 <> phi1:194
+binder 8499:8502 <> phi2:195
+binder 8504:8507 <> phi3:196
+binder 8509:8513 <> uty_y:197
+binder 8515:8515 <> e:198
+binder 8517:8519 <> uty:199
+binder 8521:8524 <> uty':200
+R8566:8573 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8536:8540 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8543:8549 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8531:8535 PLF.RefinementType <> Gamma:188 var
+R8541:8542 PLF.RefinementType <> v1:191 var
+R8550:8554 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8556:8558 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8563:8565 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8555:8555 PLF.RefinementType <> T:189 var
+R8559:8562 PLF.RefinementType <> phi1:194 var
+R8615:8622 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8579:8583 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8586:8592 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8574:8578 PLF.RefinementType <> Gamma:188 var
+R8584:8585 PLF.RefinementType <> v2:192 var
+R8593:8597 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8605:8607 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8612:8614 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8598:8602 PLF.CoreLang <> TList constr
+R8604:8604 PLF.RefinementType <> T:189 var
+R8608:8611 PLF.RefinementType <> phi2:195 var
+R8664:8671 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8628:8632 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8635:8641 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R8623:8627 PLF.RefinementType <> Gamma:188 var
+R8633:8634 PLF.RefinementType <> v3:193 var
+R8642:8646 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8654:8656 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8661:8663 PLF.CoreLang <> :::'[[v:'_x_'|'_x_']]' not
+R8647:8651 PLF.CoreLang <> TList constr
+R8653:8653 PLF.RefinementType <> T:189 var
+R8657:8660 PLF.RefinementType <> phi3:196 var
+R8737:8744 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8672:8672 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8720:8725 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8727:8733 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8674:8680 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R8711:8714 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R8715:8719 PLF.RefinementType <> Gamma:188 var
+R8673:8673 PLF.RefinementType <> y:190 var
+R8681:8693 PLF.RefinementType <> mk_node_retty def
+R8695:8695 PLF.RefinementType <> T:189 var
+R8697:8700 PLF.RefinementType <> phi1:194 var
+R8702:8705 PLF.RefinementType <> phi2:195 var
+R8707:8710 PLF.RefinementType <> phi3:196 var
+R8726:8726 PLF.RefinementType <> e:198 var
+R8734:8736 PLF.RefinementType <> uty:199 var
+R8775:8801 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8745:8751 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8753:8755 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8761:8763 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8767:8770 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R8752:8752 PLF.RefinementType <> y:190 var
+R8756:8760 PLF.RefinementType <> uty_y:197 var
+R8764:8766 PLF.RefinementType <> uty:199 var
+R8771:8774 PLF.RefinementType <> uty':200 var
+R8807:8812 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8836:8843 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R8802:8806 PLF.RefinementType <> Gamma:188 var
+R8813:8820 PLF.CoreLang <> tletnode constr
+R8822:8822 PLF.RefinementType <> y:190 var
+R8824:8824 PLF.RefinementType <> T:189 var
+R8826:8827 PLF.RefinementType <> v1:191 var
+R8829:8830 PLF.RefinementType <> v2:192 var
+R8832:8833 PLF.RefinementType <> v3:193 var
+R8835:8835 PLF.RefinementType <> e:198 var
+R8844:8847 PLF.RefinementType <> uty':200 var
+binder 8881:8885 <> Gamma:201
+binder 8887:8887 <> y:202
+binder 8889:8890 <> x':203
+binder 8892:8894 <> v_f:204
+binder 8896:8898 <> v_x:205
+binder 8900:8900 <> x:206
+binder 8902:8908 <> xargoty:207
+binder 8910:8914 <> retty:208
+binder 8916:8920 <> uty_x:209
+binder 8922:8922 <> e:210
+binder 8924:8926 <> uty:211
+binder 8928:8931 <> uty':212
+binder 8933:8937 <> uty'':213
+R8951:8958 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8946:8949 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8944:8945 PLF.RefinementType <> x':203 var
+R8950:8950 PLF.RefinementType <> x:206 var
+R9002:9009 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8961:8969 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R8975:8981 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R9001:9001 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R8959:8960 PLF.RefinementType <> x':203 var
+R8970:8974 PLF.RefinementType <> Gamma:201 var
+R8982:8988 PLF.CoreLang <> tletapp constr
+R8990:8990 PLF.RefinementType <> y:202 var
+R8992:8994 PLF.RefinementType <> v_f:204 var
+R8996:8998 PLF.RefinementType <> v_x:205 var
+R9000:9000 PLF.RefinementType <> e:210 var
+R9055:9062 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9015:9019 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9023:9030 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9054:9054 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9010:9014 PLF.RefinementType <> Gamma:201 var
+R9020:9022 PLF.RefinementType <> v_f:204 var
+R9032:9035 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R9043:9048 PLF.CoreLang <> :::x_'o:'_x_'o-->'_x not
+R9031:9031 PLF.RefinementType <> x:206 var
+R9036:9042 PLF.RefinementType <> xargoty:207 var
+R9049:9053 PLF.RefinementType <> retty:208 var
+R9088:9095 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9068:9072 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9076:9082 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9063:9067 PLF.RefinementType <> Gamma:201 var
+R9073:9075 PLF.RefinementType <> v_x:205 var
+R9083:9087 PLF.RefinementType <> uty_x:209 var
+R9134:9141 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9101:9106 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R9123:9128 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R9096:9100 PLF.RefinementType <> Gamma:201 var
+R9107:9114 PLF.CoreLang <> ot_to_ut def
+R9116:9122 PLF.RefinementType <> xargoty:207 var
+R9129:9133 PLF.RefinementType <> uty_x:209 var
+R9215:9222 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9142:9142 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9198:9203 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9205:9211 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9144:9150 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9171:9175 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9197:9197 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9178:9183 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9189:9191 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9192:9196 PLF.RefinementType <> Gamma:201 var
+R9176:9177 PLF.RefinementType <> x':203 var
+R9184:9188 PLF.RefinementType <> uty_x:209 var
+R9143:9143 PLF.RefinementType <> y:202 var
+R9151:9159 PLF.RefinementType <> uty_subst prfax
+R9161:9161 PLF.RefinementType <> x:206 var
+R9163:9164 PLF.RefinementType <> x':203 var
+R9166:9170 PLF.RefinementType <> retty:208 var
+R9204:9204 PLF.RefinementType <> e:210 var
+R9212:9214 PLF.RefinementType <> uty:211 var
+R9270:9313 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9223:9229 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9231:9234 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9255:9258 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9262:9265 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9230:9230 PLF.RefinementType <> y:202 var
+R9235:9243 PLF.RefinementType <> uty_subst prfax
+R9245:9245 PLF.RefinementType <> x:206 var
+R9247:9248 PLF.RefinementType <> x':203 var
+R9250:9254 PLF.RefinementType <> retty:208 var
+R9259:9261 PLF.RefinementType <> uty:211 var
+R9266:9269 PLF.RefinementType <> uty':212 var
+R9348:9412 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9314:9320 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9323:9326 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9332:9334 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9339:9342 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9321:9322 PLF.RefinementType <> x':203 var
+R9327:9331 PLF.RefinementType <> uty_x:209 var
+R9335:9338 PLF.RefinementType <> uty':212 var
+R9343:9347 PLF.RefinementType <> uty'':213 var
+R9418:9423 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9443:9450 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9413:9417 PLF.RefinementType <> Gamma:201 var
+R9424:9430 PLF.CoreLang <> tletapp constr
+R9432:9432 PLF.RefinementType <> y:202 var
+R9434:9436 PLF.RefinementType <> v_f:204 var
+R9438:9440 PLF.RefinementType <> v_x:205 var
+R9442:9442 PLF.RefinementType <> e:210 var
+R9451:9455 PLF.RefinementType <> uty'':213 var
+binder 9492:9496 <> Gamma:214
+binder 9498:9498 <> y:215
+binder 9500:9501 <> x':216
+binder 9503:9505 <> v_f:217
+binder 9507:9509 <> v_x:218
+binder 9511:9517 <> xarguty:219
+binder 9519:9523 <> retty:220
+binder 9525:9529 <> uty_x:221
+binder 9531:9531 <> e:222
+binder 9533:9535 <> uty:223
+binder 9537:9540 <> uty':224
+binder 9542:9546 <> uty'':225
+R9596:9603 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9555:9563 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R9569:9575 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R9595:9595 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R9553:9554 PLF.RefinementType <> x':216 var
+R9564:9568 PLF.RefinementType <> Gamma:214 var
+R9576:9582 PLF.CoreLang <> tletapp constr
+R9584:9584 PLF.RefinementType <> y:215 var
+R9586:9588 PLF.RefinementType <> v_f:217 var
+R9590:9592 PLF.RefinementType <> v_x:218 var
+R9594:9594 PLF.RefinementType <> e:222 var
+R9644:9651 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9609:9613 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9617:9624 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9643:9643 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9604:9608 PLF.RefinementType <> Gamma:214 var
+R9614:9616 PLF.RefinementType <> v_f:217 var
+R9632:9637 PLF.CoreLang <> :::x_'u-->'_x not
+R9625:9631 PLF.RefinementType <> xarguty:219 var
+R9638:9642 PLF.RefinementType <> retty:220 var
+R9677:9684 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9657:9661 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9665:9671 PLF.RefinementType <> :::x_'\C-'_x_'\V-->'_x not
+R9652:9656 PLF.RefinementType <> Gamma:214 var
+R9662:9664 PLF.RefinementType <> v_x:218 var
+R9672:9676 PLF.RefinementType <> uty_x:221 var
+R9712:9719 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9690:9694 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R9700:9704 PLF.RefinementType <> :::x_'\C-'_x_'\<:'_x not
+R9685:9689 PLF.RefinementType <> Gamma:214 var
+R9695:9699 PLF.RefinementType <> uty_x:221 var
+R9705:9711 PLF.RefinementType <> xarguty:219 var
+R9775:9782 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9720:9720 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9758:9763 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9765:9771 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9722:9727 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9733:9735 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9757:9757 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9738:9743 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9749:9751 PLF.LinearContext <> :::x_'|-c>'_x_';'_x not
+R9752:9756 PLF.RefinementType <> Gamma:214 var
+R9736:9737 PLF.RefinementType <> x':216 var
+R9744:9748 PLF.RefinementType <> uty_x:221 var
+R9721:9721 PLF.RefinementType <> y:215 var
+R9728:9732 PLF.RefinementType <> retty:220 var
+R9764:9764 PLF.RefinementType <> e:222 var
+R9772:9774 PLF.RefinementType <> uty:223 var
+R9813:9839 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9783:9789 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9791:9793 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9799:9801 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9805:9808 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9790:9790 PLF.RefinementType <> y:215 var
+R9794:9798 PLF.RefinementType <> retty:220 var
+R9802:9804 PLF.RefinementType <> uty:223 var
+R9809:9812 PLF.RefinementType <> uty':224 var
+R9874:9921 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9840:9846 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9849:9852 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9858:9860 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9865:9868 PLF.RefinementType <> :::'u-E-ty'_x_';'_x_';'_x_'u='_x not
+R9847:9848 PLF.RefinementType <> x':216 var
+R9853:9857 PLF.RefinementType <> uty_x:221 var
+R9861:9864 PLF.RefinementType <> uty':224 var
+R9869:9873 PLF.RefinementType <> uty'':225 var
+R9927:9932 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9952:9959 PLF.RefinementType <> :::x_'\C-'_x_'\T-->'_x not
+R9922:9926 PLF.RefinementType <> Gamma:214 var
+R9933:9939 PLF.CoreLang <> tletapp constr
+R9941:9941 PLF.RefinementType <> y:215 var
+R9943:9945 PLF.RefinementType <> v_f:217 var
+R9947:9949 PLF.RefinementType <> v_x:218 var
+R9951:9951 PLF.RefinementType <> e:222 var
+R9960:9964 PLF.RefinementType <> uty'':225 var
+binder 9990:9994 <> Gamma:226
+binder 9996:9996 <> v:227
+binder 9998:9999 <> e1:228
+binder 10001:10002 <> e2:229
+binder 10004:10008 <> uty_v:230
+binder 10010:10011 <> x':231
+binder 10013:10016 <> uty1:232
+binder 10018:10021 <> uty2:233
+binder 10023:10025 <> uty:234
+R10068:10074 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10034:10042 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R10048:10054 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R10067:10067 PLF.RefinementType <> :::x_'\NewInI'_x_'\and'_x not
+R10032:10033 PLF.RefinementType <> x':231 var
+R10043:10047 PLF.RefinementType <> Gamma:226 var

@@ -39,8 +39,6 @@ Definition state := total_map constant.
 Definition refinement : Type := state -> constant -> Prop.
 Implicit Type HH : refinement.
 
-Definition closed_r (P:constant -> Prop) : refinement := fun _ => P.
-
 Inductive oty : Type :=
 | BaseOver: basic_ty -> refinement -> oty.
 
@@ -117,6 +115,7 @@ Scheme value_mutual_rec := Induction for value Sort Type
     with tm_mutual_rec := Induction for tm Sort Type.
 
 Coercion vvar : string >-> value.
+Coercion vconst : constant >-> value.
 
 Definition is_value (e: tm) :=
   match e with

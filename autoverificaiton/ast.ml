@@ -34,6 +34,22 @@ let is_bop = function
 
 open Zzdatatype.Datatype
 
+let count_qvs prop =
+  let rec aux t =
+    match t with
+    | Lit _ -> 0
+    | Implies (e1, e2) -> aux e1 + aux e2
+    | Ite (e1, e2, e3) -> aux e1 + aux e2 + aux e3
+    | Not e -> aux e
+    | And es -> List.fold_left (fun sum e -> sum + aux e) 0 es
+    | Or es -> List.fold_left (fun sum e -> sum + aux e) 0 es
+    | Iff (e1, e2) -> aux e1 + aux e2
+    | MethodPred (_, _) -> 0
+    | Forall (_, e) -> 1 + aux e
+    | Exists (_, e) -> 1 + aux e
+  in
+  aux prop
+
 let rec lit_fv m t =
   match t with
   | ACint _ | ACbool _ -> m
@@ -95,6 +111,8 @@ let get_mps prop =
   in
   let m = aux [] prop in
   List.slow_rm_dup typed_eq m
+
+let count_mps prop = List.length @@ get_mps prop
 
 let var_space_ prop =
   let rec aux_lit s = function

@@ -48,6 +48,85 @@ module F (Typed : Type.Typed) = struct
   and case = { constructor : id typed; args : id typed list; exp : term typed }
   [@@deriving sexp]
 
+  let rec term_count_localvars (e : term) =
+    let n =
+      match e with
+      | V v -> value_count_localvars v.x
+      | LetApp { body; _ }
+      | LetDtConstructor { body; _ }
+      | LetOp { body; _ }
+      | LetTu { body; _ }
+      | LetVal { body; _ } ->
+          1 + term_count_localvars body.x
+      | LetDeTu { args; body; _ } ->
+          List.length args + term_count_localvars body.x
+      | Ite { e_t; e_f; _ } ->
+          term_count_localvars e_t.x + term_count_localvars e_f.x
+      | Match { cases; _ } ->
+          List.fold_left
+            (fun sum { exp; _ } -> sum + term_count_localvars exp.x)
+            0 cases
+    in
+    (* let () = Printf.printf "%i\n" n in *)
+    n
+
+  and value_count_localvars (v : value) =
+    match v with
+    | Lam { lambody; _ } -> 1 + term_count_localvars lambody.x
+    | Fix { lambody; _ } -> 1 + term_count_localvars lambody.x
+    | Var _ | Lit _ | Exn -> 0
+
+  let rec term_count_branches (e : term) =
+    let n =
+      match e with
+      | V v -> 1 + value_count_branches v.x
+      | LetApp { args; body; _ } ->
+          List.fold_left
+            (fun sum arg -> sum + value_count_branches arg.x)
+            (term_count_branches body.x)
+            args
+      | LetDtConstructor { args; body; _ } ->
+          List.fold_left
+            (fun sum arg -> sum + value_count_branches arg.x)
+            (term_count_branches body.x)
+            args
+      | LetOp { args; body; _ } ->
+          List.fold_left
+            (fun sum arg -> sum + value_count_branches arg.x)
+            (term_count_branches body.x)
+            args
+      | LetTu { args; body; _ } ->
+          List.fold_left
+            (fun sum arg -> sum + value_count_branches arg.x)
+            (term_count_branches body.x)
+            args
+      | LetDeTu { tu; body; _ } ->
+          value_count_branches tu.x + term_count_branches body.x
+      | LetVal { rhs; body; _ } ->
+          value_count_branches rhs.x + term_count_branches body.x
+      | Ite { cond; e_t; e_f } ->
+          value_count_branches cond.x
+          + term_count_branches e_t.x + term_count_branches e_f.x
+      | Match { matched; cases } ->
+          List.fold_left
+            (fun sum { exp; _ } -> sum + term_count_branches exp.x)
+            (value_count_branches matched.x)
+            cases
+    in
+    (* let () = Printf.printf "%i\n" n in *)
+    n
+
+  and value_count_branches (v : value) =
+    let n =
+      match v with
+      | Lam { lambody; _ } | Fix { lambody; _ } -> (
+          let n = term_count_branches lambody.x in
+          match lambody.x with V { x = Lam _; _ } -> n - 1 | _ -> n)
+      | Var _ | Lit _ | Exn -> 0
+    in
+    (* let () = Printf.printf "v: %i\n" n in *)
+    n
+
   let fix_to_lam e =
     match e.x with
     | V { x = Fix { fstarg; lambody; _ }; ty } ->

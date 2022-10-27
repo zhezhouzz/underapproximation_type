@@ -9,4 +9,11 @@ BasicConstant.v
 CoreLang.v
 NormalTypeSystem.v
 LinearContext.v
-RefinementType.v
+# RefinementType.v
+CoreLangSimp.v
+NormalTypeSystemSimp.v
+RfTypeDef.v
+WellFormedSimp.v
+DenotationSimp.v
+SubtypingSimp.v
+TypingRules.v
