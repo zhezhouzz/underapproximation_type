@@ -472,7 +472,7 @@ let struc_check l notations libs r =
       (fun ctx (x, ty) -> Nctx.add_to_right ctx (x, ty))
       Nctx.empty libs
   in
-  List.iteri
+  List.mapi
     (fun id (_, (name', ty)) ->
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
@@ -495,7 +495,11 @@ let struc_check l notations libs r =
             Undersub.type_err_to_false (fun () ->
                 type_check { nctx; ctx; libctx } body ty)
           in
-          if res then
-            Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n" id
-          else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id)
+          let () =
+            if res then
+              Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
+                id
+            else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
+          in
+          res)
     r

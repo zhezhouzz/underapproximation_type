@@ -137,7 +137,7 @@ let under_type_check =
           Inputstage.load_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
-        let runtime, () =
+        let runtime, results =
           Sugar.clock (fun () ->
               Typecheck.Undercheck.struc_check code notations libs refinements)
         in
@@ -155,6 +155,14 @@ let under_type_check =
           | _ -> failwith "unimp"
         in
         let () = Printf.printf "$%0.2f$\n" runtime in
+        let () =
+          match results with
+          | [ res ] ->
+              let oc = Out_channel.create ".result" in
+              Printf.fprintf oc "%b\n" res;
+              Out_channel.close oc
+          | _ -> failwith "unimp"
+        in
         ())
 
 (* let under_subtype_check = *)
