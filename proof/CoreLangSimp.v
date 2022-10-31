@@ -39,9 +39,12 @@ Inductive biop : Type :=
 | op_eq
 | op_lt.
 
+Inductive cid: Type :=
+| vconst: constant -> cid
+| vvar: string -> cid.
+
 Inductive value : Type :=
-| vconst : constant -> value
-| vvar : string -> value
+| cid_value : cid -> value
 | vlam : string -> ty -> tm -> value
 with tm : Type :=
 | texn
@@ -53,8 +56,9 @@ with tm : Type :=
 Scheme value_mutual_rec := Induction for value Sort Type
     with tm_mutual_rec := Induction for tm Sort Type.
 
-Coercion vconst : constant >-> value.
-Coercion vvar : string >-> value.
+Coercion cid_value : cid >-> value.
+Coercion vconst : constant >-> cid.
+Coercion vvar : string >-> cid.
 Coercion tvalue : value >-> tm.
 
 Definition is_value (e: tm) :=

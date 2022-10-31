@@ -16,88 +16,31 @@ Import CoreLangSimp.
 Import LinearContext.
 Import WellFormedSimp.
 Import DenotationSimp.
+Import CtxInvariantSimp.
+Import TypeDisj.
 Import SubtypingSimp.
 Import TypingRules.
 Import ListNotations.
 
-(* constant *)
-Lemma mk_eq_constant_implies_emptyctx_denotation: forall (c : constant),
-    tmR_in_ctx l_empty (mk_eq_constant c) (vconst c).
-Proof with eauto.
-  intro c. destruct c...
+(* Lemma under_base_representative: forall T phi, exists e, *)
+(*     under_tmR ([[v:T | phi]]) e /\ (forall (c: constant), e -->* c <-> (forall st, phi st = (fun c' => c = c'))). *)
+(* Admitted. *)
+
+Lemma rf_nat_value_n_exists:
+  forall Gamma (v: cid) phi,
+    ctx_inv Gamma ->
+    Gamma \C- v \Vin ([[v:TNat | phi]]) ->
+    tmR_in_ctx Gamma ([[v:TNat | phi]]) v -> ((exists n, v = cnat n) \/ (exists x, v = vvar x)).
+Proof.
+  intros Gamma v phi Hinv H HD.
+  apply UT_Value in H. apply type_judgement_implies_basic_type_judgement in H. simpl in H.
+  destruct v.
+  - left. inversion H; subst. apply any_ctx_const_nat_typed_is_nat in H2. destruct H2 as (n & Hn). exists n... inversion Hn... reflexivity.
+  - right. exists s... reflexivity.
 Qed.
 
-Lemma mk_eq_constant_implies_denotation: forall Gamma (c : constant),
-    tmR_in_ctx Gamma (mk_eq_constant c) (vconst c).
-Proof with eauto.
-  intros Gamma c.
-  apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty); auto. rewrite app_nil_r...
-Qed.
-
-(* err *)
-Lemma err_typecheck_implies_err_denotation: forall Gamma,
-   forall (T : basic_ty), well_formed_ctx Gamma -> tmR_in_ctx Gamma (mk_bot T) texn.
-Proof with eauto.
-  intros.
-  assert (tmR_in_ctx l_empty (mk_bot T) texn). unfold mk_bot.
-  repeat constructor... intros. inversion H1.
-  apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)... rewrite app_nil_r...
-  constructor...
-Qed.
-
-Lemma under_base_representative: forall T phi, exists e,
-    under_tmR ([[v:T | phi]]) e /\ (forall (c: constant), e -->* c <-> (forall st, phi st = (fun c' => c = c'))).
-Admitted.
-
-(* under var *)
-Lemma under_var_implies_denotation: forall (Gamma: context),
-  forall (x : string) (tau : underty),
-    well_formed_ctx Gamma -> l_find_right_most Gamma x = Some (Uty tau) -> tmR_in_ctx Gamma tau x.
-Proof with eauto.
-  intros Gamma x tau Hwf Hfind. apply l_find_right_most_some_spec in Hfind.
-  destruct Hfind as (Gamma1 & Gamma2 & Hctxconcat & HGamma2). subst.
-  generalize dependent x. generalize dependent tau. generalize dependent Gamma2.
-  induction Gamma1; simpl; intros Gamma2 tau x Hwf Hfind.
-  - destruct tau.
-    + constructor.
-      destruct (under_base_representative b r) as (e_x & H1 & H2).
-      exists e_x. split... intros c_x Gamma' tau' H3 H4 H5. rewrite H2 in H4. simpl. rewrite eqb_refl.
-      rewrite ty_subst_under_ctx_not_in_ctx in H5...
-      assert (is_closed_refinement b r). eapply constant_refinement_is_closed. apply H4.
-      inversion H5; subst...
-      erewrite refinement_subst_c_closed_rf...
-      apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma2) (Gamma2 := l_empty)...
-      apply app_nil_r.
-      constructor. simpl. constructor...
-      constructor... constructor... constructor... constructor... split... intros. rewrite H4 in H6. subst...
-    + destruct u.
-      {
-        constructor. admit.
-      }
-      {
-        constructor. admit.
-      }
-  - admit.
-Admitted.
-
-(* sub *)
-Lemma sub_implies_denotation: forall (Gamma: context),
-  forall (e : tm) (tau1 tau2 : underty),
-  l_empty \C- e \Tin tau1 ->
-  tmR_in_ctx l_empty tau1 e ->
-  l_empty \C- tau1 \<: tau2 -> well_formed l_empty tau2 -> well_formed_ctx Gamma -> tmR_in_ctx Gamma tau2 e.
-Proof with eauto.
-
-
-Lemma disj_typecheck_implies_disj_denotation: forall Gamma,
-  forall (e : tm) (tau1 tau2 tau3 : underty),
-  Gamma \C- e \Tin tau1 ->
-  tmR_in_ctx Gamma tau1 e ->
-  Gamma \C- e \Tin tau2 ->
-  tmR_in_ctx Gamma tau2 e -> Gamma \C- tau1 \tyor tau2 \tyeq tau3 -> well_formed l_empty tau3 -> tmR_in_ctx Gamma tau3 e.
-Proof with eauto.
-  unfold disjunct. intros. rewrite <- H3...
-Qed.
+Global Hint Resolve ctx_inv_implies_fresh_binding_last: core.
+Global Hint Resolve ctx_inv_implies_well_found_last: core.
 
 Theorem soundness: forall (Gamma: context) (e: tm) (uty:underty),
     Gamma \C- e \Tin uty -> tmR_in_ctx Gamma uty e.
@@ -106,31 +49,61 @@ Proof with eauto.
            (fun Gamma v uty H => tmR_in_ctx Gamma uty (tvalue v))
            (fun Gamma e uty H => tmR_in_ctx Gamma uty e)); intros Gamma.
   (* constant *)
-  - intros. apply mk_eq_constant_implies_denotation.
-  (* var *) (* some context trick *)
-  - apply under_var_implies_denotation.
-  - admit.
-  (* lam *) (* some context trick *)
-  - admit. - admit.
+  - intros c Hinv.
+    apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty); auto. rewrite app_nil_r...
+  (* var under *)
+  - intros x tau Hinv Hfind. apply l_find_right_most_some_spec in Hfind.
+    destruct Hfind as (Gamma1 & Gamma2 & Hctxconcat & HGamma2). subst.
+    rewrite app_assoc... rewrite app_assoc in Hinv.
+    eapply tmR_in_ctx_post_weakening with (Gamma2 := Gamma2)...
+    + apply ctx_inv_implies_prefix_ctx_inv in Hinv...
+    + apply under_variable_has_same_type_in_ctx...
+   (* var over *)
+  - intros T x Hinv (phi & Hfind). apply l_find_right_most_some_spec in Hfind.
+    destruct Hfind as (Gamma1 & Gamma2 & Hctxconcat & HGamma2). subst.
+    rewrite app_assoc. rewrite app_assoc in Hinv.
+    eapply tmR_in_ctx_post_weakening with (Gamma1 := (Gamma1 ++ ((x, Oty ({{v:T | phi}}))::nil))) (Gamma2 := Gamma2)...
+    apply over_variable_has_eq_type_in_ctx.
+  (* lam *)
+  - intros. apply tmR_in_ctx_preserve_oarr...
+  - intros. apply tmR_in_ctx_preserve_arrarr...
   (* value *)
   - auto.
   (* err *)
-  - apply err_typecheck_implies_err_denotation.
-  (* sub *) (* some context trick *)
-  - intros e tau1 tau2 Ht1 Hd1 Hsub Hwf2 Hwfctx. unfold 
+  - intros T Hinv.
+    assert (tmR_in_ctx l_empty (mk_bot T) texn)... unfold mk_bot.
+    repeat constructor... intros. inversion H0.
+    apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)... rewrite app_nil_r...
+    constructor...
+  (* sub *)
+  - intros e tau1 tau2 Ht1 Hd1 Hsub Hwf2 Hctx.
+    apply is_subtype_spec with (e:=e) in Hsub...
+    eapply tmR_in_ctx_pre_weakening... apply app_nil_r.
+  (* eq *)
+  - intros e tau1 tau2 He HeD Hsub1 Hsub2 Hwf Hinv.
+    eapply is_subtype_spec...
   (* merge *)
-  - unfold disjunct. intros. rewrite <- d...
+  - intros e tau1 tau2 tau3 He1 He1D He2 He2D Hdisj Hwf. unfold disjunct in Hdisj. rewrite <- Hdisj...
   (* lete *)
-  - admit.
+  - intros x e_x e tau tau_x Hex HexD He HeD Hwf.
+    assert (ctx_inv (Gamma <l> x :l: tau_x)). eapply type_judgement_implies_inv...
+    apply lete_ctx_inv_implies_safe_dropping_1_to_1 with (x:=x) (tau:=tau) (e:=e) (tau_x := tau_x)...
   (* letop *)
-  - admit.
-  (* letapp_funcarg *)
-  - admit.
+  - intros x op v1 v2 e tau phi1 phi2 Hv1 Hv1D Hv2 Hv2D He HeD Hwf.
+    assert (ctx_inv (Gamma <l> x :l: (mk_op_retty_from_cids op v1 v2))). eapply type_judgement_implies_inv...
+    assert (ctx_inv Gamma). eapply type_judgement_implies_inv... constructor...
+    apply tletbiop_ctx_inv_implies_safe_dropping_1_to_1...
+  (* letapp_arrarr *)
+  - intros x v1 v2 e tau tauarg tau_x Hv1 Hv1D Hv2 Hv2D He HeD Hwf.
+    assert (ctx_inv (Gamma <l> x :l: tau_x)). eapply type_judgement_implies_inv...
+    assert (ctx_inv Gamma). eapply type_judgement_implies_inv... constructor...
+    eapply tletapp_arrarr_ctx_inv_implies_safe_dropping_1_to_1...
   (* letapp_const *)
-  - admit.
-  (* letapp_var *)
-  - admit.
-Admitted.
+  - intros x v1 c2 e tau T phi a tau_x Hv1 Hv1D Hv2 Hv2D He HeD Hwf.
+    assert (ctx_inv (Gamma <l> x :l: (under_subst_cid a c2 tau_x))). eapply type_judgement_implies_inv...
+    assert (ctx_inv Gamma). eapply type_judgement_implies_inv... constructor...
+    eapply tletapp_oarr_ctx_inv_implies_safe_dropping_1_to_1...
+Qed.
 
 Lemma coverage: forall (e: tm) (T:basic_ty) (phi: constant -> Prop),
     l_empty \C- e \Tin [[v: T | fun _ c => phi c ]] ->
@@ -142,4 +115,4 @@ Proof with eauto.
   inversion H2; subst. simpl in H2, H4.
   destruct H4 as (_ & _ & Hprop).
   apply Hprop; auto.
-Qed
+Qed.

@@ -40,15 +40,8 @@ Lemma is_subtype_spec: forall Gamma t1 t2,
     (forall e, tmR_in_ctx Gamma t1 e -> tmR_in_ctx Gamma t2 e).
 Admitted.
 
-(* closing judgement *)
-Definition closing_with_drop (Gamma1 Gamma2: context) (tau: underty) :=
-  well_formed Gamma1 tau /\ (forall e, tmR_in_ctx Gamma1 tau e <-> tmR_in_ctx (Gamma1 ++ Gamma2) tau e).
+(* (* closing judgement *) *)
+(* Definition closing_with_drop (Gamma1 Gamma2: context) (tau: underty) := *)
+(*   well_formed Gamma1 tau /\ (forall e, tmR_in_ctx Gamma1 tau e <-> tmR_in_ctx (Gamma1 ++ Gamma2) tau e). *)
 
-Notation "Gamma1 '\<' Gamma2 '\>' '\C-' tau " := (closing_with_drop Gamma1 Gamma2 tau) (at level 40).
-
-(* disjunction judgement *)
-
-Definition disjunct (Gamma: context) (tau1 tau2 tau3: underty) :=
-  (forall e, tmR_in_ctx Gamma tau1 e /\ tmR_in_ctx Gamma tau2 e <-> tmR_in_ctx Gamma tau3 e).
-
-Notation "Gamma '\C-' tau1 '\tyor' tau2 '\tyeq' tau3 " := (disjunct Gamma tau1 tau2 tau3) (at level 40).
+(* Notation "Gamma1 '\<' Gamma2 '\>' '\C-' tau " := (closing_with_drop Gamma1 Gamma2 tau) (at level 40). *)

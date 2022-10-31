@@ -107,10 +107,9 @@ Proof.
          (fun v => forall T Gamma Gamma', includedin Gamma Gamma' -> (Gamma  |- v \Vin T -> Gamma' |- v \Vin T))
          (fun e => forall T Gamma Gamma', includedin Gamma Gamma' -> (Gamma  |- e \in T -> Gamma' |- e \in T))).
   - intros; inversion H0; subst; eauto 7 using includedin_update.
-  - intros; inversion H0; subst; eauto 7 using includedin_update.
   - intros; inversion H1; subst; eauto 7 using includedin_update.
   - intros; inversion H0; subst; eauto 7 using includedin_update.
-  - intros. inversion H1; subst; eauto 7 using includedin_update.
+  - intros; inversion H1; subst; eauto 7 using includedin_update.
   - intros; inversion H2; subst; eauto 7 using includedin_update.
   - intros; inversion H3; subst; eauto 7 using includedin_update.
   (* - intros. inversion H2; subst; eauto 7 using includedin_update. *)
@@ -253,8 +252,10 @@ Proof with eauto.
   intro t.
   apply (tm_mutual_rec
            (fun ev => forall Gamma x U v T, (x |-> U ; Gamma) |- ev \Vin T ->  empty |- v \Vin U ->  Gamma |- [x:=v]v ev \Vin T)
-           (fun e => forall Gamma x U v T, (x |-> U ; Gamma) |- e \in T ->  empty |- v \Vin U ->  Gamma |- [x:=v] e \in T)
-           substitution_preserves_typing1 substitution_preserves_typing2).
+           (fun e => forall Gamma x U v T, (x |-> U ; Gamma) |- e \in T ->  empty |- v \Vin U ->  Gamma |- [x:=v] e \in T)).
+  - intro c. destruct c.
+    + induction c; intros; inversion H; clear H; subst; simpl; eauto.
+    + apply substitution_preserves_typing2.
   - intros. inversion H0; subst; simpl; eauto.
     destruct (eqb_spec x s); subst.
     + rewrite update_shadow in H7...
@@ -282,4 +283,15 @@ Proof with eauto.
   - apply T_Lete with (T1 := T_y)...
     apply substitution_preserves_typing with T_x...
     inversion H0; subst...
+Qed.
+
+Theorem preservation_value : forall t (v: value) T,
+    empty |- t \in T  -> t -->* v  ->
+                  empty |- v \Vin T.
+Proof.
+Admitted.
+
+Definition any_ctx_const_nat_typed_is_nat: forall Gamma (c: constant), Gamma |- c \Vin TNat -> exists (n: nat), c = n.
+Proof with eauto.
+  intros. inversion H; subst. exists n...
 Qed.

@@ -91,3 +91,14 @@ Definition overunderty_erase (aty: overunderty): ty :=
 Notation " 'u\_' ty '_/' " := (underty_erase ty) (at level 30).
 Notation " 'o\_' ty '_/' " := (overbasety_erase ty) (at level 30).
 Notation " 'ou\_' ty '_/' " := (overunderty_erase ty) (at level 30).
+
+
+Definition eval_cid (st: state) (v: cid) :=
+  match v with
+  | vconst c => c
+  | vvar name => st name
+  end.
+
+Definition mk_op_retty_from_cids (op: biop) (cid1 cid2: cid): underty :=
+  BaseUnder (op_ret_ty op)
+  (fun st c => (exists (n1 n2: nat), eval_cid st cid1 = n1 /\ eval_cid st cid2 = n2 /\ c = apply_op op n1 n2)).

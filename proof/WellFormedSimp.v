@@ -29,6 +29,14 @@ Qed.
 Definition ncontxt := linear_context ty.
 Definition lcontxt := linear_context overunderty.
 
+Fixpoint ncontxt_to_basic_ctx_aux (Gamma: ncontxt) (ctx: partial_map ty) :=
+  match Gamma with
+  | nil => ctx
+  | (x, xty) :: Gamma => ncontxt_to_basic_ctx_aux Gamma (update ctx x xty)
+  end.
+
+Definition ncontxt_to_basic_ctx (Gamma: ncontxt) := ncontxt_to_basic_ctx_aux Gamma empty.
+
 Inductive well_formed_refinement : ncontxt -> basic_ty -> refinement -> Prop :=
 | well_formed_refinement_nil: forall T phi, is_closed_refinement T phi -> well_formed_refinement [] T phi
 | well_formed_refinement_cons: forall x T Gamma Tphi phi,
@@ -74,6 +82,14 @@ Fixpoint erase_basetypectx (Gamma: basecontxt): ncontxt :=
   | (x, Ubase T _)::Gamma => (x, TBasic T)::(erase_basetypectx Gamma)
   end.
 
+Fixpoint erase_lctx (Gamma: lcontxt): ncontxt :=
+  match Gamma with
+  | nil => nil
+  | (x, tau)::Gamma => (x, ou\_ tau _/)::(erase_lctx Gamma)
+  end.
+
+Definition lctx_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx_aux (erase_lctx Gamma) empty.
+
 Inductive well_formed_in_basectx : basecontxt -> overunderty -> Prop :=
 | well_formed_base1: forall Gamma (T: basic_ty) phi,
     well_formed_refinement (erase_basetypectx Gamma) T phi ->
@@ -107,6 +123,17 @@ Fixpoint lcontxt_to_baseconctx (Gamma: lcontxt): basecontxt :=
 Definition well_formed (Gamma: lcontxt) (tau: overunderty):=
   well_formed_in_basectx (lcontxt_to_baseconctx Gamma) tau.
 
+Lemma well_formed_add_post: forall (Gamma1 Gamma2: lcontxt) (tau: overunderty),
+    well_formed Gamma1 tau -> well_formed (Gamma1 ++ Gamma2) tau.
+Admitted.
+
+Lemma well_formed_add_pre: forall (Gamma1 Gamma2: lcontxt) (tau: overunderty),
+    well_formed Gamma2 tau -> well_formed (Gamma1 ++ Gamma2) tau.
+Admitted.
+
+Global Hint Resolve well_formed_add_pre: core.
+Global Hint Resolve well_formed_add_post: core.
+
 Fixpoint erase_arr_bindings (Gamma: lcontxt): lcontxt :=
   match Gamma with
   | nil => nil
@@ -133,6 +160,8 @@ Proof.
   unfold well_formed. setoid_rewrite <- erase_arr_bindings_spec. reflexivity.
 Qed.
 
+Definition lcontxt_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx (erase_basetypectx (lcontxt_to_baseconctx Gamma)).
+
 Inductive well_formed_ctx: lcontxt -> Prop :=
 | well_formed_ctx_nil: well_formed_ctx nil
 | well_fromed_ctx_cons: forall x tau_x Gamma,
@@ -142,6 +171,9 @@ Inductive well_formed_ctx: lcontxt -> Prop :=
 
 Global Hint Constructors well_formed_ctx: core.
 
+
+
+
 Lemma well_formed_ctx_prefix: forall Gamma1 Gamm2,
     well_formed_ctx (Gamma1 ++ Gamm2) -> well_formed_ctx Gamma1.
 Admitted.
@@ -150,34 +182,33 @@ Lemma well_fromed_ctx_even_without_arr_bindings: forall Gamma,
     well_formed_ctx Gamma -> well_formed_ctx (erase_arr_bindings Gamma).
 Admitted.
 
-Definition appear_free_in_refinement (name: string) T (phi: refinement): Prop :=
+Definition appear_free_in_refinement (name: string) (phi: refinement): Prop :=
   (exists st (c1 c2:constant),
-      empty |- c1 \Vin T /\ empty |- c2 \Vin T /\
       phi (t_update st name c1) <> phi (t_update st name c2)
   ).
 
-Definition appear_free_in_overbasety (name: string) T (oty: overbasety): Prop :=
+Definition appear_free_in_overbasety (name: string) (oty: overbasety): Prop :=
   match oty with
-  | {{v: _ | phi }} => appear_free_in_refinement name T phi
+  | {{v: _ | phi }} => appear_free_in_refinement name phi
   end.
 
-Fixpoint appear_free_in_underarrowty (name: string) T (uty: underarrowty): Prop :=
+Fixpoint appear_free_in_underarrowty (name: string) (uty: underarrowty): Prop :=
   match uty with
   | DependArrow x xty retty =>
-      appear_free_in_overbasety name T xty \/ (x <> name /\ appear_free_in_underty name T retty)
+      appear_free_in_overbasety name xty \/ (x <> name /\ appear_free_in_underty name retty)
   | IndependArrow t1 t2 =>
-      appear_free_in_underarrowty name T t1 \/ appear_free_in_underty name T t2
+      appear_free_in_underarrowty name t1 \/ appear_free_in_underty name t2
   end
-with appear_free_in_underty (name: string) T (uty: underty): Prop :=
+with appear_free_in_underty (name: string) (uty: underty): Prop :=
        match uty with
-       | [[v: _ | phi ]] => appear_free_in_refinement name T phi
-       | ArrowUnder ty => appear_free_in_underarrowty name T ty
+       | [[v: _ | phi ]] => appear_free_in_refinement name phi
+       | ArrowUnder ty => appear_free_in_underarrowty name ty
        end.
 
-Definition appear_free_in_overunderty (name: string) T (overunderty: overunderty): Prop :=
+Definition appear_free_in_overunderty (name: string) (overunderty: overunderty): Prop :=
   match overunderty with
-  | Uty uty => appear_free_in_underty name T uty
-  | Oty oty => appear_free_in_overbasety name T oty
+  | Uty uty => appear_free_in_underty name uty
+  | Oty oty => appear_free_in_overbasety name oty
   end.
 Notation " x '\FVty' e " := (appear_free_in_overunderty x e) (at level 40).
 
@@ -267,6 +298,12 @@ Definition overunder_subst_c (x1: string) (c2: constant) (outy: overunderty): ov
   match outy with
   | Uty uty => under_subst_c x1 c2 uty
   | Oty oty => over_subst_c x1 c2 oty
+  end.
+
+Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
+  match cv with
+  | vconst c => under_subst_c x1 c outy
+  | vvar id => under_subst_id x1 id outy
   end.
 
 Notation " '<r[' x '|c->' y ']>' uty " := (refinement_subst_c x y uty) (at level 40).

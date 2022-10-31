@@ -15,5 +15,7 @@ NormalTypeSystemSimp.v
 RfTypeDef.v
 WellFormedSimp.v
 DenotationSimp.v
+TypeDisj.v
+CtxInvariantSimp.v
 SubtypingSimp.v
 TypingRules.v

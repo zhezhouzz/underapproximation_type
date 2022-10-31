@@ -38,6 +38,17 @@ Notation " m '<l>' x ':l:' ty " := (l_append m x ty) (at level 80).
 Global Hint Rewrite app_nil_l: core.
 Global Hint Rewrite app_nil_r: core.
 
+(* Some lemmas. *)
+
+Lemma app_one_eq_nil {A: Type}: forall (x: string) (tau:A) Gamma, ~ ([] = Gamma ++ [(x, tau)]).
+Proof.
+  intros. intro H. symmetry in H. apply app_eq_nil in H. destruct H. inversion H0.
+Qed.
+
+Lemma app_one_is_cons {A: Type}: forall (x: A) l, (x::nil) ++ l = x :: l.
+Proof. simpl. reflexivity. Qed.
+
+
 (* Declare Scope linear_context_scope. *)
 (* Notation "G[ ]" := nil (format "G[ ]") : linear_context_scope. *)
 (* Notation " context 'G::' x " := (cons x context) (at level 80) : linear_context_scope. *)
