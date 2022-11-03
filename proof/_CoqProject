@@ -18,6 +18,7 @@ TypeClosedSimp.v
 DenotationSimp.v
 TypeDisj.v
 WellFormedSimp.v
+DenotationSpecsSimp.v
 SubtypingSimp.v
 TypingRules.v
 Soundness.v

@@ -23,6 +23,11 @@ Inductive underty : Type :=
 
 Global Hint Constructors underty: core.
 
+Notation "'[[v:' t '|' r ']]'" := (BaseUnder t r) (at level 80).
+Notation "'{{v:' t '|' r '}}'" := (BaseOver t r) (at level 80).
+Notation " x 'o:' overbasety 'o-->' retty " := (DependArrow x overbasety retty) (at level 80).
+Notation " underty 'u-->' retty " := (IndependArrow underty retty) (at level 80).
+
 (* Fixpoint well_formed_underty_bool (tau: underty): bool := *)
 (*   match tau with *)
 (*   | BaseUnder _ _ => true *)
@@ -38,18 +43,6 @@ Global Hint Constructors underty: core.
 (*         false *)
 (*   end. *)
 
-Inductive well_formed_underty: underty -> Prop :=
-| well_formed_underty_base: forall T phi, well_formed_underty (BaseUnder T phi)
-| well_formed_underty_oarr: forall a T phi tau, well_formed_underty tau -> well_formed_underty (DependArrow a (BaseOver T phi) tau)
-| well_formed_underty_arrarr1: forall a tau_a tau tau',
-    well_formed_underty (DependArrow a tau_a tau) -> well_formed_underty tau' ->
-    well_formed_underty (IndependArrow (DependArrow a tau_a tau) tau')
-| well_formed_underty_arrarr2: forall t1 t2 tau',
-    well_formed_underty (IndependArrow t1 t2) -> well_formed_underty tau' ->
-    well_formed_underty (IndependArrow (IndependArrow t1 t2) t2).
-
-Global Hint Constructors well_formed_underty: core.
-
 (* Definition well_formed_underty (tau : underty): Prop := well_formed_underty_bool tau = true. *)
 
 Inductive overunderty : Type :=
@@ -58,24 +51,35 @@ Inductive overunderty : Type :=
 
 Global Hint Constructors overunderty: core.
 
+Coercion Uty : underty >-> overunderty.
+Coercion Oty : overbasety >-> overunderty.
+
+(* Inductive well_formed_type: overunderty -> Prop := *)
+(* | well_formed_type_over: forall (tau: overbasety), well_formed_type (Oty tau) *)
+(* | well_formed_type_under: forall tau, well_formed_underty tau -> well_formed_type (Uty tau). *)
+
+(* Global Hint Constructors well_formed_underty: core. *)
+
 Inductive well_formed_type: overunderty -> Prop :=
-| well_formed_type_over: forall (tau: overbasety), well_formed_type (Oty tau)
-| well_formed_type_under: forall tau, well_formed_underty tau -> well_formed_type (Uty tau).
+| well_formed_type_over_base: forall T phi, well_formed_type (BaseOver T phi)
+| well_formed_type_under_base: forall T phi, well_formed_type (BaseUnder T phi)
+| well_formed_type_oarr: forall a (tau_a: overbasety) (tau: underty),
+    well_formed_type tau -> well_formed_type (DependArrow a tau_a tau)
+| well_formed_type_arrarr1: forall a tau_a (tau tau': underty),
+    well_formed_type (DependArrow a tau_a tau) -> well_formed_type tau' ->
+    well_formed_type (IndependArrow (DependArrow a tau_a tau) tau')
+| well_formed_type_arrarr2: forall (t1 t2 tau':underty),
+    well_formed_type (IndependArrow t1 t2) -> well_formed_type tau' ->
+    well_formed_type (IndependArrow (IndependArrow t1 t2) tau').
 
 Global Hint Constructors well_formed_type: core.
 
-Coercion Uty : underty >-> overunderty.
-Coercion Oty : overbasety >-> overunderty.
 
 Definition over_to_under (ot: overbasety) :=
   match ot with
   | BaseOver t phi => BaseUnder t phi
   end.
 
-Notation "'[[v:' t '|' r ']]'" := (BaseUnder t r) (at level 80).
-Notation "'{{v:' t '|' r '}}'" := (BaseOver t r) (at level 80).
-Notation " x 'o:' overbasety 'o-->' retty " := (DependArrow x overbasety retty) (at level 80).
-Notation " underty 'u-->' retty " := (IndependArrow underty retty) (at level 80).
 
 Fixpoint underty_erase (ut: underty) : ty :=
   match ut with

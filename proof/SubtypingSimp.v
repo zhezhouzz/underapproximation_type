@@ -17,25 +17,25 @@ Import DenotationSimp.
 Import ListNotations.
 
 (* subtyping judgement *)
-Inductive is_subtype : state -> context -> underty -> underty -> Prop :=
-| Sub_UBase: forall st Gamma T phi1 phi2,
-    (forall e, tmR_in_ctx_aux st Gamma ([[v: T | phi1 ]]) e -> tmR_in_ctx_aux st Gamma ([[v: T | phi2 ]]) e) ->
-    is_subtype st Gamma ([[v: T | phi1 ]]) ([[v: T | phi2 ]])
-| Sub_IndependArrow_IndependArrow: forall st Gamma (tau11 tau21: underty) (tau12 tau22: underty),
-    is_subtype st Gamma tau21 tau11 ->
-    is_subtype st Gamma tau12 tau22 ->
-    is_subtype st Gamma (tau11 u--> tau12) (tau21 u--> tau22)
-| Sub_DependArrow_DependArrow: forall st Gamma T x phi11 phi21 (tau12 tau22: underty),
+Inductive is_subtype : context -> underty -> underty -> Prop :=
+| Sub_UBase: forall Gamma T phi1 phi2,
+    (forall e, tmR_in_ctx_all_st Gamma ([[v: T | phi1 ]]) e -> tmR_in_ctx_all_st Gamma ([[v: T | phi2 ]]) e) ->
+    is_subtype Gamma ([[v: T | phi1 ]]) ([[v: T | phi2 ]])
+| Sub_IndependArrow_IndependArrow: forall Gamma (tau11 tau21: underty) (tau12 tau22: underty),
+    is_subtype Gamma tau21 tau11 ->
+    is_subtype Gamma tau12 tau22 ->
+    is_subtype Gamma (tau11 u--> tau12) (tau21 u--> tau22)
+| Sub_DependArrow_DependArrow: forall Gamma T x phi11 phi21 (tau12 tau22: underty),
     (* We flip the overty to underty here *)
-    is_subtype st Gamma ([[v: T | phi11 ]]) ([[v: T | phi21 ]]) ->
-    is_subtype st (Gamma <l> x :l: ({{v: T | phi21 }})) tau12 tau22 ->
-    is_subtype st Gamma (x o: {{v: T | phi11 }} o--> tau12) (x o: {{v: T | phi21 }} o--> tau22).
+    is_subtype Gamma ([[v: T | phi11 ]]) ([[v: T | phi21 ]]) ->
+    is_subtype (Gamma <l> x :l: ({{v: T | phi21 }})) tau12 tau22 ->
+    is_subtype Gamma (x o: {{v: T | phi11 }} o--> tau12) (x o: {{v: T | phi21 }} o--> tau22).
 
-Notation "Gamma '\C-' t1 '\<:' t2" := (is_subtype empstate Gamma t1 t2) (at level 40).
+Notation "Gamma '\C-' t1 '\<:' t2" := (is_subtype Gamma t1 t2) (at level 40).
 
-Lemma is_subtype_spec: forall st Gamma t1 t2,
-    is_subtype st Gamma t1 t2 ->
-    (forall e, tmR_in_ctx_aux st Gamma t1 e -> tmR_in_ctx_aux st Gamma t2 e).
+Lemma is_subtype_spec: forall Gamma t1 t2,
+    is_subtype Gamma t1 t2 ->
+    (forall e, tmR_in_ctx_all_st Gamma t1 e -> tmR_in_ctx_all_st Gamma t2 e).
 Admitted.
 
 (* (* closing judgement *) *)

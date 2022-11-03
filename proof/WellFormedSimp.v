@@ -22,7 +22,7 @@ Inductive ctx_inv: context -> Prop:=
 | ctx_inv_cons_under: forall Gamma x (tau: overunderty),
     ctx_inv Gamma ->
     type_closed_ctx (Gamma ++ ((x, tau)::nil)) ->
-    (forall e, tmR_in_ctx Gamma tau e -> (exists (v: value), e -->* v)) ->
+    (forall e, tmR_in_ctx_all_st Gamma tau e -> (exists (v: value), e -->* v)) ->
     ctx_inv (Gamma ++ ((x, tau)::nil)).
 
 Global Hint Constructors ctx_inv: core.
@@ -33,7 +33,7 @@ Global Hint Constructors ctx_inv: core.
 (*     (well_formed_ctx (Gamma ++ ((x, tau)::nil)) /\ *)
 (*        ctx_inv Gamma /\ *)
 (*        l_find_right_most Gamma x = None /\ *)
-(*        (forall e, tmR_in_ctx Gamma tau e -> (exists (v: value), e -->* v))). *)
+(*        (forall e, tmR_in_ctx_all_st Gamma tau e -> (exists (v: value), e -->* v))). *)
 (* Proof. *)
 (*   intros. *)
 (*   inversion H. *)
@@ -84,43 +84,43 @@ Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
 Lemma lete_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
     ~ appear_free_in_underty x tau_x ->
     ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
-    (forall e, tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
-          (forall e_x, tmR_in_ctx Gamma tau_x e_x -> tmR_in_ctx Gamma tau (tlete x e_x e))).
+    (forall e, tmR_in_ctx_all_st (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
+          (forall e_x, tmR_in_ctx_all_st Gamma tau_x e_x -> tmR_in_ctx_all_st Gamma tau (tlete x e_x e))).
 Admitted.
 
 Lemma tletbiop_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau,
     (forall e op (v1 v2: cid),
         ctx_inv (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) ->
-        tmR_in_ctx (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) tau e ->
-        tmR_in_ctx (Gamma <l> x :l: ((mk_op_retty_from_cids op v1 v2))) tau e ->
-        tmR_in_ctx Gamma tau (tletbiop x op v1 v2 e)).
+        tmR_in_ctx_all_st (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) tau e ->
+        tmR_in_ctx_all_st (Gamma <l> x :l: ((mk_op_retty_from_cids op v1 v2))) tau e ->
+        tmR_in_ctx_all_st Gamma tau (tletbiop x op v1 v2 e)).
 Admitted.
 
 Lemma tletapp_oarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
     (forall e (v1: value) (v2: cid) a T phi1,
-        tmR_in_ctx Gamma (a o: {{v: T | phi1}} o--> tau_x) v1 ->
-        tmR_in_ctx Gamma ([[v: T | phi1]]) v2 ->
+        tmR_in_ctx_all_st Gamma (a o: {{v: T | phi1}} o--> tau_x) v1 ->
+        tmR_in_ctx_all_st Gamma ([[v: T | phi1]]) v2 ->
         ctx_inv (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) ->
-        tmR_in_ctx (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) tau e ->
-        tmR_in_ctx Gamma tau (tletapp x v1 v2 e)).
+        tmR_in_ctx_all_st (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) tau e ->
+        tmR_in_ctx_all_st Gamma tau (tletapp x v1 v2 e)).
 Admitted.
 
 Lemma tletapp_arrarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
     ~ appear_free_in_underty x tau_x ->
     ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
-    (forall e, tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
+    (forall e, tmR_in_ctx_all_st (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
           (forall (v1 v2: value) t1,
-              tmR_in_ctx Gamma (t1 u--> tau_x) v1 ->
-              tmR_in_ctx Gamma t1 v2 ->
-              tmR_in_ctx Gamma tau (tletapp x v1 v2 e))).
+              tmR_in_ctx_all_st Gamma (t1 u--> tau_x) v1 ->
+              tmR_in_ctx_all_st Gamma t1 v2 ->
+              tmR_in_ctx_all_st Gamma tau (tletapp x v1 v2 e))).
 Admitted.
 
 
 (* Lemma ctx_inv_denotation_right_destruct: forall Gamma x (xty: underty) (tau: underty) e, *)
 (*     ctx_inv (Gamma ++ ((x, Uty xty)::nil)) -> *)
-(*     tmR_in_ctx (Gamma ++ ((x, Uty xty)::nil)) tau e -> *)
+(*     tmR_in_ctx_all_st (Gamma ++ ((x, Uty xty)::nil)) tau e -> *)
 (*     (name_not_free_in_ctx_and_ty x Gamma tau) -> *)
-(*     (exists e_x, tmR_in_ctx Gamma xty e_x /\ tmR_in_ctx Gamma tau (tlete x e_x e)). *)
+(*     (exists e_x, tmR_in_ctx_all_st Gamma xty e_x /\ tmR_in_ctx_all_st Gamma tau (tlete x e_x e)). *)
 (* Proof with eauto. *)
 (*   intros Gamma. *)
 (*   induction Gamma; simpl; intros. *)
@@ -151,15 +151,15 @@ Lemma ctx_inv_drop_last_weakening: forall Gamma x xty,
     ctx_inv ((x, xty)::Gamma) ->
     (forall tau,
         type_closed Gamma tau ->
-        (forall e, tmR_in_ctx Gamma tau e -> tmR_in_ctx ((x, xty)::Gamma) tau e)).
+        (forall e, tmR_in_ctx_all_st Gamma tau e -> tmR_in_ctx_all_st ((x, xty)::Gamma) tau e)).
 Proof with eauto.
-  intros Gamma x xty H tau Hwf.
+  intros Gamma x xty H tau Hwf e st st'.
   eapply tmR_in_ctx_pre_weakening... apply app_one_is_cons.
 Qed.
 
 (* Lemma tmR_in_ctx_post_weakening: forall Gamma (tau: underty), *)
 (*     well_formed l_empty tau -> *)
-(*     (forall e, tmR_in_ctx l_empty tau e -> tmR_in_ctx Gamma tau e). *)
+(*     (forall e, tmR_in_ctx_all_st l_empty tau e -> tmR_in_ctx_all_st Gamma tau e). *)
 (* Proof with eauto. *)
 (* Admitted. *)
 

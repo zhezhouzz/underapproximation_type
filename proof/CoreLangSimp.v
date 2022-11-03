@@ -103,6 +103,21 @@ with value_subst (x:string) (s:value) (t:value) : value :=
        | vlam y T t1 => vlam y T (if String.eqb x y then t1 else (subst x s t1))
        end.
 
+Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
+Notation "'[' x ':=' s ']v' t" := (value_subst x s t) (at level 20).
+
+Global Hint Constructors value: core.
+Global Hint Constructors tm: core.
+
+Lemma subst_letapp_penetrate: forall a c_a x v1 v2, ([a := c_a] tletapp x v1 v2 x) = (tletapp x ([a := c_a]v v1) ([a := c_a]v v2) x).
+Proof.
+  intros. simpl.
+  destruct (eqb_spec a x); reflexivity.
+Qed.
+
+Global Hint Resolve subst_letapp_penetrate: core.
+Global Hint Rewrite subst_letapp_penetrate: core.
+
 Inductive eval_op: biop -> constant -> constant -> constant -> Prop :=
 | eval_op_plus: forall (a b: nat), eval_op op_plus a b (a + b)
 | eval_op_eq: forall (a b: nat), eval_op op_eq a b (Nat.eqb a b)
@@ -110,14 +125,6 @@ Inductive eval_op: biop -> constant -> constant -> constant -> Prop :=
 | eval_op_rannat: forall (a b c: nat), eval_op op_rannat a b c.
 
 Global Hint Constructors eval_op: core.
-
-Reserved Notation "t1 '-->' t2" (at level 40).
-
-Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
-Notation "'[' x ':=' s ']v' t" := (value_subst x s t) (at level 20).
-
-Global Hint Constructors value: core.
-Global Hint Constructors tm: core.
 
 Reserved Notation "t1 '-->' t2" (at level 40).
 
