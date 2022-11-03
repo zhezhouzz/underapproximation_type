@@ -77,6 +77,13 @@ let do_solve_pres pres =
   let ot_uqvs, ot_pre = aux pres in
   (ot_uqvs, P.peval ot_pre)
 
+let max_uqvs_num = ref 0
+let max_eqvs_num = ref 0
+
+let record_max_qvs_num a b =
+  let num = List.length b in
+  if !a < num then a := num else ()
+
 let solve_pres file line pres (t1, t2) =
   let name1, nt1, prop1 = UT.assume_base __FILE__ __LINE__ t1 in
   let name2, nt2, prop2 = UT.assume_base __FILE__ __LINE__ t2 in
@@ -102,6 +109,8 @@ let solve_pres file line pres (t1, t2) =
   in
   let final_pre = P.And [ ot_pre; pre2 ] in
   let final_uqvs = ot_uqvs @ (nu :: eq2) in
+  let () = record_max_qvs_num max_uqvs_num final_uqvs in
+  let () = record_max_qvs_num max_eqvs_num final_eqvs in
   do_check file line (final_uqvs, final_eqvs, final_pre, final_post)
 
 let check_in name t = List.exists (String.equal name) @@ UT.fv t
@@ -205,8 +214,15 @@ let subtyping_check_ file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
   in
   aux ctx (inferred_ty, target_ty)
 
+let subtyping_check_counter = ref 0
+let subtyping_check_counter_set0 () = subtyping_check_counter := 0
+
+let subtyping_check_counter_plus1 () =
+  subtyping_check_counter := !subtyping_check_counter + 1
+
 let subtyping_check file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
     (target_ty : UT.t) =
+  let () = subtyping_check_counter_plus1 () in
   try subtyping_check_ file line ctx inferred_ty target_ty with
   | Autov.FailWithModel (msg, m) ->
       let () = Pp.printf "@{<orange>Under Type Check failed:@}%s\n" msg in

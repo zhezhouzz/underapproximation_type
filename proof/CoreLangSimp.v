@@ -14,22 +14,26 @@ Ltac invert :=
 (* ----------------------------------------------------------------- *)
 (** *** Syntax *)
 
-Inductive basic_ty : Type :=
-| TNat   : basic_ty
-| TBool  : basic_ty.
+Inductive base_ty : Type :=
+| TNat   : base_ty
+| TBool  : base_ty.
 
 Inductive constant : Type :=
 | cbool: bool -> constant
 | cnat : nat -> constant.
 
+Global Hint Constructors constant: core.
+
 Lemma constant_eqb_spec: forall (c c': constant), c = c' \/ c <> c'.
 Admitted.
 
 Inductive ty : Type :=
-| TBasic : basic_ty -> ty
+| TBase : base_ty -> ty
 | TArrow : ty -> ty -> ty.
 
-Coercion TBasic : basic_ty >-> ty.
+Global Hint Constructors ty: core.
+
+Coercion TBase : base_ty >-> ty.
 Coercion cbool : bool >-> constant.
 Coercion cnat : nat >-> constant.
 Notation " t1 't-->' t2 " := (TArrow t1 t2) (at level 20).
@@ -37,13 +41,17 @@ Notation " t1 't-->' t2 " := (TArrow t1 t2) (at level 20).
 Inductive biop : Type :=
 | op_plus
 | op_eq
-| op_lt.
+| op_lt
+| op_rannat.
 
 Inductive cid: Type :=
 | vconst: constant -> cid
 | vvar: string -> cid.
 
+Global Hint Constructors cid: core.
+
 Inductive value : Type :=
+| vbiop: biop -> value
 | cid_value : cid -> value
 | vlam : string -> ty -> tm -> value
 with tm : Type :=
@@ -51,7 +59,8 @@ with tm : Type :=
 | tvalue: value -> tm
 | tlete: string -> tm -> tm -> tm
 | tletbiop: string -> biop -> value -> value -> tm -> tm
-| tletapp: string -> value -> value -> tm -> tm.
+| tletapp: string -> value -> value -> tm -> tm
+| tmatchb: value -> tm -> tm -> tm.
 
 Scheme value_mutual_rec := Induction for value Sort Type
     with tm_mutual_rec := Induction for tm Sort Type.
@@ -75,7 +84,7 @@ Qed.
 
 Fixpoint subst (x:string) (s:value) (t:tm) : tm :=
   match t with
-  |  texn => t
+  | texn => t
   | tvalue v => tvalue (value_subst x s v)
   | tlete x' t1 t2 =>
       tlete x' (subst x s t1) (if String.eqb x x' then t2 else (subst x s t2))
@@ -84,20 +93,25 @@ Fixpoint subst (x:string) (s:value) (t:tm) : tm :=
   | tletapp x' v1 v2 t2 =>
       tletapp x' (value_subst x s v1) (value_subst x s v2)
               (if String.eqb x x' then t2 else (subst x s t2))
+  | tmatchb v1 t1 t2 => tmatchb (value_subst x s v1) (subst x s t1) (subst x s t2)
   end
 with value_subst (x:string) (s:value) (t:value) : value :=
        match t with
-       |  vconst _ => t
-       |  vvar y => if String.eqb x y then s else t
-       |  vlam y T t1 => vlam y T (if String.eqb x y then t1 else (subst x s t1))
+       | vbiop _ => t
+       | vconst _ => t
+       | vvar y => if String.eqb x y then s else t
+       | vlam y T t1 => vlam y T (if String.eqb x y then t1 else (subst x s t1))
        end.
 
-Definition apply_op (op: biop) (a: nat) (b: nat): constant :=
-  match op with
-  | op_plus =>  (cnat (a + b))
-  | op_eq =>  (cbool (Nat.eqb a b))
-  | op_lt =>  (cbool (Nat.ltb a b))
-  end.
+Inductive eval_op: biop -> constant -> constant -> constant -> Prop :=
+| eval_op_plus: forall (a b: nat), eval_op op_plus a b (a + b)
+| eval_op_eq: forall (a b: nat), eval_op op_eq a b (Nat.eqb a b)
+| eval_op_lt: forall (a b: nat), eval_op op_lt a b (Nat.ltb a b)
+| eval_op_rannat: forall (a b c: nat), eval_op op_rannat a b c.
+
+Global Hint Constructors eval_op: core.
+
+Reserved Notation "t1 '-->' t2" (at level 40).
 
 Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
 Notation "'[' x ':=' s ']v' t" := (value_subst x s t) (at level 20).
@@ -108,12 +122,12 @@ Global Hint Constructors tm: core.
 Reserved Notation "t1 '-->' t2" (at level 40).
 
 Inductive step : tm -> tm -> Prop :=
+| ST_LetOp: forall x op c1 c2 c3 e, eval_op op c1 c2 c3 -> (tletbiop x op c1 c2 e) --> (subst x c3 e)
 | ST_Lete1: forall x e1 e1' e, e1 --> e1' -> (tlete x e1 e) --> (tlete x e1' e)
 | ST_Lete2: forall x v1 e, (tlete x (tvalue v1) e) --> (subst x v1 e)
-| ST_LetOp: forall x op n1 n2 e,
-    (tletbiop x op (vconst (cnat n1)) (vconst (cnat n2)) e) --> (subst x (vconst (apply_op op n1 n2)) e)
-| ST_LetAppLam: forall T x y v_x e1 e,
-    (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
+| ST_LetAppLam: forall T x y v_x e1 e, (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
+| ST_Matchb_true: forall e1 e2, (tmatchb true e1 e2) --> e1
+| ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e1
 where "t1 '-->' t2" := (step t1 t2).
 
 Notation multistep := (multi step).
@@ -128,9 +142,60 @@ Qed.
 
 Global Hint Constructors step: core.
 
-Definition op_ret_ty (op: biop): basic_ty :=
+(* define the basic \S{Ty} function *)
+
+Definition ty_of_const (c: constant): base_ty :=
+  match c with
+  | cnat _ => TNat
+  | cbool _ => TBool
+  end.
+
+Definition fst_ty_of_op (op: biop): base_ty :=
+  match op with
+  | op_plus => TNat
+  | op_eq => TNat
+  | op_lt => TNat
+  | op_rannat => TNat
+  end.
+
+Definition snd_ty_of_op (op: biop): base_ty :=
+  match op with
+  | op_plus => TNat
+  | op_eq => TNat
+  | op_lt => TNat
+  | op_rannat => TNat
+  end.
+
+Definition ret_ty_of_op (op: biop): base_ty :=
   match op with
   | op_plus => TNat
   | op_eq => TBool
   | op_lt => TBool
+  | op_rannat => TNat
   end.
+
+Definition ty_of_op (op: biop): ty :=
+  (fst_ty_of_op op) t--> ((snd_ty_of_op op) t--> (ret_ty_of_op op)).
+
+(* appear free *)
+
+Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
+  match v with
+  | vconst _ => False
+  | vbiop _ => False
+  | vvar x => x = id
+  | vlam x xty e => x <> id /\ appear_free_in_ttm id e
+  end
+with appear_free_in_ttm (id:string) (e:tm) : Prop :=
+       match e with
+       | tvalue v => appear_free_in_tvalue id v
+       | tlete x e_x e => appear_free_in_ttm id e_x \/ (x <> id /\ appear_free_in_ttm id e)
+       | tletbiop x op v1 v2 e =>
+           appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
+       | tletapp x v1 v2 e =>
+           appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
+       | vexn => False
+       end.
+
+Notation " x '\FVtm' e " := (appear_free_in_ttm x e) (at level 40).
+Notation " x '\FVvalue' e " := (appear_free_in_tvalue x e) (at level 40).

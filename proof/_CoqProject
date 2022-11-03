@@ -12,10 +12,12 @@ LinearContext.v
 # RefinementType.v
 CoreLangSimp.v
 NormalTypeSystemSimp.v
+TermOrdering.v
 RfTypeDef.v
-WellFormedSimp.v
+TypeClosedSimp.v
 DenotationSimp.v
 TypeDisj.v
-CtxInvariantSimp.v
+WellFormedSimp.v
 SubtypingSimp.v
 TypingRules.v
+Soundness.v

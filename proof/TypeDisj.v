@@ -4,7 +4,7 @@ From PLF Require Import CoreLangSimp.
 From PLF Require Import NormalTypeSystemSimp.
 From PLF Require Import LinearContext.
 From PLF Require Import RfTypeDef.
-From PLF Require Import WellFormedSimp.
+From PLF Require Import TypeClosedSimp.
 From PLF Require Import DenotationSimp.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
@@ -12,7 +12,7 @@ From Coq Require Import Lists.List.
 
 Import CoreLangSimp.
 Import LinearContext.
-Import WellFormedSimp.
+Import TypeClosedSimp.
 Import DenotationSimp.
 Import ListNotations.
 

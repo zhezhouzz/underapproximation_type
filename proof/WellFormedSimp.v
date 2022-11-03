@@ -1,312 +1,189 @@
 Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
 From PLF Require Import CoreLangSimp.
-From Coq Require Import Lists.List.
-From Coq Require Import Strings.String.
+From PLF Require Import NormalTypeSystemSimp.
+From PLF Require Import LinearContext.
+From PLF Require Import RfTypeDef.
+From PLF Require Import TypeClosedSimp.
+From PLF Require Import DenotationSimp.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import RfTypeDef.
-From PLF Require Import LinearContext.
+From Coq Require Import Lists.List.
+
+Import CoreLangSimp.
+Import LinearContext.
+Import TypeClosedSimp.
+Import DenotationSimp.
 Import ListNotations.
 
-Definition is_closed_refinement (_: basic_ty) (phi: refinement): Prop := forall st st', phi st = phi st'.
+(* It only makes sense when there is no duplicate bindings. *)
+Inductive ctx_inv: context -> Prop:=
+| ctx_inv_nil: ctx_inv nil
+| ctx_inv_cons_under: forall Gamma x (tau: overunderty),
+    ctx_inv Gamma ->
+    type_closed_ctx (Gamma ++ ((x, tau)::nil)) ->
+    (forall e, tmR_in_ctx Gamma tau e -> (exists (v: value), e -->* v)) ->
+    ctx_inv (Gamma ++ ((x, tau)::nil)).
 
-Global Hint Unfold is_closed_refinement: core.
+Global Hint Constructors ctx_inv: core.
 
-Lemma constant_refinement_is_closed: forall (c: constant) (phi: refinement),
-    (forall st : state, phi st = (fun c' => c = c')) -> (forall T, is_closed_refinement T phi).
-Proof.
-  intros.
-  intros st st'. rewrite H. rewrite H. auto.
+(* (* reverse induction principle. *) *)
+(* Lemma ctx_inv_rev_inversion: forall Gamma x tau, *)
+(*     ctx_inv (Gamma ++ ((x, tau)::nil)) -> *)
+(*     (well_formed_ctx (Gamma ++ ((x, tau)::nil)) /\ *)
+(*        ctx_inv Gamma /\ *)
+(*        l_find_right_most Gamma x = None /\ *)
+(*        (forall e, tmR_in_ctx Gamma tau e -> (exists (v: value), e -->* v))). *)
+(* Proof. *)
+(*   intros. *)
+(*   inversion H. *)
+(*   - apply app_one_eq_nil in H1. inversion H1. *)
+(*   - apply app_inj_tail in H0. destruct H0. inversion H5; subst. repeat split; auto. *)
+(* Qed. *)
+
+Lemma ctx_inv_implies_prefix_ctx_inv: forall Gamma2 Gamma1, ctx_inv (Gamma1 ++ Gamma2) -> ctx_inv Gamma1.
+Proof with eauto.
+  intro Gamma2.
+  induction Gamma2; intros Gamma1 H.
+  - rewrite app_nil_r in H...
+  - setoid_rewrite <- app_one_is_cons in H... rewrite app_assoc in H. apply IHGamma2 in H. inversion H...
+    + symmetry in H1. apply app_eq_nil in H1. destruct H1. inversion H1.
+    + apply app_inj_tail in H0. destruct H0; subst...
 Qed.
 
-Example true_refinement: is_closed_refinement TNat (fun _ c => c = 3).
-Proof.
-  unfold is_closed_refinement. reflexivity.
+Lemma ctx_inv_implies_type_closed_ctx: forall Gamma, ctx_inv Gamma -> type_closed_ctx Gamma.
+Proof with eauto.
+  apply (rev_ind (fun Gamma => ctx_inv Gamma -> type_closed_ctx Gamma))...
+  intros (x, xty) Gamma H Hconcat. inversion Hconcat. symmetry in H1. apply app_eq_nil in H1. destruct H1. inversion H1.
+  apply app_inj_tail in H0.
+  destruct H0; subst...
 Qed.
 
-Definition ncontxt := linear_context ty.
-Definition lcontxt := linear_context overunderty.
-
-Fixpoint ncontxt_to_basic_ctx_aux (Gamma: ncontxt) (ctx: partial_map ty) :=
-  match Gamma with
-  | nil => ctx
-  | (x, xty) :: Gamma => ncontxt_to_basic_ctx_aux Gamma (update ctx x xty)
-  end.
-
-Definition ncontxt_to_basic_ctx (Gamma: ncontxt) := ncontxt_to_basic_ctx_aux Gamma empty.
-
-Inductive well_formed_refinement : ncontxt -> basic_ty -> refinement -> Prop :=
-| well_formed_refinement_nil: forall T phi, is_closed_refinement T phi -> well_formed_refinement [] T phi
-| well_formed_refinement_cons: forall x T Gamma Tphi phi,
-    (forall (c_x: constant), empty |- c_x \Vin T ->
-                                well_formed_refinement Gamma Tphi (fun st c => phi (t_update st x c_x) c)) ->
-    well_formed_refinement ((x, T) :: Gamma) Tphi phi.
-
-Global Hint Constructors well_formed_refinement: core.
-
-Lemma well_formed_refinement_weakening: forall Gamma1 Gamma2 Gamma3 T phi,
-    (Gamma1 ++ Gamma2) = Gamma3 ->
-    well_formed_refinement Gamma2 T phi ->
-    well_formed_refinement Gamma3 T phi.
+Lemma ctx_inv_implies_fresh_binding_last:
+  forall Gamma x (tau_x: underty), ctx_inv (Gamma <l> x :l: Uty tau_x) -> ~ appear_free_in_underty x tau_x.
 Admitted.
 
-Module ExCloseRefinement.
-
-(* When the type dismatch, it is equal to bottom refinement *)
-Example true_refinement2: is_closed_refinement TNat (fun _ c => c = true).
-Proof.
-  unfold is_closed_refinement. reflexivity.
-Qed.
-
-Example refinement_under_nctx: well_formed_refinement [("x"%string, TBasic TNat)] TNat (fun st c => c = st "x"%string).
-Proof.
-  constructor. intros.
-  apply nat_value_n_exists in H. destruct H; subst.
-  constructor. constructor; subst; auto.
-Qed.
-
-End ExCloseRefinement.
-
-Inductive overunderbasety : Type :=
-| Obase: basic_ty -> refinement -> overunderbasety
-| Ubase: basic_ty -> refinement -> overunderbasety.
-
-Definition basecontxt := linear_context overunderbasety.
-
-Fixpoint erase_basetypectx (Gamma: basecontxt): ncontxt :=
-  match Gamma with
-  | nil => nil
-  | (x, Obase T _)::Gamma => (x, TBasic T)::(erase_basetypectx Gamma)
-  | (x, Ubase T _)::Gamma => (x, TBasic T)::(erase_basetypectx Gamma)
-  end.
-
-Fixpoint erase_lctx (Gamma: lcontxt): ncontxt :=
-  match Gamma with
-  | nil => nil
-  | (x, tau)::Gamma => (x, ou\_ tau _/)::(erase_lctx Gamma)
-  end.
-
-Definition lctx_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx_aux (erase_lctx Gamma) empty.
-
-Inductive well_formed_in_basectx : basecontxt -> overunderty -> Prop :=
-| well_formed_base1: forall Gamma (T: basic_ty) phi,
-    well_formed_refinement (erase_basetypectx Gamma) T phi ->
-    well_formed_in_basectx Gamma ({{v: T | phi}})
-| well_formed_base2: forall Gamma (T: basic_ty) phi,
-    well_formed_refinement (erase_basetypectx Gamma) T phi ->
-    well_formed_in_basectx Gamma ([[v: T | phi]])
-| well_formed_oarr: forall Gamma x T phi (tau: underty),
-    well_formed_in_basectx Gamma ({{v: T | phi}}) ->
-    well_formed_in_basectx ((x, Obase T phi) :: Gamma) tau ->
-    well_formed_in_basectx Gamma (x o: ({{v: T | phi}}) o--> tau)
-| well_formed_arrarr: forall Gamma (tau_x: underarrowty) (tau: underty),
-    well_formed_in_basectx Gamma tau_x ->
-    well_formed_in_basectx Gamma tau ->
-    well_formed_in_basectx Gamma (tau_x u--> tau).
-
-Global Hint Constructors well_formed_in_basectx: core.
-
-(* before erase refinement from the context, we will erase all function type bindings *)
-Fixpoint lcontxt_to_baseconctx (Gamma: lcontxt): basecontxt :=
-  match Gamma with
-  | nil => nil
-  | (x, ty)::Gamma =>
-      match ty with
-      | Oty ({{v: T | phi }}) => (x, Obase T phi)::(lcontxt_to_baseconctx Gamma)
-      | Uty ([[v: T | phi ]]) => (x, Ubase T phi)::(lcontxt_to_baseconctx Gamma)
-      | _ => (lcontxt_to_baseconctx Gamma)
-      end
-  end.
-
-Definition well_formed (Gamma: lcontxt) (tau: overunderty):=
-  well_formed_in_basectx (lcontxt_to_baseconctx Gamma) tau.
-
-Lemma well_formed_add_post: forall (Gamma1 Gamma2: lcontxt) (tau: overunderty),
-    well_formed Gamma1 tau -> well_formed (Gamma1 ++ Gamma2) tau.
+Lemma ctx_inv_implies_type_closed_last:
+  forall Gamma x (tau_x: underty), ctx_inv (Gamma <l> x :l: Uty tau_x) -> type_closed Gamma tau_x.
 Admitted.
 
-Lemma well_formed_add_pre: forall (Gamma1 Gamma2: lcontxt) (tau: overunderty),
-    well_formed Gamma2 tau -> well_formed (Gamma1 ++ Gamma2) tau.
+Lemma ctx_inv_implies_mem_fresh_and_close:
+  forall Gamma1 x (tau_x: underty) Gamma2, ctx_inv (Gamma1 ++ ((x, Uty tau_x)::nil) ++ Gamma2) ->
+                                      type_closed (Gamma1 ++ ((x, Uty tau_x)::nil)) tau_x /\ ~ appear_free_in_underty x tau_x.
 Admitted.
 
-Global Hint Resolve well_formed_add_pre: core.
-Global Hint Resolve well_formed_add_post: core.
+Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
 
-Fixpoint erase_arr_bindings (Gamma: lcontxt): lcontxt :=
-  match Gamma with
-  | nil => nil
-  | (x, ty)::Gamma =>
-      match ty with
-      | Oty _ | Uty ([[v: _ | _ ]]) => (x, ty)::(erase_arr_bindings Gamma)
-      | _ => (erase_arr_bindings Gamma)
-      end
-  end.
+(* Lemma ctx_inv_implies_postfix: forall a aty Gamma tau, *)
+(*   l_find_right_most Gamma a = None -> *)
+(*   name_not_free_in_ctx_and_ty a Gamma tau -> *)
+(*   ctx_inv ((a, aty)::Gamma) -> *)
+(*   ctx_inv Gamma. *)
+(* Admitted. *)
 
-Lemma erase_arr_bindings_spec: forall (Gamma: lcontxt),
-    lcontxt_to_baseconctx Gamma = lcontxt_to_baseconctx (erase_arr_bindings Gamma).
-Proof.
-  intro Gamma. induction Gamma; auto.
-  destruct a as (x, xty).
-  destruct xty. destruct u; simpl; auto.
-  - rewrite IHGamma. auto.
-  - destruct o. simpl. rewrite IHGamma. auto.
-Qed.
-
-Lemma well_fromed_even_without_arr_bindings: forall Gamma tau,
-    well_formed Gamma tau <-> well_formed (erase_arr_bindings Gamma) tau.
-Proof.
-  unfold well_formed. setoid_rewrite <- erase_arr_bindings_spec. reflexivity.
-Qed.
-
-Definition lcontxt_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx (erase_basetypectx (lcontxt_to_baseconctx Gamma)).
-
-Inductive well_formed_ctx: lcontxt -> Prop :=
-| well_formed_ctx_nil: well_formed_ctx nil
-| well_fromed_ctx_cons: forall x tau_x Gamma,
-    well_formed_ctx Gamma ->
-    well_formed Gamma tau_x ->
-    well_formed_ctx (Gamma <l> x :l: tau_x).
-
-Global Hint Constructors well_formed_ctx: core.
-
-
-
-
-Lemma well_formed_ctx_prefix: forall Gamma1 Gamm2,
-    well_formed_ctx (Gamma1 ++ Gamm2) -> well_formed_ctx Gamma1.
+Lemma lete_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
+    ~ appear_free_in_underty x tau_x ->
+    ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
+    (forall e, tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
+          (forall e_x, tmR_in_ctx Gamma tau_x e_x -> tmR_in_ctx Gamma tau (tlete x e_x e))).
 Admitted.
 
-Lemma well_fromed_ctx_even_without_arr_bindings: forall Gamma,
-    well_formed_ctx Gamma -> well_formed_ctx (erase_arr_bindings Gamma).
+Lemma tletbiop_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau,
+    (forall e op (v1 v2: cid),
+        ctx_inv (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) ->
+        tmR_in_ctx (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) tau e ->
+        tmR_in_ctx (Gamma <l> x :l: ((mk_op_retty_from_cids op v1 v2))) tau e ->
+        tmR_in_ctx Gamma tau (tletbiop x op v1 v2 e)).
 Admitted.
 
-Definition appear_free_in_refinement (name: string) (phi: refinement): Prop :=
-  (exists st (c1 c2:constant),
-      phi (t_update st name c1) <> phi (t_update st name c2)
-  ).
+Lemma tletapp_oarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
+    (forall e (v1: value) (v2: cid) a T phi1,
+        tmR_in_ctx Gamma (a o: {{v: T | phi1}} o--> tau_x) v1 ->
+        tmR_in_ctx Gamma ([[v: T | phi1]]) v2 ->
+        ctx_inv (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) ->
+        tmR_in_ctx (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) tau e ->
+        tmR_in_ctx Gamma tau (tletapp x v1 v2 e)).
+Admitted.
 
-Definition appear_free_in_overbasety (name: string) (oty: overbasety): Prop :=
-  match oty with
-  | {{v: _ | phi }} => appear_free_in_refinement name phi
-  end.
+Lemma tletapp_arrarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
+    ~ appear_free_in_underty x tau_x ->
+    ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
+    (forall e, tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
+          (forall (v1 v2: value) t1,
+              tmR_in_ctx Gamma (t1 u--> tau_x) v1 ->
+              tmR_in_ctx Gamma t1 v2 ->
+              tmR_in_ctx Gamma tau (tletapp x v1 v2 e))).
+Admitted.
 
-Fixpoint appear_free_in_underarrowty (name: string) (uty: underarrowty): Prop :=
-  match uty with
-  | DependArrow x xty retty =>
-      appear_free_in_overbasety name xty \/ (x <> name /\ appear_free_in_underty name retty)
-  | IndependArrow t1 t2 =>
-      appear_free_in_underarrowty name t1 \/ appear_free_in_underty name t2
-  end
-with appear_free_in_underty (name: string) (uty: underty): Prop :=
-       match uty with
-       | [[v: _ | phi ]] => appear_free_in_refinement name phi
-       | ArrowUnder ty => appear_free_in_underarrowty name ty
-       end.
 
-Definition appear_free_in_overunderty (name: string) (overunderty: overunderty): Prop :=
-  match overunderty with
-  | Uty uty => appear_free_in_underty name uty
-  | Oty oty => appear_free_in_overbasety name oty
-  end.
-Notation " x '\FVty' e " := (appear_free_in_overunderty x e) (at level 40).
+(* Lemma ctx_inv_denotation_right_destruct: forall Gamma x (xty: underty) (tau: underty) e, *)
+(*     ctx_inv (Gamma ++ ((x, Uty xty)::nil)) -> *)
+(*     tmR_in_ctx (Gamma ++ ((x, Uty xty)::nil)) tau e -> *)
+(*     (name_not_free_in_ctx_and_ty x Gamma tau) -> *)
+(*     (exists e_x, tmR_in_ctx Gamma xty e_x /\ tmR_in_ctx Gamma tau (tlete x e_x e)). *)
+(* Proof with eauto. *)
+(*   intros Gamma. *)
+(*   induction Gamma; simpl; intros. *)
+(*   - inversion H0; subst. *)
+(*     + exfalso. apply H7... *)
+(*     + clear H7. destruct H8 as (e_x & HexD & HH). exists e_x. split... *)
+(*     + destruct H7 as (e_x & HexD & HH). exists e_x. split... *)
+(*     + destruct H7 as (e_x & HexD & HH). exists e_x. split... *)
+(*   - destruct a as (a, aty). destruct (eqb_spec a x). admit. (* a!= x*) destruct H1 as (Haty & H1). *)
+(*     inversion H0; subst. *)
+(*     + (* overtype *) admit. *)
+(*     + exfalso. admit. *)
+(*     + admit. *)
+(*     + destruct H7 as (e_a & Ha & HH). *)
 
-Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
-  match v with
-  | vconst _ => False
-  | vvar x => x = id
-  | vlam x xty e => x <> id /\ appear_free_in_ttm id e
-  end
-with appear_free_in_ttm (id:string) (e:tm) : Prop :=
-       match e with
-       | tvalue v => appear_free_in_tvalue id v
-       | tlete x e_x e => appear_free_in_ttm id e_x \/ (x <> id /\ appear_free_in_ttm id e)
-       | tletbiop x op v1 v2 e =>
-           appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
-       | tletapp x v1 v2 e =>
-           appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
-       | vexn => False
-       end.
+(*       destruct H8 as (e_x & Hex & HH). eapply free_ctx_inv_drop in H7... *)
+(*       eapply IHGamma in H7... destruct H7 as (e_a & Ha & HHH). *)
+(*       assert () *)
+(*       inversion H; subst. *)
+(*     destruct H1 as (Haty & HH). *)
+(*     destruct (eqb_spec x0 x). *)
 
-Notation " x '\FVtm' e " := (appear_free_in_ttm x e) (at level 40).
-Notation " x '\FVvalue' e " := (appear_free_in_tvalue x e) (at level 40).
+(*     destruct H7 as (e_x & HexD & HH). exists e_x. split... *)
+(*       constructor... constructor... inversion HH; subst. inversion H2; subst. *)
+(*       constructor... constructor...  *)
 
-Definition refinement_subst_id (x1 x2: string) (phi: refinement): refinement :=
-  (fun st c => phi (t_update st x1 (st x2)) c).
-
-Definition over_subst_id (x1 x2: string) (oty: overbasety): overbasety :=
-  match oty with
-    | BaseOver T phi => BaseOver T (refinement_subst_id x1 x2 phi)
-  end.
-
-Fixpoint under_arr_subst_id (x1 x2: string) (uty: underarrowty): underarrowty :=
-  match uty with
-  | DependArrow x xty retty =>
-      if String.eqb x1 x then
-        DependArrow x (over_subst_id x1 x2 xty) retty
-      else
-        DependArrow x (over_subst_id x1 x2 xty) (under_subst_id x1 x2 retty)
-  | IndependArrow t1 t2 =>
-      IndependArrow (under_arr_subst_id x1 x2 t1) (under_subst_id x1 x2 t2)
-  end
-with under_subst_id (x1 x2: string) (uty: underty): underty :=
-       match uty with
-       | BaseUnder T phi => BaseUnder T (refinement_subst_id x1 x2 phi)
-       | ArrowUnder ty => under_arr_subst_id x1 x2 ty
-       end.
-
-Notation " '<r[' x '|x->' y ']>' uty " := (refinement_subst_id x y uty) (at level 40).
-Notation " '<u[' x '|x->' y ']>' uty " := (under_subst_id x y uty) (at level 40).
-Notation " '<o[' x '|x->' y ']>' uty " := (over_subst_id x y uty) (at level 40).
-
-Definition refinement_subst_c (x1: string) (c2: constant) (phi: refinement): refinement :=
-  (fun st c => phi (t_update st x1 c2) c).
-
-Lemma refinement_subst_c_closed_rf: forall x1 c2 T phi,
-    is_closed_refinement T phi -> refinement_subst_c x1 c2 phi = phi.
-Proof.
-  intros.
-  unfold is_closed_refinement in H. unfold refinement_subst_c.
-  apply functional_extensionality. intros st.
-  rewrite H with (st' := (x1 !-> c2; st)).
-  auto.
+Lemma ctx_inv_drop_last_weakening: forall Gamma x xty,
+    ctx_inv ((x, xty)::Gamma) ->
+    (forall tau,
+        type_closed Gamma tau ->
+        (forall e, tmR_in_ctx Gamma tau e -> tmR_in_ctx ((x, xty)::Gamma) tau e)).
+Proof with eauto.
+  intros Gamma x xty H tau Hwf.
+  eapply tmR_in_ctx_pre_weakening... apply app_one_is_cons.
 Qed.
 
-Definition over_subst_c (x1: string) (c2: constant) (oty: overbasety): overbasety :=
-  match oty with
-    | BaseOver T phi => BaseOver T (refinement_subst_c x1 c2 phi)
-  end.
+(* Lemma tmR_in_ctx_post_weakening: forall Gamma (tau: underty), *)
+(*     well_formed l_empty tau -> *)
+(*     (forall e, tmR_in_ctx l_empty tau e -> tmR_in_ctx Gamma tau e). *)
+(* Proof with eauto. *)
+(* Admitted. *)
 
-Fixpoint under_arr_subst_c (x1: string) (c2: constant) (uty: underarrowty): underarrowty :=
-  match uty with
-  | DependArrow x xty retty =>
-      if String.eqb x1 x then
-        DependArrow x (over_subst_c x1 c2 xty) retty
-      else
-        DependArrow x (over_subst_c x1 c2 xty) (under_subst_c x1 c2 retty)
-  | IndependArrow t1 t2 =>
-      IndependArrow (under_arr_subst_c x1 c2 t1) (under_subst_c x1 c2 t2)
-  end
-with under_subst_c (x1: string) (c2: constant) (uty: underty): underty :=
-       match uty with
-       | BaseUnder T phi => BaseUnder T (refinement_subst_c x1 c2 phi)
-       | ArrowUnder ty => under_arr_subst_c x1 c2 ty
-       end.
 
-Definition overunder_subst_c (x1: string) (c2: constant) (outy: overunderty): overunderty :=
-  match outy with
-  | Uty uty => under_subst_c x1 c2 uty
-  | Oty oty => over_subst_c x1 c2 oty
-  end.
+(*       Lemma bigstep_lete: forall x e_x e (v: value), *)
+(*     ((tlete x e_x e) -->* v) <-> (exists (v_x: value), e_x -->* v_x /\ [x := v_x] e -->* v). *)
+(* Proof. *)
+(* Admitted. *)
 
-Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
-  match cv with
-  | vconst c => under_subst_c x1 c outy
-  | vvar id => under_subst_id x1 id outy
-  end.
+(* Lemma lete_preverse_denotation: forall tau x e_x e, *)
+(*     ~ (x \FVty tau) -> *)
+(*     under_tmR tau (tlete x e_x e) <-> *)
+(*       (exists (v_x: value), e_x -->* v_x -> under_tmR tau (subst x v_x e)). *)
+(* Proof with eauto. *)
+(*   intro tau. *)
+(*   induction tau; split; simpl; intros. *)
+(*   - inversion H. clear H. destruct H1 as (Hclose & HH). inversion H0; subst. *)
+(*     setoid_rewrite bigstep_lete in HH. *)
+(*     assert (empty |- v_x \Vin T1). eapply preservation_value... *)
+(*     split... eapply substitution_preserves_typing... *)
+(*     split... intros. apply bigstep_lete with (x:=x) (e:=e) (v:=c) in H0. *)
+(*     constructor. simpl. eapply substitution_preserves_typing... *)
+(*     constructor... simpl. eapply substitution_preserves_typing... *)
+(*     split... intros. *)
+(*     assert (tlete x v_x e -->* c)... inversion H6; subst. *)
 
-Notation " '<r[' x '|c->' y ']>' uty " := (refinement_subst_c x y uty) (at level 40).
-Notation " '<u[' x '|c->' y ']>' uty " := (under_subst_c x y uty) (at level 40).
-Notation " '<o[' x '|c->' y ']>' uty " := (over_subst_c x y uty) (at level 40).
-Notation " '<ou[' x '|c->' y ']>' uty " := (overunder_subst_c x y uty) (at level 40).
+Definition well_formed (Gamma: context) (tau: underty) := ctx_inv Gamma /\ type_closed Gamma tau.

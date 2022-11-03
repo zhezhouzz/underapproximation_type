@@ -35,3 +35,9 @@ ocolor                      1.3.0       Print with style in your terminal using 
 where `data/customstk/concat.ml` is the target program, and `data/customstk/_over_1.ml` is the (overapproximate) refinement type.
 
 The built-in refinement types (e.g., types of data type constructors) will be load during the initialization. This path is setted by the `prim_path:overp` field in the config file `config/config.json`.
+
+## Lines of Code
+
+```
+git ls-files | grep .ml | grep -v data | xargs wc -l
+```

@@ -137,31 +137,42 @@ let under_type_check =
           Inputstage.load_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
+        let () = Typecheck.Undersub.subtyping_check_counter_set0 () in
         let runtime, results =
           Sugar.clock (fun () ->
               Typecheck.Undercheck.struc_check code notations libs refinements)
         in
-        let stats =
-          List.iter ~f:(fun (name, num_branches, num_localvars) ->
-              Printf.printf "%s\n $%i$ & $%i$ & " name num_branches
-                num_localvars)
-          @@ Ast.StrucNA.stat code
-        in
         let () =
-          match refinements with
-          | [ (_, (_, ty)) ] ->
-              let num_mps, _ = Ast.UT.stat ty in
-              Printf.printf "$%i$ & " num_mps
-          | _ -> failwith "unimp"
+          match Ast.StrucNA.stat code with
+          | [ (name, num_branches, num_localvars) ] -> (
+              let num_query = Typecheck.Undersub.(!subtyping_check_counter) in
+              let str =
+                Printf.sprintf "%s\n $%i$ & $%i$ & " name num_branches
+                  num_localvars
+              in
+              match refinements with
+              | [ (_, (_, ty)) ] ->
+                  let num_mps, _ = Ast.UT.stat ty in
+                  let () =
+                    Printf.printf
+                      "& %s$%i$ & $%i$ & $(%i, %i)$ & $%0.2f(%0.2f)$\n" str
+                      num_mps num_query
+                      Typecheck.Undersub.(!max_uqvs_num)
+                      Typecheck.Undersub.(!max_eqvs_num)
+                      runtime
+                      (runtime /. float_of_int num_query)
+                  in
+                  ()
+              | _ -> ())
+          | _ -> ()
         in
-        let () = Printf.printf "$%0.2f$\n" runtime in
         let () =
           match results with
           | [ res ] ->
               let oc = Out_channel.create ".result" in
               Printf.fprintf oc "%b\n" res;
               Out_channel.close oc
-          | _ -> failwith "unimp"
+          | _ -> ()
         in
         ())
 
