@@ -16,60 +16,90 @@ Import TypeClosedSimp.
 Import DenotationSimp.
 Import ListNotations.
 
+(* define the non-empty nst *)
+
+Definition well_formed_nst (nst: nstate) := exists st, st \NSTin nst.
+
+Global Hint Unfold well_formed_nst: core.
+
+Lemma constant_has_denotation (c: constant): forall nst, well_formed_nst nst -> tmR_aux nst (mk_eq_constant c) (vconst c).
+Proof with eauto.
+  intros.
+  destruct c. unfold mk_eq_constant.
+  - constructor... constructor... constructor... simpl... constructor... constructor...
+    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
+  - constructor... constructor... simpl. split. constructor. constructor.
+    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
+Qed.
+
+Global Hint Resolve constant_has_denotation: core.
+
 (* It only makes sense when there is no duplicate bindings. *)
-Inductive ctx_inv: context -> Prop:=
-| ctx_inv_nil: ctx_inv nil
-| ctx_inv_cons_under: forall Gamma x (tau: overunderty),
-    ctx_inv Gamma ->
-    type_closed_ctx (Gamma ++ ((x, tau)::nil)) ->
-    (forall e, tmR_in_ctx_all_st Gamma tau e -> (exists (v: value), e -->* v)) ->
-    ctx_inv (Gamma ++ ((x, tau)::nil)).
+Inductive ctx_inv: nstate -> context -> Prop:=
+| ctx_inv_nil: forall nst, well_formed_nst nst -> ctx_inv nst nil
+| ctx_inv_cons_under: forall nst Gamma x (tau: overunderty),
+    ctx_inv nst Gamma ->
+    st_type_closed_ctx nst (Gamma ++ ((x, tau)::nil)) ->
+    (forall e, tmR_in_ctx_aux nst Gamma tau e -> (exists (c: constant), e -->* c)) ->
+    ctx_inv nst (Gamma ++ ((x, tau)::nil)).
 
 Global Hint Constructors ctx_inv: core.
 
-(* (* reverse induction principle. *) *)
-(* Lemma ctx_inv_rev_inversion: forall Gamma x tau, *)
-(*     ctx_inv (Gamma ++ ((x, tau)::nil)) -> *)
-(*     (well_formed_ctx (Gamma ++ ((x, tau)::nil)) /\ *)
-(*        ctx_inv Gamma /\ *)
-(*        l_find_right_most Gamma x = None /\ *)
-(*        (forall e, tmR_in_ctx_all_st Gamma tau e -> (exists (v: value), e -->* v))). *)
-(* Proof. *)
-(*   intros. *)
-(*   inversion H. *)
-(*   - apply app_one_eq_nil in H1. inversion H1. *)
-(*   - apply app_inj_tail in H0. destruct H0. inversion H5; subst. repeat split; auto. *)
-(* Qed. *)
+Lemma empty_ctx_inv_implies_all: forall Gamma x tau_x,
+    ctx_inv empty (Gamma <l> x :l: tau_x) -> (forall st, ctx_inv st (Gamma <l> x :l: tau_x)).
+Admitted.
 
-Lemma ctx_inv_implies_prefix_ctx_inv: forall Gamma2 Gamma1, ctx_inv (Gamma1 ++ Gamma2) -> ctx_inv Gamma1.
+Global Hint Resolve empty_ctx_inv_implies_all: core.
+
+Lemma ctx_inv_front_destruct_over: forall st a T phi Gamma,
+    ctx_inv st ((a, Oty ({{v:T | phi}})) :: Gamma) ->
+    (forall c_x, tmR_aux st ({{v:T | phi}}) c_x -> ctx_inv (a |-> c_x; st) Gamma).
+Admitted.
+
+Global Hint Resolve ctx_inv_front_destruct_over: core.
+
+Lemma ctx_inv_implies_no_dup: forall st Gamma, ctx_inv st Gamma -> type_ctx_no_dup Gamma.
+Admitted.
+
+Global Hint Resolve ctx_inv_implies_no_dup: core.
+
+(* Lemma ctx_inv_front_destruct_under: forall st a T phi Gamma, *)
+(*     ctx_inv st ((a, Ity ([[v:T | phi]])) :: Gamma) -> *)
+(*     (forall c_x, overbase_tmR_aux st ({{v:T | phi}}) c_x -> ctx_inv (a |-> c_x; st) Gamma). *)
+(* Admitted. *)
+
+Lemma ctx_inv_implies_prefix_ctx_inv: forall Gamma2 st Gamma1, ctx_inv st (Gamma1 ++ Gamma2) -> ctx_inv st Gamma1.
 Proof with eauto.
   intro Gamma2.
-  induction Gamma2; intros Gamma1 H.
+  induction Gamma2; intros st Gamma1 H.
   - rewrite app_nil_r in H...
-  - setoid_rewrite <- app_one_is_cons in H... rewrite app_assoc in H. apply IHGamma2 in H. inversion H...
-    + symmetry in H1. apply app_eq_nil in H1. destruct H1. inversion H1.
+  - setoid_rewrite <- app_one_is_cons in H... rewrite app_assoc in H. apply IHGamma2 in H. inversion H; subst...
+    + destruct a. apply app_one_eq_nil in H0. inversion H0.
     + apply app_inj_tail in H0. destruct H0; subst...
 Qed.
 
-Lemma ctx_inv_implies_type_closed_ctx: forall Gamma, ctx_inv Gamma -> type_closed_ctx Gamma.
+Lemma ctx_inv_implies_type_closed_ctx: forall Gamma st, ctx_inv st Gamma -> st_type_closed_ctx st Gamma.
 Proof with eauto.
-  apply (rev_ind (fun Gamma => ctx_inv Gamma -> type_closed_ctx Gamma))...
-  intros (x, xty) Gamma H Hconcat. inversion Hconcat. symmetry in H1. apply app_eq_nil in H1. destruct H1. inversion H1.
-  apply app_inj_tail in H0.
-  destruct H0; subst...
+  apply (rev_ind (fun Gamma => forall st, ctx_inv st Gamma -> st_type_closed_ctx st Gamma))...
+  intros (x, xty) Gamma H st Hconcat. inversion Hconcat; subst.
+  + apply app_one_eq_nil in H0. inversion H0.
+  + apply app_inj_tail in H0. destruct H0; subst...
 Qed.
 
+Global Hint Resolve ctx_inv_implies_type_closed_ctx: core.
+
 Lemma ctx_inv_implies_fresh_binding_last:
-  forall Gamma x (tau_x: underty), ctx_inv (Gamma <l> x :l: Uty tau_x) -> ~ appear_free_in_underty x tau_x.
+  forall Gamma x (tau_x: underty), ctx_inv empty (Gamma <l> x :l: Uty tau_x) -> ~ appear_free_in_underty x tau_x.
 Admitted.
 
 Lemma ctx_inv_implies_type_closed_last:
-  forall Gamma x (tau_x: underty), ctx_inv (Gamma <l> x :l: Uty tau_x) -> type_closed Gamma tau_x.
+  forall st Gamma x (tau_x: underty), ctx_inv st (Gamma <l> x :l: Uty tau_x) -> st_type_closed_in_ctx st Gamma tau_x.
 Admitted.
 
 Lemma ctx_inv_implies_mem_fresh_and_close:
-  forall Gamma1 x (tau_x: underty) Gamma2, ctx_inv (Gamma1 ++ ((x, Uty tau_x)::nil) ++ Gamma2) ->
-                                      type_closed (Gamma1 ++ ((x, Uty tau_x)::nil)) tau_x /\ ~ appear_free_in_underty x tau_x.
+  forall Gamma1 x (tau_x: underty) Gamma2, ctx_inv empty (Gamma1 ++ ((x, Uty tau_x)::nil) ++ Gamma2) ->
+                                      st_type_closed_in_ctx empty (Gamma1 ++ ((x, Uty tau_x)::nil)) tau_x /\
+                                        ~ appear_free_in_underty x tau_x.
 Admitted.
 
 Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
@@ -80,40 +110,6 @@ Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
 (*   ctx_inv ((a, aty)::Gamma) -> *)
 (*   ctx_inv Gamma. *)
 (* Admitted. *)
-
-Lemma lete_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
-    ~ appear_free_in_underty x tau_x ->
-    ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
-    (forall e, tmR_in_ctx_all_st (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
-          (forall e_x, tmR_in_ctx_all_st Gamma tau_x e_x -> tmR_in_ctx_all_st Gamma tau (tlete x e_x e))).
-Admitted.
-
-Lemma tletbiop_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau,
-    (forall e op (v1 v2: cid),
-        ctx_inv (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) ->
-        tmR_in_ctx_all_st (Gamma ++ ((x, Uty (mk_op_retty_from_cids op v1 v2))::nil)) tau e ->
-        tmR_in_ctx_all_st (Gamma <l> x :l: ((mk_op_retty_from_cids op v1 v2))) tau e ->
-        tmR_in_ctx_all_st Gamma tau (tletbiop x op v1 v2 e)).
-Admitted.
-
-Lemma tletapp_oarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
-    (forall e (v1: value) (v2: cid) a T phi1,
-        tmR_in_ctx_all_st Gamma (a o: {{v: T | phi1}} o--> tau_x) v1 ->
-        tmR_in_ctx_all_st Gamma ([[v: T | phi1]]) v2 ->
-        ctx_inv (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) ->
-        tmR_in_ctx_all_st (Gamma ++ ((x, Uty (under_subst_cid a v2 tau_x))::nil)) tau e ->
-        tmR_in_ctx_all_st Gamma tau (tletapp x v1 v2 e)).
-Admitted.
-
-Lemma tletapp_arrarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma x tau_x tau,
-    ~ appear_free_in_underty x tau_x ->
-    ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
-    (forall e, tmR_in_ctx_all_st (Gamma ++ ((x, Uty tau_x)::nil)) tau e ->
-          (forall (v1 v2: value) t1,
-              tmR_in_ctx_all_st Gamma (t1 u--> tau_x) v1 ->
-              tmR_in_ctx_all_st Gamma t1 v2 ->
-              tmR_in_ctx_all_st Gamma tau (tletapp x v1 v2 e))).
-Admitted.
 
 
 (* Lemma ctx_inv_denotation_right_destruct: forall Gamma x (xty: underty) (tau: underty) e, *)
@@ -147,13 +143,13 @@ Admitted.
 (*       constructor... constructor... inversion HH; subst. inversion H2; subst. *)
 (*       constructor... constructor...  *)
 
-Lemma ctx_inv_drop_last_weakening: forall Gamma x xty,
-    ctx_inv ((x, xty)::Gamma) ->
+Lemma ctx_inv_drop_last_weakening: forall st Gamma x xty,
+    ctx_inv st ((x, xty)::Gamma) ->
     (forall tau,
-        type_closed Gamma tau ->
-        (forall e, tmR_in_ctx_all_st Gamma tau e -> tmR_in_ctx_all_st ((x, xty)::Gamma) tau e)).
+        st_type_closed_in_ctx st Gamma tau ->
+        (forall e, tmR_in_ctx_aux st Gamma tau e -> tmR_in_ctx_aux st ((x, xty)::Gamma) tau e)).
 Proof with eauto.
-  intros Gamma x xty H tau Hwf e st st'.
+  intros st Gamma x xty H tau Hwf e HH.
   eapply tmR_in_ctx_pre_weakening... apply app_one_is_cons.
 Qed.
 
@@ -186,4 +182,5 @@ Qed.
 (*     split... intros. *)
 (*     assert (tlete x v_x e -->* c)... inversion H6; subst. *)
 
-Definition well_formed (Gamma: context) (tau: underty) := ctx_inv Gamma /\ type_closed Gamma tau.
+(* The same as empty *)
+Definition well_formed (Gamma: context) (tau: underty) := ctx_inv empty Gamma /\ st_type_closed_in_ctx empty Gamma tau.

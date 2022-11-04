@@ -48,6 +48,12 @@ Qed.
 Lemma app_one_is_cons {A: Type}: forall (x: A) l, (x::nil) ++ l = x :: l.
 Proof. simpl. reflexivity. Qed.
 
+Lemma l_find_right_most_weak {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
+    l_find_right_most (Gamma1 ++ Gamma2) a = None ->
+    (l_find_right_most Gamma1 a = None /\ l_find_right_most Gamma2 a = None).
+Admitted.
+
+Global Hint Resolve l_find_right_most_weak: core.
 
 (* Declare Scope linear_context_scope. *)
 (* Notation "G[ ]" := nil (format "G[ ]") : linear_context_scope. *)

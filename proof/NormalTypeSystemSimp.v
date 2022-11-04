@@ -53,6 +53,11 @@ Notation "Gamma '|-' t '\Vin' T" := (value_has_type Gamma t T) (at level 40).
 Global Hint Constructors has_type: core.
 Global Hint Constructors value_has_type: core.
 
+Lemma empty_has_type_implies_closed: forall e T, empty |- e \Tin T -> (forall x, ~ x \FVtm e).
+Admitted.
+
+Global Hint Resolve empty_has_type_implies_closed: core.
+
 Lemma eval_op_is_type_safe: forall Gamma op (c1 c2 c3: constant) (T1 T2 T3: base_ty),
     Gamma |- c1 \Vin T1 -> Gamma |- c2 \Vin T2 ->
                                  eval_op op c1 c2 c3 -> ty_of_op op = T1 t--> (T2 t--> T3) ->

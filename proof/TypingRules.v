@@ -136,5 +136,5 @@ Qed.
 Global Hint Resolve type_judgement_implies_inv: core.
 
 Lemma type_judgement_implies_basic_type_judgement: forall Gamma e tau,
-    Gamma \C- e \Tin tau -> (lctx_to_basic_ctx Gamma) |- e \Tin u\_ tau _/.
+    Gamma \C- e \Tin tau -> (erase_ctx Gamma) |- e \Tin u\_ tau _/.
 Admitted.
