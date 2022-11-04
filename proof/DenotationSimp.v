@@ -85,7 +85,7 @@ Fixpoint under_tmR_aux (nst: nstate) (tau: underty) (e: tm) : Prop :=
                      overbase_tmR_aux nst t1 c_x ->
                      (forall e3, is_application e c_x e3 -> under_tmR_aux (update nst x c_x) t2 e3)
                | t1 u--> t2 =>
-                   forall (e_x: value),
+                   forall (e_x: tm),
                      under_tmR_aux nst t1 e_x ->
                      (forall e3, is_application e e_x e3 -> under_tmR_aux nst t2 e3)
                end).
@@ -190,6 +190,8 @@ Admitted.
 Lemma denotation_ctx_implies_last_well_formed_type: forall st Gamma x tau tau' e,
     tmR_in_ctx_aux st (Gamma ++ ((x, tau)::nil)) tau' e -> well_formed_type tau.
 Admitted.
+
+Global Hint Resolve denotation_ctx_implies_last_well_formed_type: core.
 
 Lemma under_variable_has_same_type_in_ctx: forall st Gamma x (tau: underty),
     tmR_in_ctx_aux st (Gamma ++ ((x, Uty tau)::nil)) tau x.

@@ -108,10 +108,10 @@ with value_under_type_check : context -> value -> underty -> Prop :=
     well_formed Gamma (x o: tau_x o--> tau) ->
     (Gamma <l> x :l: Oty tau_x) \C- e \Tin tau ->
     Gamma \C- (vlam x (o\_ tau_x _/) e) \Vin (x o: tau_x o--> tau)
-| UT_LamIndep: forall Gamma x tau_x e tau,
-    well_formed Gamma (tau_x u--> tau) ->
-    (Gamma <l> x :l: Uty tau_x) \C- e \Tin tau ->
-    Gamma \C- (vlam x (u\_ tau_x _/) e) \Vin (tau_x u--> tau)
+| UT_LamIndep: forall Gamma x t1 t2 e tau,
+    well_formed Gamma ((t1 u--> t2) u--> tau) ->
+    (Gamma <l> x :l: Uty (t1 u--> t2)) \C- e \Tin tau ->
+    Gamma \C- (vlam x (u\_ (t1 u--> t2) _/) e) \Vin ((t1 u--> t2) u--> tau)
 where
 "Gamma '\C-' t '\Tin' T" := (term_under_type_chek Gamma t T) and "Gamma '\C-' t '\Vin' T" := (value_under_type_check Gamma t T).
 
