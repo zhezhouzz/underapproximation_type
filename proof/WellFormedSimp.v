@@ -12,6 +12,7 @@ From Coq Require Import Lists.List.
 
 Import CoreLangSimp.
 Import LinearContext.
+Import NoDup.
 Import TypeClosedSimp.
 Import DenotationSimp.
 Import ListNotations.

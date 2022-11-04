@@ -8,6 +8,8 @@ From Coq Require Import Logic.ClassicalFacts.
 From PLF Require Import NormalTypeSystemSimp.
 From PLF Require Import RfTypeDef.
 From PLF Require Import LinearContext.
+From PLF Require Import NoDup.
+Import NoDup.
 Import ListNotations.
 
 (* closed_refinement *)
@@ -317,32 +319,6 @@ Admitted.
 (* Definition lcontxt_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx (erase_basetypectx (lcontxt_to_baseconctx Gamma)). *)
 
 (* Global Hint Unfold lcontxt_to_basic_ctx: core. *)
-
-Inductive type_ctx_no_dup: lcontxt -> Prop :=
-| type_ctx_no_dup_nil: type_ctx_no_dup nil
-| type_ctx_no_dup_cons: forall x tau_x Gamma,
-    l_find_right_most Gamma x = None ->
-    type_ctx_no_dup ((x, tau_x) :: Gamma).
-
-Global Hint Constructors type_ctx_no_dup: core.
-
-Lemma type_ctx_no_dup_cannot_find_last: forall Gamma b tau_b,
-    type_ctx_no_dup (Gamma ++ ((b, tau_b)::nil)) -> l_find_right_most Gamma b = None.
-Admitted.
-
-Global Hint Resolve type_ctx_no_dup_cannot_find_last: core.
-
-Lemma type_ctx_no_dup_fst_last_diff_name: forall a tau_a Gamma b tau_b,
-    type_ctx_no_dup ((a, tau_a)::Gamma ++ ((b, tau_b)::nil)) -> a <> b.
-Admitted.
-
-Global Hint Resolve type_ctx_no_dup_fst_last_diff_name: core.
-
-Lemma type_ctx_no_dup_ctx_sub: forall Gamma1 Gamma2,
-    type_ctx_no_dup (Gamma1 ++ Gamma2) -> type_ctx_no_dup Gamma1 /\ type_ctx_no_dup Gamma2.
-Admitted.
-
-Global Hint Resolve type_ctx_no_dup_ctx_sub: core.
 
 (* st_type_closed_ctx: *)
 (*   1. should also have no duplicate names *)

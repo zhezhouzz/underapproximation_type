@@ -19,6 +19,7 @@ Import NormalTypeSystemSimp.
 Import LinearContext.
 Import RfTypeDef.
 Import TypeClosedSimp.
+Import NoDup.
 Import ListNotations.
 
 (* Definition empstate: state := t_empty (cbool false). *)
@@ -222,7 +223,6 @@ Fixpoint erase_ctx (Gamma: lcontxt) :=
   end.
 
 Lemma tmR_in_ctx_aux_implies_has_type: forall Gamma st tau e,
-    type_ctx_no_dup Gamma ->
     tmR_in_ctx_aux st Gamma tau e -> (erase_ctx Gamma) |- e \Tin ou\_ tau _/.
 Admitted.
 
