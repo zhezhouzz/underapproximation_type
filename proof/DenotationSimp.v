@@ -187,6 +187,12 @@ Admitted.
 
 (* denotation in ctx Lemmas *)
 
+Lemma denotation_ctx_implies_well_formed_type: forall st Gamma tau e,
+    tmR_in_ctx_aux st Gamma tau e -> well_formed_type tau.
+Admitted.
+
+Global Hint Resolve denotation_ctx_implies_well_formed_type: core.
+
 Lemma denotation_ctx_implies_last_well_formed_type: forall st Gamma x tau tau' e,
     tmR_in_ctx_aux st (Gamma ++ ((x, tau)::nil)) tau' e -> well_formed_type tau.
 Admitted.

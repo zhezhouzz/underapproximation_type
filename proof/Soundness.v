@@ -48,7 +48,6 @@ Global Hint Resolve ctx_inv_implies_fresh_binding_last: core.
 Global Hint Resolve ctx_inv_implies_type_closed_last: core.
 
 Global Hint Rewrite app_nil_r: core.
-Global Hint Resolve empty_ctx_inv_implies_all: core.
 
 Theorem soundness: forall (Gamma: context) (e: tm) (uty:underty),
     Gamma \C- e \Tin uty -> tmR_in_ctx_all_st Gamma uty e.
