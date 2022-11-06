@@ -88,7 +88,7 @@ Fixpoint underty_erase (ut: underty) : ty :=
   | t1 u--> t2 => (underty_erase t1) t--> (underty_erase t2)
   end.
 
-Definition overbasety_erase (aty: overbasety): ty :=
+Definition overbasety_erase (aty: overbasety): base_ty :=
   match aty with
   | ({{v: T | _ }}) => T
   end.

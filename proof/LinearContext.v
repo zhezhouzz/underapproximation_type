@@ -57,6 +57,18 @@ Qed.
 
 Global Hint Resolve app_list_unit_eq_unit: core.
 
+Lemma l_find_right_most_none_neq_hd {A: Type}: forall (Gamma: linear_context A) x tx a,
+    l_find_right_most ((x, tx):: Gamma) a = None -> x <> a.
+Admitted.
+
+Global Hint Resolve l_find_right_most_none_neq_hd: core.
+
+Lemma l_find_right_most_none_neq_tl {A: Type}: forall (Gamma: linear_context A) x tx a,
+    l_find_right_most ((x, tx):: Gamma) a = None -> l_find_right_most Gamma a = None.
+Admitted.
+
+Global Hint Resolve l_find_right_most_none_neq_tl: core.
+
 Lemma l_find_right_most_weak_pre {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
     l_find_right_most (Gamma1 ++ Gamma2) a = None ->
     l_find_right_most Gamma1 a = None.

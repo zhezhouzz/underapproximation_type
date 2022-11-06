@@ -8,21 +8,13 @@ From Coq Require Import Logic.ClassicalFacts.
 From PLF Require Import NormalTypeSystemSimp.
 From PLF Require Import RfTypeDef.
 From PLF Require Import LinearContext.
+From PLF Require Import Nstate.
 From PLF Require Import NoDup.
+Import Nstate.
 Import NoDup.
 Import ListNotations.
 
 (* closed_refinement *)
-
-Definition state_order (st st': state) := (forall x c_x, st x = Some c_x -> st' x = Some c_x).
-Notation " st '<st<' st' " := (state_order st st') (at level 80).
-
-Lemma state_order_trans: forall st1 st2 st3, st1 <st< st2 -> st2 <st< st3 -> st1 <st< st3.
-Proof.
-  unfold state_order. intros. auto.
-Qed.
-
-Global Hint Resolve state_order_trans: core.
 
 Definition closed_refinement_under_state (st: state) (phi: refinement): Prop := forall st', st <st< st' -> phi st = phi st'.
 
@@ -63,36 +55,31 @@ Qed.
 
 (* closed_type *)
 
-(* First we define the non-deter state *)
-
-Definition nstate := string -> option tm.
-
-Definition state_in_non_deter_state (st: state) (nst: nstate): Prop :=
-  forall x, (match nst x with
-        | None => True
-        | Some e =>
-            match st x with
-            | None => False
-            | Some c => e -->* c
-            end
-        end).
-
-Notation " st '\NSTin' nst " := (state_in_non_deter_state st nst) (at level 40).
-
-Definition phi_sat_nst (phi: refinement) (nst: nstate) (c: constant) :=
-  (forall st, st \NSTin nst -> closed_refinement_under_state st phi /\ phi st c).
+Definition phi_sat_tyst (phi: refinement) (tyst: tystate) (c: constant) :=
+  (forall st, st \TYSTin tyst -> closed_refinement_under_state st phi /\ phi st c).
 
 (* Global Hint Unfold nst_tmR_aux: core. *)
 
 Definition lcontxt := linear_context overunderty.
 
-Inductive closed_refinement_in_ctx : nstate -> lcontxt -> refinement -> Prop :=
+Inductive closed_refinement_in_ctx : tystate -> lcontxt -> refinement -> Prop :=
 | closed_refinement_in_ctx_nil:
-  forall nst phi, (forall st, st \NSTin nst -> closed_refinement_under_state st phi) -> closed_refinement_in_ctx nst [] phi
-| closed_refinement_in_ctx_cons: forall nst x tau Gamma phi,
-    (forall (c_x: constant), empty |- c_x \Vin (ou\_ tau _/) ->
-                                closed_refinement_in_ctx (update nst x (tvalue c_x)) Gamma phi) ->
-    closed_refinement_in_ctx nst ((x, tau) :: Gamma) phi.
+  forall tyst phi, (forall st, st \TYSTin tyst -> closed_refinement_under_state st phi) ->
+              closed_refinement_in_ctx tyst [] phi
+| closed_refinement_in_ctx_overcons: forall tyst x T phix Gamma phi,
+    closed_refinement_in_ctx (update tyst x T) Gamma phi ->
+    closed_refinement_in_ctx tyst ((x, Oty ({{v:T | phix}})) :: Gamma) phi
+| closed_refinement_in_ctx_undercons: forall tyst x T phix Gamma phi,
+    closed_refinement_in_ctx (update tyst x T) Gamma phi ->
+    closed_refinement_in_ctx tyst ((x, Uty ([[v:T | phix]])) :: Gamma) phi
+| closed_refinement_in_ctx_oarrcons: forall tyst x a Ta phia taub Gamma phi,
+    well_formed_type (a o: ({{v:Ta | phia}}) o--> taub) ->
+    closed_refinement_in_ctx tyst Gamma phi ->
+    closed_refinement_in_ctx tyst ((x, Uty (a o: ({{v:Ta | phia}}) o--> taub)) :: Gamma) phi
+| closed_refinement_in_ctx_arrarrcons: forall tyst x t1 t2 Gamma phi,
+    well_formed_type (t1 u--> t2) ->
+    closed_refinement_in_ctx tyst Gamma phi ->
+    closed_refinement_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) phi.
 
 Global Hint Constructors closed_refinement_in_ctx: core.
 
@@ -124,21 +111,29 @@ Admitted.
 
 (* End ExCloseRefinement. *)
 
-Inductive st_type_closed_in_ctx : nstate -> lcontxt -> overunderty -> Prop :=
+Inductive st_type_closed_in_ctx : tystate -> lcontxt -> overunderty -> Prop :=
 | st_type_closed_base1: forall st Gamma (T: base_ty) phi,
     closed_refinement_in_ctx st Gamma phi -> st_type_closed_in_ctx st Gamma ({{v: T | phi}})
 | st_type_closed_base2: forall st Gamma (T: base_ty) phi,
     closed_refinement_in_ctx st Gamma phi -> st_type_closed_in_ctx st Gamma ([[v: T | phi]])
 | st_type_closed_oarr: forall st Gamma x T phi (tau: underty),
+    well_formed_type (x o: ({{v: T | phi}}) o--> tau) ->
     st_type_closed_in_ctx st Gamma ({{v: T | phi}}) ->
     st_type_closed_in_ctx st ((x, Oty ({{v: T | phi}})) :: Gamma) tau ->
     st_type_closed_in_ctx st Gamma (x o: ({{v: T | phi}}) o--> tau)
 | st_type_closed_arrarr: forall st Gamma (tau_x: underty) (tau: underty),
+    well_formed_type (tau_x u--> tau) ->
     st_type_closed_in_ctx st Gamma tau_x ->
     st_type_closed_in_ctx st Gamma tau ->
     st_type_closed_in_ctx st Gamma (tau_x u--> tau).
 
 Global Hint Constructors st_type_closed_in_ctx: core.
+
+Lemma closed_refinement_in_ctx_implies_well_formed_type:
+  forall tyst Gamma tau, st_type_closed_in_ctx tyst Gamma tau -> well_formed_type tau.
+Admitted.
+
+Global Hint Resolve closed_refinement_in_ctx_implies_well_formed_type: core.
 
 Lemma st_type_closed_in_ctx_emp_implies_all_not_free: forall Gamma (tau: underty) x,
     l_find_right_most Gamma x = None ->
@@ -219,9 +214,10 @@ Global Hint Resolve mk_op_is_type_closed: core.
 Lemma mk_eq_over_base_is_type_closed: forall x T phi, type_closed_in_ctx ((x, Oty ({{v:T | phi}}))::nil) (mk_eq_var T x).
 Proof with eauto.
   intros x T phi. repeat constructor...
-  unfold closed_refinement_under_state... intros st Hst st' Hsub.
-  remember (Hst x) as Hst'. clear HeqHst'. rewrite update_eq in Hst'.
-  destruct (st x) eqn: HH... rewrite Hsub with (c_x := c)... inversion Hst'.
+  unfold closed_refinement_under_state... simpl. intros st Hst st' Hsub.
+  remember (Hst x) as Hst'. clear HeqHst'. rewrite update_eq in Hst'. edestruct Hst'.
+  reflexivity.
+  rewrite H. apply Hsub in H. rewrite H. reflexivity.
 Qed.
 
 Global Hint Resolve mk_eq_over_base_is_type_closed: core.
@@ -230,13 +226,14 @@ Lemma mk_eq_under_base_is_type_closed: forall x T phi, type_closed_in_ctx ((x, U
 Proof with eauto.
   intros x T phi. repeat constructor...
   unfold closed_refinement_under_state... intros st Hst st' Hsub.
-  remember (Hst x) as Hst'. clear HeqHst'. rewrite update_eq in Hst'.
-  destruct (st x) eqn: HH... rewrite Hsub with (c_x := c)... inversion Hst'.
+  remember (Hst x) as Hst'. clear HeqHst'. rewrite update_eq in Hst'. edestruct Hst'.
+  reflexivity.
+  rewrite H. apply Hsub in H. rewrite H. reflexivity.
 Qed.
 
 Global Hint Resolve mk_eq_under_base_is_type_closed: core.
 
-Lemma mk_eq_constant_spec (c: constant) : empty |- vconst c \Tin u\_ mk_eq_constant c _/.
+Lemma mk_eq_constant_spec (c: constant) : empty \N- vconst c \Tin u\_ mk_eq_constant c _/.
 Proof with eauto.
   induction c; simpl; repeat constructor...
 Qed.
@@ -254,7 +251,7 @@ Lemma constant_eq_is_close: forall Gamma c, type_closed_in_ctx Gamma (mk_eq_cons
 Proof.
   intros. constructor.
 Admitted.
-(*   assert (closed_refinement_in_ctx nil (ty_of_const c) (fun (_ : state) (v : constant) => v = c)). *)
+(*   assert (closed_refinement_in_ctx nil (ty_of_cotyst c) (fun (_ : state) (v : constant) => v = c)). *)
 (*   constructor. *)
 (*   unfold closed_refinement_under_state; destruct c; simpl; reflexivity. *)
 (*   apply closed_refinement_in_ctx_weakening with (Gamma1 := (erase_basetypectx (lcontxt_to_baseconctx Gamma))) (Gamma2 := nil); auto. *)
@@ -282,8 +279,8 @@ Lemma st_type_closed_in_ctx_last_under_var: forall st Gamma x T phi, st (Gamma +
 Admitted.
 
 Lemma type_closed_drop_post: forall (Gamma1 Gamma2: lcontxt) (tau: overunderty),
-	(forall x tau_x, l_find_right_most Gamma2 x = Some tau_x -> ~ appear_free_in_overunderty x tau) ->
-	type_closed_in_ctx (Gamma1 ++ Gamma2) tau -> type_closed_in_ctx Gamma1 tau.
+	  (forall x tau_x, l_find_right_most Gamma2 x = Some tau_x -> ~ appear_free_in_overunderty x tau) ->
+	  type_closed_in_ctx (Gamma1 ++ Gamma2) tau -> type_closed_in_ctx Gamma1 tau.
 Admitted.
 
 Global Hint Resolve type_closed_add_pre: core.
@@ -325,9 +322,10 @@ Admitted.
 (*   2. types are well_formed *)
 (*   3. types are closed *)
 
-Inductive st_type_closed_ctx: nstate -> lcontxt -> Prop :=
+Inductive st_type_closed_ctx: tystate -> lcontxt -> Prop :=
 | st_type_closed_ctx_nil: forall st, st_type_closed_ctx st nil
 | st_type_closed_ctx_cons: forall st x tau_x Gamma,
+    st x = None ->
     l_find_right_most Gamma x = None ->
     st_type_closed_ctx st Gamma ->
     st_type_closed_in_ctx st Gamma tau_x ->
@@ -336,13 +334,29 @@ Inductive st_type_closed_ctx: nstate -> lcontxt -> Prop :=
 
 Global Hint Constructors st_type_closed_ctx: core.
 
+Lemma destructst_type_closed_ctx: forall st x tau_x Gamma,
+    st_type_closed_ctx st (Gamma <l> x :l: tau_x) ->
+    st x = None /\
+      l_find_right_most Gamma x = None /\
+      st_type_closed_ctx st Gamma /\
+      st_type_closed_in_ctx st Gamma tau_x /\
+      well_formed_type tau_x.
+Proof with eauto.
+  intros.
+  inversion H; subst. apply app_one_eq_nil in H2. inversion H2.
+  apply app_inj_tail in H0. inversion H0; subst. inversion H7; subst. split...
+Qed.
+
+Global Hint Resolve destructst_type_closed_ctx: core.
+
 Lemma st_type_closed_ctx_emp_implies_all: forall st Gamma,
     st_type_closed_ctx empty Gamma -> st_type_closed_ctx st Gamma.
 Admitted.
 
 Global Hint Resolve st_type_closed_ctx_emp_implies_all: core.
 
-Lemma st_type_closed_ctx_implies_type_ctx_no_dup: forall st Gamma, st_type_closed_ctx st Gamma -> type_ctx_no_dup Gamma.
+Lemma st_type_closed_ctx_implies_type_ctx_no_dup: forall st Gamma,
+    st_type_closed_ctx st Gamma -> type_ctx_no_dup st Gamma.
 Admitted.
 
 Global Hint Resolve st_type_closed_ctx_implies_type_ctx_no_dup: core.
@@ -353,9 +367,11 @@ Proof with eauto.
   intros. eapply type_ctx_no_dup_fst_last_diff_name...
 Qed.
 
-Lemma st_type_closed_ctx_prefix: forall st Gamma1 Gamm2,
+Lemma st_type_closed_ctx_pre: forall st Gamma1 Gamm2,
     st_type_closed_ctx st (Gamma1 ++ Gamm2) -> st_type_closed_ctx st Gamma1.
 Admitted.
+
+Global Hint Resolve st_type_closed_ctx_pre: core.
 
 (* Lemma st_type_closed_ctx_even_without_arr_bindings: forall st Gamma, *)
 (*     st_type_closed_ctx st Gamma -> st_type_closed_ctx (erase_arr_bindings Gamma). *)

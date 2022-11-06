@@ -41,7 +41,7 @@ Lemma eta_lete_const_to_subst_in_lam: forall a T x e (c_x: constant),
 Admitted.
 
 Lemma eta_closed_term_can_captured_by_lam: forall a e_a Ta x T e,
-    empty |- e_a \Tin Ta -> a <> x ->
+    empty \N- e_a \Tin Ta -> a <> x ->
                     (vlam x T (tlete a e_a e)) <=< (tlete a e_a (vlam x T e)).
 Admitted.
 

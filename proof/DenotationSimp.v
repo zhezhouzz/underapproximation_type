@@ -19,6 +19,7 @@ Import NormalTypeSystemSimp.
 Import LinearContext.
 Import RfTypeDef.
 Import TypeClosedSimp.
+Import Nstate.
 Import NoDup.
 Import ListNotations.
 
@@ -36,14 +37,17 @@ Definition is_constant (v: value) :=
   | _ => False
   end.
 
+Definition phi_sat_nst (phi: refinement) (nst: nstate) (c: constant) :=
+  (forall st, st \NSTin nst -> closed_refinement_under_state st phi /\ phi st c).
+
 (* overtype denotation *)
 Inductive overbase_tmR_aux: nstate -> overbasety -> constant -> Prop :=
 | over_tmR_base : forall (nst: nstate) (T: base_ty) (phi: refinement) (c: constant),
-    empty |- c \Vin T -> phi_sat_nst phi nst c -> overbase_tmR_aux nst ({{v: T | phi}}) c.
+    empty \N- c \Vin T -> phi_sat_nst phi nst c -> overbase_tmR_aux nst ({{v: T | phi}}) c.
 
 Global Hint Constructors overbase_tmR_aux: core.
 
-Lemma over_tmR_aux_has_type: forall T phi st c, overbase_tmR_aux st ({{v: T | phi}}) c -> empty |- c \Vin T.
+Lemma over_tmR_aux_has_type: forall T phi st c, overbase_tmR_aux st ({{v: T | phi}}) c -> empty \N- c \Vin T.
 Proof. intros. inversion H. auto. Qed.
 
 Inductive is_application: tm -> tm -> tm -> Prop :=
@@ -68,7 +72,7 @@ Lemma term_order_eq_trans (e1 e2 e3: tm): e1 <=< e2 -> e2 <=< e3 -> e1 <=< e3.
 Admitted.
 
 Lemma value_value_is_application: forall x (v1 v2: value),
-    exists (e3: tm), is_application v1 v2 e3 /\ ((tletapp x v1 v2 x) <=< e3).
+  exists (e3: tm), is_application v1 v2 e3 /\ ((tletapp x v1 v2 x) <=< e3).
 Proof with eauto.
   intros. destruct (application_exists v1 v2 x) as (x1 & x2 & H).
   exists (tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x))). split...
@@ -77,20 +81,21 @@ Admitted.
 
 Fixpoint under_tmR_aux (nst: nstate) (tau: underty) (e: tm) : Prop :=
   well_formed_type tau /\
-    empty |- e \Tin u\_ tau _/ /\
-              (match tau with
-               | [[v: T | phi ]] => (forall (c: constant), empty |- vconst c \Vin T -> phi_sat_nst phi nst c -> e -->* c)
-               | x o: t1 o--> t2 =>
-                   forall (c_x: constant),
-                     overbase_tmR_aux nst t1 c_x ->
-                     (forall e3, is_application e c_x e3 -> under_tmR_aux (update nst x c_x) t2 e3)
-               | t1 u--> t2 =>
-                   forall (e_x: tm),
-                     under_tmR_aux nst t1 e_x ->
-                     (forall e3, is_application e e_x e3 -> under_tmR_aux nst t2 e3)
-               end).
+    empty \N- e \Tin u\_ tau _/ /\
+    (match tau with
+     | [[v: T | phi ]] => (forall (c: constant), empty \N- vconst c \Vin T -> phi_sat_nst phi nst c -> e -->* c)
+     | x o: t1 o--> t2 =>
+         forall (c_x: constant),
+           overbase_tmR_aux nst t1 c_x ->
+           (forall e3, is_application e c_x e3 ->
+                       under_tmR_aux (update nst x (tvalue c_x, o\_ t1 _/)) t2 e3)
+     | t1 u--> t2 =>
+         forall (e_x: tm),
+           under_tmR_aux nst t1 e_x ->
+           (forall e3, is_application e e_x e3 -> under_tmR_aux nst t2 e3)
+     end).
 
-Lemma under_tmR_has_type: forall tau st e, under_tmR_aux st tau e -> empty |- e \Tin u\_ tau _/.
+Lemma under_tmR_has_type: forall tau st e, under_tmR_aux st tau e -> empty \N- e \Tin u\_ tau _/.
 Proof with eauto.
   intro tau. induction tau; simpl; intros st e H...
   - destruct H. destruct H0...
@@ -106,7 +111,7 @@ Inductive tmR_aux: nstate -> overunderty -> tm -> Prop :=
 
 Global Hint Constructors tmR_aux: core.
 
-Lemma tmR_has_type: forall tau st e, tmR_aux st tau e -> empty |- e \Tin ou\_ tau _/.
+Lemma tmR_has_type: forall tau st e, tmR_aux st tau e -> empty \N- e \Tin ou\_ tau _/.
 Proof with eauto.
   intros. destruct H...
   - inversion H; subst; auto.
@@ -115,7 +120,8 @@ Qed.
 
 Global Hint Resolve tmR_has_type: core.
 
-Lemma denotation_is_closed: forall st tau e, tmR_aux st tau e -> st_type_closed_in_ctx st l_empty tau.
+Lemma denotation_is_closed: forall st tau e,
+    tmR_aux st tau e -> st_type_closed_in_ctx (nstate_to_tystate st) l_empty tau.
 Admitted.
 
 Global Hint Resolve denotation_is_closed: core.
@@ -140,7 +146,7 @@ Inductive tmR_in_ctx_aux: nstate -> context -> overunderty -> tm -> Prop :=
     well_formed_type tau ->
     well_formed_type ({{v: T | phi}}) ->
     (forall (c_x: constant), tmR_aux nst ({{v: T | phi}}) c_x ->
-                        tmR_in_ctx_aux (update nst x c_x) Gamma tau (tlete x (vconst c_x) e)) ->
+                             tmR_in_ctx_aux (update nst x (tvalue c_x, T)) Gamma tau (tlete x (vconst c_x) e)) ->
     tmR_in_ctx_aux nst ((x, (Oty ({{v: T | phi}}))) :: Gamma) tau e
 | tmR_in_ctx_aux_cons_under:
   forall (nst: nstate) (x: string) (T:base_ty) (phi: refinement) (Gamma: context) (tau: overunderty) e,
@@ -149,8 +155,8 @@ Inductive tmR_in_ctx_aux: nstate -> context -> overunderty -> tm -> Prop :=
     well_formed_type tau ->
     well_formed_type ([[v: T | phi]]) ->
     (exists e_x_hat, tmR_aux nst ([[v: T | phi]]) e_x_hat /\
-                  (forall e_x, tmR_aux nst ([[v: T | phi]]) e_x ->
-                          tmR_in_ctx_aux (update nst x e_x_hat) Gamma tau (tlete x e_x e))) ->
+                       (forall e_x, tmR_aux nst ([[v: T | phi]]) e_x ->
+                                    tmR_in_ctx_aux (update nst x (e_x_hat, T)) Gamma tau (tlete x e_x e))) ->
     tmR_in_ctx_aux nst ((x, (Uty ([[v: T | phi]]))) :: Gamma) tau e
 | tmR_in_ctx_aux_cons_oarr: forall (nst: nstate) (x: string) a T phi (tau_b: underty) (Gamma: context) (tau: overunderty) e,
     nst x = None ->
@@ -158,7 +164,7 @@ Inductive tmR_in_ctx_aux: nstate -> context -> overunderty -> tm -> Prop :=
     well_formed_type tau ->
     well_formed_type (a o: {{v: T | phi}} o--> tau_b) ->
     (forall e_x, tmR_aux nst (a o: ({{v: T | phi}}) o--> tau_b) e_x ->
-            tmR_in_ctx_aux nst Gamma tau (tlete x e_x e)) ->
+                 tmR_in_ctx_aux nst Gamma tau (tlete x e_x e)) ->
     tmR_in_ctx_aux nst ((x, Uty (a o: ({{v: T | phi}}) o--> tau_b)) :: Gamma) tau e
 | tmR_in_ctx_aux_cons_underarr: forall (nst: nstate) (x: string) (t1 t2: underty) (Gamma: context) (tau: overunderty) e,
     nst x = None ->
@@ -166,12 +172,13 @@ Inductive tmR_in_ctx_aux: nstate -> context -> overunderty -> tm -> Prop :=
     well_formed_type tau ->
     well_formed_type (t1 u--> t2) ->
     (forall e_x, tmR_aux nst (t1 u--> t2) e_x ->
-            tmR_in_ctx_aux nst Gamma tau (tlete x e_x e)) ->
+                 tmR_in_ctx_aux nst Gamma tau (tlete x e_x e)) ->
     tmR_in_ctx_aux nst ((x, Uty (t1 u--> t2)) :: Gamma) tau e.
 
 Global Hint Constructors tmR_in_ctx_aux: core.
 
-Lemma tmR_in_ctx_aux_implies_no_dup: forall st Gamma tau e, tmR_in_ctx_aux st Gamma tau e -> type_ctx_no_dup Gamma.
+Lemma tmR_in_ctx_aux_implies_no_dup: forall st Gamma tau e,
+    tmR_in_ctx_aux st Gamma tau e -> type_ctx_no_dup (nstate_to_tystate st) Gamma.
 Admitted.
 
 Global Hint Resolve tmR_in_ctx_aux_implies_no_dup: core.
@@ -231,18 +238,24 @@ Fixpoint erase_ctx (Gamma: lcontxt) :=
   end.
 
 Lemma tmR_in_ctx_aux_implies_has_type: forall Gamma st tau e,
-    tmR_in_ctx_aux st Gamma tau e -> (erase_ctx Gamma) |- e \Tin ou\_ tau _/.
+    tmR_in_ctx_aux st Gamma tau e -> (erase_ctx Gamma) \N- e \Tin ou\_ tau _/.
 Admitted.
+
+Lemma denotation_in_ctx_implies_not_free_not_in_ctx: forall Gamma st tau e x,
+    tmR_in_ctx_aux st Gamma tau e -> l_find_right_most Gamma x = None -> ~ x \FVtm e.
+Admitted.
+
+Global Hint Resolve denotation_in_ctx_implies_not_free_not_in_ctx: core.
 
 Lemma tmR_in_ctx_pre_weakening: forall nst Gamma1 Gamma2 Gamma3 (tau: overunderty),
     (Gamma1 ++ Gamma2) = Gamma3 ->
-    st_type_closed_in_ctx nst Gamma2 tau ->
+    st_type_closed_in_ctx (nstate_to_tystate nst) Gamma2 tau ->
     (forall e, tmR_in_ctx_aux nst Gamma2 tau e -> tmR_in_ctx_aux nst Gamma3 tau e).
 Admitted.
 
 Lemma tmR_in_ctx_post_weakening: forall nst Gamma1 Gamma2 Gamma3 (tau: overunderty),
     (Gamma1 ++ Gamma2) = Gamma3 ->
-    st_type_closed_in_ctx nst Gamma1 tau ->
+    st_type_closed_in_ctx (st\_ nst _/) Gamma1 tau ->
     (forall e, tmR_in_ctx_aux nst Gamma1 tau e -> tmR_in_ctx_aux nst Gamma3 tau e).
 Admitted.
 

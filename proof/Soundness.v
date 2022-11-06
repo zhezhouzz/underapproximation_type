@@ -112,7 +112,7 @@ Proof with eauto.
     apply is_subtype_spec with (e:=e) in Hsub...
     eapply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)... apply app_nil_r...
     assert (tmR_in_ctx_aux empty l_empty tau2 e)... inversion H; subst.
-    eapply st_type_closed_in_ctx_emp_implies_all. eapply denotation_is_closed...
+    eapply st_type_closed_in_ctx_emp_implies_all. eapply denotation_is_closed in H0...
     (* unfold tmR_in_ctx_all_st in Hsub. eapply denotation_is_closed... remember (Hsub st). *)
     (* inversion (Hsub st). subst. eapply denotation_is_closed... *)
   (* eq *)
@@ -147,7 +147,7 @@ Qed.
 
 Lemma coverage: forall (e: tm) (T:base_ty) (phi: constant -> Prop),
     l_empty \C- e \Tin ([[v: T | fun _ c => phi c ]]) ->
-    forall (c: constant), empty |- (vconst c) \Vin T -> phi c -> e -->* vconst c .
+    forall (c: constant), empty \N- (vconst c) \Vin T -> phi c -> e -->* vconst c .
 Proof with eauto.
   intros.
   apply soundness in H.
