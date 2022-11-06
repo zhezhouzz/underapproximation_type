@@ -15,11 +15,6 @@ From Coq Require Import Lists.List.
 From Coq Require Import FunInd.
 From Coq Require Import Recdef.
 
-(* Ltac tmR_to_has_type := *)
-(*   match goal with | H : tmR_aux _ _ ?e \N- has_type empty ?e _ => *)
-(*                       solve [eapply tmR_has_type in H; eauto] *)
-(*   end. *)
-
 Import CoreLangSimp.
 Import NormalTypeSystemSimp.
 Import LinearContext.
@@ -31,6 +26,15 @@ Import DenotationSimp.
 Import WellFormedSimp.
 Import ListNotations.
 
+Ltac tmR_implies_has_type :=
+  match goal with | H : tmR_aux _ _ ?e |- has_type empty ?e _ =>
+                      solve [eapply tmR_has_type in H; eauto]
+  end.
+
+Ltac tmR_implies_no_dup :=
+  match goal with | H : tmR_aux ?st ?Gamma _ |- type_ctx_no_dup ?st ?Gamma =>
+                      solve [eapply tmR_in_ctx_aux_implies_no_dup; eauto]
+  end.
 
 (* aux denotation of over *)
 
@@ -76,7 +80,8 @@ Proof with eauto.
     + constructor...
       intros c_x Hc_xD.
       eapply step_preserve_ctx_denotation. apply eta_lete_const_to_subst.
-      simpl... destruct (eqb_spec a x)... { exfalso. eapply type_ctx_no_dup_fst_last_diff_name... }
+      simpl... destruct (eqb_spec a x)...
+      { exfalso. eapply type_ctx_no_dup_fst_last_diff_name... }
       eapply step_preserve_ctx_denotation... apply eta_lete_const_to_subst_in_lam...
     + constructor...
       destruct H9 as (e_x_hat & He_x_hatD & HH).
@@ -102,7 +107,7 @@ Proof with eauto.
     split.
     + simpl. constructor... constructor... apply tmR_in_ctx_aux_implies_has_type in HD...
     + intros c_x Hc_xD e3 Happ. inversion Happ; subst. simpl.
-      assert (empty \N- c_x \Tin T) as Hc_xT... eapply over_tmR_aux_has_type in Hc_xD...
+      (* assert (empty \N- c_x \Tin T) as Hc_xT... eapply over_tmR_aux_has_type in Hc_xD... *)
       eapply step_preserve_under_denotation... apply eta1...
       assert (tmR_in_ctx_aux (x |-> (tvalue c_x, T); st) [] tau (tlete x c_x e)) as HH...
       inversion HH; subst. inversion H1...
@@ -150,37 +155,44 @@ Lemma meet_of_two_terms_exists: forall e1 e2 T,
     empty \N- e1 \Tin T -> empty \N- e2 \Tin T -> (exists e3, (empty \N- e3 \Tin T) /\ (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c)).
 Admitted.
 
+Lemma meet_of_two_terms_implies_denotation: forall st tau e1 e2 e3,
+    tmR_aux st tau e1 -> tmR_aux st tau e2 ->
+    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> tmR_aux st tau e3.
+Admitted.
+
+Lemma meet_of_two_terms_term_order: forall e1 e2 e3,
+    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> (e3 <-< e1) /\ (e3 <-< e2).
+Admitted.
+
 Lemma meet_of_three_terms_exists: forall e1 e2 e3 T,
     empty \N- e1 \Tin T -> empty \N- e2 \Tin T -> empty \N- e3 \Tin T ->
     (exists e, (empty \N- e \Tin T) /\
             (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c)).
 Admitted.
 
-Lemma meet_of_two_terms_implies_denotation: forall st tau e1 e2 e3,
-    tmR_aux st tau e1 -> tmR_aux st tau e2 ->
-    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> tmR_aux st tau e3.
-Admitted.
-
-(* Global Hint Resolve meet_of_two_terms_implies_denotation: core. *)
-
-Lemma meet_of_two_terms_term_order: forall e1 e2 e3,
-    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> (e3 <-< e1) /\ (e3 <-< e2).
-Admitted.
-
-(* Global Hint Resolve meet_of_two_terms_term_order: core. *)
-
 Lemma meet_of_three_terms_implies_denotation: forall st tau e1 e2 e3 e,
     tmR_aux st tau e1 -> tmR_aux st tau e2 -> tmR_aux st tau e3 ->
     (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c) -> tmR_aux st tau e.
 Admitted.
 
-(* Global Hint Resolve meet_of_three_terms_implies_denotation: core. *)
-
 Lemma meet_of_three_terms_term_order: forall e1 e2 e3 e,
     (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c) -> (e <-< e1) /\ (e <-< e2) /\ (e <-< e3).
 Admitted.
 
-(* Global Hint Resolve meet_of_three_terms_term_order: core. *)
+Lemma meet_of_four_terms_exists: forall e1 e2 e3 e4 T,
+    empty \N- e1 \Tin T -> empty \N- e2 \Tin T -> empty \N- e3 \Tin T -> empty \N- e4 \Tin T ->
+    (exists e, (empty \N- e \Tin T) /\
+            (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c)).
+Admitted.
+
+Lemma meet_of_four_terms_implies_denotation: forall st tau e1 e2 e3 e4 e,
+    tmR_aux st tau e1 -> tmR_aux st tau e2 -> tmR_aux st tau e3 ->
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c) -> tmR_aux st tau e.
+Admitted.
+
+Lemma meet_of_four_terms_term_order: forall e1 e2 e3 e4 e,
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c) -> (e <-< e1) /\ (e <-< e2) /\ (e <-< e3) /\ (e <-< e4).
+Admitted.
 
 Lemma eta2: forall e2 (c2: constant) x1 e1 x2 x,
     e2 -->* c2 ->
@@ -258,7 +270,7 @@ Proof with eauto.
   induction Gamma; simpl; intros st x1 x2 x e1 e2 tau a0 T phi Hx1x2 Hx1free Hv1D Hv2D c2 Hc2D.
   - inversion Hv1D; subst. inversion Hv2D; subst. clear Hv1D Hv2D. inversion Hc2D; subst. clear Hc2D.
     assert (e2 -->* c2) as Hc2E...
-    assert (empty \N- c2 \Tin T) as Hc2T... eapply tmR_has_type in H1...
+    assert (empty \N- c2 \Tin T) as Hc2T; try tmR_implies_has_type...
     inversion H; subst. inversion H0; subst. clear H H0.
     constructor... constructor...
     inversion H4; subst. destruct H0 as (Hv1T & HH).
@@ -272,7 +284,7 @@ Proof with eauto.
     inversion Hv1D; subst.
     + constructor... inversion H3... inversion H5...
       intros c_x He_xD. inversion Hv2D; subst.
-      assert (empty \N- c_x \Tin T0) as Hc_xT... eapply tmR_has_type in He_xD...
+      assert (empty \N- c_x \Tin T0) as Hc_xT; try tmR_implies_has_type...
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T0); st) Gamma (a0 o: {{v:T | phi}} o--> tau) (tlete a c_x e1)) as HHv1...
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T0); st) Gamma ([[v:T | phi]]) (tlete a c_x e2)) as HHv2...
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T0); st) Gamma (<u[ a0 |c-> c2 ]> tau) (tlete x1 (tlete a c_x e1) (tlete x2 (tlete a c_x e2) (tletapp x x1 x2 x)))). eapply IHGamma...
@@ -286,22 +298,19 @@ Proof with eauto.
       { destruct H14 as (e_x_hat2 & He_x_hat2D & HH2).
         inversion Hc2D; subst.
         destruct H18 as (e_x_hat3 & He_x_hat3D & HH3)...
-        destruct (meet_of_three_terms_exists e_x_hat1 e_x_hat2 e_x_hat3 T0) as (e_x_hat & HT & HE)...
-        - apply tmR_has_type in He_x_hat1D...
-        - apply tmR_has_type in He_x_hat2D...
-        - apply tmR_has_type in He_x_hat3D...
-        - exists e_x_hat... split. eapply meet_of_three_terms_implies_denotation in HE...
-          assert (empty \N- e_x_hat1 \Tin T0) as He_x_hat1T... eapply tmR_has_type in He_x_hat1D...
-          assert (empty \N- e_x_hat2 \Tin T0) as He_x_hat2T... eapply tmR_has_type in He_x_hat2D...
-          intros e_x He_xD.
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat1, T0); st) Gamma (a0 o: {{v:T | phi}} o--> tau) (tlete a e_x e1)) as Hv1...
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat2, T0); st) Gamma ([[v:T | phi]]) (tlete a e_x e2)) as Hv2...
-          apply meet_of_three_terms_term_order in HE... destruct HE as (HEE1 & HEE2 & HEE3).
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat, T0); st) Gamma (<u[ a0 |c-> c2 ]> tau)
-                                 (tlete x1 (tlete a e_x e1) (tlete x2 (tlete a e_x e2) (tletapp x x1 x2 x))))...
-          eapply IHGamma...
-          + eapply step_preserve_ctx_denotation... eapply eta_subst_in_const...
-          + eapply step_preserve_ctx_denotation... eapply eta3...
+        destruct (meet_of_three_terms_exists e_x_hat1 e_x_hat2 e_x_hat3 T0) as (e_x_hat & HT & HE); try tmR_implies_has_type...
+        exists e_x_hat... split. eapply meet_of_three_terms_implies_denotation in HE...
+        assert (empty \N- e_x_hat1 \Tin T0) as He_x_hat1T... eapply tmR_has_type in He_x_hat1D...
+        assert (empty \N- e_x_hat2 \Tin T0) as He_x_hat2T... eapply tmR_has_type in He_x_hat2D...
+        intros e_x He_xD.
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat1, T0); st) Gamma (a0 o: {{v:T | phi}} o--> tau) (tlete a e_x e1)) as Hv1...
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat2, T0); st) Gamma ([[v:T | phi]]) (tlete a e_x e2)) as Hv2...
+        apply meet_of_three_terms_term_order in HE... destruct HE as (HEE1 & HEE2 & HEE3).
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat, T0); st) Gamma (<u[ a0 |c-> c2 ]> tau)
+                               (tlete x1 (tlete a e_x e1) (tlete x2 (tlete a e_x e2) (tletapp x x1 x2 x))))...
+        eapply IHGamma...
+        - eapply step_preserve_ctx_denotation... eapply eta_subst_in_const...
+        - eapply step_preserve_ctx_denotation... eapply eta3...
       }
     + constructor... inversion H3... inversion H5...
       inversion Hv1D; subst. inversion Hv2D; subst.
@@ -401,7 +410,7 @@ Proof with eauto.
     inversion Hv1D; subst.
     + constructor... { inversion H5; subst... } inversion Hv2D; subst.
       intros c_x He_xD.
-      assert (empty \N- c_x \Tin T) as Hc_xT... eapply tmR_has_type in He_xD...
+      assert (empty \N- c_x \Tin T) as Hc_xT; try tmR_implies_has_type.
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma (tau_x u--> tau) (tlete a c_x v1)) as HHv1...
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma tau_x (tlete a c_x v2)) as HHv2...
       assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma tau
@@ -412,18 +421,16 @@ Proof with eauto.
         destruct H9 as (e_x_hat1 & He_x_hat1D & HH1).
         inversion Hv2D; subst.
         destruct H14 as (e_x_hat2 & He_x_hat2D & HH2).
-        destruct (meet_of_two_terms_exists e_x_hat1 e_x_hat2 T) as (e_x_hat & HT & HE)...
-        - apply tmR_has_type in He_x_hat1D...
-        - apply tmR_has_type in He_x_hat2D...
-        - exists e_x_hat... split. eapply meet_of_two_terms_implies_denotation in HE...
-          intros e_x He_xD.
-          assert (empty \N- e_x_hat1 \Tin T) as He_x_hat1T... eapply tmR_has_type in He_x_hat1D...
-          assert (empty \N- e_x_hat2 \Tin T) as He_x_hat2T... eapply tmR_has_type in He_x_hat2D...
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat1, T); st) Gamma (tau_x u--> tau) (tlete a e_x v1)) as Hv1...
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat2, T); st) Gamma tau_x (tlete a e_x v2)) as Hv2...
-          apply meet_of_two_terms_term_order in HE... destruct HE as (HEE1 & HEE2).
-          assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma tau (tlete x1 (tlete a e_x v1) (tlete x2 (tlete a e_x v2) (tletapp x x1 x2 x)))). eapply IHGamma...
-          + eapply step_preserve_ctx_denotation... eapply eta3...
+        destruct (meet_of_two_terms_exists e_x_hat1 e_x_hat2 T) as (e_x_hat & HT & HE); try tmR_implies_has_type...
+        exists e_x_hat... split. eapply meet_of_two_terms_implies_denotation in HE...
+        intros e_x He_xD.
+        assert (empty \N- e_x_hat1 \Tin T) as He_x_hat1T; try tmR_implies_has_type.
+        assert (empty \N- e_x_hat2 \Tin T) as He_x_hat2T; try tmR_implies_has_type.
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat1, T); st) Gamma (tau_x u--> tau) (tlete a e_x v1)) as Hv1...
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat2, T); st) Gamma tau_x (tlete a e_x v2)) as Hv2...
+        apply meet_of_two_terms_term_order in HE... destruct HE as (HEE1 & HEE2).
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma tau (tlete x1 (tlete a e_x v1) (tlete x2 (tlete a e_x v2) (tletapp x x1 x2 x)))). eapply IHGamma...
+        - eapply step_preserve_ctx_denotation... eapply eta3...
       }
     + constructor... inversion H3... inversion H5...
       inversion Hv2D; subst.
@@ -458,52 +465,173 @@ Proof with eauto.
   eapply step_preserve_ctx_denotation... eapply eta6...
 Qed.
 
-
-Lemma tmR_in_ctx_preserve_biop_application_aux: forall Gamma st op x1 x2 x (e1 e2: tm) T1 phi1 T2 phi2,
+Lemma op_type_safe: forall Gamma x1 e1 x2 e2 x op,
     x1 <> x2 -> ~ x1 \FVtm e2 ->
-    tmR_in_ctx_aux st Gamma ([[v: T1 | phi1]]) e1 ->
-    tmR_in_ctx_aux st Gamma ([[v: T2 | phi2]]) e2 ->
+    Gamma \N- e1 \Tin (fst_ty_of_op op) ->
+    Gamma \N- e2 \Tin (fst_ty_of_op op) ->
+    Gamma \N- tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)) \Tin ret_ty_of_op op.
+Admitted.
+
+Lemma eta_op: forall x1 e1 x2 e2 x op (c1 c2: constant),
+    e1 -->* c1 -> e2 -->* c2 ->
+   (tletbiop x op c1 c2 x) <-< tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)).
+Admitted.
+
+Lemma op_c_denoation_safe: forall st Gamma x op (c1 c2: constant),
+    tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2) (tletbiop x op c1 c2 x).
+Admitted.
+
+Lemma op_c_well_formed_type: forall op (c1 c2: constant), well_formed_type (mk_op_retty_from_cids op c1 c2).
+Admitted.
+
+Global Hint Resolve op_c_well_formed_type: core.
+
+Lemma tmR_in_ctx_overhead_not_free: forall st a T phi Gamma tau (c_a: constant) e,
+    ~ a \FVtm e ->
+    tmR_aux st ({{v:T | phi}}) c_a ->
+    tmR_in_ctx_aux st ((a, Oty ({{v:T | phi}})) :: Gamma) tau e ->
+    tmR_in_ctx_aux (a |-> (tvalue c_a, T); st) Gamma tau e.
+Admitted.
+
+Lemma tmR_in_ctx_oarrhead_not_free: forall st x a Ta phia taub Gamma tau e,
+    ~ x \FVtm e ->
+    tmR_in_ctx_aux st ((x, Uty (a o: ({{v: Ta | phia}}) o--> taub)) :: Gamma) tau e ->
+    tmR_in_ctx_aux st Gamma tau e.
+Admitted.
+
+Lemma tmR_in_ctx_arrarrhead_not_free: forall st x t1 t2 Gamma tau e,
+    ~ x \FVtm e ->
+    tmR_in_ctx_aux st ((x, Uty (t1 u--> t2)) :: Gamma) tau e ->
+    tmR_in_ctx_aux st Gamma tau e.
+Admitted.
+
+Lemma eta9: forall x1 a (c_a: tm) e1 x2 e2 x op,
+    (tlete x1 (tlete a c_a e1) (tlete x2 (tlete a c_a e2) (tletbiop x op x1 x2 x)))
+      <-< (tlete a c_a (tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)))).
+Admitted.
+
+(* Lemma eta10: forall x1 a (c_a: constant) e1 x2 e2 x op, *)
+(*     (tlete a c_a (tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)))) *)
+(*     <-< (tlete x1 (tlete a c_a e1) (tlete x2 (tlete a c_a e2) (tletbiop x op x1 x2 x))). *)
+(* Admitted. *)
+
+Lemma tmR_in_ctx_preserve_biop_application_aux: forall Gamma st op x1 x2 x (e1 e2: tm) phi1 phi2,
+    x1 <> x2 -> ~ x1 \FVtm e2 ->
+    tmR_in_ctx_aux st Gamma ([[v: fst_ty_of_op op | phi1]]) e1 ->
+    tmR_in_ctx_aux st Gamma ([[v: snd_ty_of_op op | phi2]]) e2 ->
     (forall (c1 c2: constant),
-        tmR_in_ctx_aux st Gamma ({{v: T1 | phi1}}) c1 ->
-        tmR_in_ctx_aux st Gamma ({{v: T2 | phi2}}) c2 ->
+        tmR_in_ctx_aux st Gamma ({{v: fst_ty_of_op op | phi1}}) c1 ->
+        tmR_in_ctx_aux st Gamma ({{v: snd_ty_of_op op | phi2}}) c2 ->
         tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2)
                        (tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)))).
 Proof with eauto.
   intro Gamma.
-  induction Gamma; simpl; intros st op x1 x2 x e1 e2 T1 phi1 T2 phi2 Hx1x2 Hx1free Hv1D Hv2D c1 c2 Hc1D Hc2D.
+  induction Gamma; simpl; intros st op x1 x2 x e1 e2 phi1 phi2 Hx1x2 Hx1free Hv1D Hv2D c1 c2 Hc1D Hc2D.
   - inversion Hv1D; subst. inversion Hv2D; subst. clear Hv1D Hv2D.
     inversion Hc1D; subst. inversion Hc2D; subst. clear Hc1D Hc2D.
     assert (e1 -->* c1) as Hc1E... assert (e2 -->* c2) as Hc2E...
-    assert (empty \N- c1 \Tin T1) as Hc1T...
+    eapply step_preserve_ctx_denotation... eapply eta_op... apply op_c_denoation_safe...
+  - destruct a as (a & tau_a).
+    inversion Hv1D; subst.
+    + constructor... inversion Hv2D; subst.
+      intros c_x He_xD.
+      assert (empty \N- c_x \Tin T) as Hc_xT; try tmR_implies_has_type.
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma ([[v:fst_ty_of_op op | phi1]]) (tlete a c_x e1)) as HHv1...
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma ([[v:snd_ty_of_op op | phi2]]) (tlete a c_x e2)) as HHv2...
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma (mk_op_retty_from_cids op c1 c2)
+                             (tlete x1 (tlete a c_x e1) (tlete x2 (tlete a c_x e2) (tletbiop x op x1 x2 x)))).
+      eapply IHGamma...
+      { eapply tmR_in_ctx_overhead_not_free... } { eapply tmR_in_ctx_overhead_not_free... }
+      eapply step_preserve_ctx_denotation... eapply eta9...
+    + constructor...
+      destruct H9 as (e_x_hat1 & He_x_hat1D & HH1).
+      inversion Hv2D; subst.
+      { destruct H14 as (e_x_hat2 & He_x_hat2D & HH2).
+        inversion Hc1D; subst.
+        destruct H18 as (e_x_hat3 & He_x_hat3D & HH3)...
+        inversion Hc2D; subst.
+        destruct H22 as (e_x_hat4 & He_x_hat4D & HH4)...
+        destruct (meet_of_four_terms_exists e_x_hat1 e_x_hat2 e_x_hat3 e_x_hat4 T)
+          as (e_x_hat & HT & HE); try tmR_implies_has_type...
+        exists e_x_hat... split. eapply meet_of_four_terms_implies_denotation in HE...
+        assert (empty \N- e_x_hat1 \Tin T) as He_x_hat1T... eapply tmR_has_type in He_x_hat1D...
+        assert (empty \N- e_x_hat2 \Tin T) as He_x_hat2T... eapply tmR_has_type in He_x_hat2D...
+        intros e_x He_xD.
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat1, T); st) Gamma ([[v:fst_ty_of_op op | phi1]]) (tlete a e_x e1)) as Hv1...
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat2, T); st) Gamma ([[v:snd_ty_of_op op | phi2]]) (tlete a e_x e2)) as Hv2...
+        apply meet_of_four_terms_term_order in HE... destruct HE as (HEE1 & HEE2 & HEE3 & HEE4).
+        assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma (mk_op_retty_from_cids op c1 c2)
+                               (tlete x1 (tlete a e_x e1) (tlete x2 (tlete a e_x e2) (tletbiop x op x1 x2 x)))).
+        eapply IHGamma...
+        - eapply step_preserve_ctx_denotation... eapply eta_subst_in_const...
+        - eapply step_preserve_ctx_denotation... eapply eta_subst_in_const...
+        - eapply step_preserve_ctx_denotation... eapply eta9...
+      }
+    + constructor...
+      inversion Hv1D; subst. inversion Hv2D; subst.
+      intros e_x He_xD.
+      assert (tmR_in_ctx_aux st Gamma ([[v:fst_ty_of_op op | phi1]]) (tlete a e_x e1)) as Hv1...
+      assert (tmR_in_ctx_aux st Gamma ([[v:snd_ty_of_op op | phi2]]) (tlete a e_x e2)) as Hv2...
+      assert (tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2)
+                             (tlete x1 (tlete a e_x e1) (tlete x2 (tlete a e_x e2) (tletbiop x op x1 x2 x)))).
+      eapply IHGamma...
+      { eapply tmR_in_ctx_oarrhead_not_free... } { eapply tmR_in_ctx_oarrhead_not_free... }
+      eapply step_preserve_ctx_denotation... eapply eta9...
+    + constructor...
+      inversion Hv1D; subst. inversion Hv2D; subst.
+      intros e_x He_xD.
+      assert (tmR_in_ctx_aux st Gamma ([[v:fst_ty_of_op op | phi1]]) (tlete a e_x e1)) as Hv1...
+      assert (tmR_in_ctx_aux st Gamma ([[v:snd_ty_of_op op | phi2]]) (tlete a e_x e2)) as Hv2...
+      assert (tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2)
+                             (tlete x1 (tlete a e_x e1) (tlete x2 (tlete a e_x e2) (tletbiop x op x1 x2 x)))).
+      eapply IHGamma...
+      { eapply tmR_in_ctx_arrarrhead_not_free... } { eapply tmR_in_ctx_arrarrhead_not_free... }
+      eapply step_preserve_ctx_denotation... eapply eta9...
+Qed.
 
-
-    eapply tmR_has_type in H1...
-    inversion H; subst. inversion H0; subst. clear H H0.
-    constructor... constructor...
+Lemma eta10: forall op x1 (id1 id2: cid) x2 x,
+    x1 <> x2 -> ~ x1 \FVvalue id2 ->
+    (tlete x1 id1 (tlete x2 id2 (tletbiop x op x1 x2 x))) <-< (tletbiop x op id1 id2 x).
 Admitted.
 
+Lemma denotation_last_var_to_const2: forall st Gamma op phi1 phi2 (v1 v2: cid) x,
+    (tmR_in_ctx_aux st Gamma ([[v:fst_ty_of_op op | phi1]]) v1) ->
+    (tmR_in_ctx_aux st Gamma ([[v:snd_ty_of_op op | phi2]]) v2) ->
+    (forall c1 c2 : constant,
+        tmR_in_ctx_aux st Gamma ({{v:fst_ty_of_op op | phi1}}) c1 ->
+        tmR_in_ctx_aux st Gamma ({{v:snd_ty_of_op op | phi2}}) c2 ->
+        tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2) (tletbiop x op v1 v2 x))
+    -> tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op v1 v2) (tletbiop x op v1 v2 x).
+Admitted.
 
+Lemma closed_op_rty_implies_fst_rty_exists: forall st Gamma op v1 v2,
+    st_type_closed_in_ctx (st\_ st _/) Gamma (mk_op_retty_from_cids op v1 v2) ->
+    (exists phi1, tmR_in_ctx_aux st Gamma ([[v: fst_ty_of_op op | phi1]]) v1).
+Admitted.
+
+Lemma closed_op_rty_implies_snd_rty_exists: forall st Gamma op v1 v2,
+    st_type_closed_in_ctx (st\_ st _/) Gamma (mk_op_retty_from_cids op v1 v2) ->
+    (exists phi2, tmR_in_ctx_aux st Gamma ([[v: snd_ty_of_op op | phi2]]) v2).
+Admitted.
 
 Lemma tmR_in_ctx_preserve_biop_application: forall Gamma st x op (v1 v2: cid),
     st_type_closed_in_ctx (st\_ st _/) Gamma (mk_op_retty_from_cids op v1 v2) ->
     tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op v1 v2) (tletbiop x op v1 v2 x).
 Proof with eauto.
-  intro Gamma.
-  induction Gamma; simpl; intros st x op v1 v2 Hclosed.
-  - constructor...
-    destruct v1 as [c1 | id1]; destruct v2 as [c2 | id2].
-    + admit.
-    + admit.
-    + admit.
-    + admit.
-  (* destruct op; simpl. constructor... constructor... simpl. admit. *)
-  - destruct a as (a & tau_a).
-    destruct v1 as [c1 | id1]; destruct v2 as [c2 | id2].
-    + admit.
-    + admit.
-    + admit.
-    + destruct (eqb_spec a id1); destruct (eqb_spec a id2).
-Admitted.
+  intros Gamma st x op v1 v2 Hclosed.
+  destruct (exists_fresh_var_of_value v2) as (x1 & x2 & Hx1x2 & Hfree).
+  assert (exists phi1, tmR_in_ctx_aux st Gamma ([[v: fst_ty_of_op op | phi1]]) v1) as (phi1 & Hv1D). eapply closed_op_rty_implies_fst_rty_exists...
+  assert (exists phi2, tmR_in_ctx_aux st Gamma ([[v: snd_ty_of_op op | phi2]]) v2) as (phi2 & Hv2D). eapply closed_op_rty_implies_snd_rty_exists...
+  assert (forall (c1 c2: constant),
+             tmR_in_ctx_aux st Gamma ({{v: fst_ty_of_op op | phi1}}) c1 ->
+             tmR_in_ctx_aux st Gamma ({{v: snd_ty_of_op op | phi2}}) c2 ->
+             tmR_in_ctx_aux st Gamma (mk_op_retty_from_cids op c1 c2)
+                            (tlete x1 v1 (tlete x2 v2 (tletbiop x op x1 x2 x)))).
+  eapply tmR_in_ctx_preserve_biop_application_aux...
+  eapply denotation_last_var_to_const2...
+  intros c1 c2 Hc1D Hc2D.
+  eapply step_preserve_ctx_denotation... eapply eta10...
+Qed.
 
 Lemma tmR_in_ctx_preserve_matchb_true: forall Gamma st (v: value) e1 e2 tau,
     type_ctx_no_dup (st\_ st _/) Gamma ->
@@ -520,7 +648,6 @@ Proof with eauto.
     apply step_preserve_ctx_denotation with (e:= ([id := true] e1))... apply eta_matchb_true...
     rewrite <- tmR_in_ctx_id_eq_c...
 Qed.
-
 
 Lemma tmR_in_ctx_preserve_matchb_false: forall st Gamma (v: value) e1 e2 tau,
     type_ctx_no_dup (st\_ st _/) Gamma ->
