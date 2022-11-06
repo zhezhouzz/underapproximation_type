@@ -51,16 +51,6 @@ Lemma tmR_in_ctx_state_implies_subst: forall (st: nstate) a T (c_a: constant) Ga
     (forall e, tmR_in_ctx_aux st Gamma tau e <-> tmR_in_ctx_aux st Gamma tau ([a := c_a] e)).
 Admitted.
 
-Lemma eta1: forall x1 x T e x2 (c_x:constant) x0,
-    x1<> x2 -> ~ x1 \FVtm c_x ->
-    (tlete x1 (vlam x T e) (tlete x2 c_x (tletapp x0 x1 x2 x0))) <=< (tlete x c_x e).
-Admitted.
-
-Lemma eta11: forall x e_x e x1 x2 x0 T1 T2,
-    ~ x1 \FVtm e_x ->
-    (tlete x e_x e) <-< tlete x1 (vlam x (T1 t--> T2) e) (tlete x2 e_x (tletapp x0 x1 x2 x0)).
-Admitted.
-
 Lemma tmR_in_ctx_preserve_arrarr: forall Gamma st x (t1 t2: underty) e (tau: underty),
     tmR_in_ctx_aux st (Gamma <l> x :l: Uty (t1 u--> t2)) tau e ->
     tmR_in_ctx_aux st Gamma ((t1 u--> t2) u--> tau) (vlam x (u\_ (t1 u--> t2) _/) e).
@@ -194,21 +184,10 @@ Lemma meet_of_four_terms_term_order: forall e1 e2 e3 e4 e,
     (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c) -> (e <-< e1) /\ (e <-< e2) /\ (e <-< e3) /\ (e <-< e4).
 Admitted.
 
-Lemma eta2: forall e2 (c2: constant) x1 e1 x2 x,
-    e2 -->* c2 ->
-    (tlete x1 e1 (tlete x2 c2 (tletapp x x1 x2 x))) <-< (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))).
-Admitted.
-
 Lemma under_tmR_aux_st_update: forall x (c_x: constant) (T:base_ty) st tau,
     empty \N- c_x \Tin T ->
     (forall e, under_tmR_aux (x |-> (tvalue c_x, T); st) tau e <->
             under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
-Admitted.
-
-Lemma eta3: forall x1 a (e_a: tm) Ta e1 x2 e2 x,
-    empty \N- e_a \Tin Ta ->
-    (tlete a e_a (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))))
-      <=< (tlete x1 (tlete a e_a e1) (tlete x2 (tlete a e_a e2) (tletapp x x1 x2 x))).
 Admitted.
 
 Global Hint Resolve tmR_has_type: core.
@@ -240,22 +219,11 @@ Lemma under_head_denotation_implies_exists: forall st a T0 phi0 Gamma T phi c,
 Proof with eauto.
 Admitted.
 
-Lemma eta_subst_in_const: forall a e_x (c: constant), (tlete a e_x c) <=< c.
-Admitted.
-
-Global Hint Resolve eta_subst_in_const: core.
-
 Lemma under_denotation_can_reduce_to_over: forall st T phi e (c: constant),
     tmR_aux st ([[v:T | phi]]) e -> tmR_aux st ({{v:T | phi}}) c -> e -->* c.
 Admitted.
 
 Global Hint Resolve under_denotation_can_reduce_to_over: core.
-
-Lemma eta_snd_let_reduce: forall x1 e1 x2 e2 x (c2: constant), e2 -->* c2 ->
-                                                          (tlete x1 e1 (tlete x2 c2 (tletapp x x1 x2 x))) <-< (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))).
-Admitted.
-
-(* Global Hint Resolve eta_snd_let_reduce: core. *)
 
 Lemma tmR_in_ctx_preserve_application: forall Gamma st x1 x2 x (e1 e2: tm) tau a T phi,
     x1 <> x2 -> ~ x1 \FVtm e2 ->
@@ -330,17 +298,6 @@ Proof with eauto.
       eapply step_preserve_ctx_denotation... eapply eta3...
 Qed.
 
-Lemma eta4: forall x1 (v1: value) x2 (c2: constant) x,
-    x1 <> x2 ->
-    tlete x1 v1 (tlete x2 c2 (tletapp x x1 x2 x)) <-< tletapp x v1 c2 x.
-Admitted.
-
-(* Lemma constant_denotation_implies_singleton_and_min: forall st Gamma T phi (c: constant) e, *)
-(* tmR_in_ctx_aux st Gamma ([[v:T | phi]]) c -> tmR_in_ctx_aux st Gamma ([[v:T | phi]]) e -> e -->*c. *)
-(* Admitted. *)
-
-(* Global Hint Resolve constant_denotation_implies_singleton_and_min: core. *)
-
 Lemma constant_denotation_under_implies_over: forall st Gamma T phi (c: constant),
     tmR_in_ctx_aux st Gamma ([[v:T | phi]]) c -> tmR_in_ctx_aux st Gamma ({{v:T | phi}}) c.
 Admitted.
@@ -357,11 +314,6 @@ Proof with eauto.
   eapply tmR_in_ctx_preserve_application with (x1:=x1) (x2:=x2) (x:=x) (e2:=c2) (c2:=c2) in Hv1D...
   eapply step_preserve_ctx_denotation... eapply eta4...
 Qed.
-
-Lemma eta5: forall x1 (v1: value) x2 (id2: string) x,
-    x1 <> x2 -> ~ x1 \FVvalue id2 ->
-    (tlete x1 v1 (tlete x2 id2 (tletapp x x1 x2 x))) <-< tletapp x v1 id2 x.
-Admitted.
 
 Lemma denotation_last_var_to_const: forall st Gamma T phi a0 (id2: string) tau,
     (tmR_in_ctx_aux st Gamma ([[v:T | phi]]) id2) ->
@@ -448,11 +400,6 @@ Proof with eauto.
       eapply step_preserve_ctx_denotation... eapply eta3...
 Qed.
 
-Lemma eta6: forall x1 (v1 v2: value) x2 x,
-    ~ x1 \FVvalue v2 ->
-    tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x)) <-< tletapp x v1 v2 x.
-Admitted.
-
 Lemma tmR_in_ctx_preserve_arrarr_application: forall Gamma st x (v1 v2: value) tau tau1,
     tmR_in_ctx_aux st Gamma (tau1 u--> tau) v1 ->
     tmR_in_ctx_aux st Gamma tau1 v2 ->
@@ -470,11 +417,6 @@ Lemma op_type_safe: forall Gamma x1 e1 x2 e2 x op,
     Gamma \N- e1 \Tin (fst_ty_of_op op) ->
     Gamma \N- e2 \Tin (fst_ty_of_op op) ->
     Gamma \N- tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)) \Tin ret_ty_of_op op.
-Admitted.
-
-Lemma eta_op: forall x1 e1 x2 e2 x op (c1 c2: constant),
-    e1 -->* c1 -> e2 -->* c2 ->
-   (tletbiop x op c1 c2 x) <-< tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)).
 Admitted.
 
 Lemma op_c_denoation_safe: forall st Gamma x op (c1 c2: constant),
@@ -504,16 +446,6 @@ Lemma tmR_in_ctx_arrarrhead_not_free: forall st x t1 t2 Gamma tau e,
     tmR_in_ctx_aux st ((x, Uty (t1 u--> t2)) :: Gamma) tau e ->
     tmR_in_ctx_aux st Gamma tau e.
 Admitted.
-
-Lemma eta9: forall x1 a (c_a: tm) e1 x2 e2 x op,
-    (tlete x1 (tlete a c_a e1) (tlete x2 (tlete a c_a e2) (tletbiop x op x1 x2 x)))
-      <-< (tlete a c_a (tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)))).
-Admitted.
-
-(* Lemma eta10: forall x1 a (c_a: constant) e1 x2 e2 x op, *)
-(*     (tlete a c_a (tlete x1 e1 (tlete x2 e2 (tletbiop x op x1 x2 x)))) *)
-(*     <-< (tlete x1 (tlete a c_a e1) (tlete x2 (tlete a c_a e2) (tletbiop x op x1 x2 x))). *)
-(* Admitted. *)
 
 Lemma tmR_in_ctx_preserve_biop_application_aux: forall Gamma st op x1 x2 x (e1 e2: tm) phi1 phi2,
     x1 <> x2 -> ~ x1 \FVtm e2 ->
@@ -588,11 +520,6 @@ Proof with eauto.
       { eapply tmR_in_ctx_arrarrhead_not_free... } { eapply tmR_in_ctx_arrarrhead_not_free... }
       eapply step_preserve_ctx_denotation... eapply eta9...
 Qed.
-
-Lemma eta10: forall op x1 (id1 id2: cid) x2 x,
-    x1 <> x2 -> ~ x1 \FVvalue id2 ->
-    (tlete x1 id1 (tlete x2 id2 (tletbiop x op x1 x2 x))) <-< (tletbiop x op id1 id2 x).
-Admitted.
 
 Lemma denotation_last_var_to_const2: forall st Gamma op phi1 phi2 (v1 v2: cid) x,
     (tmR_in_ctx_aux st Gamma ([[v:fst_ty_of_op op | phi1]]) v1) ->

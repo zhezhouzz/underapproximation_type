@@ -89,6 +89,38 @@ Lemma closed_refinement_in_ctx_weakening: forall st Gamma1 Gamma2 Gamma3 phi,
     closed_refinement_in_ctx st Gamma3 phi.
 Admitted.
 
+Definition closed_refinement_in_ctx_drop: forall st nst x T phi phi0 e_x,
+    closed_refinement_in_ctx (st\_ nst _/) [(x, Uty ([[v:T | phi]]))] phi0 ->
+    empty \N- e_x \Tin T ->
+    st \NSTin (x |-> (e_x, T); nst) ->
+    closed_refinement_under_state st phi0.
+Proof with eauto.
+  intros st nst x T phi phi0 e_x Hctx HT Hsub.
+  inversion Hctx; subst... inversion H5;subst...
+Qed.
+
+Lemma closed_refinement_in_ctx_one_underbase: forall tyst x T phi phi0,
+    closed_refinement_in_ctx tyst ((x, Uty ([[v:T | phi]]))::nil) phi0 ->
+    closed_refinement_in_ctx (x |-> T; tyst) [] phi0.
+Admitted.
+
+Global Hint Resolve closed_refinement_in_ctx_one_underbase: core.
+
+Lemma closed_refinement_in_ctx_one_overbase: forall tyst x T phi phi0,
+    closed_refinement_in_ctx tyst ((x, Oty ({{v:T | phi}}))::nil) phi0 ->
+    closed_refinement_in_ctx (x |-> T; tyst) [] phi0.
+Admitted.
+
+Global Hint Resolve closed_refinement_in_ctx_one_overbase: core.
+
+Lemma closed_refinement_in_ctx_destruct_front : forall Gamma tyst x T phi tau,
+    closed_refinement_in_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) tau ->
+    closed_refinement_in_ctx (x |-> T; tyst) Gamma tau.
+Proof with eauto.
+  intros Gamma tyst x T phi tau Hclosed.
+  inversion Hclosed; subst...
+Qed.
+
 (* Module ExCloseRefinement. *)
 
 (*   Example true_refinement: closed_refinement_under_state empsta (fun _ c => c = 3). *)
@@ -148,6 +180,44 @@ Lemma st_type_closed_in_ctx_emp_implies_all: forall st Gamma tau,
 Admitted.
 
 Global Hint Resolve st_type_closed_in_ctx_emp_implies_all: core.
+
+Lemma st_type_closed_in_ctx_perm: forall tyst a tau_a b tau_b Gamma,
+    st_type_closed_in_ctx tyst [] tau_b ->
+    (forall tau, st_type_closed_in_ctx tyst ((a, tau_a)::(b, tau_b)::Gamma) tau ->
+            st_type_closed_in_ctx tyst ((b, tau_b)::(a, tau_a)::Gamma) tau).
+Admitted.
+
+Lemma st_type_closed_in_ctx_one_underbase: forall tyst x T phi tau,
+    st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]]))::nil) tau ->
+    st_type_closed_in_ctx (x |-> T; tyst) [] tau.
+Admitted.
+
+Global Hint Resolve st_type_closed_in_ctx_one_underbase: core.
+
+Lemma st_type_closed_in_ctx_one_overbase: forall tyst x T phi tau,
+    st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}}))::nil) tau ->
+    st_type_closed_in_ctx (x |-> T; tyst) [] tau.
+Admitted.
+
+Global Hint Resolve st_type_closed_in_ctx_one_overbase: core.
+
+Lemma st_type_closed_in_ctx_destruct_underbase_front : forall Gamma tyst x T phi tau,
+    st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) tau ->
+    st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
+Proof with eauto.
+  intros Gamma tyst x T phi tau Hclosed.
+  induction Gamma; inversion Hclosed; subst.
+  + inversion H...
+  + inversion H...
+  + inversion H...
+  + inversion H; subst...
+Admitted.
+
+Lemma st_type_closed_in_ctx_destruct_arrar_front : forall Gamma tyst x t1 t2 tau,
+    st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) tau ->
+    st_type_closed_in_ctx tyst Gamma tau.
+Proof with eauto.
+Admitted.
 
 (* Inductive overunderbasety : Type := *)
 (* | Obase: base_ty -> refinement -> overunderbasety *)
@@ -348,6 +418,31 @@ Proof with eauto.
 Qed.
 
 Global Hint Resolve destructst_type_closed_ctx: core.
+
+Lemma st_type_closed_ctx_implies_head_well_formed_type: forall tyst x tau_x Gamma,
+    st_type_closed_ctx tyst ((x, tau_x)::Gamma) -> well_formed_type tau_x.
+Admitted.
+
+Global Hint Resolve st_type_closed_ctx_implies_head_well_formed_type: core.
+
+Lemma st_type_closed_ctx_destruct_front : forall Gamma tyst x T phi,
+    st_type_closed_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) ->
+    st_type_closed_ctx (x |-> T; tyst) Gamma.
+Proof with eauto.
+  apply (rev_ind (fun Gamma => forall (tyst: tystate) x T phi,
+                       st_type_closed_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) ->
+                       st_type_closed_ctx (x |-> T; tyst) Gamma)).
+  - intros nst x T phi Hclosed.
+    constructor...
+  - intros (a & tau_a) Gamma IHGamma nst x T phi Hclosed.
+    rewrite app_comm_cons in Hclosed.
+    apply destructst_type_closed_ctx in Hclosed. destruct Hclosed as (Hnst & Hfind & Hctx & Htau & Hwf).
+    constructor; auto.
+    + assert (x <> a)... rewrite update_neq...
+    + apply l_find_right_most_none_neq_tl in Hfind...
+    + eauto.
+    + eapply st_type_closed_in_ctx_destruct_underbase_front...
+Qed.
 
 Lemma st_type_closed_ctx_emp_implies_all: forall st Gamma,
     st_type_closed_ctx empty Gamma -> st_type_closed_ctx st Gamma.

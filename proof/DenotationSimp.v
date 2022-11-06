@@ -134,6 +134,10 @@ Admitted.
 
 Global Hint Resolve mk_op_has_denotation: core.
 
+Lemma tmR_nst_no_free_implies_eq: forall st x e_x_hat (tau: underty),
+    ~ appear_free_in_underty x tau -> (forall e, tmR_aux (x |-> e_x_hat; st) tau e <-> tmR_aux st tau e).
+Admitted.
+
 (* The denotation does not guarantee the well-formedness (inv_ctx). *)
 (* The denotation implies no dup. *)
 Inductive tmR_in_ctx_aux: nstate -> context -> overunderty -> tm -> Prop :=

@@ -23,17 +23,8 @@ Import WellFormedSimp.
 Import DenotationSpecsSimp.
 Import ListNotations.
 
-Lemma tmR_nst_no_free_implies_eq: forall st x e_x_hat (tau: underty),
-    ~ appear_free_in_underty x tau -> (forall e, tmR_aux (x |-> e_x_hat; st) tau e <-> tmR_aux st tau e).
-Admitted.
-
 Global Hint Rewrite tmR_nst_no_free_implies_eq: core.
 Global Hint Resolve tmR_has_type: core.
-
-Lemma eta_lete_neq: forall x a c_x e_x e,
-    a <> x ->
-    tlete x (tlete a c_x e_x) (tlete a c_x e) <-< tlete a c_x (tlete x e_x e).
-Admitted.
 
 Lemma lete_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma st x tau_x tau,
     ~ appear_free_in_underty x tau ->
@@ -91,10 +82,6 @@ Proof with eauto.
       eapply IHGamma... eapply ctx_inv_destruct_underarrarr...
       eapply step_preserve_ctx_denotation... eapply eta_lete_neq...
 Qed.
-
-Lemma eta7: forall x v1 v2 e, (tlete x (tletapp x v1 v2 x) e) <=< (tletapp x v1 v2 e).
-Admitted.
-
 
 Lemma tletapp_arrarr_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma st x tau_x tau,
     ~ appear_free_in_underty x tau ->
@@ -156,13 +143,6 @@ Proof with eauto.
     + eapply step_preserve_ctx_denotation... eapply eta7...
 Qed.
 
-Lemma eta8: forall x op v1 v2 e, (tlete x (tletbiop x op v1 v2 x) e) <=< (tletbiop x op v1 v2 e).
-Admitted.
-
-Lemma inv_implies_type_closed_last: forall st Gamma x tau_x,
-  ctx_inv st (Gamma ++ ((x, tau_x)::nil)) -> st_type_closed_in_ctx (st\_ st _/) Gamma tau_x.
-Admitted.
-
 Global Hint Resolve inv_implies_type_closed_last: core.
 
 
@@ -191,5 +171,5 @@ Proof with eauto.
     + eapply lete_ctx_inv_implies_safe_dropping_1_to_1...
       eapply tmR_in_ctx_preserve_biop_application...
     + eapply step_preserve_ctx_denotation... eapply eta8...
-Admitted.
+Qed.
 
