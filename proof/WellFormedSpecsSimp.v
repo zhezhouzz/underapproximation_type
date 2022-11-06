@@ -16,6 +16,7 @@ Import CoreLangSimp.
 Import LinearContext.
 Import TypeClosedSimp.
 Import DenotationSimp.
+Import TermMeet.
 Import TermOrdering.
 Import Nstate.
 Import NoDup.
@@ -25,6 +26,19 @@ Import ListNotations.
 
 Global Hint Rewrite tmR_nst_no_free_implies_eq: core.
 Global Hint Resolve tmR_has_type: core.
+
+Lemma constant_has_denotation (c: constant):
+  forall nst, well_formed_nst nst -> tmR_aux nst (mk_eq_constant c) (vconst c).
+Proof with eauto.
+  intros.
+  destruct c. unfold mk_eq_constant.
+  - constructor... constructor... constructor... simpl... constructor... constructor...
+    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
+  - constructor... constructor... simpl. split. constructor. constructor.
+    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
+Qed.
+
+Global Hint Resolve constant_has_denotation: core.
 
 Lemma lete_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma st x tau_x tau,
     ~ appear_free_in_underty x tau ->

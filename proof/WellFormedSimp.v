@@ -25,18 +25,6 @@ Definition well_formed_nst (nst: nstate) := exists st, st \NSTin nst.
 
 Global Hint Unfold well_formed_nst: core.
 
-Lemma constant_has_denotation (c: constant): forall nst, well_formed_nst nst -> tmR_aux nst (mk_eq_constant c) (vconst c).
-Proof with eauto.
-  intros.
-  destruct c. unfold mk_eq_constant.
-  - constructor... constructor... constructor... simpl... constructor... constructor...
-    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
-  - constructor... constructor... simpl. split. constructor. constructor.
-    intros; subst... destruct H as (st & Hst). apply H1 in Hst... destruct Hst; subst...
-Qed.
-
-Global Hint Resolve constant_has_denotation: core.
-
 (* It only makes sense when there is no duplicate bindings. *)
 Inductive ctx_inv: nstate -> context -> Prop:=
 | ctx_inv_nil: forall nst, well_formed_nst nst -> ctx_inv nst nil
