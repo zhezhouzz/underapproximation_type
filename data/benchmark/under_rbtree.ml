@@ -58,23 +58,23 @@ let[@library] batchedq =
   (len v s1 : [%v: int batchedq])
 
 (* color black *)
-let[@library] rbtleaf = (numblack v 0 : [%v: int rbtree])
+let[@library] rbtleaf = (numblack v 0 && noredred v : [%v: int rbtree])
 
 let[@library] rbtnode =
   let (c : [%over: bool]) = (not v : [%v: bool]) in
   let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (numblack v sizel && implies (sizel == 0) (hdcolor v true)
+    (numblack v sizel && noredred v && implies (sizel == 0) (hdcolor v true)
       : [%v: int rbtree])
   in
   let (dummy : [%under: int]) = (true : [%v: int]) in
   let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (numblack v sizer && implies (sizer == 0) (hdcolor v true)
+    (numblack v sizer && noredred v && implies (sizer == 0) (hdcolor v true)
       : [%v: int rbtree])
   in
   (fun (u : [%forall: int]) ->
-     hdcolor v false && implies (u == sizel + 1) (numblack v u)
+     hdcolor v false && implies (u == sizel + 1) (numblack v u && noredred v)
     : [%v: int rbtree])
 
 (* color red *)
@@ -82,11 +82,11 @@ let[@library] rbtnode =
   let (c : [%over: bool]) = (v : [%v: bool]) in
   let (sizel : [%over: int]) = (v >= 0 : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (numblack v sizel && hdcolor v false : [%v: int rbtree])
+    (numblack v sizel && noredred v && hdcolor v false : [%v: int rbtree])
   in
   let (dummy : [%under: int]) = (true : [%v: int]) in
   let (sizer : [%over: int]) = (v == sizel : [%v: int]) in
   let (dummy : [%under: int rbtree]) =
-    (numblack v sizer && hdcolor v false : [%v: int rbtree])
+    (numblack v sizer && noredred v && hdcolor v false : [%v: int rbtree])
   in
-  (hdcolor v true && numblack v sizel : [%v: int rbtree])
+  (hdcolor v true && numblack v sizel && noredred v : [%v: int rbtree])
