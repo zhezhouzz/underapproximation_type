@@ -3,8 +3,11 @@ From PLF Require Import Maps.
 From PLF Require Import Types.
 (* From PLF Require Import Smallstep. *)
 From PLF Require Import CoreLangSimp.
+From PLF Require Import NormalTypeSystemSimp.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
+
+Import NormalTypeSystemSimp.
 
 Definition state := partial_map constant.
 (* The second constant is the self reference; the refinement is untyped *)
@@ -189,6 +192,12 @@ Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
   | vvar id => under_subst_id x1 id outy
   end.
 
+Lemma under_subst_cid_preserve_ty: forall a c2 tau_x,
+    u\_ under_subst_cid a c2 tau_x _/ = u\_ tau_x _/.
+Admitted.
+
+Global Hint Rewrite under_subst_cid_preserve_ty: core.
+
 (* appear free *)
 
 Definition appear_free_in_refinement (name: string) (phi: refinement): Prop :=
@@ -228,3 +237,8 @@ Definition mk_eq_var ty name := [[v: ty | (fun state v => Some v = (state name))
 Definition mk_op op a b :=
   (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (fst_ty_of_op op)) o--> ([[v: ret_ty_of_op op |
                                                                                         (fun st c => exists c_a c_b, st a = Some c_a /\ st b = Some c_b /\ eval_op op c_a c_b c ) ]]))).
+
+Lemma mk_op_has_type: forall Gamma op a b, Gamma \N- vbiop op \Vin u\_ mk_op op a b _/.
+Admitted.
+
+Global Hint Resolve mk_op_has_type: core.

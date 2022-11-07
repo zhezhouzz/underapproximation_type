@@ -54,6 +54,7 @@ Inductive value : Type :=
 | vbiop: biop -> value
 | cid_value : cid -> value
 | vlam : string -> ty -> tm -> value
+| vfix : string -> ty -> string -> base_ty -> tm -> value
 with tm : Type :=
 | texn
 | tvalue: value -> tm
@@ -101,6 +102,11 @@ with value_subst (x:string) (s:value) (t:value) : value :=
        | vconst _ => t
        | vvar y => if String.eqb x y then s else t
        | vlam y T t1 => vlam y T (if String.eqb x y then t1 else (subst x s t1))
+       |  vfix f T_f y T_y t1 =>
+            vfix f T_f y T_y
+                 (if String.eqb x f then t1
+                  else if String.eqb x y then t1
+                       else (subst x s t1))
        end.
 
 Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
@@ -133,6 +139,7 @@ Inductive step : tm -> tm -> Prop :=
 | ST_Lete1: forall x e1 e1' e, e1 --> e1' -> (tlete x e1 e) --> (tlete x e1' e)
 | ST_Lete2: forall x v1 e, (tlete x (tvalue v1) e) --> (subst x v1 e)
 | ST_LetAppLam: forall T x y v_x e1 e, (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
+| ST_LetAppFix: forall f T_f T x y v_x e1 e, (tletapp y ((vfix f T_f x T e1)) v_x e) --> tlete y (subst f (vfix f T_f x T e1) (subst x v_x e1)) e
 | ST_Matchb_true: forall e1 e2, (tmatchb true e1 e2) --> e1
 | ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e1
 where "t1 '-->' t2" := (step t1 t2).
@@ -184,6 +191,11 @@ Definition ret_ty_of_op (op: biop): base_ty :=
 Definition ty_of_op (op: biop): ty :=
   (fst_ty_of_op op) t--> ((snd_ty_of_op op) t--> (ret_ty_of_op op)).
 
+Lemma op_ty_spec: forall op, ty_of_op op = fst_ty_of_op op t--> (snd_ty_of_op op t--> ret_ty_of_op op).
+Admitted.
+
+Global Hint Resolve op_ty_spec: core.
+
 (* appear free *)
 
 Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
@@ -192,6 +204,7 @@ Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
   | vbiop _ => False
   | vvar x => x = id
   | vlam x xty e => x <> id /\ appear_free_in_ttm id e
+  | vfix f fty x xty e => f <> id /\ x <> id /\ appear_free_in_ttm id e
   end
 with appear_free_in_ttm (id:string) (e:tm) : Prop :=
        match e with

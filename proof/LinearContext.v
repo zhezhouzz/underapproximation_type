@@ -83,6 +83,12 @@ Admitted.
 
 Global Hint Resolve l_find_right_most_weak_post: core.
 
+Lemma l_find_right_most_weak_unit {A: Type}: forall x (tau_x: A) a,
+    l_find_right_most ((x, tau_x)::nil) a = None -> a <> x.
+Admitted.
+
+Global Hint Resolve l_find_right_most_weak_unit: core.
+
 (* Declare Scope linear_context_scope. *)
 (* Notation "G[ ]" := nil (format "G[ ]") : linear_context_scope. *)
 (* Notation " context 'G::' x " := (cons x context) (at level 80) : linear_context_scope. *)

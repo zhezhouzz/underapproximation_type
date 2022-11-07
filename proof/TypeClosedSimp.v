@@ -161,11 +161,11 @@ Inductive st_type_closed_in_ctx : tystate -> lcontxt -> overunderty -> Prop :=
 
 Global Hint Constructors st_type_closed_in_ctx: core.
 
-Lemma closed_refinement_in_ctx_implies_well_formed_type:
+Lemma st_type_closed_in_ctx_implies_well_formed_type:
   forall tyst Gamma tau, st_type_closed_in_ctx tyst Gamma tau -> well_formed_type tau.
 Admitted.
 
-Global Hint Resolve closed_refinement_in_ctx_implies_well_formed_type: core.
+Global Hint Resolve st_type_closed_in_ctx_implies_well_formed_type: core.
 
 Lemma st_type_closed_in_ctx_emp_implies_all_not_free: forall Gamma (tau: underty) x,
     l_find_right_most Gamma x = None ->
@@ -213,8 +213,22 @@ Proof with eauto.
   + inversion H; subst...
 Admitted.
 
+Lemma st_type_closed_in_ctx_destruct_overbase_front : forall Gamma tyst x T phi tau,
+    st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}})) :: Gamma) tau ->
+    st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
+Proof with eauto.
+Admitted.
+
+Global Hint Resolve st_type_closed_in_ctx_destruct_overbase_front: core.
+
 Lemma st_type_closed_in_ctx_destruct_arrar_front : forall Gamma tyst x t1 t2 tau,
     st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) tau ->
+    st_type_closed_in_ctx tyst Gamma tau.
+Proof with eauto.
+Admitted.
+
+Lemma st_type_closed_in_ctx_destruct_oarr_front : forall Gamma tyst x a Ta phia t2 tau,
+    st_type_closed_in_ctx tyst ((x, Uty (a o: {{v:Ta | phia}} o--> t2)) :: Gamma) tau ->
     st_type_closed_in_ctx tyst Gamma tau.
 Proof with eauto.
 Admitted.

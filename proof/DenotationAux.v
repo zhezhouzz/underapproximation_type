@@ -72,6 +72,8 @@ Global Hint Resolve over_head_denotation_implies_forall: core.
 Lemma term_order_implies_nstate_order: forall e1 e2 T a st Gamma tau e,
     e1 <-< e2 -> tmR_in_ctx_aux (a |-> (e2, T); st) Gamma tau e ->
     tmR_in_ctx_aux (a |-> (e1, T); st) Gamma tau e.
+Proof with eauto.
+  intros e1 e2 T a st Gamma tau e Htrans He1.
 Admitted.
 
 Global Hint Resolve term_order_implies_nstate_order: core.
@@ -153,4 +155,14 @@ Admitted.
 Lemma closed_op_rty_implies_snd_rty_exists: forall st Gamma op v1 v2,
     st_type_closed_in_ctx (st\_ st _/) Gamma (mk_op_retty_from_cids op v1 v2) ->
     (exists phi2, tmR_in_ctx_aux st Gamma ([[v: snd_ty_of_op op | phi2]]) v2).
+Admitted.
+
+Lemma constraint_phi_implies_order: forall st x (c_x c_x': constant) T phi,
+    overbase_tmR_aux (x |-> (tvalue c_x, T); st) ({{v:T | well_founded_constraint x phi}}) c_x' -> const_order c_x' c_x.
+Admitted.
+
+Lemma constraint_phi_implies_subtyping: forall st T phi x c_x c_x',
+    st_type_closed_in_ctx (nstate_to_tystate st) nil ({{v:T | phi}}) ->
+    overbase_tmR_aux (x |-> (c_x, T); st) ({{v:T | well_founded_constraint x phi}}) c_x' ->
+    overbase_tmR_aux st ({{v:T | phi}}) c_x'.
 Admitted.

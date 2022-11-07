@@ -57,6 +57,13 @@ Definition nstate_to_tystate (nst: nstate) :=
 
 Notation " 'st\_' st '_/' " := (nstate_to_tystate st) (at level 40).
 
+Definition nstate_to_tystate_empty: (st\_ empty _/) = empty.
+Proof with eauto.
+  apply functional_extensionality...
+Qed.
+
+Global Hint Rewrite nstate_to_tystate_empty: core.
+
 Definition nstate_to_tystate_hd: forall nst x e_x T,
     (st\_ x |-> (e_x, T); nst _/) = (x |-> T; (st\_ nst _/)).
 Proof with eauto.

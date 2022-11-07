@@ -159,7 +159,6 @@ Qed.
 
 Global Hint Resolve inv_implies_type_closed_last: core.
 
-
 Lemma tletbiop_ctx_inv_implies_safe_dropping_1_to_1: forall Gamma st x tau,
     ~ appear_free_in_underty x tau ->
     (forall e op (v1 v2: cid),
@@ -186,4 +185,3 @@ Proof with eauto.
       eapply tmR_in_ctx_preserve_biop_application...
     + eapply step_preserve_ctx_denotation... eapply eta8...
 Qed.
-

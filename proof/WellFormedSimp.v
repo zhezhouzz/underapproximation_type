@@ -117,7 +117,9 @@ Proof with eauto.
     + intros e HeD. apply H3. constructor... rewrite nstate_tystate_same_none...
       exists e_x. split... intros.
       assert (exists c0 : constant, e_x0 -->* c0)...
+      (* destruct tau_a. *)
       eapply step_preserve_ctx_denotation... apply eta_drop_lete_not_bot...
+      (* destruct o. admit. *)
 Qed.
 
 (* Global Hint Resolve ctx_inv_destruct_front: core. *)

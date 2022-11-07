@@ -8,6 +8,7 @@ From PLF Require Import RfTypeDef.
 From PLF Require Import TypeClosedSimp.
 From PLF Require Import TermOrdering.
 From PLF Require Import DenotationSimp.
+From PLF Require Import CtxErase.
 From PLF Require Import DenotationAux.
 From PLF Require Import TermMeet.
 From PLF Require Import WellFormedSimp.
@@ -25,6 +26,7 @@ Import NoDup.
 Import RfTypeDef.
 Import TypeClosedSimp.
 Import DenotationSimp.
+Import CtxErase.
 Import DenotationAux.
 Import TermMeet.
 Import WellFormedSimp.
@@ -42,8 +44,8 @@ Proof with eauto.
   induction Gamma; simpl; intros st x t1 t2 e tau HD.
   - setoid_rewrite app_nil_l in HD. constructor. constructor... inversion HD; subst...
     constructor... split...
-    + apply tmR_in_ctx_aux_implies_has_type in HD... simpl in HD. simpl. apply T_Value. apply T_Lam... eapply weakening...
-      unfold includedin. intros. inversion H.
+    + apply tmR_in_ctx_aux_implies_has_type in HD... simpl in HD. simpl. apply T_Value. apply T_Lam...
+      (* eapply weakening... unfold includedin. intros. inversion H. *)
     + intros e_x He_xD e3 Happ. inversion Happ; subst. simpl.
       assert (tmR_in_ctx_aux st [] tau (tlete x e_x e)) as HH...
       eapply step_preserve_under_denotation... apply eta11... inversion HH; subst. inversion H1...
@@ -114,6 +116,202 @@ Proof with eauto.
       (* eapply type_ctx_no_dup_ctx_sub with (Gamma1 := (a, Uty (t1 u--> t2))::nil)... *)
 Qed.
 
+(* Definition st_less_than_constant (x: string) (st1: nstate) (c2: constant) := *)
+(*   match st1 x with *)
+(*   | None => True *)
+(*   | Some (tvalue (vconst c1), _) => const_order c1 c2 *)
+(*   | Some (_, _) => False *)
+(*   end. *)
+
+(* Definition st_wf_order (x: string) (st1 st2 : nstate) := *)
+(*   match st2 x with *)
+(*   | None => False *)
+(*   | Some (tvalue (vconst c2), _) => st_less_than_constant x st1 c2 *)
+(*   | Some (_, _) => False *)
+(*   end. *)
+
+(* Global Hint Constructors Acc: core. *)
+
+(* Lemma st_wf_order_wf' : forall x, forall c_x, forall st1, *)
+(*     (st_less_than_constant x st1 c_x) -> Acc (st_wf_order x) st1. *)
+(* Proof with eauto. *)
+(*   intros x. *)
+(*   apply (well_founded_induction_type *)
+(*            const_order_is_well_founded *)
+(*            (fun c_x => forall st1, *)
+(*                 (st_less_than_constant x st1 c_x) -> Acc (st_wf_order x) st1)). *)
+(*   intros c_x Hind st1 Hst1. *)
+(*   unfold st_less_than_constant in Hst1. *)
+(*   constructor... intros st' Hst'. *)
+(*   unfold st_wf_order in Hst'. *)
+(*   destruct (st1 x) eqn:HH; subst... *)
+(*   - destruct p; subst... *)
+(*     destruct t; subst; try inversion Hst'. *)
+(*     destruct v; subst; try inversion Hst'. *)
+(*     destruct c; subst; try inversion Hst'. *)
+(*     eapply Hind... *)
+(*   - inversion Hst'. *)
+(* Defined. *)
+
+(* Theorem st_wf_order_is_well_founded : forall x, well_founded (st_wf_order x). *)
+(*   red; intros. constructor... *)
+(*   intros st2 Hst2. unfold st_wf_order in Hst2. *)
+(*   destruct (a x); subst; try inversion Hst2. *)
+(*   destruct p; subst. *)
+(*   destruct t; subst; try inversion Hst2. *)
+(*   destruct v; subst; try inversion Hst2. *)
+(*   destruct c; subst; try inversion Hst2. *)
+(*   eapply st_wf_order_wf'; eauto. *)
+(* Defined. *)
+
+Lemma tmR_in_ctx_preserve_fix_aux_c: forall x (c_x: constant) st (T:base_ty) phi f e tau,
+    (overbase_tmR_aux st ({{v:T | phi}}) c_x) ->
+    (forall (c_x : constant),
+        overbase_tmR_aux st ({{v:T | phi}}) c_x ->
+        under_tmR_aux (x |-> (tvalue c_x, T); st) ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau)
+                      (vlam f (T t--> (u\_ tau _/)) (tlete x c_x e))) ->
+    under_tmR_aux (x |-> (tvalue c_x, T); st) tau
+                  (tletapp x (vfix f (T t--> (u\_ tau _/)) x T e) c_x x).
+Proof with eauto.
+  intros x.
+  apply (well_founded_induction_type
+           const_order_is_well_founded
+           (fun c_x => forall st (T:base_ty) phi f e tau,
+                (overbase_tmR_aux st ({{v:T | phi}}) c_x) ->
+                (forall (c_x : constant),
+                    overbase_tmR_aux st ({{v:T | phi}}) c_x ->
+                    under_tmR_aux (x |-> (tvalue c_x, T); st) ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau)
+                                  (vlam f (T t--> (u\_ tau _/)) (tlete x c_x e))) ->
+                under_tmR_aux (x |-> (tvalue c_x, T); st) tau
+                              (tletapp x (vfix f (T t--> (u\_ tau _/)) x T e) c_x x))).
+  intros c_x Hind st T phi f e tau Hc_xD HeDraw.
+  assert (empty \N- c_x \Tin T). eapply over_tmR_aux_has_type in Hc_xD...
+  assert (under_tmR_aux (x |-> (tvalue c_x, T); st) ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau)
+                        (vlam f (T t--> (u\_ tau _/)) (tlete x c_x e))) as HeD...
+  inversion HeD; subst. destruct H1.
+  destruct (exists_fresh_var_of_value (vfix f (T t--> (u\_ tau _/)) x T e)) as (x1 & x2 & Hx1x2 & Hfree).
+  assert (under_tmR_aux (x |-> (tvalue c_x, T); st) tau
+                        (tlete x1 (vlam f (T t--> (u\_ tau _/)) (tlete x c_x e))
+                               (tlete x2 (vfix f (T t--> (u\_ tau _/)) x T e) (tletapp x x1 x2 x)))).
+  eapply H2...
+  constructor... { inversion H0; subst... } split.
+  - simpl. simpl in H1. inversion H1;subst... inversion H5;subst... inversion H6;subst...
+    assert (T1 = T). eapply constant_base_ty_unique... subst...
+  - intros c_x' Hc_x'D e3 Happ. inversion Happ; subst... simpl. clear Happ.
+    rewrite update_shadow.
+    assert (const_order c_x' c_x) as Horder. eapply constraint_phi_implies_order...
+    assert (under_tmR_aux (x |-> (tvalue c_x', T); st) tau
+                          (tletapp x (vfix f (T t--> (u\_ tau _/)) x T e) c_x' x)).
+    eapply Hind with (phi:=phi)...
+    + eapply constraint_phi_implies_subtyping...
+    + eapply step_preserve_under_denotation... eapply eta_fix1...
+  - eapply step_preserve_under_denotation... apply eta_fix2...
+Qed.
+
+Lemma tmR_aux_preserve_fix: forall x st (T:base_ty) phi f e tau,
+    f <> x ->
+    st_type_closed_in_ctx (st\_ st _/) nil (x o: {{v:T | phi}} o--> tau) ->
+    tmR_aux st (x o: {{v:T | phi}}
+                       o--> ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau))
+            (vlam x T (vlam f (T t--> (u\_ tau _/)) e)) ->
+    tmR_aux st (x o: {{v:T | phi}} o--> tau) (vfix f (T t--> (u\_ tau _/)) x T e).
+Proof with eauto.
+  intros x st T phi f e tau Hneqfx Hclosed H.
+  inversion H; subst... inversion H2; subst... clear H H2. destruct H1.
+  constructor... constructor...
+  split. { inversion H; subst... inversion H4; subst... inversion H5; subst... inversion H6; subst...
+           constructor... constructor... rewrite update_permute... }
+  intros c_x Hc_x e3 Happ. inversion Happ; subst... simpl. clear Happ.
+  assert (under_tmR_aux (x |-> (tvalue c_x, T); st) tau
+                  (tletapp x (vfix f (T t--> (u\_ tau _/)) x T e) c_x x)).
+  eapply tmR_in_ctx_preserve_fix_aux_c...
+  - intros c_x' Hc_x'D.
+    assert (empty \N- c_x' \Tin T). eapply over_tmR_aux_has_type in Hc_x'D...
+    assert (ty_of_const c_x' = T) as HTT... { assert (empty \N- c_x' \Tin ty_of_const c_x')...
+                                              eapply constant_base_ty_unique in H4...
+                                              destruct c_x'; simpl; simpl in H4; subst... destruct T... inversion H4. destruct T... inversion H4... }
+    assert (under_tmR_aux (x |-> (tvalue c_x', T); st)
+                          ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau)
+                          (tlete x1 (vlam x T (vlam f (T t--> (u\_ tau _/)) e))
+                                 (tlete x2 c_x' (tletapp x x1 x2 x)))).
+    apply H1... eapply step_preserve_under_denotation... eapply eta_fix3...
+  - eapply step_preserve_under_denotation... eapply eta_fix1...
+Qed.
+
+Lemma tmR_in_ctx_preserve_fix: forall Gamma st x (T:base_ty) phi f e tau,
+    (* ctx_inv st Gamma -> *)
+    f <> x ->
+    st_type_closed_in_ctx (st\_ st _/) Gamma (x o: {{v:T | phi}} o--> tau) ->
+    tmR_in_ctx_aux st Gamma
+                   (x o: {{v:T | phi}}
+                           o--> ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau))
+                   (vlam x T (vlam f (T t--> (u\_ tau _/)) e)) ->
+    tmR_in_ctx_aux st Gamma (x o: {{v:T | phi}} o--> tau) (vfix f (T t--> (u\_ tau _/)) x T e).
+Proof with eauto.
+  intro Gamma.
+  induction Gamma; simpl; intros st x Tx phix f e tau Hneqfx Hclosed HeD.
+  - constructor... apply tmR_aux_preserve_fix... inversion HeD...
+  - destruct a as (a & tau_a).
+    assert (type_ctx_no_dup (st\_ st _/) ((a, tau_a) :: Gamma)) as Hnodup...
+    inversion HeD; subst. clear HeD.
+    + constructor...
+      intros c_x Hc_xD.
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma
+                             (x o: {{v:Tx | phix}}
+                                     o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (tlete a c_x (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) e)))) as HF.
+      apply H9...
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma
+                             (x o: {{v:Tx | phix}}
+                                     o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) (tlete a c_x e)))) as HF'.
+      eapply step_preserve_ctx_denotation... eapply eta_fix4...
+      assert (tmR_in_ctx_aux (a |-> (tvalue c_x, T); st) Gamma (x o: {{v:Tx | phix}} o--> tau)
+                             (vfix f (Tx t--> (u\_ tau _/)) x Tx (tlete a c_x e))).
+      eapply IHGamma... { eapply st_type_closed_in_ctx_destruct_overbase_front in Hclosed... rewrite nstate_to_tystate_hd... }
+      eapply step_preserve_ctx_denotation... eapply eta_fix5...
+    + constructor...
+      destruct H9 as (e_x_hat & He_x_hatD & HH).
+      exists e_x_hat. split...
+      intros e_x He_xD.
+      assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (tlete a e_x (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) e))))...
+      assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) (tlete a e_x e))))...
+      eapply step_preserve_ctx_denotation... eapply eta_fix6...
+      assert (tmR_in_ctx_aux (a |-> (e_x_hat, T); st) Gamma (x o: {{v:Tx | phix}} o--> tau)
+                             (vfix f (Tx t--> (u\_ tau _/)) x Tx (tlete a e_x e))).
+      eapply IHGamma... { eapply st_type_closed_in_ctx_destruct_underbase_front in Hclosed... rewrite nstate_to_tystate_hd... }
+      eapply step_preserve_ctx_denotation... eapply eta_fix7...
+    + constructor...
+      intros e_x He_xD.
+      assert (tmR_in_ctx_aux st Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (tlete a e_x (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) e))))...
+      assert (tmR_in_ctx_aux st Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) (tlete a e_x e))))...
+      eapply step_preserve_ctx_denotation... eapply eta_fix6...
+      assert (tmR_in_ctx_aux st Gamma (x o: {{v:Tx | phix}} o--> tau)
+                             (vfix f (Tx t--> (u\_ tau _/)) x Tx (tlete a e_x e))).
+      eapply IHGamma... { eapply st_type_closed_in_ctx_destruct_oarr_front in Hclosed... }
+      eapply step_preserve_ctx_denotation... eapply eta_fix7...
+    + constructor...
+      intros e_x He_xD.
+      assert (tmR_in_ctx_aux st Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (tlete a e_x (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) e))))...
+      assert (tmR_in_ctx_aux st Gamma
+                             (x o: {{v:Tx | phix}} o--> ((x o: {{v:Tx | well_founded_constraint x phix}} o--> tau) u--> tau))
+                             (vlam x Tx (vlam f (Tx t--> (u\_ tau _/)) (tlete a e_x e))))...
+      eapply step_preserve_ctx_denotation... eapply eta_fix6...
+      assert (tmR_in_ctx_aux st Gamma (x o: {{v:Tx | phix}} o--> tau)
+                             (vfix f (Tx t--> (u\_ tau _/)) x Tx (tlete a e_x e))).
+      eapply IHGamma... { eapply st_type_closed_in_ctx_destruct_arrar_front in Hclosed... }
+      eapply step_preserve_ctx_denotation... eapply eta_fix7...
+Qed.
 
 Global Hint Resolve tmR_has_type: core.
 
@@ -416,4 +614,3 @@ Proof with eauto.
     apply step_preserve_ctx_denotation with (e:= ([id := false] e2))... apply eta_matchb_false...
     rewrite <- tmR_in_ctx_id_eq_c...
 Qed.
-
