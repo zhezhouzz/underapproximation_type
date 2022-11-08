@@ -327,26 +327,43 @@ Qed.
 Theorem preservation_value : forall t (v: value) T,
     empty \N- t \Tin T  -> t -->* v  ->
                   empty \N- v \Vin T.
-Proof.
-Admitted.
-
-Theorem const_ctx_independent : forall Gamma (c:constant) T,
-    Gamma \N- c \Tin T <-> empty \N- c \Tin T.
-Proof.
+Proof with eauto.
 Admitted.
 
 Theorem const_ctx_independent_v : forall Gamma (c:constant) T,
     Gamma \N- c \Vin T <-> empty \N- c \Vin T.
-Proof.
-Admitted.
+Proof with eauto.
+  intros Gamma c T. split; intro HH.
+  - inversion HH...
+  - eapply value_weakening_empty...
+Qed.
+
+Theorem const_ctx_independent : forall Gamma (c:constant) T,
+    Gamma \N- c \Tin T <-> empty \N- c \Tin T.
+Proof with eauto.
+  intros Gamma c T. split; intro HH.
+  - inversion HH; subst. inversion H1; subst...
+  - inversion HH; subst. rewrite <- const_ctx_independent_v in H1...
+Qed.
 
 Lemma constant_base_ty_unique: forall (c_x: constant) Gamma1 Gamma2 T1 T2,
     Gamma1 \N- c_x \Tin T1  -> Gamma2 \N- c_x \Tin T2 -> T1 = T2.
-Admitted.
+Proof with eauto.
+  intros.
+  inversion H; subst.
+  inversion H0; subst.
+  inversion H3; subst.
+  inversion H4; subst...
+Qed.
 
 
 Lemma ty_implies_ty_of_const_eq: forall (T:base_ty) (c_x: constant), empty \N- c_x \Tin T -> (ty_of_const c_x) = T.
-Admitted.
+Proof with eauto.
+  intros.
+  inversion H; subst.
+  inversion H2; subst...
+Qed.
+
 
 Global Hint Resolve ty_implies_ty_of_const_eq: core.
 Global Hint Rewrite ty_implies_ty_of_const_eq: core.

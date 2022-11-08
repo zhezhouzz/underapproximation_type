@@ -34,8 +34,8 @@ Ltac tmR_implies_has_type :=
   end.
 
 Ltac tmR_implies_no_dup :=
-  match goal with | H : tmR_aux ?st ?Gamma _ |- type_ctx_no_dup ?st ?Gamma =>
-                      solve [eapply tmR_in_ctx_aux_implies_no_dup; eauto]
+  match goal with | H : tmR_in_ctx_aux ?st ?Gamma _ |- type_ctx_no_dup ?st ?Gamma =>
+                      solve [eapply tmR_in_ctx_aux_implies_no_dup; auto]
   end.
 
 (* Lemma eta_a1: forall id a (c: constant) c_x e, *)
@@ -115,7 +115,7 @@ Proof with eauto.
   rewrite tmR_in_ctx_to_under in Hc. inversion Hc; subst. destruct H0. inversion H0; subst. inversion H4; subst. inversion H5.
   intro HD.
   - destruct a as (a & tau_a).
-    assert (type_ctx_no_dup (st\_ st _/) ((a, tau_a) :: Gamma)) as Hnodup...
+    assert (type_ctx_no_dup (st\_ st _/) ((a, tau_a) :: Gamma)) as Hnodup. eapply tmR_in_ctx_aux_implies_no_dup in HD...
     inversion HD; subst.
     + constructor...
       intros c_x Hc_xD.
@@ -179,10 +179,18 @@ Proof with eauto.
       eapply step_preserve_ctx_denotation... apply eta_a4...
 Qed.
 
-Lemma under_tmR_aux_st_update: forall x (c_x: constant) (T:base_ty) st tau,
-    empty \N- c_x \Tin T ->
-    (forall e, under_tmR_aux (x |-> c_x; st) tau e <->
-            under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Lemma under_tmR_aux_st_update: forall x (c_x: constant) st tau,
+    (forall e, under_tmR_aux (x |-> c_x; st) tau e <-> under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Proof with eauto.
+  intros.
+  split; intro HH.
+  (* assert (well_formed_type tau)... *)
+  induction tau...
+  - inversion HH; subst... constructor...
+  - inversion HH; subst... simpl.
+    assert (x <> s). admit. destruct (eqb_spec x s); subst... exfalso. apply H1...
+    destruct H0...
+    constructor... admit. split... admit.
 Admitted.
 
 (* Lemma empty_under_denotation_const_to_over: forall st T phi (c: constant), *)

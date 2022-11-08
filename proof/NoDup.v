@@ -53,6 +53,7 @@ Inductive type_ctx_no_dup: tystate -> lcontxt -> Prop :=
 | type_ctx_no_dup_cons: forall tyst x tau_x Gamma,
     tyst x = None ->
     l_find_right_most Gamma x = None ->
+    type_ctx_no_dup tyst Gamma ->
     type_ctx_no_dup tyst ((x, tau_x) :: Gamma).
 
 Global Hint Constructors type_ctx_no_dup: core.
@@ -69,32 +70,51 @@ Proof. intros. inversion H. auto. Qed.
 
 Global Hint Resolve type_ctx_no_dup_cannot_find_fst_in_nst: core.
 
-Lemma type_ctx_no_dup_cannot_find_last: forall tyst Gamma b tau_b,
+Lemma type_ctx_no_dup_cannot_find_last: forall Gamma tyst b tau_b,
     type_ctx_no_dup tyst (Gamma ++ ((b, tau_b)::nil)) -> l_find_right_most Gamma b = None.
-Admitted.
+Proof with eauto.
+  induction Gamma; intros tyst b tau_b H...
+  - destruct a; subst. inversion H; subst.
+    assert (l_find_right_most Gamma b = None)... simpl. rewrite H0.
+    assert (l_find_right_most  [(b, tau_b)] s = None)... inversion H1.
+    destruct (eqb_spec s b); subst... rewrite eqb_refl. rewrite eqb_refl in H3. inversion H3.
+Qed.
 
 Global Hint Resolve type_ctx_no_dup_cannot_find_last: core.
 
-Lemma type_ctx_no_dup_cannot_find_last_in_nst: forall tyst Gamma b tau_b,
-    type_ctx_no_dup tyst (Gamma ++ ((b, tau_b)::nil)) -> tyst b = None.
-Admitted.
-
-Global Hint Resolve type_ctx_no_dup_cannot_find_last_in_nst: core.
-
-Lemma type_ctx_no_dup_fst_last_diff_name: forall tyst a tau_a Gamma b tau_b,
-    type_ctx_no_dup tyst ((a, tau_a)::Gamma ++ ((b, tau_b)::nil)) -> a <> b.
-Admitted.
-
-Global Hint Resolve type_ctx_no_dup_fst_last_diff_name: core.
-
-Lemma type_ctx_no_dup_ctx_pre: forall tyst Gamma1 Gamma2,
+Lemma type_ctx_no_dup_ctx_pre: forall Gamma1 tyst Gamma2,
     type_ctx_no_dup tyst (Gamma1 ++ Gamma2) -> type_ctx_no_dup tyst Gamma1.
-Admitted.
+Proof with eauto.
+  induction Gamma1; intros tyst Gamma2 H...
+  - inversion H...
+Qed.
 
 Global Hint Resolve type_ctx_no_dup_ctx_pre: core.
 
-Lemma type_ctx_no_dup_ctx_post: forall tyst Gamma1 Gamma2,
+Lemma type_ctx_no_dup_ctx_post: forall Gamma1 tyst Gamma2,
     type_ctx_no_dup tyst (Gamma1 ++ Gamma2) -> type_ctx_no_dup tyst Gamma2.
-Admitted.
+Proof with eauto.
+  induction Gamma1; intros tyst Gamma2 H...
+  - inversion H...
+Qed.
 
 Global Hint Resolve type_ctx_no_dup_ctx_post: core.
+
+Lemma type_ctx_no_dup_cannot_find_last_in_nst: forall Gamma tyst b tau_b,
+    type_ctx_no_dup tyst (Gamma ++ ((b, tau_b)::nil)) -> tyst b = None.
+Proof with eauto.
+  induction Gamma; intros tyst b tau_b H...
+Qed.
+
+
+Global Hint Resolve type_ctx_no_dup_cannot_find_last_in_nst: core.
+
+Lemma type_ctx_no_dup_fst_last_diff_name: forall Gamma tyst a tau_a b tau_b,
+    type_ctx_no_dup tyst ((a, tau_a)::Gamma ++ ((b, tau_b)::nil)) -> a <> b.
+Proof with eauto.
+  induction Gamma; intros tyst b tau_b H...
+Qed.
+
+Global Hint Resolve type_ctx_no_dup_fst_last_diff_name: core.
+
+

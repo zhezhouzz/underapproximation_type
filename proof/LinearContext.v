@@ -19,15 +19,6 @@ Fixpoint l_find_right_most {A:Type} (ctx: linear_context A) (name: string) :=
       end
   end.
 
-Lemma l_find_right_most_some_spec {A:Type}: forall (ctx: linear_context A) (name: string) (tau: A),
-  l_find_right_most ctx name = Some tau ->
-  (exists ctx1 ctx2,
-      ctx = ctx1 ++ ((name, tau)::nil) ++ ctx2 /\
-        l_find_right_most ctx2 name = None
-  ).
-Admitted.
-
-(* update the to left most *)
 Definition l_append {A : Type} (m : linear_context A) (x : string) (v : A) : linear_context A := m ++ [(x, v)].
 
 (* Not same name *)
@@ -59,35 +50,84 @@ Global Hint Resolve app_list_unit_eq_unit: core.
 
 Lemma l_find_right_most_none_neq_hd {A: Type}: forall (Gamma: linear_context A) x tx a,
     l_find_right_most ((x, tx):: Gamma) a = None -> x <> a.
-Admitted.
+Proof with auto.
+  intros. simpl in H.
+  destruct (l_find_right_most Gamma a). inversion H.
+  destruct (eqb_spec x a)... inversion H.
+Qed.
 
 Global Hint Resolve l_find_right_most_none_neq_hd: core.
 
 Lemma l_find_right_most_none_neq_tl {A: Type}: forall (Gamma: linear_context A) x tx a,
     l_find_right_most ((x, tx):: Gamma) a = None -> l_find_right_most Gamma a = None.
-Admitted.
+Proof with auto.
+  intros. simpl in H.
+  destruct (l_find_right_most Gamma a). inversion H.
+  destruct (eqb_spec x a)...
+Qed.
 
 Global Hint Resolve l_find_right_most_none_neq_tl: core.
 
-Lemma l_find_right_most_weak_pre {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
+Lemma l_find_right_most_weak_pre {A: Type}: forall (Gamma1 Gamma2 : linear_context A) a,
     l_find_right_most (Gamma1 ++ Gamma2) a = None ->
     l_find_right_most Gamma1 a = None.
-Admitted.
+Proof with auto.
+  induction Gamma1; simpl; intros Gamma2 x H...
+  destruct a.
+  destruct (l_find_right_most (Gamma1 ++ Gamma2) x) eqn: H1H... inversion H.
+  destruct (eqb_spec s x); subst... inversion H.
+  apply IHGamma1 in H1H.
+  destruct (l_find_right_most Gamma1 x) eqn: HH...
+Qed.
 
 Global Hint Resolve l_find_right_most_weak_pre: core.
 
 Lemma l_find_right_most_weak_post {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
     l_find_right_most (Gamma1 ++ Gamma2) a = None ->
     l_find_right_most Gamma2 a = None.
-Admitted.
+Proof with auto.
+  induction Gamma1; simpl; intros Gamma2 x H...
+  destruct a.
+  destruct (l_find_right_most (Gamma1 ++ Gamma2) x) eqn: H1H... inversion H.
+Qed.
 
 Global Hint Resolve l_find_right_most_weak_post: core.
 
 Lemma l_find_right_most_weak_unit {A: Type}: forall x (tau_x: A) a,
     l_find_right_most ((x, tau_x)::nil) a = None -> a <> x.
-Admitted.
+Proof with auto.
+  intros. inversion H.
+  destruct (eqb_spec x a); subst... inversion H1.
+Qed.
+
 
 Global Hint Resolve l_find_right_most_weak_unit: core.
+
+Lemma l_find_implies_in {A:Type}: forall (ctx: linear_context A) (name: string) (tau: A),
+      l_find_right_most ctx name = Some tau ->
+      In (name, tau) ctx.
+Proof with eauto.
+  induction ctx; intros...
+  - inversion H.
+  - destruct a. inversion H.
+    destruct (l_find_right_most ctx name) eqn: HH.
+    + inversion H1; subst... assert (In (name, tau) ctx)... apply in_cons...
+    + destruct (eqb_spec s name); subst... inversion H1; subst. apply in_eq...
+      simpl in H. rewrite HH in H. destruct (eqb_spec s name); subst... exfalso... inversion H1.
+Qed.
+
+Lemma l_find_right_most_some_spec {A:Type}: forall (ctx: linear_context A) (name: string) (tau: A),
+  l_find_right_most ctx name = Some tau ->
+  (exists ctx1 ctx2,
+      ctx = ctx1 ++ ((name, tau)::nil) ++ ctx2 /\ l_find_right_most ctx2 name = None
+  ).
+Proof with auto.
+Admitted.
+(*   intros. *)
+(*   apply l_find_implies_in in H. apply in_split in H. destruct H as (G1 & G2 & HG12). *)
+(*   exists G1, G2. subst. split... *)
+(* Qed. *)
+
 
 (* Declare Scope linear_context_scope. *)
 (* Notation "G[ ]" := nil (format "G[ ]") : linear_context_scope. *)

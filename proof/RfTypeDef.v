@@ -180,8 +180,26 @@ Notation " '<u[' x '|c->' y ']>' uty " := (under_subst_c x y uty) (at level 40).
 Notation " '<o[' x '|c->' y ']>' uty " := (over_subst_c x y uty) (at level 40).
 Notation " '<ou[' x '|c->' y ']>' uty " := (overunder_subst_c x y uty) (at level 40).
 
-Lemma subst_c_preserve_well_fromed_type: forall x c (tau: underty), well_formed_type tau -> well_formed_type (<u[ x |c-> c ]> tau).
-Admitted.
+Lemma subst_c_preserve_well_fromed_type:
+  forall x c (tau: underty), well_formed_type tau -> well_formed_type (<u[ x |c-> c ]> tau).
+Proof with eauto.
+  intros.
+  induction tau.
+  - simpl...
+  - simpl... destruct (eqb_spec x s)...
+    constructor... inversion H...
+    constructor... inversion H...
+  - inversion H; subst.
+    + assert (well_formed_type (<u[ x |c-> c ]> tau2))...
+      assert ( well_formed_type (<u[ x |c-> c ]> (a o: tau_a o--> tau)))...
+      simpl. simpl in H1. destruct (eqb_spec x a); subst; constructor...
+    + destruct t1. inversion H2.
+      assert (well_formed_type (<u[ x |c-> c ]> tau2))...
+      assert (well_formed_type (<u[ x |c-> c ]> ((s o: o o--> t1) u--> t2)))...
+      constructor...
+      assert (well_formed_type (<u[ x |c-> c ]> tau2))...
+      constructor...
+Qed.
 
 Global Hint Resolve subst_c_preserve_well_fromed_type: core.
 
@@ -194,16 +212,25 @@ Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
 
 Lemma under_subst_cid_preserve_ty: forall a c2 tau_x,
     u\_ under_subst_cid a c2 tau_x _/ = u\_ tau_x _/.
-Admitted.
+Proof with eauto.
+  intros.
+  induction tau_x...
+  - simpl. destruct c2...
+  - destruct o... simpl. destruct c2...
+    + unfold under_subst_cid. unfold under_subst_cid in IHtau_x. simpl. simpl in IHtau_x.
+      destruct (eqb_spec a s)... simpl... rewrite IHtau_x...
+    + simpl. simpl in IHtau_x. destruct (eqb_spec a s)... simpl... rewrite IHtau_x...
+  - simpl. destruct c2;simpl; simpl in IHtau_x1; simpl in IHtau_x2.
+    + rewrite IHtau_x1. rewrite IHtau_x2...
+    + rewrite IHtau_x1. rewrite IHtau_x2...
+Qed.
 
 Global Hint Rewrite under_subst_cid_preserve_ty: core.
 
 (* appear free *)
 
 Definition appear_free_in_refinement (name: string) (phi: refinement): Prop :=
-  (exists st (c1 c2:constant),
-      phi (update st name c1) <> phi (update st name c2)
-  ).
+  ~ (forall st c1, phi st = phi (update st name c1)).
 
 Definition appear_free_in_overbasety (name: string) (oty: overbasety): Prop :=
   match oty with
@@ -238,7 +265,16 @@ Definition mk_op op a b :=
   (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (fst_ty_of_op op)) o--> ([[v: ret_ty_of_op op |
                                                                                         (fun st c => exists c_a c_b, st a = Some c_a /\ st b = Some c_b /\ eval_op op c_a c_b c ) ]]))).
 
-Lemma mk_op_has_type: forall Gamma op a b, Gamma \N- vbiop op \Vin u\_ mk_op op a b _/.
-Admitted.
+Lemma mk_op_has_type1: forall op a b, empty \N- vbiop op \Vin u\_ mk_op op a b _/.
+Proof with eauto.
+  intro op. destruct op; simpl; intros; constructor...
+Qed.
+Global Hint Resolve mk_op_has_type1: core.
+
+Lemma mk_op_has_type: forall op Gamma a b, Gamma \N- vbiop op \Vin u\_ mk_op op a b _/.
+Proof with eauto.
+  intros. assert (empty \N- vbiop op \Tin u\_ mk_op op a b _/)...
+  eapply weakening_empty with (Gamma:=Gamma) in H... inversion H...
+Qed.
 
 Global Hint Resolve mk_op_has_type: core.
