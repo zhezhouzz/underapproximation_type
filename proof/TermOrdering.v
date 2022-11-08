@@ -29,6 +29,9 @@ Proof. intros. destruct H. eapply H1. eauto. Qed.
 
 Global Hint Resolve term_order_snd: core.
 
+Lemma term_order_eq_trans (e1 e2 e3: tm): e1 <=< e2 -> e2 <=< e3 -> e1 <=< e3.
+Admitted.
+
 Lemma term_order_const_bound (e1: tm) (c2: constant): e1 <-< c2 -> (forall v, e1 -->* v -> v = c2).
 Proof with eauto.
   intros. destruct H... apply H in H0. inversion H0; subst... inversion H2.
@@ -40,6 +43,11 @@ Lemma term_order_trans (e1 e2 e3: tm): e1 <-< e2 -> e2 <-< e3 -> e1 <-< e3.
 Admitted.
 
 Global Hint Resolve term_order_trans: core.
+
+Lemma eta_app_value_value: forall x (v1 v2: value) x1 x2,
+    x1 <> x2 -> ~ x1 \FVtm v2 ->
+    tletapp x v1 v2 x <=< tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x)).
+Admitted.
 
 Lemma eta_reduction: forall x1 (f: value) x2 (v: value),
     ~ x1 \FVvalue v ->

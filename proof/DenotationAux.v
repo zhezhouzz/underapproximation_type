@@ -179,19 +179,49 @@ Proof with eauto.
       eapply step_preserve_ctx_denotation... apply eta_a4...
 Qed.
 
-Lemma under_tmR_aux_st_update: forall x (c_x: constant) st tau,
-    (forall e, under_tmR_aux (x |-> c_x; st) tau e <-> under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Lemma st_type_closed_subst_c: forall x (c_x: constant) st (tau:underty),
+    st_type_closed (st\_ x |-> c_x; st _/) tau ->
+    st_type_closed (st\_ st _/) (<u[ x |c-> c_x ]> tau).
+Admitted.
+
+Lemma oarr_name_unique: forall st s o tau e,
+    under_tmR_aux st (s o: o o--> tau) e -> st s = None.
+Admitted.
+
+Lemma under_subst_preserve_ty: forall x c_x tau,
+    (u\_ <u[ x |c-> c_x ]> tau _/) = (u\_ tau _/).
+Admitted.
+
+Lemma map_none_implies_hd {A: Type}: forall x (c_x:A) st s,
+    (x |-> c_x; st) s = None -> x <> s.
 Proof with eauto.
   intros.
-  split; intro HH.
-  (* assert (well_formed_type tau)... *)
-  induction tau...
-  - inversion HH; subst... constructor...
-  - inversion HH; subst... simpl.
-    assert (x <> s). admit. destruct (eqb_spec x s); subst... exfalso. apply H1...
-    destruct H0...
-    constructor... admit. split... admit.
+  intro HH. subst. rewrite update_eq in H. inversion H.
+Qed.
+
+Global Hint Resolve map_none_implies_hd: core.
+
+Lemma under_tmR_aux_st_update: forall x (c_x: constant) tau st,
+    (forall e, under_tmR_aux (x |-> c_x; st) tau e <-> under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Proof with eauto.
+  intros x c_x.
+  induction tau; split; intros.
+  - inversion H; subst... destruct H1. constructor... apply st_type_closed_subst_c in H0...
+  - inversion H; subst... destruct H1. admit.
+  - inversion H; subst... destruct H1. destruct o.
+    simpl.
+    assert (x <> s). eapply oarr_name_unique in H...
+    destruct (eqb_spec x s); subst... exfalso...
+    constructor...
+    + apply st_type_closed_subst_c in H0... simpl in H0.
+      destruct (eqb_spec x s); subst... exfalso...
+    + split...  simpl. rewrite under_subst_preserve_ty...
+      intros c_x' Hc_x'D e3 Happ.
+      inversion Happ; subst.
+      apply IHtau... rewrite update_permute... apply H2... admit.
+  - admit.
 Admitted.
+
 
 (* Lemma empty_under_denotation_const_to_over: forall st T phi (c: constant), *)
 (*     (forall e' : tm, tmR_in_ctx_aux st [] ([[v:T | phi]]) e' -> e' -->* c) -> overbase_tmR_aux st ({{v:T | phi}}) c. *)

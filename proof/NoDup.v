@@ -106,8 +106,15 @@ Proof with eauto.
   induction Gamma; intros tyst b tau_b H...
 Qed.
 
+Global Hint Resolve type_ctx_no_dup_ctx_post: core.
 
-Global Hint Resolve type_ctx_no_dup_cannot_find_last_in_nst: core.
+Lemma type_ctx_no_dup_implies_tail: forall st s0 o Gamma,
+    type_ctx_no_dup st ((s0, o) :: Gamma) -> type_ctx_no_dup st Gamma.
+Proof with eauto.
+  intros... rewrite <- app_one_is_cons in H...
+Qed.
+
+Global Hint Resolve type_ctx_no_dup_implies_tail: core.
 
 Lemma type_ctx_no_dup_fst_last_diff_name: forall Gamma tyst a tau_a b tau_b,
     type_ctx_no_dup tyst ((a, tau_a)::Gamma ++ ((b, tau_b)::nil)) -> a <> b.
@@ -117,4 +124,60 @@ Qed.
 
 Global Hint Resolve type_ctx_no_dup_fst_last_diff_name: core.
 
+Lemma nodup_update: forall Gamma st s b r,
+    type_ctx_no_dup st ((s, Uty ([[v:b | r]])) :: Gamma) ->
+    type_ctx_no_dup (s |-> b; st) Gamma.
+Proof with eauto.
+  induction Gamma; simpl; intros st s b r H...
+  - inversion H; subst... destruct a. constructor.
+    rewrite update_neq... eapply l_find_right_most_none_neq_hd in H5...
+    eauto.
+    apply IHGamma with (r := r)...
+Qed.
 
+Lemma nodup_update_over: forall Gamma st s b r,
+    type_ctx_no_dup st ((s, Oty ({{v:b | r}})) :: Gamma) ->
+    type_ctx_no_dup (s |-> b; st) Gamma.
+Proof with eauto.
+  induction Gamma; simpl; intros st s b r H...
+  - inversion H; subst... destruct a. constructor.
+    rewrite update_neq... eapply l_find_right_most_none_neq_hd in H5...
+    eauto.
+    apply IHGamma with (r := r)...
+Qed.
+
+Lemma nodup_permute: forall tyst a tau_a b tau_b Gamma,
+    a <> b ->
+    type_ctx_no_dup tyst ((a, tau_a) :: (b, tau_b) :: Gamma) ->
+    type_ctx_no_dup tyst ((b, tau_b) :: (a, tau_a) :: Gamma).
+Proof with eauto.
+  intros.
+  inversion H0;subst. constructor...
+  inversion H7;subst.
+  eapply l_find_right_most_none_neq_hd in H6...
+  simpl... rewrite H9. destruct (eqb_spec a b); subst... exfalso...
+Qed.
+
+Lemma nodup_dropfst: forall st s tau_s Gamma,
+    type_ctx_no_dup st ((s, tau_s) :: Gamma) ->
+    type_ctx_no_dup st Gamma.
+Proof with eauto.
+  intros. rewrite <- app_one_is_cons in H...
+Qed.
+
+Lemma nodup_append: forall a tau_a Gamma nst,
+    nst a = None ->
+    l_find_right_most Gamma a = None ->
+    type_ctx_no_dup nst Gamma ->
+    type_ctx_no_dup nst (Gamma <l> a :l: tau_a).
+Proof with eauto.
+  intros a tau_a.
+  induction Gamma.
+  - intros nst Hnst Hfind H. setoid_rewrite app_nil_l. constructor...
+  - intros nst Hnst Hfind H... destruct a0. constructor.
+    + eauto.
+    + inversion H; subst. apply l_find_right_most_none_neq_hd in Hfind...
+      apply find_none_append...
+    + apply IHGamma; auto. apply l_find_right_most_none_neq_tl in Hfind...
+      apply type_ctx_no_dup_implies_tail in H...
+Qed.

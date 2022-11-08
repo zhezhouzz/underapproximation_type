@@ -98,7 +98,7 @@ Inductive st_type_closed : tystate -> overunderty -> Prop :=
     phi_sat_tyst phi tyst -> st_type_closed tyst ([[v: T | phi]])
 | st_type_closed_oarr: forall st x T phi (tau: underty),
     well_formed_type (x o: ({{v: T | phi}}) o--> tau) ->
-    st x = None ->
+    (* st x = None -> *)
     st_type_closed st ({{v: T | phi}}) ->
     st_type_closed (x |-> T; st) tau ->
     st_type_closed st (x o: ({{v: T | phi}}) o--> tau)
@@ -119,123 +119,72 @@ Qed.
 
 Global Hint Resolve st_type_closed_implies_well_formed_type: core.
 
-Fixpoint st_type_closed_in_ctx (tyst: tystate) (Gamma: lcontxt) (tau: overunderty) : Prop :=
-  (match Gamma with
+Fixpoint st_type_closed_in_ctx_aux (tyst: tystate) (Gamma: lcontxt) (tau: overunderty) : Prop :=
+  match Gamma with
    | nil => st_type_closed tyst tau
    | (x, Oty ({{v:T | _}})) :: Gamma | (x, Uty ([[v:T | _]])) :: Gamma =>
-       (* tyst x = None /\ st_type_closed_in_ctx (update tyst x T) Gamma tau *)
-                                        st_type_closed_in_ctx (update tyst x T) Gamma tau
-   | (x, _) :: Gamma => st_type_closed_in_ctx tyst Gamma tau
-   end)
-  /\ well_formed_type tau /\ type_ctx_no_dup tyst Gamma.
+                                        st_type_closed_in_ctx_aux (update tyst x T) Gamma tau
+   | (x, _) :: Gamma =>
+       st_type_closed_in_ctx_aux tyst Gamma tau
+  end.
 
-(* Inductive st_type_closed_in_ctx : tystate -> lcontxt -> overunderty -> Prop := *)
-(* | st_type_closed_in_ctx_nil: forall tyst tau, st_type_closed tyst tau -> st_type_closed_in_ctx tyst [] tau *)
-(* | st_type_closed_in_ctx_overcons: forall tyst x T phix Gamma tau, *)
-(*     tyst x = None -> *)
-(*     st_type_closed_in_ctx (update tyst x T) Gamma tau -> *)
-(*     type_ctx_no_dup tyst ((x, Oty ({{v:T | phix}})) :: Gamma) -> *)
-(*     st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phix}})) :: Gamma) tau *)
-(* | st_type_closed_in_ctx_undercons: forall tyst x T phix Gamma tau, *)
-(*     tyst x = None -> *)
-(*     st_type_closed_in_ctx (update tyst x T) Gamma tau -> *)
-(*     type_ctx_no_dup tyst (((x, Uty ([[v:T | phix]])) :: Gamma)) -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phix]])) :: Gamma) tau *)
-(* | st_type_closed_in_ctx_oarrcons: forall tyst x a Ta phia taub Gamma tau, *)
-(*     tyst x = None -> *)
-(*     well_formed_type (a o: ({{v:Ta | phia}}) o--> taub) -> *)
-(*     st_type_closed_in_ctx tyst Gamma tau -> *)
-(*     type_ctx_no_dup tyst ((x, Uty (a o: ({{v:Ta | phia}}) o--> taub)) :: Gamma) -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty (a o: ({{v:Ta | phia}}) o--> taub)) :: Gamma) tau *)
-(* | st_type_closed_in_ctx_arrarrcons: forall tyst x t1 t2 Gamma tau, *)
-(*     tyst x = None -> *)
-(*     well_formed_type (t1 u--> t2) -> *)
-(*     st_type_closed_in_ctx tyst Gamma tau -> *)
-(*     type_ctx_no_dup tyst ((x, Uty (t1 u--> t2)) :: Gamma) -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) tau. *)
+Definition st_type_closed_in_ctx (tyst: tystate) (Gamma: lcontxt) (tau: overunderty) : Prop :=
+  st_type_closed_in_ctx_aux tyst Gamma tau /\
+    well_formed_type tau /\ type_ctx_no_dup tyst Gamma.
 
-(* Global Hint Constructors st_type_closed_in_ctx: core. *)
+Lemma st_type_closed_in_ctx_bot: forall T, st_type_closed_in_ctx empty l_empty (mk_bot T).
+Proof with eauto.
+  intros. constructor...
+  - simpl. constructor... intro x. intros.
+    rewrite not_appear_free_in_refinement_alt. intros...
+  - split... constructor...
+Qed.
 
-
-(* Inductive st_type_closed_in_ctx : tystate -> lcontxt -> refinement -> Prop := *)
-(* | st_type_closed_in_ctx_nil: *)
-(*   forall tyst phi, phi_sat_tyst phi tyst -> st_type_closed_in_ctx tyst [] phi *)
-(*   (* forall tyst phi, (forall st, st \TYSTin tyst -> closed_refinement_under_state st phi) -> *) *)
-(*   (*             st_type_closed_in_ctx tyst [] phi *) *)
-(* | st_type_closed_in_ctx_overcons: forall tyst x T phix Gamma phi, *)
-(*     tyst x = None -> *)
-(*     st_type_closed_in_ctx (update tyst x T) Gamma phi -> *)
-(*     st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phix}})) :: Gamma) phi *)
-(* | st_type_closed_in_ctx_undercons: forall tyst x T phix Gamma phi, *)
-(*     tyst x = None -> *)
-(*     st_type_closed_in_ctx (update tyst x T) Gamma phi -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phix]])) :: Gamma) phi *)
-(* | st_type_closed_in_ctx_oarrcons: forall tyst x a Ta phia taub Gamma phi, *)
-(*     tyst x = None -> *)
-(*     well_formed_type (a o: ({{v:Ta | phia}}) o--> taub) -> *)
-(*     st_type_closed_in_ctx tyst Gamma phi -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty (a o: ({{v:Ta | phia}}) o--> taub)) :: Gamma) phi *)
-(* | st_type_closed_in_ctx_arrarrcons: forall tyst x t1 t2 Gamma phi, *)
-(*     tyst x = None -> *)
-(*     well_formed_type (t1 u--> t2) -> *)
-(*     st_type_closed_in_ctx tyst Gamma phi -> *)
-(*     st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) phi. *)
-
-(* Global Hint Constructors st_type_closed_in_ctx: core. *)
-
-(* Lemma appear_free_in_refinement_alt (name: string) (phi: refinement): *)
-(*   appear_free_in_refinement name phi <-> (exists st c2, phi st <> phi (update st name c2)). *)
-(* Proof with eauto. *)
-(*   unfold appear_free_in_refinement. *)
-(* Admitted. *)
-
-(* Lemma st_type_closed_in_ctx_spec: forall tyst phi, *)
-(*     (forall st, st \TYSTin tyst -> closed_refinement_under_state st phi) -> *)
-(*     (forall x, (exists T, tyst x = Some T) <-> (appear_free_in_refinement x phi)). *)
-(* Proof with eauto. *)
-(*   unfold closed_refinement_under_state. unfold state_in_tystate. *)
-(*   intros. split. *)
-(*   - intros He. rewrite -> appear_free_in_refinement_alt. *)
-(*  Admitted. *)
-
-(* Lemma st_type_closed_in_ctx_weakening: forall Gamma1 st Gamma2 phi, *)
-(*     st_type_closed_in_ctx st Gamma2 phi -> *)
-(*     st_type_closed_in_ctx st (Gamma1 ++ Gamma2) phi. *)
-(* Proof with eauto. *)
-(*   induction Gamma1; intros st Gamma2 phi H... *)
-(*   rewrite <- app_comm_cons. *)
-(*   destruct a. destruct o. destruct u. *)
-(*   - constructor... apply IHGamma1... *)
-(*   destruct u... constructor... *)
-
-(* Lemma st_type_closed_in_ctx_weakening: forall Gamma1 st Gamma2 Gamma3 phi, *)
-(*     (Gamma1 ++ Gamma2) = Gamma3 -> *)
-(*     st_type_closed_in_ctx st Gamma2 phi -> *)
-(*     st_type_closed_in_ctx st Gamma3 phi. *)
-(* Proof with eauto. *)
-(*   induction Gamma1; intros st Gamma2 Gamma3 phi Hcc H... *)
-(*   - simpl in Hcc; subst... *)
-(*   - destruct Gamma3. apply app_eq_nil in Hcc. destruct Hcc... inversion H0... *)
-(*     rewrite <- app_comm_cons in Hcc. inversion Hcc. *)
-(*     eapply IHGamma1 in H2... *)
-(*     destruct a. destruct p. inversion H1; subst... *)
-(*     destruct o0... *)
-(*     destruct u... constructor... *)
-
-Lemma st_type_closed_in_ctx_destruct_front : forall Gamma tyst x T phi tau,
+Lemma st_type_closed_in_ctx_destruct_underbase_front : forall Gamma tyst x T phi tau,
     st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) tau ->
     st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
 Proof with eauto.
-  intros Gamma tyst x T phi tau Hclosed. simpl in Hclosed...
-  destruct Hclosed...
+  intros Gamma tyst x T phi tau Hclosed.
+  destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split... apply nodup_update in Hnodup_...
+Qed.
+
+Lemma st_type_closed_in_ctx_destruct_overbase_front : forall Gamma tyst x T phi tau,
+    st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}})) :: Gamma) tau ->
+    st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
+Proof with eauto.
+  intros Gamma tyst x T phi tau Hclosed.
+  destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split... apply nodup_update_over in Hnodup_...
+Qed.
+
+Global Hint Resolve st_type_closed_in_ctx_destruct_overbase_front: core.
+
+Lemma st_type_closed_in_ctx_destruct_arrar_front : forall Gamma tyst x t1 t2 tau,
+    st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) tau ->
+    st_type_closed_in_ctx tyst Gamma tau.
+Proof with eauto.
+  intros Gamma tyst x T phi tau Hclosed.
+  destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split...
+Qed.
+
+
+Lemma st_type_closed_in_ctx_destruct_oarr_front : forall Gamma tyst x a Ta phia t2 tau,
+    st_type_closed_in_ctx tyst ((x, Uty (a o: {{v:Ta | phia}} o--> t2)) :: Gamma) tau ->
+    st_type_closed_in_ctx tyst Gamma tau.
+Proof with eauto.
+  intros Gamma tyst x a Ta phia t2 tau Hclosed.
+  destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split...
 Qed.
 
 Lemma st_type_closed_in_ctx_one_underbase: forall tyst x T phi phi0,
     st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]]))::nil) phi0 ->
     st_type_closed_in_ctx (x |-> T; tyst) [] phi0.
 Proof with eauto.
-  intros tyst x T phi tau Hclosed. simpl in Hclosed...
-  destruct Hclosed; subst...
+  intros tyst x T phi tau Hclosed. destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split...
 Qed.
 
 Global Hint Resolve st_type_closed_in_ctx_one_underbase: core.
@@ -244,11 +193,32 @@ Lemma st_type_closed_in_ctx_one_overbase: forall tyst x T phi phi0,
     st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}}))::nil) phi0 ->
     st_type_closed_in_ctx (x |-> T; tyst) [] phi0.
 Proof with eauto.
-  intros tyst x T phi tau Hclosed.  simpl in Hclosed...
-  destruct Hclosed; subst...
+  intros tyst x T phi tau Hclosed.  destruct Hclosed as (Hstclosed & Hwf & Hnodup_)... simpl in Hstclosed...
+  repeat split...
 Qed.
 
 Global Hint Resolve st_type_closed_in_ctx_one_overbase: core.
+
+Lemma st_type_closed_add: forall s T1 tau st,
+    st_type_closed st tau ->
+    st_type_closed (s |-> T1; st) tau.
+Proof with eauto.
+  intros s T1 tau st H.
+  induction H.
+  - constructor... intros x'. intros. apply H. destruct (eqb_spec s x'); subst...
+    rewrite update_eq in H0. inversion H0.
+    rewrite update_neq in H0...
+  - constructor... intros x'. intros. apply H. destruct (eqb_spec s x'); subst...
+    rewrite update_eq in H0. inversion H0.
+    rewrite update_neq in H0...
+  - constructor... destruct (eqb_spec s x); subst...
+    + rewrite update_shadow...
+    + rewrite update_permute...
+  - constructor...
+Qed.
+
+
+
 
 (* Module ExCloseRefinement. *)
 
@@ -328,8 +298,8 @@ Proof with eauto.
   induction tau; intros st Hst H...
   - inversion H; subst...
   - inversion H; subst... simpl. intro HF. destruct HF...
-    + inversion H6; subst. apply H4 in H0...
-    + destruct H0. eapply IHtau in H7... rewrite update_neq...
+    + inversion H5; subst. apply H3 in H0...
+    + destruct H0. eapply IHtau in H6... rewrite update_neq...
   - inversion H; subst... simpl. intro HF. destruct HF...
     + eapply  IHtau1  in H4...
     + eapply  IHtau2  in H5...
@@ -346,20 +316,18 @@ Proof with eauto.
   intro x.
   induction Gamma; intros tau st Hst Hfind HH...
   - inversion HH; subst...
-  - destruct a. inversion HH; subst...
+  - destruct a.
     destruct o. destruct u.
-    + destruct H0. simpl in Hfind.
-      assert (l_find_right_most Gamma x = None). apply l_find_right_most_none_neq_tl in Hfind...
-      eapply IHGamma in H... rewrite update_neq...
-    + assert (l_find_right_most Gamma x = None). apply l_find_right_most_none_neq_tl in Hfind...
-      eapply IHGamma in H1...
-    + assert (l_find_right_most Gamma x = None). apply l_find_right_most_none_neq_tl in Hfind...
-      eapply IHGamma in H1...
+    + apply st_type_closed_in_ctx_destruct_underbase_front in HH.
+      eapply IHGamma in HH... rewrite update_neq...
+    + destruct o. apply st_type_closed_in_ctx_destruct_oarr_front in HH.
+      eapply IHGamma in HH; auto. eapply l_find_right_most_none_neq_tl in Hfind...
+    + apply st_type_closed_in_ctx_destruct_arrar_front in HH.
+      eapply IHGamma in HH; auto. eapply l_find_right_most_none_neq_tl in Hfind...
     + destruct o.
-      assert (l_find_right_most Gamma x = None). apply l_find_right_most_none_neq_tl in Hfind...
-      eapply IHGamma in H... rewrite update_neq...
+      apply st_type_closed_in_ctx_destruct_overbase_front in HH.
+      eapply IHGamma in HH... rewrite update_neq...
 Qed.
-
 
 (* Global Hint Resolve st_type_closed_in_ctx_emp_implies_all_not_free: core. *)
 
@@ -376,122 +344,54 @@ Proof with eauto.
   intros...
 Qed.
 
+Lemma destruct_tau: forall (tau: overunderty),
+    ((exists T phi, tau = {{v:T | phi}}) \/ (exists T phi, tau = [[v:T | phi]]))
+    \/ ((exists a Ta phia taub, tau = (a o: {{v: Ta | phia}} o--> taub))
+    \/ (exists t1 t2, tau = (t1 u--> t2))).
+Proof with eauto.
+  intro tau.
+  destruct tau. destruct u.
+  - left. right. exists b. exists r...
+  - right. destruct o. left. exists s, b, r, u...
+  - right. right. exists u1, u2...
+  - destruct o. left. left. exists b, r...
+Qed.
+
+Lemma st_type_closed_in_ctx_perm_aux: forall tyst a tau_a b tau_b Gamma,
+    a <> b ->
+    (forall tau, st_type_closed_in_ctx_aux tyst ((a, tau_a)::(b, tau_b)::Gamma) tau ->
+            st_type_closed_in_ctx_aux tyst ((b, tau_b)::(a, tau_a)::Gamma) tau).
+Proof with eauto.
+  intros tyst a tau_a b tau_b Gamma Hab. intros.
+  destruct (destruct_tau tau_a); destruct (destruct_tau tau_b)...
+  - destruct H0 as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)];
+      destruct H1 as [(T2 & phi2 & Hsubst2)| (T2 & phi2 & Hsubst2)]; subst; simpl; simpl in H; try rewrite update_permute...
+  - destruct H0 as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)];
+      destruct H1 as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)]; subst; simpl; simpl in H; try rewrite update_permute...
+  - destruct H0 as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)];
+      destruct H1 as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)]; subst; simpl; simpl in H; try rewrite update_permute...
+  - destruct H0 as [(n1 & Tn1 & phin1 & taun'1 & Hsubst1)| (t11 & t21 & Hsubst1)];
+      destruct H1 as [(n2 & Tn2 & phin2 & taun'2 & Hsubst2)| (t12 & t22 & Hsubst2)]; subst; simpl; simpl in H...
+Qed.
+
 Lemma st_type_closed_in_ctx_perm: forall tyst a tau_a b tau_b Gamma,
     a <> b ->
     (forall tau, st_type_closed_in_ctx tyst ((a, tau_a)::(b, tau_b)::Gamma) tau ->
             st_type_closed_in_ctx tyst ((b, tau_b)::(a, tau_a)::Gamma) tau).
 Proof with eauto.
   intros tyst a tau_a b tau_b Gamma Hab. intros.
-  destruct tau_a.
-  destruct u. simpl in H... destruct H... split... destruct H. clear H. clear H0.
-  - destruct tau_b. destruct u.
-Admitted.
-
-(* Lemma st_type_closed_in_ctx_one_underbase: forall tyst x T phi tau, *)
-(*     st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]]))::nil) tau -> *)
-(*     st_type_closed_in_ctx (x |-> T; tyst) [] tau. *)
-(* Admitted. *)
+  destruct H as (H1 & H2 & H3). apply st_type_closed_in_ctx_perm_aux in H1...
+  split... split... apply nodup_permute...
+Qed.
 
 Global Hint Resolve st_type_closed_in_ctx_one_underbase: core.
 
-(* Lemma st_type_closed_in_ctx_one_overbase: forall tyst x T phi tau, *)
-(*     st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}}))::nil) tau -> *)
-(*     st_type_closed_in_ctx (x |-> T; tyst) [] tau. *)
-(* Admitted. *)
-
 Global Hint Resolve st_type_closed_in_ctx_one_overbase: core.
 
-Lemma st_type_closed_in_ctx_destruct_underbase_front : forall Gamma tyst x T phi tau,
-    st_type_closed_in_ctx tyst ((x, Uty ([[v:T | phi]])) :: Gamma) tau ->
-    st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
-Proof with eauto.
-  intros Gamma tyst x T phi tau Hclosed.
-  destruct Hclosed...
-Qed.
+(* Lemma mk_op_is_type_closed: forall st op a b, st_type_closed_in_ctx st l_empty (mk_op op a b). *)
+(* Admitted. *)
 
-Lemma st_type_closed_in_ctx_destruct_overbase_front : forall Gamma tyst x T phi tau,
-    st_type_closed_in_ctx tyst ((x, Oty ({{v:T | phi}})) :: Gamma) tau ->
-    st_type_closed_in_ctx (x |-> T; tyst) Gamma tau.
-Proof with eauto.
-  intros Gamma tyst x T phi tau Hclosed.
-  destruct Hclosed...
-Qed.
-
-Global Hint Resolve st_type_closed_in_ctx_destruct_overbase_front: core.
-
-Lemma st_type_closed_in_ctx_destruct_arrar_front : forall Gamma tyst x t1 t2 tau,
-    st_type_closed_in_ctx tyst ((x, Uty (t1 u--> t2)) :: Gamma) tau ->
-    st_type_closed_in_ctx tyst Gamma tau.
-Proof with eauto.
-  intros Gamma tyst x T phi tau Hclosed.
-  destruct Hclosed...
-Qed.
-
-Lemma st_type_closed_in_ctx_destruct_oarr_front : forall Gamma tyst x a Ta phia t2 tau,
-    st_type_closed_in_ctx tyst ((x, Uty (a o: {{v:Ta | phia}} o--> t2)) :: Gamma) tau ->
-    st_type_closed_in_ctx tyst Gamma tau.
-Proof with eauto.
-  intros Gamma tyst x a Ta phia t2 tau Hclosed.
-  destruct Hclosed...
-Qed.
-
-(* Inductive overunderbasety : Type := *)
-(* | Obase: base_ty -> refinement -> overunderbasety *)
-(* | Ubase: base_ty -> refinement -> overunderbasety. *)
-
-(* Definition basecontxt := linear_context overunderbasety. *)
-
-(* Fixpoint erase_basetypectx (Gamma: basecontxt): ncontxt := *)
-(*   match Gamma with *)
-(*   | nil => nil *)
-(*   | (x, Obase T _)::Gamma => (x, TBase T)::(erase_basetypectx Gamma) *)
-(*   | (x, Ubase T _)::Gamma => (x, TBase T)::(erase_basetypectx Gamma) *)
-(*   end. *)
-
-(* Fixpoint erase_lctx (Gamma: lcontxt): ncontxt := *)
-(*   match Gamma with *)
-(*   | nil => nil *)
-(*   | (x, tau)::Gamma => (x, ou\_ tau _/)::(erase_lctx Gamma) *)
-(*   end. *)
-
-(* Definition lctx_to_basic_ctx (Gamma: lcontxt) := ncontxt_to_basic_ctx_aux (erase_lctx Gamma) empty. *)
-
-(* Global Hint Unfold lctx_to_basic_ctx: core. *)
-
-(* Inductive type_closed_in_ctx : basecontxt -> overunderty -> Prop := *)
-(* | type_closed_base1: forall Gamma (T: base_ty) phi, *)
-(*     st_type_closed_in_ctx (erase_basetypectx Gamma) T phi -> *)
-(*     type_closed_in_ctx Gamma ({{v: T | phi}}) *)
-(* | type_closed_base2: forall Gamma (T: base_ty) phi, *)
-(*     st_type_closed_in_ctx (erase_basetypectx Gamma) T phi -> *)
-(*     type_closed_in_ctx Gamma ([[v: T | phi]]) *)
-(* | type_closed_oarr: forall Gamma x T phi (tau: underty), *)
-(*     type_closed_in_ctx Gamma ({{v: T | phi}}) -> *)
-(*     type_closed_in_ctx ((x, Obase T phi) :: Gamma) tau -> *)
-(*     type_closed_in_ctx Gamma (x o: ({{v: T | phi}}) o--> tau) *)
-(* | type_closed_arrarr: forall Gamma (tau_x: underty) (tau: underty), *)
-(*     type_closed_in_ctx Gamma tau_x -> *)
-(*     type_closed_in_ctx Gamma tau -> *)
-(*     type_closed_in_ctx Gamma (tau_x u--> tau). *)
-
-(* before erase refinement from the context, we will erase all function type bindings *)
-(* Fixpoint lcontxt_to_baseconctx (Gamma: lcontxt): basecontxt := *)
-(*   match Gamma with *)
-(*   | nil => nil *)
-(*   | (x, ty)::Gamma => *)
-(*       match ty with *)
-(*       | Oty ({{v: T | phi }}) => (x, Obase T phi)::(lcontxt_to_baseconctx Gamma) *)
-(*       | Uty ([[v: T | phi ]]) => (x, Ubase T phi)::(lcontxt_to_baseconctx Gamma) *)
-(*       | _ => (lcontxt_to_baseconctx Gamma) *)
-(*       end *)
-(*   end. *)
-
-(* type closed \S{Ty} *)
-
-Lemma mk_op_is_type_closed: forall st op a b, st_type_closed_in_ctx st l_empty (mk_op op a b).
-Admitted.
-
-Global Hint Resolve mk_op_is_type_closed: core.
+(* Global Hint Resolve mk_op_is_type_closed: core. *)
 
 Lemma mk_eq_over_base_is_type_closed: forall x T phi, st_type_closed_in_ctx empty ((x, Oty ({{v:T | phi}}))::nil) (mk_eq_var T x).
 Proof with eauto.
@@ -535,23 +435,6 @@ Qed.
 
 Global Hint Resolve constant_is_wf: core.
 
-Lemma nodup_update: forall st s b r Gamma,
-    type_ctx_no_dup st ((s, Uty ([[v:b | r]])) :: Gamma) ->
-    type_ctx_no_dup (s |-> b; st) Gamma.
-Admitted.
-
-Lemma nodup_update_over: forall st s b r Gamma,
-    type_ctx_no_dup st ((s, Oty ({{v:b | r}})) :: Gamma) ->
-    type_ctx_no_dup (s |-> b; st) Gamma.
-Admitted.
-
-Lemma nodup_dropfst: forall st s tau_s Gamma,
-    type_ctx_no_dup st ((s, tau_s) :: Gamma) ->
-    type_ctx_no_dup st Gamma.
-Proof with eauto.
-  intros. rewrite <- app_one_is_cons in H...
-Qed.
-
 (* Global Hint Resolve nodup_dropfst: core. *)
 
 Lemma constant_eq_is_close: forall Gamma st c,
@@ -576,26 +459,117 @@ Global Hint Resolve constant_eq_is_close: core.
 (* type closed lemmas *)
 
 Lemma mk_eq_is_well_formed_type: forall T x, well_formed_type (mk_eq_var T x).
-Admitted.
+Proof with eauto.
+  intros.
+  constructor...
+Qed.
 
 Global Hint Resolve mk_eq_is_well_formed_type: core.
+
+Lemma st_type_closed_in_ctx_add_binding: forall s T (tau: overunderty) (Gamma2: lcontxt) st,
+    st_type_closed_in_ctx_aux st Gamma2 tau ->
+    st_type_closed_in_ctx_aux (s |-> T; st) Gamma2 tau.
+Proof with eauto.
+  intros s T tau.
+  induction Gamma2; intros st H... simpl in H. simpl. apply st_type_closed_add...
+  destruct a.
+  destruct (destruct_tau o).
+  - destruct H0 as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)]; subst; simpl...
+    + simpl in H.
+      destruct (eqb_spec s0 s); subst...
+      rewrite update_shadow... rewrite update_permute...
+    + simpl in H.
+      destruct (eqb_spec s0 s); subst...
+      rewrite update_shadow... rewrite update_permute...
+  - destruct H0 as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)]; subst; simpl.
+    + simpl in H. apply IHGamma2 in H; auto.
+    + simpl in H. apply IHGamma2 in H; auto.
+Qed.
+
+
+(* Lemma closed_ctx_update_useless: forall Gamma s T1 st tau, *)
+(*     l_find_right_most Gamma s = None -> *)
+(*     st_type_closed_in_ctx_aux st Gamma tau -> *)
+(*     st_type_closed_in_ctx_aux (s |-> T1; st) Gamma tau. *)
+(* Admitted. *)
+
+
+Lemma type_closed_add_post_aux: forall (Gamma2: lcontxt) st (tau: overunderty),
+    type_ctx_no_dup st Gamma2 -> st_type_closed st tau -> st_type_closed_in_ctx_aux st Gamma2 tau.
+Proof with eauto.
+  induction Gamma2; intros st tau Hnodup HH...
+  destruct a.
+  destruct (destruct_tau o).
+  - destruct H as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)]; subst; simpl...
+    + apply IHGamma2 in HH. apply st_type_closed_in_ctx_add_binding... eapply type_ctx_no_dup_implies_tail in Hnodup...
+    + apply IHGamma2 in HH. apply st_type_closed_in_ctx_add_binding... eapply type_ctx_no_dup_implies_tail in Hnodup...
+  - destruct H as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)]; subst; simpl.
+    + apply IHGamma2 in HH; auto. eapply type_ctx_no_dup_implies_tail in Hnodup...
+    + apply IHGamma2 in HH; auto. eapply type_ctx_no_dup_implies_tail in Hnodup...
+Qed.
+
+Lemma st_type_closed_in_ctx_aux_add_post: forall (Gamma1 Gamma2: lcontxt) st (tau: overunderty),
+    type_ctx_no_dup st (Gamma1 ++ Gamma2) ->
+    st_type_closed_in_ctx_aux st Gamma1 tau -> st_type_closed_in_ctx_aux st (Gamma1 ++ Gamma2) tau.
+Proof with eauto.
+  induction Gamma1; intros Gamma2 st tau Hnodup HH... apply type_closed_add_post_aux...
+  destruct a.
+  destruct (destruct_tau o).
+  - destruct H as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)]; subst; simpl.
+    + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. apply nodup_update_over in Hnodup...
+    + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. apply nodup_update in Hnodup...
+  - destruct H as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)]; subst; simpl.
+     + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+     + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+Qed.
 
 Lemma type_closed_add_post: forall (Gamma1 Gamma2: lcontxt) st (tau: overunderty),
     type_ctx_no_dup st (Gamma1 ++ Gamma2) ->
     st_type_closed_in_ctx st Gamma1 tau -> st_type_closed_in_ctx st (Gamma1 ++ Gamma2) tau.
-Admitted.
+Proof with eauto.
+  intros.
+  destruct H0 as (HH & H1 & H2). split...
+  apply st_type_closed_in_ctx_aux_add_post...
+Qed.
+
+Lemma st_type_closed_in_ctx_aux_add_pre: forall (Gamma1 Gamma2: lcontxt) st (tau: overunderty),
+    type_ctx_no_dup st (Gamma1 ++ Gamma2) ->
+    st_type_closed_in_ctx_aux st Gamma2 tau -> st_type_closed_in_ctx_aux st (Gamma1 ++ Gamma2) tau.
+Proof with eauto.
+  induction Gamma1; intros Gamma2 st tau Hnodup HH...
+  destruct a.
+  destruct (destruct_tau o).
+  - destruct H as [(T1 & phi1 & Hsubst1)| (T1 & phi1 & Hsubst1)]; subst; simpl.
+    + apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto. eapply st_type_closed_in_ctx_add_binding in HH...
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+    + apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto. eapply st_type_closed_in_ctx_add_binding in HH...
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+  - destruct H as [(n & Tn & phin & taun' & Hsubst2)| (t1 & t2 & Hsubst2)]; subst; simpl.
+    + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+    + simpl in HH. apply IHGamma1 with (Gamma2:=Gamma2)in HH; auto.
+      rewrite <- app_comm_cons in Hnodup. rewrite <- app_one_is_cons in Hnodup. apply type_ctx_no_dup_ctx_post in Hnodup...
+Qed.
 
 Lemma type_closed_add_pre: forall (Gamma1 Gamma2: lcontxt) st (tau: overunderty),
     type_ctx_no_dup st (Gamma1 ++ Gamma2) ->
     st_type_closed_in_ctx st Gamma2 tau -> st_type_closed_in_ctx st (Gamma1 ++ Gamma2) tau.
-Admitted.
+Proof with eauto.
+  intros.
+  destruct H0 as (HH & H1 & H2). split...
+  apply st_type_closed_in_ctx_aux_add_pre...
+Qed.
 
 Lemma st_type_closed_in_ctx_last_over_var: forall st Gamma x T phi,
     type_ctx_no_dup st (Gamma ++ ((x, Oty ({{v:T | phi}}))::nil)) ->
     st_type_closed_in_ctx st (Gamma ++ ((x, Oty ({{v:T | phi}}))::nil)) (mk_eq_var T x).
 Proof with eauto.
   intros. apply type_closed_add_pre...
-  constructor. constructor... constructor...
+  constructor. constructor...
   unfold phi_sat_tyst. intros. intro HH.
   destruct (eqb_spec x x0); subst... rewrite update_eq in H0. inversion H0.
   unfold appear_free_in_refinement in HH. apply HH. intros. rewrite update_neq...
@@ -607,7 +581,7 @@ Lemma st_type_closed_in_ctx_last_under_var: forall st Gamma x T phi,
     st_type_closed_in_ctx st (Gamma ++ ((x, Uty ([[v:T | phi]]))::nil)) (mk_eq_var T x).
 Proof with eauto.
   intros. apply type_closed_add_pre...
-  constructor. constructor... constructor...
+  constructor. constructor...
   unfold phi_sat_tyst. intros. intro HH.
   destruct (eqb_spec x x0); subst... rewrite update_eq in H0. inversion H0.
   unfold appear_free_in_refinement in HH. apply HH. intros. rewrite update_neq...
@@ -656,12 +630,16 @@ Qed.
 Inductive st_type_closed_ctx: tystate -> lcontxt -> Prop :=
 | st_type_closed_ctx_nil: forall st, st_type_closed_ctx st nil
 | st_type_closed_ctx_cons: forall st x tau_x Gamma,
-    st x = None ->
-    l_find_right_most Gamma x = None ->
-    st_type_closed_ctx st Gamma ->
+    type_ctx_no_dup st (Gamma <l> x :l: tau_x) ->
     st_type_closed_in_ctx st Gamma tau_x ->
-    well_formed_type tau_x ->
+    st_type_closed_ctx st Gamma ->
     st_type_closed_ctx st (Gamma <l> x :l: tau_x).
+    (* st x = None -> *)
+    (* l_find_right_most Gamma x = None -> *)
+    (* st_type_closed_ctx st Gamma -> *)
+    (* st_type_closed_in_ctx st Gamma tau_x -> *)
+    (* well_formed_type tau_x -> *)
+    (* st_type_closed_ctx st (Gamma <l> x :l: tau_x). *)
 
 Global Hint Constructors st_type_closed_ctx: core.
 
@@ -675,14 +653,35 @@ Lemma destructst_type_closed_ctx: forall st x tau_x Gamma,
 Proof with eauto.
   intros.
   inversion H; subst. apply app_one_eq_nil in H2. inversion H2.
-  apply app_inj_tail in H0. inversion H0; subst. inversion H7; subst. split...
+  apply app_inj_tail in H0. inversion H0; subst. inversion H5; subst. clear H0. clear H5.
+  split. eapply type_ctx_no_dup_cannot_find_last_in_nst in H1...
+  split...
 Qed.
 
 Global Hint Resolve destructst_type_closed_ctx: core.
 
+Lemma st_type_closed_ctx_implies_head_closed: forall Gamma tyst x tau_x,
+    st_type_closed_ctx tyst ((x, tau_x)::Gamma) ->
+    (tyst x = None /\
+       st_type_closed_in_ctx tyst nil tau_x /\
+       well_formed_type tau_x).
+Proof with eauto.
+  apply (rev_ind (fun Gamma => forall tyst x tau_x,
+                      st_type_closed_ctx tyst ((x, tau_x)::Gamma) -> (tyst x = None /\
+                                                                      st_type_closed_in_ctx tyst nil tau_x /\
+                                                                      well_formed_type tau_x))).
+  - intros tyst x tau_x H. rewrite <- app_nil_l in H.
+    apply destructst_type_closed_ctx in H. destruct H as (Ha & Hb & Hc & Hd & He)...
+  - intros (a & tau_a) Gamma Hind tyst x tau_x H.
+    rewrite app_comm_cons in H. apply destructst_type_closed_ctx in H. destruct H as (Ha & Hb & Hc & Hd & He)...
+Qed.
+
 Lemma st_type_closed_ctx_implies_head_well_formed_type: forall tyst x tau_x Gamma,
     st_type_closed_ctx tyst ((x, tau_x)::Gamma) -> well_formed_type tau_x.
-Admitted.
+Proof with eauto.
+  intros.
+  apply st_type_closed_ctx_implies_head_closed in H... destruct H as (H1 & H2 & H3)...
+Qed.
 
 Global Hint Resolve st_type_closed_ctx_implies_head_well_formed_type: core.
 
@@ -698,22 +697,31 @@ Proof with eauto.
   - intros (a & tau_a) Gamma IHGamma nst x T phi Hclosed.
     rewrite app_comm_cons in Hclosed.
     apply destructst_type_closed_ctx in Hclosed. destruct Hclosed as (Hnst & Hfind & Hctx & Htau & Hwf).
+    assert (x <> a) as Hxa...
     constructor; auto.
-    + assert (x <> a)... rewrite update_neq...
+    (* + assert (x <> a)... simpl. rewrite update_neq... *)
     + apply l_find_right_most_none_neq_tl in Hfind...
-    + eauto.
+      assert (type_ctx_no_dup nst ((x, Uty ([[v:T | phi]])) :: Gamma))...
+      apply nodup_update in H... apply nodup_append...
+      rewrite update_neq...
+    (* + eauto. *)
     + eapply st_type_closed_in_ctx_destruct_underbase_front...
+    + eapply st_type_closed_in_ctx_destruct_underbase_front in Htau...
 Qed.
 
-Lemma st_type_closed_ctx_emp_implies_all: forall st Gamma,
-    st_type_closed_ctx empty Gamma -> st_type_closed_ctx st Gamma.
-Admitted.
+(* Lemma st_type_closed_ctx_emp_implies_all: forall st Gamma, *)
+(*     st_type_closed_ctx empty Gamma -> st_type_closed_ctx st Gamma. *)
+(* Admitted. *)
 
-Global Hint Resolve st_type_closed_ctx_emp_implies_all: core.
+(* Global Hint Resolve st_type_closed_ctx_emp_implies_all: core. *)
 
 Lemma st_type_closed_ctx_implies_type_ctx_no_dup: forall st Gamma,
     st_type_closed_ctx st Gamma -> type_ctx_no_dup st Gamma.
-Admitted.
+Proof with eauto.
+  intros.
+  induction H...
+Qed.
+
 
 Global Hint Resolve st_type_closed_ctx_implies_type_ctx_no_dup: core.
 
@@ -723,9 +731,17 @@ Proof with eauto.
   intros. eapply type_ctx_no_dup_fst_last_diff_name...
 Qed.
 
-Lemma st_type_closed_ctx_pre: forall st Gamma1 Gamm2,
-    st_type_closed_ctx st (Gamma1 ++ Gamm2) -> st_type_closed_ctx st Gamma1.
-Admitted.
+Lemma st_type_closed_ctx_pre: forall Gamma2 st Gamma1,
+    st_type_closed_ctx st (Gamma1 ++ Gamma2) -> st_type_closed_ctx st Gamma1.
+Proof with eauto.
+  apply (rev_ind (fun Gamma2 => forall st Gamma1,
+                      st_type_closed_ctx st (Gamma1 ++ Gamma2) -> st_type_closed_ctx st Gamma1)).
+  - intros st Gamma1 H... rewrite app_nil_r in H...
+  - intros (a & tau_a) Gamma2 IHGamma st Gamma1 H.
+    rewrite app_assoc in H.
+    apply destructst_type_closed_ctx in H. destruct H as (Hnst & Hfind & Hctx & Htau & Hwf)...
+Qed.
+
 
 Global Hint Resolve st_type_closed_ctx_pre: core.
 

@@ -52,6 +52,7 @@ Definition is_constant (v: value) :=
 (* overtype denotation *)
 Inductive overbase_tmR_aux: state -> overbasety -> constant -> Prop :=
 | over_tmR_base : forall (nst: state) (T: base_ty) (phi: refinement) (c: constant),
+    st_type_closed (state_to_tystate nst) ({{v: T | phi}}) ->
     empty \N- c \Vin T -> phi nst c -> overbase_tmR_aux nst ({{v: T | phi}}) c.
 
 Global Hint Constructors overbase_tmR_aux: core.
@@ -66,30 +67,32 @@ Inductive is_application: tm -> tm -> tm -> Prop :=
     is_application e1 e2
                    (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))).
 
+(* Axiom *)
 Lemma exists_fresh_var_of_value: forall (e: value), exists (x1 x2: string), x1 <> x2 /\ ~ x1 \FVvalue e.
 Admitted.
 
-Definition application_exists: forall e1 e2 x, exists (x1 x2: string),
+Definition application_exists: forall (e1 e2: value) x, exists (x1 x2: string),
     is_application e1 e2 (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))).
-Admitted.
+Proof with eauto.
+  intros. destruct (exists_fresh_var_of_value e2) as (x1 & x2 & HH & HHH).
+  exists x1, x2. constructor...
+Qed.
 
 Global Hint Constructors is_application: core.
 
 (* Lemma for is application *)
-
-Lemma term_order_eq_trans (e1 e2 e3: tm): e1 <=< e2 -> e2 <=< e3 -> e1 <=< e3.
-Admitted.
 
 Lemma value_value_is_application: forall x (v1 v2: value),
   exists (e3: tm), is_application v1 v2 e3 /\ ((tletapp x v1 v2 x) <=< e3).
 Proof with eauto.
   intros. destruct (application_exists v1 v2 x) as (x1 & x2 & H).
   exists (tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x))). split...
-  eapply term_order_eq_trans. eapply eta_reduction... admit.
-Admitted.
+  inversion H; subst. eapply eta_app_value_value...
+Qed.
 
 Fixpoint under_tmR_aux (nst: state) (tau: underty) (e: tm) : Prop :=
-  well_formed_type tau /\
+  st_type_closed (state_to_tystate nst) tau /\
+    (* well_formed_type tau /\ *)
     empty \N- e \Tin u\_ tau _/ /\
     (match tau with
      | [[v: T | phi ]] => (forall (c: constant), empty \N- vconst c \Vin T -> phi nst c -> e -->* c)
@@ -97,12 +100,28 @@ Fixpoint under_tmR_aux (nst: state) (tau: underty) (e: tm) : Prop :=
          forall (c_x: constant),
            overbase_tmR_aux nst t1 c_x ->
            (forall e3, is_application e c_x e3 ->
-                       under_tmR_aux (update nst x c_x) t2 e3)
+                  under_tmR_aux (update nst x c_x) t2 e3)
      | t1 u--> t2 =>
          forall (e_x: tm),
            under_tmR_aux nst t1 e_x ->
            (forall e3, is_application e e_x e3 -> under_tmR_aux nst t2 e3)
      end).
+
+Lemma under_tmR_aux_bot: forall T, under_tmR_aux empty (mk_bot T) texn.
+Proof with eauto.
+  intros.
+  constructor... apply st_type_closed_in_ctx_bot.
+  split... intros. inversion H0.
+Qed.
+
+Lemma under_tmR_aux_is_closed: forall tau st e,
+    under_tmR_aux st tau e -> st_type_closed_in_ctx (state_to_tystate st) l_empty tau.
+Proof with eauto.
+  intro tau. induction tau; simpl; intros st e H...
+  - destruct H. constructor...
+  - destruct H. constructor...
+  - destruct H. constructor...
+Qed.
 
 Lemma under_tmR_has_type: forall tau st e, under_tmR_aux st tau e -> empty \N- e \Tin u\_ tau _/.
 Proof with eauto.
@@ -188,7 +207,11 @@ Global Hint Rewrite tmR_implies_ty_of_const_eq: core.
 
 Lemma denotation_is_closed: forall st tau e,
     tmR_aux st tau e -> st_type_closed_in_ctx (state_to_tystate st) l_empty tau.
-Admitted.
+Proof with eauto.
+  intros. destruct H...
+  - inversion H; subst; auto. constructor...
+  - apply under_tmR_aux_is_closed in H...
+Qed.
 
 Global Hint Resolve denotation_is_closed: core.
 
@@ -282,6 +305,18 @@ Lemma tmR_in_ctx_aux_implies_no_dup: forall st Gamma tau e,
 Admitted.
 
 Global Hint Resolve tmR_in_ctx_aux_implies_no_dup: core.
+
+Lemma tmR_in_ctx_aux_implies_closed: forall st Gamma tau e,
+    tmR_in_ctx_aux st Gamma tau e -> st_type_closed_in_ctx (state_to_tystate st) Gamma tau.
+Admitted.
+
+Lemma tmR_in_ctx_aux_implies_fst_closed: forall st Gamma x tau_x tau e,
+    tmR_in_ctx_aux st ((x, tau_x)::Gamma) tau e -> st_type_closed (state_to_tystate st) tau_x.
+Admitted.
+
+Lemma tmR_in_ctx_aux_implies_closed_ctx: forall st Gamma tau e,
+    tmR_in_ctx_aux st Gamma tau e -> st_type_closed_ctx (state_to_tystate st) Gamma.
+Admitted.
 
 (* Definition tmR tau e := forall st, tmR_aux st tau e. *)
 (* Definition tmR_in_ctx Gamma tau e := forall st, tmR_in_ctx_aux st Gamma tau e. *)
@@ -400,7 +435,7 @@ Definition tmR_in_ctx_all_st Gamma tau e := tmR_in_ctx_aux empty Gamma tau e.
 
 Global Hint Unfold tmR_in_ctx_all_st: core.
 
-(* for vfix *)
+(* for vfix Axiom *)
 Definition const_order: constant -> constant -> Prop.
 Admitted.
 

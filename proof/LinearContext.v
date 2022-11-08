@@ -136,3 +136,17 @@ Admitted.
 (* Notation "G[ x ; y ]" := (cons y (cons x nil)) : linear_context_scope. *)
 (* Notation "G[ x ; y ; z ]" := (cons z (cons y (cons x nil))) : linear_context_scope. *)
 (* Notation "G[ x ; y ; z ; a ]" := (cons a (cons z (cons y (cons x nil)))) : linear_context_scope. *)
+
+Lemma find_none_append {A: Type}: forall Gamma a (tau_x: A) x,
+    l_find_right_most Gamma a = None ->
+    x <> a ->
+    l_find_right_most (Gamma ++ ((x,tau_x)::nil)) a = None.
+Proof with eauto.
+  intros.
+  induction Gamma...
+  - simpl. destruct (eqb_spec x a); subst... exfalso...
+  - destruct a0. simpl.
+    rewrite IHGamma...
+    destruct (eqb_spec s a); subst... simpl in H.
+    destruct (l_find_right_most Gamma a). inversion H. rewrite eqb_refl in H. inversion H.
+Qed.

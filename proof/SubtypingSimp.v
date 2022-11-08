@@ -19,6 +19,7 @@ Import TermOrdering.
 Import TypeClosedSimp.
 Import DenotationSimp.
 Import TermMeet.
+Import NoDup.
 Import DenotationAux.
 Import WellFormedSimp.
 Import ListNotations.
@@ -109,68 +110,46 @@ Proof with eauto.
   - simpl in IHis_subtype1. simpl in IHis_subtype2. rewrite IHis_subtype2...
 Qed.
 
-Lemma subtyping_implies_well_formed_type: forall Gamma tau1 tau2,
+Lemma tmR_sub_implies_well_formed_type: forall st Gamma tau1 tau2,
+  tmR_sub_in_ctx_aux st Gamma tau1 tau2 ->
+  st_type_closed_in_ctx (st\_ st _/) Gamma tau1 /\ st_type_closed_in_ctx (st\_ st _/) Gamma tau2.
+Proof with eauto.
+Admitted.
+
+Global Hint Resolve tmR_sub_implies_well_formed_type: core.
+
+(* Lemma st_type_closed_in_ctx_empty_implies_st_type_closed: forall st tau *)
+(*  st_type_closed_in_ctx empty [] tau21 st_type_closed (st\_ st _/) tau21 *)
+
+Lemma subtyping_implies_type_closed: forall Gamma tau1 tau2,
   Gamma \C- tau1 \<: tau2 -> well_formed_type tau1 /\ well_formed_type tau2.
 Proof with eauto.
   intros.
   induction H; simpl...
 Qed.
 
-(* Lemma term_order_implies_subtyping_order: forall Gamma e e' T x st (tau1 tau2: underty), *)
-(*     e <-< e' -> *)
-(*     tmR_sub_in_ctx_aux (x |-> (e', T); st) Gamma tau1 tau2 -> *)
-(*     tmR_sub_in_ctx_aux (x |-> (e, T); st) Gamma tau1 tau2. *)
-(* Proof with eauto. *)
-(*   intros Gamma. *)
-(*   induction Gamma; simpl; intros e e' T x st tau1 tau2 Hts H1. *)
-(*   - inversion H1; subst... constructor... intros ee HeeD. *)
-(*     eapply term_order_implies_state_order... eapply H6... *)
-(* Admitted. *)
-
-(* Global Hint Resolve term_order_implies_subtyping_order: core. *)
-
-(* Lemma step_preserve_ctx_denotation: forall Gamma (e e': tm), *)
-(*     e <-< e' -> (forall st (tau: underty), tmR_in_ctx_aux st Gamma tau e -> tmR_in_ctx_aux st Gamma tau e'). *)
-(* Proof with eauto. *)
-(*   intros Gamma. *)
-(*   induction Gamma; simpl; intros e e' Hts st tau He... *)
-(*   - rewrite tmR_in_ctx_to_under. rewrite tmR_in_ctx_to_under in He. eapply step_preserve_under_denotation... *)
-(*   - inversion He; subst. *)
-(*     + constructor... *)
-(*       intros c_x Hc_xD. assert (tmR_in_ctx_aux (x |-> c_x; st) Gamma tau (tlete x c_x e)) as Hv1... *)
-(*       eapply IHGamma... apply eta_self1... *)
-(*     + constructor... *)
-(*       destruct H8 as (e_x_hat & He_x_hatD & HH). *)
-(*       exists e_x_hat. split... *)
-(*       intros e_x He_xD. *)
-(*       assert (tmR_in_ctx_aux (x |-> (e_x_hat, T); st) Gamma tau (tlete x e_x e))... *)
-(*       eapply IHGamma... apply eta_self1... *)
-(*     + constructor... *)
-(*       intros e_x He_xD. *)
-(*       assert (tmR_in_ctx_aux st Gamma tau (tlete x e_x e))... *)
-(*       eapply IHGamma... apply eta_self1... *)
-(*     + constructor... *)
-(*       intros e_x He_xD. *)
-(*       assert (tmR_in_ctx_aux st Gamma tau (tlete x e_x e))... *)
-(*       eapply IHGamma... apply eta_self1... *)
-(* Qed. *)
-
-
-Lemma subtyping_soundness_arrarr: forall Gamma st tau11 tau12 tau21 tau22,
-    u\_ tau21 _/ = u\_ tau11 _/ -> u\_ tau12 _/ = u\_ tau22 _/ ->
+Lemma subtyping_soundness_arrarr: forall Gamma st (tau11 tau12 tau21 tau22: underty),
+    (* u\_ tau21 _/ = u\_ tau11 _/ -> u\_ tau12 _/ = u\_ tau22 _/ -> *)
     well_formed_type (tau11 u--> tau12) -> well_formed_type (tau21 u--> tau22) ->
     (tmR_sub_in_ctx_aux st Gamma tau21 tau11) ->
     (tmR_sub_in_ctx_aux st Gamma tau12 tau22) ->
     tmR_sub_in_ctx_aux st Gamma (tau11 u--> tau12) (tau21 u--> tau22).
 Proof with eauto.
   intro Gamma.
-  induction Gamma; simpl; intros st tau11 tau12 tau21 tau22 HT1 HT2 Hwf1 Hwf2 Hsub1 Hsub2.
-  - inversion Hsub1; subst... inversion Hsub2; subst... constructor... simpl. rewrite H4. rewrite <- H8...
+  induction Gamma; simpl; intros st tau11 tau12 tau21 tau22 Hwf1 Hwf2
+                                 (* HT1 HT2 *)
+                                 Hsub1 Hsub2.
+  - assert (st_type_closed_in_ctx (st\_ st _/) [] tau21 /\ st_type_closed_in_ctx (st\_ st _/) [] tau11) as (Hclosed21 & Hclosed11)...
+    assert (st_type_closed_in_ctx (st\_ st _/) [] tau12 /\ st_type_closed_in_ctx (st\_ st _/) [] tau22) as (Hclosed12 & Hclosed22)...
+    inversion Hsub1; subst... inversion Hsub2; subst... constructor...
+    simpl. rewrite H4. rewrite <- H8...
     intros.
     rewrite tmR_in_ctx_to_under. rewrite tmR_in_ctx_to_under in H.
     setoid_rewrite tmR_in_ctx_to_under in H5. setoid_rewrite tmR_in_ctx_to_under in H9.
     inversion H; subst. destruct H7.
-    constructor... split... simpl. rewrite H4... rewrite <- H8...
+    constructor...
+    { constructor... inversion Hclosed21... inversion Hclosed22... }
+    split... simpl. rewrite H4... rewrite <- H8...
   - destruct a as (a & tau_a).
     inversion Hsub1; subst...
     + inversion Hsub2; subst... constructor... simpl... rewrite H11... rewrite H19...
@@ -186,27 +165,28 @@ Proof with eauto.
 Qed.
 
 Lemma subtype_over_sub_phi: forall st T (phi11 phi21: refinement),
+    st_type_closed (st\_ st _/) ({{v:T | phi11}}) ->
     (forall c, phi21 st c -> phi11 st c) ->
     (forall c : constant, overbase_tmR_aux st ({{v:T | phi21}}) c -> overbase_tmR_aux st ({{v:T | phi11}}) c).
 Proof with eauto.
   intros.
-  inversion H0; subst.
+  inversion H1; subst.
   constructor...
 Qed.
 
 Lemma subtype_under_sub_phi: forall st T (phi11 phi21: refinement),
-  (forall c, phi21 st c -> phi11 st c) ->
-  (forall e : tm, under_tmR_aux st ([[v:T | phi11]]) e -> under_tmR_aux st ([[v:T | phi21]]) e).
+    st_type_closed (st\_ st _/) ([[v:T | phi21]]) ->
+    (forall c, phi21 st c -> phi11 st c) ->
+    (forall e : tm, under_tmR_aux st ([[v:T | phi11]]) e -> under_tmR_aux st ([[v:T | phi21]]) e).
 Proof with eauto.
   intros.
-  inversion H0; subst. destruct H2.
+  inversion H1; subst. destruct H3.
   constructor...
 Qed.
-
 (* Lemma subtype_over_under_flip: forall st T phi11 phi21, *)
 (*   (forall e : tm, under_tmR_aux st ([[v:T | phi11]]) e -> under_tmR_aux st ([[v:T | phi21]]) e) -> *)
 (*   (forall c : constant, overbase_tmR_aux st ({{v:T | phi21}}) c -> overbase_tmR_aux st ({{v:T | phi11}}) c). *)
-(* Proof with eauto. *)
+(* i Proof with eauto. *)
 (*   intros. *)
 (*   inversion H0; subst. *)
 (*   constructor... assert  *)
@@ -254,7 +234,8 @@ Lemma subtyping_soundness: forall Gamma tau1 tau2,
 Proof with eauto.
   intros.
   induction H...
-  - apply subtyping_soundness_arrarr... apply subtyping_same_ty in H... apply subtyping_same_ty in H0...
+  - apply subtyping_soundness_arrarr...
+    (* apply subtyping_same_ty in H... apply subtyping_same_ty in H0... *)
   - apply subtyping_soundness_oarr... apply subtyping_same_ty in H0...
 Qed.
 
