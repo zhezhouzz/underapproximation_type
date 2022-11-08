@@ -92,25 +92,31 @@ let it16 (l : [%forall: int tree]) (u : [%exists: int]) = rng l u
 let it17 (l : [%forall: int tree]) = implies (rng l 0) (sorted l)
 
 (* rbtree *)
+
+let rbt0 (l : [%forall: int rbtree]) (u : [%forall: int]) =
+  implies (numblack l u) (noredred l)
+
 let rbt1 (l : [%forall: int rbtree]) =
-  implies (numblack l 0) (not (hdcolor l false))
+  implies (numblack l 0 && noredred l) (not (hdcolor l false))
 
 let rbt2 (l : [%forall: int rbtree]) (u : [%forall: int]) =
-  implies (numblack l u && u > 0) (hdcolor l true || hdcolor l false)
+  implies
+    (numblack l u && noredred l && u > 0)
+    (hdcolor l true || hdcolor l false)
 
 let rbt3 (l : [%forall: int rbtree]) =
-  implies (not (hdcolor l true || hdcolor l false)) (numblack l 0)
+  implies (not (hdcolor l true || hdcolor l false)) (numblack l 0 && noredred l)
 
 let rbt4 (l : [%forall: int rbtree]) =
-  implies (hdcolor l false) (not (numblack l 0))
+  implies (hdcolor l false) (not (numblack l 0 && noredred l))
 
 let rbt5 (l : [%forall: int rbtree]) = not (hdcolor l true && hdcolor l false)
 
 let rbt8 (l : [%forall: int rbtree]) (u : [%forall: int]) =
-  implies (numblack l u) (u >= 0)
+  implies (numblack l u && noredred l) (u >= 0)
 
 let rbt9 (l : [%forall: int rbtree]) (u : [%forall: int]) (w : [%forall: int]) =
-  implies (numblack l u && numblack l w) (u == w)
+  implies (numblack l u && numblack l w && noredred l) (u == w)
 
 (* int heap *)
 

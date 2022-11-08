@@ -206,3 +206,8 @@ with appear_free_in_ttm (id:string) (e:tm) : Prop :=
 
 Notation " x '\FVtm' e " := (appear_free_in_ttm x e) (at level 40).
 Notation " x '\FVvalue' e " := (appear_free_in_tvalue x e) (at level 40).
+
+Lemma lete_preserve_not_free: forall x a e_a e, ~ x \FVtm e_a -> ~ x \FVtm e -> ~ x \FVtm tlete a e_a e.
+Admitted.
+
+Global Hint Resolve lete_preserve_not_free: core.

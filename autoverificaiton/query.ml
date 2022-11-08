@@ -75,6 +75,7 @@ let known_mp =
     "para";
     "sorted";
     "numblack";
+    "noredred";
     "hdcolor";
     "complete";
     "rng";

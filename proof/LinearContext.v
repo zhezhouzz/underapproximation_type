@@ -48,6 +48,40 @@ Qed.
 Lemma app_one_is_cons {A: Type}: forall (x: A) l, (x::nil) ++ l = x :: l.
 Proof. simpl. reflexivity. Qed.
 
+Lemma app_list_unit_eq_unit {A: Type}: forall (x y: A) l, l ++ [x] = [y] -> x = y /\ l = [].
+Proof. intros. apply app_eq_unit in H.
+       destruct H.
+       destruct H. inversion H0. split; auto.
+       destruct H. inversion H0.
+Qed.
+
+Global Hint Resolve app_list_unit_eq_unit: core.
+
+Lemma l_find_right_most_none_neq_hd {A: Type}: forall (Gamma: linear_context A) x tx a,
+    l_find_right_most ((x, tx):: Gamma) a = None -> x <> a.
+Admitted.
+
+Global Hint Resolve l_find_right_most_none_neq_hd: core.
+
+Lemma l_find_right_most_none_neq_tl {A: Type}: forall (Gamma: linear_context A) x tx a,
+    l_find_right_most ((x, tx):: Gamma) a = None -> l_find_right_most Gamma a = None.
+Admitted.
+
+Global Hint Resolve l_find_right_most_none_neq_tl: core.
+
+Lemma l_find_right_most_weak_pre {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
+    l_find_right_most (Gamma1 ++ Gamma2) a = None ->
+    l_find_right_most Gamma1 a = None.
+Admitted.
+
+Global Hint Resolve l_find_right_most_weak_pre: core.
+
+Lemma l_find_right_most_weak_post {A: Type}: forall (Gamma1  Gamma2: linear_context A) a,
+    l_find_right_most (Gamma1 ++ Gamma2) a = None ->
+    l_find_right_most Gamma2 a = None.
+Admitted.
+
+Global Hint Resolve l_find_right_most_weak_post: core.
 
 (* Declare Scope linear_context_scope. *)
 (* Notation "G[ ]" := nil (format "G[ ]") : linear_context_scope. *)

@@ -14,7 +14,8 @@ let rbtree_gen =
       : [%v: int])
   in
   (* the height is the number of black nodes *)
-  (numblack v height && fun (u : [%forall: int]) ->
+  (numblack v height && noredred v
+   && fun (u : [%forall: int]) ->
    (* parent is red; the hdcolor cannot be red *)
    (c && not (hdcolor v true))
    || (* parent is black; the hdcolor can be any color *)

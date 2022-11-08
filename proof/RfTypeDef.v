@@ -6,7 +6,7 @@ From PLF Require Import CoreLangSimp.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 
-Definition state := total_map constant.
+Definition state := partial_map constant.
 (* The second constant is the self reference; the refinement is untyped *)
 Definition refinement : Type := state -> constant -> Prop.
 Implicit Type HH : refinement.
@@ -88,7 +88,7 @@ Fixpoint underty_erase (ut: underty) : ty :=
   | t1 u--> t2 => (underty_erase t1) t--> (underty_erase t2)
   end.
 
-Definition overbasety_erase (aty: overbasety): ty :=
+Definition overbasety_erase (aty: overbasety): base_ty :=
   match aty with
   | ({{v: T | _ }}) => T
   end.
@@ -103,27 +103,15 @@ Notation " 'u\_' ty '_/' " := (underty_erase ty) (at level 30).
 Notation " 'o\_' ty '_/' " := (overbasety_erase ty) (at level 30).
 Notation " 'ou\_' ty '_/' " := (overunderty_erase ty) (at level 30).
 
-Definition eval_cid (st: state) (v: cid) :=
-  match v with
-  | vconst c => c
-  | vvar name => st name
-  end.
+Inductive eval_cid: state -> cid -> constant -> Prop :=
+| eval_cid_const: forall st c, eval_cid st (vconst c) c
+| eval_cid_id: forall st id c, st id = Some c -> eval_cid st (vvar id) c.
 
 Definition mk_op_retty_from_cids (op: biop) (cid1 cid2: cid): underty :=
-  BaseUnder (ret_ty_of_op op) (fun st c => eval_op op (eval_cid st cid1) (eval_cid st cid2) c).
-
-(* closed_refinement *)
-
-Definition is_closed_refinement (_: base_ty) (phi: refinement): Prop := forall st st', phi st = phi st'.
-
-Global Hint Unfold is_closed_refinement: core.
-
-Lemma constant_refinement_is_closed: forall (c: constant) (phi: refinement),
-    (forall st : state, phi st = (fun c' => c = c')) -> (forall T, is_closed_refinement T phi).
-Proof.
-  intros.
-  intros st st'. rewrite H. rewrite H. auto.
-Qed.
+  BaseUnder (ret_ty_of_op op) (fun st c =>
+                                 (exists (c1 c2: constant),
+                                     eval_cid st cid1 c1 /\ eval_cid st cid2 c2 /\ eval_op op c1 c2 c
+                                 )).
 
 (* subst id *)
 Definition refinement_subst_id (x1 x2: string) (phi: refinement): refinement :=
@@ -159,16 +147,7 @@ Notation " '<ou[' x '|id->' y ']>' uty " := (overunder_subst_id x y uty) (at lev
 
 (* subst constant *)
 Definition refinement_subst_c (x1: string) (c2: constant) (phi: refinement): refinement :=
-  (fun st => phi (t_update st x1 c2)).
-
-Lemma refinement_subst_c_closed_rf: forall x1 c2 T phi,
-    is_closed_refinement T phi -> refinement_subst_c x1 c2 phi = phi.
-Proof.
-  intros.
-  unfold is_closed_refinement in H. unfold refinement_subst_c.
-  apply functional_extensionality. intros st.
-  erewrite H. reflexivity.
-Qed.
+  (fun st => phi (update st x1 c2)).
 
 Definition over_subst_c (x1: string) (c2: constant) (oty: overbasety): overbasety :=
   match oty with
@@ -198,6 +177,12 @@ Notation " '<u[' x '|c->' y ']>' uty " := (under_subst_c x y uty) (at level 40).
 Notation " '<o[' x '|c->' y ']>' uty " := (over_subst_c x y uty) (at level 40).
 Notation " '<ou[' x '|c->' y ']>' uty " := (overunder_subst_c x y uty) (at level 40).
 
+Lemma subst_c_preserve_well_fromed_type: forall x c (tau: underty), well_formed_type tau -> well_formed_type (<u[ x |c-> c ]> tau).
+Admitted.
+
+Global Hint Resolve subst_c_preserve_well_fromed_type: core.
+
+
 Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
   match cv with
   | vconst c => under_subst_c x1 c outy
@@ -208,7 +193,7 @@ Definition under_subst_cid (x1: string) (cv: cid) (outy: underty): underty :=
 
 Definition appear_free_in_refinement (name: string) (phi: refinement): Prop :=
   (exists st (c1 c2:constant),
-      phi (t_update st name c1) <> phi (t_update st name c2)
+      phi (update st name c1) <> phi (update st name c2)
   ).
 
 Definition appear_free_in_overbasety (name: string) (oty: overbasety): Prop :=
@@ -239,6 +224,7 @@ Definition mk_eq_constant c := [[v: ty_of_const c | (fun _ v => v = c) ]].
 Definition mk_bot ty := [[v: ty | (fun _ _ => False) ]].
 Definition mk_top ty := [[v: ty | (fun _ _ => True) ]].
 Definition mk_over_top ty := {{v: ty | (fun _ _ => True) }}.
-Definition mk_eq_var ty name := [[v: ty | (fun state v => v = (state name)) ]].
+Definition mk_eq_var ty name := [[v: ty | (fun state v => Some v = (state name)) ]].
 Definition mk_op op a b :=
-  (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (fst_ty_of_op op)) o--> ([[v: ret_ty_of_op op | (fun st c => eval_op op (st a) (st b) c ) ]]))).
+  (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (fst_ty_of_op op)) o--> ([[v: ret_ty_of_op op |
+                                                                                        (fun st c => exists c_a c_b, st a = Some c_a /\ st b = Some c_b /\ eval_op op c_a c_b c ) ]]))).

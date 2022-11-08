@@ -14,11 +14,16 @@ CoreLangSimp.v
 NormalTypeSystemSimp.v
 TermOrdering.v
 RfTypeDef.v
+Nstate.v
+NoDup.v
 TypeClosedSimp.v
 DenotationSimp.v
+DenotationAux.v
 TypeDisj.v
 WellFormedSimp.v
+TermMeet.v
 DenotationSpecsSimp.v
+WellFormedSpecsSimp.v
 SubtypingSimp.v
 TypingRules.v
 Soundness.v

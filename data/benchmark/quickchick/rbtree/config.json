@@ -2,7 +2,7 @@
     "mode": "debug",
     "logfile": ".log",
     "all_mps": [
-        "numblack", "hdcolor"
+        "numblack", "hdcolor", "noredred"
     ],
     "measure": "numblack",
     "prim_path": {
