@@ -224,3 +224,8 @@ Lemma lete_preserve_not_free: forall x a e_a e, ~ x \FVtm e_a -> ~ x \FVtm e -> 
 Admitted.
 
 Global Hint Resolve lete_preserve_not_free: core.
+
+Lemma not_free_rewrite: forall x v e, ~ x \FVtm e -> [x := v] e = e.
+Admitted.
+
+Global Hint Resolve not_free_rewrite: core.

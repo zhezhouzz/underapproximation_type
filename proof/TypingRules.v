@@ -17,7 +17,7 @@ From Coq Require Import Lists.List.
 Import CoreLangSimp.
 Import LinearContext.
 Import NoDup.
-Import Nstate.
+(* Import Nstate. *)
 Import TypeClosedSimp.
 Import DenotationSimp.
 Import CtxErase.
@@ -131,7 +131,6 @@ Global Hint Constructors value_under_type_check: core.
 (*     Gamma \C- cid1 \Vin [[v:TNat | phi1]] -> *)
 (*     Gamma \C- cid2 \Vin [[v:TNat | phi2]] -> *)
 (*     tmR_in_ctx Gamma (mk_op_retty_from_cids op cid1 cid2) (apply_op op n1 n2). *)
-(* Admitted. *)
 
 Lemma type_judgement_implies_inv: forall Gamma e tau,
     Gamma \C- e \Tin tau -> well_formed Gamma tau.
@@ -158,8 +157,6 @@ Global Hint Resolve type_judgement_implies_no_dup: core.
 (*   intros. *)
 (*   assert (well_formed_type tau0). apply type_judgement_implies_inv in H... destruct H... *)
 (*   induction tau0; try inversion H4; subst. *)
-(*   - admit. *)
-(*   - admit. *)
 (*   - inversion H. *)
 (*     inversion H; subst. *)
 (*     + inversion H3... *)

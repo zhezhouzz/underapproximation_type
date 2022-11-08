@@ -20,7 +20,6 @@ Import NormalTypeSystemSimp.
 Import LinearContext.
 Import RfTypeDef.
 Import TypeClosedSimp.
-Import Nstate.
 Import NoDup.
 Import DenotationSimp.
 Import ListNotations.

@@ -345,6 +345,12 @@ Lemma constant_base_ty_unique: forall (c_x: constant) Gamma1 Gamma2 T1 T2,
 Admitted.
 
 
+Lemma ty_implies_ty_of_const_eq: forall (T:base_ty) (c_x: constant), empty \N- c_x \Tin T -> (ty_of_const c_x) = T.
+Admitted.
+
+Global Hint Resolve ty_implies_ty_of_const_eq: core.
+Global Hint Rewrite ty_implies_ty_of_const_eq: core.
+
 (* Definition any_ctx_const_nat_typed_is_nat: forall Gamma (c: constant), Gamma \N- c \Vin TNat -> exists (n: nat), c = n. *)
 (* Proof with eauto. *)
 (*   intros. inversion H; subst. exists n... *)

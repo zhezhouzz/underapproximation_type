@@ -14,7 +14,6 @@ CoreLangSimp.v
 NormalTypeSystemSimp.v
 TermOrdering.v
 RfTypeDef.v
-Nstate.v
 NoDup.v
 TypeClosedSimp.v
 DenotationSimp.v

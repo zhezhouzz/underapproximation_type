@@ -29,7 +29,6 @@ Import ListNotations.
 
 (* Lemma under_base_representative: forall T phi, exists e, *)
 (*     under_tmR ([[v:T | phi]]) e /\ (forall (c: constant), e -->* c <-> (forall st, phi st = (fun c' => c = c'))). *)
-(* Admitted. *)
 
 (* Lemma rf_nat_value_n_exists: *)
 (*   forall Gamma (v: cid) phi, *)
@@ -58,8 +57,6 @@ Proof with eauto.
   (* constant *)
   - intros c (Hinv & Hclosed).
     apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)... rewrite app_nil_r...
-    constructor...
-    constructor... apply constant_has_denotation... exists empty... constructor...
   (* op *)
   - intros op a b (Hinv & Hclosed) Hab. apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)...
     rewrite app_nil_r...
@@ -105,7 +102,7 @@ Proof with eauto.
   (* err *)
   - intros T (Hinv & Hclosed).
     assert (tmR_in_ctx_aux empty l_empty (mk_bot T) texn)... unfold mk_bot.
-    repeat constructor... intros. destruct (H0 empty)... constructor... inversion H2.
+    repeat constructor... intros. inversion H0.
     apply tmR_in_ctx_pre_weakening with (Gamma1 := Gamma) (Gamma2 := l_empty)... rewrite app_nil_r...
     constructor...
   (* sub *)
@@ -156,5 +153,4 @@ Proof with eauto.
   inversion H2; subst. simpl in H2, H5.
   destruct H5 as (_ & _ & Hprop).
   apply Hprop; auto.
-  intros st Hst. split...
 Qed.

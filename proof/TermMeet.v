@@ -18,7 +18,6 @@ From Coq Require Import Recdef.
 Import CoreLangSimp.
 Import NormalTypeSystemSimp.
 Import LinearContext.
-Import Nstate.
 Import NoDup.
 Import RfTypeDef.
 Import TypeClosedSimp.

@@ -29,6 +29,13 @@ Proof. intros. destruct H. eapply H1. eauto. Qed.
 
 Global Hint Resolve term_order_snd: core.
 
+Lemma term_order_const_bound (e1: tm) (c2: constant): e1 <-< c2 -> (forall v, e1 -->* v -> v = c2).
+Proof with eauto.
+  intros. destruct H... apply H in H0. inversion H0; subst... inversion H2.
+Qed.
+
+Global Hint Resolve term_order_const_bound: core.
+
 Lemma term_order_trans (e1 e2 e3: tm): e1 <-< e2 -> e2 <-< e3 -> e1 <-< e3.
 Admitted.
 

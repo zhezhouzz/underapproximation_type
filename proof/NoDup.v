@@ -2,12 +2,49 @@ Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
 From Coq Require Import Lists.List.
 From Coq Require Import Strings.String.
+From Coq Require Import Logic.FunctionalExtensionality.
+From Coq Require Import Logic.ClassicalFacts.
 From PLF Require Import RfTypeDef.
 From PLF Require Import LinearContext.
-From PLF Require Import Nstate.
 
 Import ListNotations.
-Import Nstate.
+Import CoreLangSimp.
+Import NormalTypeSystemSimp.
+
+Definition tystate := string -> option base_ty.
+
+Definition state_to_tystate (nst: state) :=
+  fun x => (match nst x with
+         | None => None
+         | Some c => Some (ty_of_const c)
+         end).
+
+Notation " 'st\_' st '_/' " := (state_to_tystate st) (at level 40).
+
+Global Hint Unfold state_to_tystate: core.
+
+Definition state_in_tystate (st: state) (tyst: tystate): Prop :=
+  forall x Tx, tyst x = Some Tx -> (exists c, st x = Some c).
+
+Notation " st '\TYSTin' nst " := (state_in_tystate st nst) (at level 40).
+
+Definition nstate_to_tystate_hd: forall nst x e_x,
+    (st\_ x |-> e_x; nst _/) = (x |-> (ty_of_const e_x); (st\_ nst _/)).
+Proof with eauto.
+  intros. apply functional_extensionality. intros x'. unfold state_to_tystate.
+  destruct (eqb_spec x x'); subst...
+  - rewrite update_eq. unfold state_to_tystate. rewrite update_eq. reflexivity.
+  - rewrite update_neq... unfold state_to_tystate. rewrite update_neq...
+Qed.
+
+Global Hint Rewrite nstate_to_tystate_hd: core.
+
+Definition nstate_to_tystate_empty: (st\_ empty _/) = empty.
+Proof with eauto.
+  apply functional_extensionality...
+Qed.
+
+Global Hint Rewrite nstate_to_tystate_empty: core.
 
 Definition lcontxt := linear_context overunderty.
 

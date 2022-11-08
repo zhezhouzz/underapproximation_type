@@ -8,13 +8,23 @@ From Coq Require Import Logic.ClassicalFacts.
 From PLF Require Import NormalTypeSystemSimp.
 From PLF Require Import RfTypeDef.
 From PLF Require Import LinearContext.
-From PLF Require Import Nstate.
 From PLF Require Import NoDup.
-Import Nstate.
 Import NoDup.
 Import ListNotations.
 
 (* closed_refinement *)
+
+
+Definition state_order (st st': state) := (forall x c_x, st x = Some c_x -> st' x = Some c_x).
+Notation " st '<st<' st' " := (state_order st st') (at level 80).
+
+Lemma state_order_trans: forall st1 st2 st3, st1 <st< st2 -> st2 <st< st3 -> st1 <st< st3.
+Proof.
+  unfold state_order. intros. auto.
+Qed.
+
+Global Hint Resolve state_order_trans: core.
+
 
 Definition closed_refinement_under_state (st: state) (phi: refinement): Prop := forall st', st <st< st' -> phi st = phi st'.
 
@@ -89,15 +99,15 @@ Lemma closed_refinement_in_ctx_weakening: forall st Gamma1 Gamma2 Gamma3 phi,
     closed_refinement_in_ctx st Gamma3 phi.
 Admitted.
 
-Definition closed_refinement_in_ctx_drop: forall st nst x T phi phi0 e_x,
-    closed_refinement_in_ctx (st\_ nst _/) [(x, Uty ([[v:T | phi]]))] phi0 ->
-    empty \N- e_x \Tin T ->
-    st \NSTin (x |-> (e_x, T); nst) ->
-    closed_refinement_under_state st phi0.
-Proof with eauto.
-  intros st nst x T phi phi0 e_x Hctx HT Hsub.
-  inversion Hctx; subst... inversion H5;subst...
-Qed.
+(* Definition closed_refinement_in_ctx_drop: forall st nst x T phi phi0 e_x, *)
+(*     closed_refinement_in_ctx (st\_ nst _/) [(x, Uty ([[v:T | phi]]))] phi0 -> *)
+(*     empty \N- e_x \Tin T -> *)
+(*     st \NSTin (x |-> (e_x, T); nst) -> *)
+(*     closed_refinement_under_state st phi0. *)
+(* Proof with eauto. *)
+(*   intros st nst x T phi phi0 e_x Hctx HT Hsub. *)
+(*   inversion Hctx; subst... inversion H5;subst... *)
+(* Qed. *)
 
 Lemma closed_refinement_in_ctx_one_underbase: forall tyst x T phi phi0,
     closed_refinement_in_ctx tyst ((x, Uty ([[v:T | phi]]))::nil) phi0 ->
