@@ -3,15 +3,19 @@
 Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
 From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
+(* From PLF Require Import NormalTypeSystemSimp. *)
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Lists.List.
+From PLF Require Import Smallstep (multi_step).
 
-Import CoreLangSimp.
-Import NormalTypeSystemSimp.
+Set Warnings "-notation-overridden,-parsing".
+
+
+(* Import CoreLangSimp. *)
+(* Import NormalTypeSystemSimp. *)
 Import ListNotations.
-
+(* Import Smallstep. *)
 Definition term_order (e e': tm) := (forall v, e -->* v -> e' -->* v).
 
 Notation " e1 '<-<' e2 " := (term_order e1 e2) (at level 90).
@@ -19,14 +23,30 @@ Notation " e1 '<-<' e2 " := (term_order e1 e2) (at level 90).
 Notation " e1 '<=<' e2 " := (term_order e1 e2 /\ term_order e2 e1) (at level 90).
 
 Lemma term_order_trans (e1 e2 e3: tm): e1 <-< e2 -> e2 <-< e3 -> e1 <-< e3.
-Admitted.
+Proof.
+    intros.
+    simpl.
+    unfold term_order in H.
+    unfold term_order in H0.
+    intro.
+    intro.
+    apply H in H1.
+    apply H0 in H1.
+    trivial.
+Qed.    
 
-Global Hint Resolve term_order_trans: core.
+(* Global Hint Resolve term_order_trans: core. *)
 
-Lemma eta_reduction: forall x1 (f: value) x2 (v: value),
+Lemma eta_reduction: forall x1 (f : value) x2 (v : value),
     ~ x1 \FVvalue v ->
     (tletapp x2 f v x2) <=< (tlete x1 f (tletapp x2 x1 v x2)).
-Admitted.
+Proof.
+    intros.
+    unfold term_order.
+    split.
+    intros.
+    simpl.
+    eapply multi_step in H0.
 
 Lemma eta_application_const_to_lete_const: forall x2 x T e (c_x: constant),
     (tlete x c_x e) <=< (tletapp x2 (vlam x T e) c_x x2).
