@@ -188,3 +188,13 @@ Lemma eta_self1: forall x1 e e' x2 (c_x: tm) x,
     e <-< e' ->
     tlete x1 e (tlete x2 c_x (tletapp x x1 x2 x)) <-< tlete x1 e' (tlete x2 c_x (tletapp x x1 x2 x)).
 Admitted.
+
+Lemma eta_op_reducetion: forall op c_a c_b c_res x x0 x1 x2 x3 x4,
+    eval_op op c_a c_b c_res ->
+    tlete x0 (tlete x1 (vbiop op) (tlete x2 c_a (tletapp x x1 x2 x))) (tlete x3 c_b (tletapp x4 x0 x3 x4)) -->* c_res.
+Admitted.
+
+Lemma eta_self1: forall x c_x e e',
+    e <-< e' ->
+    tlete x c_x e <-< tlete x c_x e'.
+Admitted.

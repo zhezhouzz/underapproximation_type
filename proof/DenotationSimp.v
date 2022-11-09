@@ -10,6 +10,7 @@ From PLF Require Import TypeClosedSimp.
 From PLF Require Import TermOrdering.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
+From Coq Require Import Logic.Classical.
 From Coq Require Import Lists.List.
 From Coq Require Import FunInd.
 From Coq Require Import Recdef.
@@ -218,14 +219,214 @@ Global Hint Resolve denotation_is_closed: core.
 Global Hint Constructors has_type: core.
 Global Hint Constructors value_has_type: core.
 
-Lemma mk_op_has_denotation: forall st op a b, tmR_aux st (mk_op op a b) (vbiop op).
+Lemma make_over_top_is_close: forall st T, st_type_closed st ({{v:T | fun (_ : state) (_ : constant) => True}}).
+Proof with auto.
+  intros.
+  constructor... intro x'. intros. rewrite not_appear_free_in_refinement_alt. intros...
+Qed.
+
+Global Hint Resolve make_over_top_is_close: core.
+
+Lemma make_op_ret_is_close: forall st op a b,
+    st a = Some (fst_ty_of_op op) ->
+    st b = Some (snd_ty_of_op op) ->
+    st_type_closed st (mk_op_ret op a b).
+Proof with auto.
+  intros.
+  constructor... intro x'. intros. rewrite not_appear_free_in_refinement_alt. intros...
+  apply functional_extensionality.
+  intros.
 Admitted.
+
+Global Hint Resolve make_op_ret_is_close: core.
+
+Lemma erase_const: forall a c st,
+    st\_ a |-> c; st _/ = (a |-> ty_of_const c; st\_ st _/).
+Proof with auto.
+  intros.
+  apply functional_extensionality. intros. unfold state_to_tystate.
+  destruct (eqb_spec a x); subst...
+  rewrite update_eq... rewrite update_eq... rewrite update_neq... rewrite update_neq...
+Qed.
+
+Lemma op_value_type_safe: forall op,
+    empty \N- vbiop op \Tin fst_ty_of_op op t--> (fst_ty_of_op op t--> ret_ty_of_op op).
+Proof with auto.
+  intros. destruct op; simpl; constructor; constructor...
+Qed.
+
+Global Hint Resolve op_value_type_safe: core.
+
+Lemma op_value_type_safe1: forall op x x1 x2 (c_x1: constant),
+    x1 <> x2 ->
+    ty_of_const c_x1 = fst_ty_of_op op ->
+    empty \N- tlete x1 (vbiop op) (tlete x2 c_x1 (tletapp x x1 x2 x)) \Tin snd_ty_of_op op t--> ret_ty_of_op op.
+Proof with auto.
+  intros.
+  destruct op;
+    eapply T_Lete; eauto; eapply T_Lete; eauto; rewrite H0; simpl.
+  - eapply T_LetApp with (T_x:=TNat) (T_y:=(TNat t--> TNat)); eauto; simpl...
+    eapply T_Var... rewrite update_eq...
+    eapply T_Var... rewrite update_permute... rewrite update_eq...
+    eapply T_Value... eapply T_Var... rewrite update_eq...
+  - eapply T_LetApp with (T_x:=TNat) (T_y:=(TNat t--> TBool)); eauto; simpl...
+    eapply T_Var... rewrite update_eq...
+    eapply T_Var... rewrite update_permute... rewrite update_eq...
+    eapply T_Value... eapply T_Var... rewrite update_eq...
+  - eapply T_LetApp with (T_x:=TNat) (T_y:=(TNat t--> TBool)); eauto; simpl...
+    eapply T_Var... rewrite update_eq...
+    eapply T_Var... rewrite update_permute... rewrite update_eq...
+    eapply T_Value... eapply T_Var... rewrite update_eq...
+  - eapply T_LetApp with (T_x:=TNat) (T_y:=(TNat t--> TNat)); eauto; simpl...
+    eapply T_Var... rewrite update_eq...
+    eapply T_Var... rewrite update_permute... rewrite update_eq...
+    eapply T_Value... eapply T_Var... rewrite update_eq...
+Qed.
+
+Lemma op_value_type_safe2: forall op x x0 x1 x2 x3 x4 (c_x1 c_x2: constant),
+    x1 <> x2 -> x0 <> x3 ->
+    ty_of_const c_x1 = fst_ty_of_op op ->
+    ty_of_const c_x2 = snd_ty_of_op op ->
+    empty \N- tlete x0 (tlete x1 (vbiop op) (tlete x2 c_x1 (tletapp x x1 x2 x))) (tlete x3 c_x2 (tletapp x4 x0 x3 x4)) \Tin
+                    ret_ty_of_op op.
+Proof with auto.
+  intros.
+  destruct op.
+  - apply T_Lete with (T1 := (TNat t--> TNat))... apply op_value_type_safe1...
+    apply T_Lete with (T1 := TNat)... apply T_Value... simpl in H2. rewrite <- H2. eapply T_Const...
+    apply T_LetApp with (T_x := TNat) (T_y := TNat)... eapply T_Var... rewrite update_eq... eapply T_Var... rewrite update_permute... rewrite update_eq... eapply T_Value... eapply T_Var... rewrite update_eq...
+  - apply T_Lete with (T1 := (TNat t--> TBool))... apply op_value_type_safe1...
+    apply T_Lete with (T1 := TNat)... apply T_Value... simpl in H2. rewrite <- H2. eapply T_Const...
+    apply T_LetApp with (T_x := TNat) (T_y := TBool)... eapply T_Var... rewrite update_eq... eapply T_Var... rewrite update_permute... rewrite update_eq... eapply T_Value... eapply T_Var... rewrite update_eq...
+  - apply T_Lete with (T1 := (TNat t--> TBool))... apply op_value_type_safe1...
+    apply T_Lete with (T1 := TNat)... apply T_Value... simpl in H2. rewrite <- H2. eapply T_Const...
+    apply T_LetApp with (T_x := TNat) (T_y := TBool)... eapply T_Var... rewrite update_eq... eapply T_Var... rewrite update_permute... rewrite update_eq... eapply T_Value... eapply T_Var... rewrite update_eq...
+  - apply T_Lete with (T1 := (TNat t--> TNat))... apply op_value_type_safe1...
+    apply T_Lete with (T1 := TNat)... apply T_Value... simpl in H2. rewrite <- H2. eapply T_Const...
+    apply T_LetApp with (T_x := TNat) (T_y := TNat)... eapply T_Var... rewrite update_eq... eapply T_Var... rewrite update_permute... rewrite update_eq... eapply T_Value... eapply T_Var... rewrite update_eq...
+Qed.
+
+Lemma over_tmR_aux_const: forall st T phi c,
+    overbase_tmR_aux st ({{v:T | phi}}) c -> ty_of_const c = T.
+Proof.
+  intros.
+  inversion H; subst. inversion H4; subst... reflexivity.
+Qed.
+
+Global Hint Resolve over_tmR_aux_const: core.
+
+Lemma mk_op_has_denotation: forall st op a b,
+    a <> b -> tmR_aux st (mk_op op a b) (vbiop op).
+Proof with eauto.
+  intros. constructor... constructor...
+  - constructor...
+    + constructor... constructor... constructor...
+    + constructor... constructor... constructor...
+      apply make_op_ret_is_close... rewrite update_permute... rewrite update_eq... rewrite update_eq...
+  - split. simpl...
+    intros c_x1 Hc_x1D e3 Happ. inversion Happ; subst. clear Happ.
+    constructor...
+    + constructor... constructor... constructor... rewrite erase_const.
+      apply make_op_ret_is_close...
+      rewrite update_permute... rewrite update_eq... erewrite over_tmR_aux_const... rewrite update_eq...
+    + split. simpl... apply op_value_type_safe1...
+      intros c_x2 He_x2D e3 Happ. inversion Happ; subst. clear Happ.
+      constructor...
+      { simpl. apply make_op_ret_is_close... rewrite erase_const. rewrite erase_const.
+        rewrite update_permute... rewrite update_eq... erewrite over_tmR_aux_const... rewrite erase_const. rewrite erase_const. rewrite update_eq... erewrite over_tmR_aux_const...
+      }
+      split. simpl... apply op_value_type_safe2...
+      intros c_res Hc_resT.
+      intros. destruct H4 as (c_a & c_b & HcaD & HcbD & HH).
+      rewrite update_eq in HcbD. inversion HcbD; subst.
+      rewrite update_permute in HcaD... rewrite update_eq in HcaD... inversion HcaD; subst.
+      apply eta_op_reducetion...
+Qed.
 
 Global Hint Resolve mk_op_has_denotation: core.
 
-Lemma tmR_nst_no_free_implies_eq: forall st x e_x_hat (tau: underty),
-    ~ appear_free_in_underty x tau -> (forall e, tmR_aux (x |-> e_x_hat; st) tau e <-> tmR_aux st tau e).
+Lemma nst_no_free_implies_eq_close_over: forall x T T' phi,
+    ~ appear_free_in_overbasety x ({{v:T | phi}}) ->
+    (forall tyst, st_type_closed tyst ({{v:T | phi}}) <-> st_type_closed (x |-> T'; tyst) ({{v:T | phi}})).
+Proof with eauto.
+  intros. simpl in H.
+  split.
+  intros.
+  - inversion H0; subst. constructor... unfold phi_sat_tyst. unfold phi_sat_tyst in H3. intros x' Hx. apply H3...
+    destruct (eqb_spec x x'); subst. rewrite update_eq in Hx. inversion Hx. rewrite update_neq in Hx...
+  - intros H0. inversion H0; subst. constructor... unfold phi_sat_tyst. unfold phi_sat_tyst in H3. intros x' Hx. intro.
+    destruct (eqb_spec x x'); subst.
+    + apply H. apply H1.
+    + assert ((x |-> T'; tyst) x' = None). rewrite update_neq... apply H3 in H2. apply H2...
+Qed.
+
+Lemma nst_no_free_implies_eq_close_under: forall x T T' phi,
+    ~ appear_free_in_underty x ([[v:T | phi]]) ->
+    (forall tyst, st_type_closed tyst ([[v:T | phi]]) <-> st_type_closed (x |-> T'; tyst) ([[v:T | phi]])).
+Proof with eauto.
+  intros. simpl in H.
+  split.
+  intros.
+  - inversion H0; subst. constructor... unfold phi_sat_tyst. unfold phi_sat_tyst in H3. intros x' Hx. apply H3...
+    destruct (eqb_spec x x'); subst. rewrite update_eq in Hx. inversion Hx. rewrite update_neq in Hx...
+  - intros H0. inversion H0; subst. constructor... unfold phi_sat_tyst. unfold phi_sat_tyst in H3. intros x' Hx. intro.
+    destruct (eqb_spec x x'); subst.
+    + apply H. apply H1.
+    + assert ((x |-> T'; tyst) x' = None). rewrite update_neq... apply H3 in H2. apply H2...
+Qed.
+
+Lemma tmR_nst_no_free_implies_eq_over: forall T phi st x e_x_hat,
+    ~ appear_free_in_overbasety x ({{v:T | phi}}) ->
+    (forall e, overbase_tmR_aux (x |-> e_x_hat; st) ({{v:T | phi}}) e <-> overbase_tmR_aux st ({{v:T | phi}}) e).
+Proof with eauto.
+  intros T phi st x e_x_hat Hfree.
+  split; intros HH.
+  - simpl in Hfree. rewrite not_appear_free_in_refinement_alt in Hfree.
+    inversion HH; subst. erewrite <- Hfree in H5... constructor... rewrite erase_const in H1...
+    rewrite nst_no_free_implies_eq_close_over...
+  - simpl in Hfree. rewrite not_appear_free_in_refinement_alt in Hfree.
+    inversion HH; subst. constructor... rewrite erase_const ... rewrite <- nst_no_free_implies_eq_close_over...
+    erewrite <- Hfree...
+Qed.
+
+Lemma tmR_nst_no_free_implies_eq_aux: forall (tau: underty) st x e_x_hat,
+    ~ appear_free_in_underty x tau -> (forall e, under_tmR_aux (x |-> e_x_hat; st) tau e <-> under_tmR_aux st tau e).
+Proof with eauto.
+  intros tau.
+  induction tau; intros st x e_x_hat Hfree; split.
+  - simpl in Hfree.
+    intros HH. inversion HH; subst. destruct H0. constructor... rewrite erase_const in H...
+    apply nst_no_free_implies_eq_close_under with (T' := ty_of_const e_x_hat) (T:=b) (tyst :=  st\_ st _/) in Hfree...
+    rewrite Hfree...
+    split... intros. apply H1... rewrite not_appear_free_in_refinement_alt in Hfree. rewrite <- Hfree...
+  - simpl in Hfree. rewrite not_appear_free_in_refinement_alt in Hfree.
+    intros HH. inversion HH; subst. destruct H0. constructor... rewrite erase_const...
+    rewrite <- nst_no_free_implies_eq_close_under...
+    split... intros. apply H1... erewrite Hfree...
+  - intros. inversion H; subst... constructor... admit.
+    split...
+    destruct H1. intros c_x Hc_xD e3 Happ. inversion Happ; subst. setoid_rewrite state_permute in H2...
+    rewrite <- IHtau... apply H2... destruct o. rewrite tmR_nst_no_free_implies_eq_over... admit. admit.
+  - intros. inversion H; subst... constructor... admit.
+    split...
+    destruct H1. intros c_x Hc_xD e3 Happ. inversion Happ; subst. setoid_rewrite state_permute.
+    rewrite IHtau... apply H2... destruct o. rewrite <- tmR_nst_no_free_implies_eq_over... admit. admit.
+  - intros. inversion H; subst... destruct H1... constructor... admit.
+    split...
+    intros e_x He_x e3 Happ. inversion Happ; subst. rewrite <- IHtau2... eapply H2... rewrite -> IHtau1... admit. admit.
+  - intros. inversion H; subst... destruct H1... constructor... admit.
+    split...
+    intros e_x He_x e3 Happ. inversion Happ; subst. rewrite IHtau2... eapply H2... rewrite IHtau1 in He_x... admit. admit.
 Admitted.
+
+Lemma tmR_nst_no_free_implies_eq: forall (tau: underty) st x e_x_hat,
+    ~ appear_free_in_underty x tau -> (forall e, tmR_aux (x |-> e_x_hat; st) tau e <-> tmR_aux st tau e).
+Proof with eauto.
+  intros.
+  split; intros.
+  - inversion H0; subst. rewrite tmR_nst_no_free_implies_eq_aux in H3...
+  - inversion H0; subst. constructor... rewrite tmR_nst_no_free_implies_eq_aux ...
+Qed.
 
 (* Definition E_Hat_Oracle: state -> base_ty -> refinement -> tm. *)
 (* Admitted. *)
@@ -280,7 +481,9 @@ Global Hint Constructors tmR_in_ctx_aux: core.
 
 Lemma empty_tmR_in_ctx_term_is_closed: forall st tau e,
     tmR_in_ctx_aux st [] tau e -> forall x, ~ x \FVtm e.
-Admitted.
+Proof with eauto.
+  intros. apply free_var_in_tm.
+Qed.
 
 Global Hint Resolve empty_tmR_in_ctx_term_is_closed: core.
 
@@ -351,11 +554,6 @@ Admitted.
 
 Lemma under_variable_has_eq_type_in_ctx: forall st Gamma x T phi,
     tmR_in_ctx_aux st (Gamma ++ ((x, Uty ([[v: T | phi]]))::nil)) (mk_eq_var T x) x.
-Admitted.
-
-Lemma eta_self1: forall x c_x e e',
-    e <-< e' ->
-    tlete x c_x e <-< tlete x c_x e'.
 Admitted.
 
 Lemma step_preserve_ctx_denotation_over: forall Gamma (e e': tm),
@@ -434,13 +632,6 @@ Admitted.
 Definition tmR_in_ctx_all_st Gamma tau e := tmR_in_ctx_aux empty Gamma tau e.
 
 Global Hint Unfold tmR_in_ctx_all_st: core.
-
-(* for vfix Axiom *)
-Definition const_order: constant -> constant -> Prop.
-Admitted.
-
-Lemma const_order_is_well_founded: well_founded const_order.
-Admitted.
 
 Definition well_founded_constraint (x: string) (phi: refinement) :=
   fun st c => (exists c_x, st x = Some c_x /\ const_order c c_x) /\ phi st c.

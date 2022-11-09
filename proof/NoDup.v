@@ -181,3 +181,17 @@ Proof with eauto.
     + apply IHGamma; auto. apply l_find_right_most_none_neq_tl in Hfind...
       apply type_ctx_no_dup_implies_tail in H...
 Qed.
+
+Definition state_permute {A:Type}: forall (st: string -> option A) x y (a a': A),
+    (x |-> a; y |-> a'; st) = (y |-> a'; x |-> a; st).
+Admitted.
+
+Definition free_var_in_tm: forall x e, ~ x \FVtm e.
+Admitted.
+
+(* for vfix Axiom *)
+Definition const_order: constant -> constant -> Prop.
+Admitted.
+
+Lemma const_order_is_well_founded: well_founded const_order.
+Admitted.

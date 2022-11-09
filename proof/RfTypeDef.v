@@ -261,9 +261,10 @@ Definition mk_bot ty := [[v: ty | (fun _ _ => False) ]].
 Definition mk_top ty := [[v: ty | (fun _ _ => True) ]].
 Definition mk_over_top ty := {{v: ty | (fun _ _ => True) }}.
 Definition mk_eq_var ty name := [[v: ty | (fun state v => Some v = (state name)) ]].
+Definition mk_op_ret op a b:= [[v: ret_ty_of_op op |
+                              (fun st c => exists c_a c_b, st a = Some c_a /\ st b = Some c_b /\ eval_op op c_a c_b c ) ]].
 Definition mk_op op a b :=
-  (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (fst_ty_of_op op)) o--> ([[v: ret_ty_of_op op |
-                                                                                        (fun st c => exists c_a c_b, st a = Some c_a /\ st b = Some c_b /\ eval_op op c_a c_b c ) ]]))).
+  (a o: (mk_over_top (fst_ty_of_op op)) o--> (b o: (mk_over_top (snd_ty_of_op op)) o--> (mk_op_ret op a b))).
 
 Lemma mk_op_has_type1: forall op a b, empty \N- vbiop op \Vin u\_ mk_op op a b _/.
 Proof with eauto.
