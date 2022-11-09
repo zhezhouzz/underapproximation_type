@@ -46,11 +46,56 @@ Proof.
     split.
     intros.
     simpl.
-    eapply multi_step in H0.
+    eapply multi_step.
+    eapply ST_Lete2.
+    simpl.
 
+    rewrite eqb_refl.
+    destruct (eqb_spec x1 x2); subst.
+    induction v.
+    simpl.
+    auto.
+    simpl.
+    destruct (eqb_spec x2 y); subst.
+    
+Admitted.
+    (* Pen and Paper Proof
+    proving tletapp x2 f v x2 <--< (tlete x1 f (tletapp x2 x1 v x2))
+    begin: 
+        unfolding the definintion of <--< 
+        \forall val. tletapp x2 f v x2 -->* val => (tlete x1 f (tletapp x2 x1 v x2)) --> * val
+        assume : \forall val. tletapp x2 f v x2 -->* val -- H0
+        to prove : (tlete x1 f (tletapp x2 x1 v x2)) --> * val
+            apply multi_step.
+            (tlete x1 f (tletapp x2 x1 v x2)) --> ?y /\ ? -->* val 
+            apply ST_Lete2 in goal 
+            (subst x1 f (tletapp x2 x1 v x2))) -->* val
+            apply definition subst 
+            tletapp x2 f v x2 -->* val
+            apply H0.
+    end
+    proving the other side 
+    (tlete x1 f (tletapp x2 x1 v x2)) <--< tletapp x2 f v x2 
+    begin:
+        unfolding the definintion of <--< 
+        \forall val. (tlete x1 f (tletapp x2 x1 v x2)) -->* val => tletapp x2 f v x2 -->* val
+        assume : (tlete x1 f (tletapp x2 x1 v x2)) --> * val -- H0 
+        to prove : tletapp x2 f v x2 -->* val
+            apply multi_step
+            tletapp x2 f v x2 --> ?y /\ ?y -->* val
+            apply ST_LetAppLam in goal
+
+
+    
+    *)
+    
+        
+    
 Lemma eta_application_const_to_lete_const: forall x2 x T e (c_x: constant),
     (tlete x c_x e) <=< (tletapp x2 (vlam x T e) c_x x2).
-Admitted.
+
+
+    Admitted.
 
 Lemma eta_lete_const_to_subst: forall x e (c_x: constant),
     (subst x c_x e) <=< (tlete x c_x e).
