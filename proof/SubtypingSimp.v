@@ -26,15 +26,15 @@ Import ListNotations.
 
 Inductive tmR_sub_in_ctx_aux: state -> context -> overunderty -> overunderty -> Prop :=
 | tmR_sub_in_ctx_aux_nil: forall (nst: state) (tau1 tau2: underty),
-    well_formed_type tau1 -> well_formed_type tau2 ->
+    st_type_closed_in_ctx (st\_ nst _/) nil tau1 -> st_type_closed_in_ctx (st\_ nst _/) nil tau2 ->
     u\_ tau1 _/ = u\_ tau2 _/ ->
     (forall e, tmR_in_ctx_aux nst [] tau1 e -> tmR_in_ctx_aux nst [] tau2 e) ->
     tmR_sub_in_ctx_aux nst [] tau1 tau2
 | tmR_sub_in_ctx_aux_cons_overbase:
   forall (nst: state) (x: string) (T:base_ty) (phi: refinement) (Gamma: context) (tau1 tau2: underty),
-    nst x = None ->
-    l_find_right_most Gamma x = None ->
-    well_formed_type tau1 -> well_formed_type tau2 ->
+    ctx_inv nst ((x, (Oty ({{v: T | phi}}))) :: Gamma) ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, (Oty ({{v: T | phi}}))) :: Gamma) tau1 ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, (Oty ({{v: T | phi}}))) :: Gamma) tau2 ->
     well_formed_type ({{v: T | phi}}) ->
     (forall (c_x: constant), tmR_aux nst ({{v: T | phi}}) c_x ->
                         tmR_sub_in_ctx_aux (update nst x c_x) Gamma tau1 tau2) ->
@@ -42,9 +42,9 @@ Inductive tmR_sub_in_ctx_aux: state -> context -> overunderty -> overunderty -> 
     tmR_sub_in_ctx_aux nst ((x, (Oty ({{v: T | phi}}))) :: Gamma) tau1 tau2
 | tmR_sub_in_ctx_aux_cons_under:
   forall (nst: state) (x: string) (T:base_ty) (phi: refinement) (Gamma: context) (tau1 tau2: underty),
-    nst x = None ->
-    l_find_right_most Gamma x = None ->
-    well_formed_type tau1 -> well_formed_type tau2 ->
+    ctx_inv nst ((x, (Uty ([[v: T | phi]]))) :: Gamma) ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, (Uty ([[v: T | phi]]))) :: Gamma) tau1 ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, (Uty ([[v: T | phi]]))) :: Gamma) tau2  ->
     well_formed_type ([[v: T | phi]]) ->
     (exists e_x_hat, tmR_aux nst ([[v: T | phi]]) e_x_hat /\
                   (forall e_x, tmR_aux nst ([[v: T | phi]]) e_x ->
@@ -54,16 +54,16 @@ Inductive tmR_sub_in_ctx_aux: state -> context -> overunderty -> overunderty -> 
     u\_ tau1 _/ = u\_ tau2 _/ ->
     tmR_sub_in_ctx_aux nst ((x, (Uty ([[v: T | phi]]))) :: Gamma) tau1 tau2
 | tmR_sub_in_ctx_aux_cons_oarr: forall (nst: state) (x: string) a T phi (tau_b: underty) (Gamma: context) (tau1 tau2: underty),
-    nst x = None ->
-    l_find_right_most Gamma x = None ->
-    well_formed_type tau1 -> well_formed_type tau2 ->
+    ctx_inv nst ((x, Uty (a o: ({{v: T | phi}}) o--> tau_b)) :: Gamma) ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, Uty (a o: ({{v: T | phi}}) o--> tau_b)) :: Gamma) tau1 ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, Uty (a o: ({{v: T | phi}}) o--> tau_b)) :: Gamma) tau2 ->
     well_formed_type (a o: {{v: T | phi}} o--> tau_b) ->
     tmR_sub_in_ctx_aux nst Gamma tau1 tau2 ->
     tmR_sub_in_ctx_aux nst ((x, Uty (a o: ({{v: T | phi}}) o--> tau_b)) :: Gamma) tau1 tau2
 | tmR_sub_in_ctx_aux_cons_underarr: forall (nst: state) (x: string) (t1 t2: underty) (Gamma: context) (tau1 tau2: overunderty),
-    nst x = None ->
-    l_find_right_most Gamma x = None ->
-    well_formed_type tau1 -> well_formed_type tau2 ->
+    ctx_inv nst ((x, Uty (t1 u--> t2)) :: Gamma) ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, Uty (t1 u--> t2)) :: Gamma) tau1 ->
+    st_type_closed_in_ctx (st\_ nst _/) ((x, Uty (t1 u--> t2)) :: Gamma) tau2 ->
     well_formed_type (t1 u--> t2) ->
     tmR_sub_in_ctx_aux nst Gamma tau1 tau2 ->
     tmR_sub_in_ctx_aux nst ((x, Uty (t1 u--> t2)) :: Gamma) tau1 tau2.
@@ -114,7 +114,9 @@ Lemma tmR_sub_implies_well_formed_type: forall st Gamma tau1 tau2,
   tmR_sub_in_ctx_aux st Gamma tau1 tau2 ->
   st_type_closed_in_ctx (st\_ st _/) Gamma tau1 /\ st_type_closed_in_ctx (st\_ st _/) Gamma tau2.
 Proof with eauto.
-Admitted.
+  intros.
+  destruct H; split...
+Qed.
 
 Global Hint Resolve tmR_sub_implies_well_formed_type: core.
 
@@ -128,9 +130,22 @@ Proof with eauto.
   induction H; simpl...
 Qed.
 
+Lemma st_type_closed_in_ctx_construct_arrarr: forall st Gamma (t1 t2: underty),
+    st_type_closed_in_ctx st Gamma t1 ->
+    st_type_closed_in_ctx st Gamma t2 ->
+    st_type_closed_in_ctx st Gamma (t1 u--> t2).
+Admitted.
+
+Lemma st_type_closed_in_ctx_construct_oarr: forall st Gamma (a: string) Ta phia (t2: underty),
+    st_type_closed_in_ctx st Gamma ({{v: Ta | phia}}) ->
+    st_type_closed_in_ctx st (Gamma ++ ((a, Oty ({{v: Ta | phia}}))::nil)) t2 ->
+    st_type_closed_in_ctx st Gamma (a o: {{v: Ta | phia}} o--> t2).
+Admitted.
+
 Lemma subtyping_soundness_arrarr: forall Gamma st (tau11 tau12 tau21 tau22: underty),
     (* u\_ tau21 _/ = u\_ tau11 _/ -> u\_ tau12 _/ = u\_ tau22 _/ -> *)
-    well_formed_type (tau11 u--> tau12) -> well_formed_type (tau21 u--> tau22) ->
+    st_type_closed_in_ctx (st\_ st _/) Gamma (tau11 u--> tau12) ->
+    st_type_closed_in_ctx (st\_ st _/) Gamma (tau21 u--> tau22) ->
     (tmR_sub_in_ctx_aux st Gamma tau21 tau11) ->
     (tmR_sub_in_ctx_aux st Gamma tau12 tau22) ->
     tmR_sub_in_ctx_aux st Gamma (tau11 u--> tau12) (tau21 u--> tau22).
@@ -152,16 +167,59 @@ Proof with eauto.
     split... simpl. rewrite H4... rewrite <- H8...
   - destruct a as (a & tau_a).
     inversion Hsub1; subst...
-    + inversion Hsub2; subst... constructor... simpl... rewrite H11... rewrite H19...
+    + inversion Hsub2; subst... constructor...
+      intros c_x Hc_xD. apply IHGamma...
+      { rewrite erase_const.
+        assert (empty \N- c_x \Tin T)... apply ty_implies_ty_of_const_eq in H. rewrite H.
+        eapply st_type_closed_in_ctx_construct_arrarr... }
+      { rewrite erase_const.
+        assert (empty \N- c_x \Tin T)... apply ty_implies_ty_of_const_eq in H. rewrite H.
+        eapply st_type_closed_in_ctx_construct_arrarr... }
+      simpl... rewrite H10... rewrite H17...
     + inversion Hsub2; subst...
-      destruct H10 as (e_x_hat1 & He_x_hat1D & HH1).
-      destruct H18 as (e_x_hat2 & He_x_hat2D & HH2).
+      destruct H9 as (e_x_hat1 & He_x_hat1D & HH1).
+      destruct H16 as (e_x_hat2 & He_x_hat2D & HH2).
       destruct (meet_of_two_terms_exists e_x_hat1 e_x_hat2 T) as (e_x_hat & HT & HE); try tmR_implies_has_type...
       constructor...
       exists e_x_hat... split. eapply meet_of_two_terms_implies_denotation in HE...
-      intros e_x He_xD v_x_hat HvE. apply IHGamma... simpl. rewrite H11... rewrite H19...
-    + inversion Hsub2; subst...
-    + inversion Hsub2; subst...
+      intros e_x He_xD v_x_hat HvE. apply IHGamma...
+      { rewrite erase_const.
+        assert (empty \N- e_x \Tin T). apply tmR_has_type in He_xD...
+        assert (empty \N- v_x_hat \Vin T). eapply preservation_value...
+        assert (empty \N- v_x_hat \Tin T)...
+        apply ty_implies_ty_of_const_eq in H1. rewrite H1.
+        eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_underbase_front in H7...
+        apply st_type_closed_in_ctx_destruct_underbase_front in H13...
+      }
+      { rewrite erase_const.
+        assert (empty \N- e_x \Tin T). apply tmR_has_type in He_xD...
+        assert (empty \N- v_x_hat \Vin T). eapply preservation_value...
+        assert (empty \N- v_x_hat \Tin T)...
+        apply ty_implies_ty_of_const_eq in H1. rewrite H1.
+        eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_underbase_front in H6...
+        apply st_type_closed_in_ctx_destruct_underbase_front in H14...
+      }
+      simpl. rewrite H10... rewrite H17...
+    + inversion Hsub1; subst...
+      inversion Hsub2; subst...
+      constructor... apply IHGamma...
+      { eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_oarr_front in H15...
+        apply st_type_closed_in_ctx_destruct_oarr_front in H19... }
+       { eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_oarr_front in H6...
+        apply st_type_closed_in_ctx_destruct_oarr_front in H20... }
+    + inversion Hsub1; subst...
+      inversion Hsub2; subst...
+      constructor... apply IHGamma...
+      { eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_arrar_front in H5...
+        apply st_type_closed_in_ctx_destruct_arrar_front in H12... }
+      { eapply st_type_closed_in_ctx_construct_arrarr...
+        apply st_type_closed_in_ctx_destruct_arrar_front in H3...
+        apply st_type_closed_in_ctx_destruct_arrar_front in H18... }
 Qed.
 
 Lemma subtype_over_sub_phi: forall st T (phi11 phi21: refinement),
@@ -191,6 +249,11 @@ Qed.
 (*   inversion H0; subst. *)
 (*   constructor... assert  *)
 
+Lemma st_type_closed_in_ctx_last_samety: forall st Gamma x T phi1 phi2 tau,
+    st_type_closed_in_ctx st (Gamma ++ ((x, Oty ({{v:T | phi1}}))::nil)) tau ->
+    st_type_closed_in_ctx st (Gamma ++ ((x, Oty ({{v:T | phi2}}))::nil)) tau.
+Admitted.
+
 Lemma subtyping_soundness_oarr: forall Gamma st x T phi11 phi21 tau12 tau22,
     u\_ tau12 _/ = u\_ tau22 _/ ->
     well_formed_type (x o: {{v:T | phi11}} o--> tau12) -> well_formed_type (x o: {{v:T | phi21}} o--> tau22) ->
@@ -200,9 +263,13 @@ Lemma subtyping_soundness_oarr: forall Gamma st x T phi11 phi21 tau12 tau22,
 Proof with eauto.
   intro Gamma.
   induction Gamma; simpl; intros st x T phi11 phi21 tau12 tau22 HeqT Hwf1 Hwf2 Hsub1 Hsub2...
-  - constructor... simpl. rewrite HeqT...
-    intros.
-    rewrite tmR_in_ctx_to_under. rewrite tmR_in_ctx_to_under in H. inversion Hsub1; subst.
+  - inversion Hsub1; subst...
+    (* inversion Hsub2; subst... *)
+    (* constructor... *)
+    (* {  *)
+    (* admit. admit. simpl. rewrite HeqT... *)
+    (* intros. *)
+    (* rewrite tmR_in_ctx_to_under. rewrite tmR_in_ctx_to_under in H. inversion Hsub1; subst. *)
     (* inversion Hsub2; subst. *)
     (* constructor... split... simpl. rewrite <- HeqT... apply under_tmR_has_type in H... *)
     (* intros. inversion H1; subst. simpl. assert (tmR_sub_in_ctx_aux (x |-> c_x; st) [] tau12 tau22)... *)
@@ -210,7 +277,10 @@ Proof with eauto.
     (* inversion H; subst. destruct H17. apply H18... setoid_rewrite tmR_aux_to_over in Hsub1... *)
   - destruct a as (a & tau_a).
     inversion Hsub1; subst...
-    + inversion Hsub2; subst...
+    inversion Hsub2; subst...
+    constructor... apply st_type_closed_in_ctx_construct_oarr...
+    apply (st_type_closed_in_ctx_last_samety (st\_ st _/) ((a, Uty (t1 u--> t2)) :: Gamma) x T phi21 phi11)...
+    constructor... apply st_type_closed_in_ctx_construct_oarr...
     (* + inversion Hsub2; subst... *)
     (*   constructor... *)
     (*   intros c_x Hc_xD. *)
@@ -235,7 +305,12 @@ Proof with eauto.
   intros.
   induction H...
   - apply subtyping_soundness_arrarr...
-    (* apply subtyping_same_ty in H... apply subtyping_same_ty in H0... *)
+    apply tmR_sub_implies_well_formed_type in IHis_subtype1. destruct IHis_subtype1.
+    apply tmR_sub_implies_well_formed_type in IHis_subtype2. destruct IHis_subtype2.
+    apply st_type_closed_in_ctx_construct_arrarr...
+    apply tmR_sub_implies_well_formed_type in IHis_subtype1. destruct IHis_subtype1.
+    apply tmR_sub_implies_well_formed_type in IHis_subtype2. destruct IHis_subtype2.
+    apply st_type_closed_in_ctx_construct_arrarr...
   - apply subtyping_soundness_oarr... apply subtyping_same_ty in H0...
 Qed.
 
@@ -249,8 +324,8 @@ Proof with eauto.
   - inversion HD; subst...
     + inversion He1; subst. constructor...
     + inversion He1; subst.
-      destruct H7 as (e_x_hat1 & He_x_hat1D & HH1).
-      destruct H17 as (e_x_hat2 & He_x_hat2D & HH2).
+      destruct H6 as (e_x_hat1 & He_x_hat1D & HH1).
+      destruct H14 as (e_x_hat2 & He_x_hat2D & HH2).
       destruct (meet_of_two_terms_exists e_x_hat1 e_x_hat2 T) as (e_x_hat & HT & HE); try tmR_implies_has_type...
       constructor...
       exists e_x_hat... split. eapply meet_of_two_terms_implies_denotation in HE...

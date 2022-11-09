@@ -279,3 +279,17 @@ Proof with eauto.
 Qed.
 
 Global Hint Resolve mk_op_has_type: core.
+
+
+Lemma destruct_tau: forall (tau: overunderty),
+    ((exists T phi, tau = {{v:T | phi}}) \/ (exists T phi, tau = [[v:T | phi]]))
+    \/ ((exists a Ta phia taub, tau = (a o: {{v: Ta | phia}} o--> taub))
+    \/ (exists t1 t2, tau = (t1 u--> t2))).
+Proof with eauto.
+  intro tau.
+  destruct tau. destruct u.
+  - left. right. exists b. exists r...
+  - right. destruct o. left. exists s, b, r, u...
+  - right. right. exists u1, u2...
+  - destruct o. left. left. exists b, r...
+Qed.

@@ -344,19 +344,6 @@ Proof with eauto.
   intros...
 Qed.
 
-Lemma destruct_tau: forall (tau: overunderty),
-    ((exists T phi, tau = {{v:T | phi}}) \/ (exists T phi, tau = [[v:T | phi]]))
-    \/ ((exists a Ta phia taub, tau = (a o: {{v: Ta | phia}} o--> taub))
-    \/ (exists t1 t2, tau = (t1 u--> t2))).
-Proof with eauto.
-  intro tau.
-  destruct tau. destruct u.
-  - left. right. exists b. exists r...
-  - right. destruct o. left. exists s, b, r, u...
-  - right. right. exists u1, u2...
-  - destruct o. left. left. exists b, r...
-Qed.
-
 Lemma st_type_closed_in_ctx_perm_aux: forall tyst a tau_a b tau_b Gamma,
     a <> b ->
     (forall tau, st_type_closed_in_ctx_aux tyst ((a, tau_a)::(b, tau_b)::Gamma) tau ->
@@ -725,6 +712,59 @@ Qed.
 
 Global Hint Resolve st_type_closed_ctx_implies_type_ctx_no_dup: core.
 
+Lemma st_type_closed_in_ctx_drop_last: forall Gamma st x tau_x tau,
+    ~ appear_free_in_underty x tau ->
+    st_type_closed_in_ctx st (Gamma ++ ((x, tau_x)::nil)) tau ->
+    st_type_closed_in_ctx st Gamma tau.
+Proof with eauto.
+  apply (rev_ind (fun Gamma => forall st x tau_x tau,
+                      ~ appear_free_in_underty x tau ->
+                      st_type_closed_in_ctx st (Gamma ++ ((x, tau_x)::nil)) tau ->
+                      st_type_closed_in_ctx st Gamma tau)).
+  - intros nst x tau_x tau Hfree H.
+    constructor... rewrite app_nil_l in H. inversion H; subst. destruct H1. simpl in H0. destruct tau_x. destruct u...
+    apply type_ctx_no_dup_implies_head_free in H2. apply l_find_right_most_none_neq_hd in H2. exfalso...
+    destruct o.
+    apply type_ctx_no_dup_implies_head_free in H2. apply l_find_right_most_none_neq_hd in H2. exfalso...
+  - intros (a & tau_a) Gamma IHGamma nst x T phi Hclosed H.
+    assert (type_ctx_no_dup empty ((a, tau_a)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H0. apply l_find_right_most_none_neq_hd in H0. exfalso...
+Qed.
+
+Lemma st_type_close_oarr_subst_ctx: forall Gamma st a0 T phi c2 (tau: underty),
+    st_type_closed_in_ctx st Gamma (a0 o: {{v:T | phi}} o--> tau) ->
+    st_type_closed_in_ctx st Gamma (<u[ a0 |c-> c2 ]> tau).
+Proof with eauto.
+  apply (rev_ind (fun Gamma => forall st a0 T phi c2 (tau: underty),
+                      st_type_closed_in_ctx st Gamma (a0 o: {{v:T | phi}} o--> tau) ->
+    st_type_closed_in_ctx st Gamma (<u[ a0 |c-> c2 ]> tau))).
+  - intros nst x tau_x tau Hfree tau' HH. inversion HH; subst...
+     assert (type_ctx_no_dup empty ((x, Uty tau')::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H1. apply l_find_right_most_none_neq_hd in H1. exfalso...
+  - intros (a & tau_a) Gamma IHGamma nst x T phi Hclosed tau HH.
+    assert (type_ctx_no_dup empty ((a, tau_a)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
+
+Lemma st_type_close_arrarr_app_ctx: forall Gamma st tau_x (tau: underty),
+    st_type_closed_in_ctx st Gamma (tau_x u--> tau) ->
+    st_type_closed_in_ctx st Gamma tau.
+Proof with eauto.
+  apply (rev_ind (fun Gamma => forall st tau_x (tau: underty),
+                      st_type_closed_in_ctx st Gamma (tau_x u--> tau) ->
+                      st_type_closed_in_ctx st Gamma tau)).
+  - intros st tau_x tau H. inversion H; subst.
+Admitted.
+
+Lemma closed_ctx_implies_op_closed: forall Gamma st op (c1 c2: cid),
+    st_type_closed_ctx st Gamma ->
+    st_type_closed_in_ctx st Gamma (mk_op_retty_from_cids op c1 c2).
+Proof with eauto.
+  induction Gamma; intros.
+  - constructor...
+Admitted.
+
+
 Lemma st_type_closed_ctx_fst_last_diff_name: forall st a tau_a Gamma b tau_b,
     st_type_closed_ctx st ((a, tau_a)::Gamma ++ ((b, tau_b)::nil)) -> a <> b.
 Proof with eauto.
@@ -752,3 +792,4 @@ Global Hint Resolve st_type_closed_ctx_pre: core.
 Definition type_closed_in_ctx (Gamma: lcontxt) (tau: overunderty):= st_type_closed_in_ctx empty Gamma tau.
 
 Global Hint Unfold type_closed_in_ctx: core.
+

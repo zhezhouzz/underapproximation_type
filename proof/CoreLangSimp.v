@@ -211,6 +211,11 @@ Proof with eauto.
   destruct op...
 Qed.
 
+Lemma op_fst_is_op_snd : forall (op: biop), fst_ty_of_op op = snd_ty_of_op op.
+Proof with eauto.
+  intros.  destruct op...
+Qed.
+
 Global Hint Resolve op_ty_spec: core.
 
 (* appear free *)

@@ -4,12 +4,15 @@ From Coq Require Import Lists.List.
 From Coq Require Import Strings.String.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
+From Coq Require Import Classical.
 From PLF Require Import RfTypeDef.
 From PLF Require Import LinearContext.
+From PLF Require Import Ax.
 
 Import ListNotations.
 Import CoreLangSimp.
 Import NormalTypeSystemSimp.
+Import Ax.
 
 Definition tystate := string -> option base_ty.
 
@@ -158,6 +161,29 @@ Proof with eauto.
   simpl... rewrite H9. destruct (eqb_spec a b); subst... exfalso...
 Qed.
 
+Fixpoint erase_ctx (Gamma: lcontxt) :=
+  match Gamma with
+  | nil => empty
+  | (x, tau)::Gamma => update (erase_ctx Gamma) x (ou\_ tau _/)
+  end.
+
+Lemma type_ctx_no_dup_implies_head_free: forall st a tau_a Gamma,
+    type_ctx_no_dup st ((a, tau_a) :: Gamma) -> l_find_right_most ((a, tau_a) :: Gamma) a = None.
+Proof with eauto.
+  intros.
+  inversion H; subst.
+  assert (erase_ctx ((a, Uty (mk_bot TBool)) :: (a, Uty (mk_bot TNat)) :: nil) =
+            erase_ctx ((a, Uty (mk_bot TNat)) :: (a, Uty (mk_bot TBool)) :: nil)).
+  simpl. rewrite state_permute. apply functional_extensionality. intros.
+  destruct (eqb_spec a x); subst. rewrite update_eq...
+  rewrite update_neq...
+  assert ((erase_ctx ((a, Uty (mk_bot TBool)) :: (a, Uty (mk_bot TNat)) :: nil)) a = Some (TBase TBool)).
+  simpl. rewrite update_eq...
+  assert ((erase_ctx ((a, Uty (mk_bot TNat)) :: (a, Uty (mk_bot TBool)) :: nil)) a = Some (TBase TNat)).
+  simpl. rewrite update_eq...
+  rewrite H0 in H1. rewrite H1 in H2. inversion H2.
+Qed.
+
 Lemma nodup_dropfst: forall st s tau_s Gamma,
     type_ctx_no_dup st ((s, tau_s) :: Gamma) ->
     type_ctx_no_dup st Gamma.
@@ -182,16 +208,20 @@ Proof with eauto.
       apply type_ctx_no_dup_implies_tail in H...
 Qed.
 
-Definition state_permute {A:Type}: forall (st: string -> option A) x y (a a': A),
-    (x |-> a; y |-> a'; st) = (y |-> a'; x |-> a; st).
-Admitted.
 
-Definition free_var_in_tm: forall x e, ~ x \FVtm e.
-Admitted.
+Definition fresh_var_gen (x: string) := append "1" x.
+Lemma fresh_var_gen_is_fresh: forall x, fresh_var_gen x <> x.
+Proof.
+  intros.
+  destruct (classic (fresh_var_gen x = x)); auto.
+  exfalso. assert ((length (fresh_var_gen x)) = (length x)). rewrite H... reflexivity.
+  simpl in H0.
+  induction (length x). inversion H0. apply IHn. inversion H0... rewrite H2. rewrite H2. reflexivity.
+Qed.
 
-(* for vfix Axiom *)
-Definition const_order: constant -> constant -> Prop.
-Admitted.
-
-Lemma const_order_is_well_founded: well_founded const_order.
-Admitted.
+Lemma exist_fresh_var: forall (x: string), exists y, y <> x.
+Proof with eauto.
+  intros. exists (fresh_var_gen x).
+  remember (fresh_var_gen_is_fresh x).
+  destruct (eqb_spec (fresh_var_gen x) x); subst... apply fresh_var_gen_is_fresh.
+Qed.

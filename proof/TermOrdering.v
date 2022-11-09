@@ -194,7 +194,31 @@ Lemma eta_op_reducetion: forall op c_a c_b c_res x x0 x1 x2 x3 x4,
     tlete x0 (tlete x1 (vbiop op) (tlete x2 c_a (tletapp x x1 x2 x))) (tlete x3 c_b (tletapp x4 x0 x3 x4)) -->* c_res.
 Admitted.
 
-Lemma eta_self1: forall x c_x e e',
+Lemma eta_self2: forall x c_x e e',
     e <-< e' ->
     tlete x c_x e <-< tlete x c_x e'.
+Admitted.
+
+Lemma eta_a3: forall id (c_x: constant) e1 e2,
+  tlete id c_x (tmatchb c_x e1 e2) <-< tlete id c_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma eta_a4: forall id a (c_x: tm),
+    id <> a -> tlete a c_x id <-< id.
+Admitted.
+
+Lemma eta_match1: forall a c_x (c: constant) e1 e2,
+    tlete a c_x (tmatchb c e1 e2) <-< tmatchb c (tlete a c_x e1) (tlete a c_x e2).
+Admitted.
+
+Lemma eta_match2: forall (a id: string) (c_x: tm) e1 e2,
+    id <> a ->
+    tmatchb id (tlete a c_x e1) (tlete a c_x e2) <-< tlete a c_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma eta_match3: forall (id: string) (c: constant) (e_x: tm) e1 e2,
+    tlete id e_x (tmatchb c e1 e2) <-< tlete id e_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma eta_a2: forall id c_x, tlete id c_x id <-< c_x.
 Admitted.
