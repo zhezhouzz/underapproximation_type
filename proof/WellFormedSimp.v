@@ -12,7 +12,6 @@ From Coq Require Import Lists.List.
 
 Import CoreLangSimp.
 Import LinearContext.
-Import Nstate.
 Import NoDup.
 Import TypeClosedSimp.
 Import DenotationSimp.
@@ -21,13 +20,9 @@ Import ListNotations.
 
 (* define the non-empty nst *)
 
-Definition well_formed_nst (nst: nstate) := exists st, st \NSTin nst.
-
-Global Hint Unfold well_formed_nst: core.
-
 (* It only makes sense when there is no duplicate bindings. *)
-Inductive ctx_inv: nstate -> context -> Prop:=
-| ctx_inv_nil: forall nst, well_formed_nst nst -> ctx_inv nst nil
+Inductive ctx_inv: state -> context -> Prop:=
+| ctx_inv_nil: forall nst, ctx_inv nst nil
 | ctx_inv_cons_under: forall nst Gamma x (tau: overunderty),
     ctx_inv nst Gamma ->
     st_type_closed_ctx (st\_ nst _/) (Gamma ++ ((x, tau)::nil)) ->
@@ -43,19 +38,17 @@ Lemma destruct_ctx_inv: forall nst x tau Gamma,
       (forall e, tmR_in_ctx_aux nst Gamma tau e -> (exists (c: constant), e -->* c)).
 Proof with eauto.
   intros.
-  inversion H; subst. apply app_one_eq_nil in H0. inversion H0.
+  inversion H; subst. apply app_one_eq_nil in H2. inversion H2.
   apply app_inj_tail in H0. inversion H0; subst. inversion H5; subst. split...
 Qed.
 
 Lemma destruct_ctx_inv_one: forall nst x tau,
     ctx_inv nst (((x, tau)::nil)) ->
-    (well_formed_nst nst) /\
       st_type_closed_ctx (st\_ nst _/) (((x, tau)::nil)) /\
       (forall e, tmR_in_ctx_aux nst [] tau e -> (exists (c: constant), e -->* c)).
 Proof with eauto.
   intros. inversion H; subst. apply app_list_unit_eq_unit in H0. inversion H0; subst. inversion H3; subst.
   split...
-  inversion H1; subst... symmetry in H5. apply app_one_eq_nil in H5. inversion H5.
 Qed.
 
 Lemma ctx_inv_implies_prefix_ctx_inv: forall Gamma2 st Gamma1, ctx_inv st (Gamma1 ++ Gamma2) -> ctx_inv st Gamma1.
@@ -64,7 +57,7 @@ Proof with eauto.
   induction Gamma2; intros st Gamma1 H.
   - rewrite app_nil_r in H...
   - setoid_rewrite <- app_one_is_cons in H... rewrite app_assoc in H. apply IHGamma2 in H. inversion H; subst...
-    + destruct a. apply app_one_eq_nil in H0. inversion H0.
+    + destruct a. apply app_one_eq_nil in H2. inversion H2.
     + apply app_inj_tail in H0. destruct H0; subst...
 Qed.
 
@@ -75,7 +68,7 @@ Lemma ctx_inv_implies_type_closed_ctx: forall Gamma st,
 Proof with eauto.
   apply (rev_ind (fun Gamma => forall st, ctx_inv st Gamma -> st_type_closed_ctx (st\_ st _/) Gamma))...
   intros (x, xty) Gamma H st Hconcat. inversion Hconcat; subst.
-  + apply app_one_eq_nil in H0. inversion H0.
+  + apply app_one_eq_nil in H2. inversion H2.
   + apply app_inj_tail in H0. destruct H0; subst...
 Qed.
 
@@ -87,38 +80,42 @@ Admitted.
 
 Global Hint Resolve ctx_inv_implies_no_dup: core.
 
-Lemma ctx_inv_destruct_underbase: forall Gamma nst x T phi e_x,
+Definition state_tystate_same_none: forall nst x, nst x = None <-> (st\_ nst _/) x = None.
+Admitted.
+
+Global Hint Rewrite state_tystate_same_none: core.
+
+Lemma ctx_inv_destruct_underbase: forall Gamma nst x T phi (e_x: constant),
     ctx_inv nst ((x, Uty ([[v:T | phi]])) :: Gamma) ->
-    tmR_aux nst ([[v:T | phi]]) e_x ->
-    ctx_inv (x |-> (e_x, T); nst) Gamma.
+    (forall v_x, tmR_aux nst ([[v: T | phi]]) v_x ->
+            ctx_inv (x |-> e_x; nst) Gamma).
 Proof with eauto.
-  apply (rev_ind (fun Gamma => forall nst x T phi e_x,
-                      ctx_inv nst ((x, Uty ([[v:T | phi]])) :: Gamma) ->
-                      tmR_aux nst ([[v:T | phi]]) e_x ->
-                      ctx_inv (x |-> (e_x, T); nst) Gamma)).
-  - intros nst x T phi e_x Hinv He_xD.
-    apply destruct_ctx_inv_one in Hinv. destruct Hinv as (Hwf & Hclosed & Hnotbot).
-    assert (empty \N- e_x \Tin T) as He_xT... eapply tmR_has_type in He_xD...
-    constructor... destruct Hwf as (st & Hst).
-    assert (exists c : constant, e_x -->* c)... destruct H as (c_x & Hc_xE).
-    exists (x |-> c_x; st). intro a.
-    destruct (eqb_spec x a); subst...
-    + rewrite update_eq. rewrite update_eq. split...
-    + rewrite update_neq... rewrite update_neq... apply Hst...
-  - intros (a & tau_a) Gamma Hind nst x T phi e_x Hinv He_xD.
-    rewrite app_comm_cons in Hinv... apply destruct_ctx_inv in Hinv... destruct Hinv as (H1 & H2 & H3).
-    assert (ctx_inv nst ((x, Uty ([[v:T | phi]]))::nil)) as Hfst...
-    { rewrite <- app_one_is_cons in H1... }
-    apply destruct_ctx_inv_one in Hfst. destruct Hfst as (Hwf & Hclosed & Hnotbot).
-    (* assert (type_ctx_no_dup nst (((x, Uty ([[v:T | phi]])) :: Gamma) ++ ((a, tau_a)::nil))) as Hnodup... *)
-    assert (type_ctx_no_dup (st\_ nst _/) (((x, Uty ([[v:T | phi]])) :: Gamma))) as Hnodup...
-    constructor...
-    + simpl. rewrite nstate_to_tystate_hd. eapply st_type_closed_ctx_destruct_front...
-    + intros e HeD. apply H3. constructor... rewrite nstate_tystate_same_none...
-      exists e_x. split... intros.
-      assert (exists c0 : constant, e_x0 -->* c0)...
-      eapply step_preserve_ctx_denotation... apply eta_drop_lete_not_bot...
-Qed.
+Admitted.
+
+(*   apply (rev_ind (fun Gamma => forall nst x phi (e_x: constant), *)
+(*                       ctx_inv nst ((x, Uty ([[v: T | phi]])) :: Gamma) -> *)
+(*                       tmR_aux nst ([[v: T | phi]]) e_x -> *)
+(*                       ctx_inv (x |-> e_x; nst) Gamma)). *)
+(*   - intros nst x phi e_x Hinv He_xD. *)
+(*     apply destruct_ctx_inv_one in Hinv. destruct Hinv as (Hwf & Hclosed & Hnotbot). *)
+(*     assert (empty \N- e_x \Tin (T)) as He_xT... eapply tmR_has_type in He_xD... *)
+(*   - intros (a & tau_a) Gamma Hind nst x phi e_x Hinv He_xD. *)
+(*     rewrite app_comm_cons in Hinv... apply destruct_ctx_inv in Hinv... destruct Hinv as (H1 & H2 & H3). *)
+(*     assert (ctx_inv nst ((x, Uty ([[v:(T) | phi]]))::nil)) as Hfst... *)
+(*     { rewrite <- app_one_is_cons in H1... } *)
+(*     apply destruct_ctx_inv_one in Hfst. destruct Hfst as (Hwf & Hclosed & Hnotbot). *)
+(*     (* assert (type_ctx_no_dup nst (((x, Uty ([[v:T | phi]])) :: Gamma) ++ ((a, tau_a)::nil))) as Hnodup... *) *)
+(*     assert (type_ctx_no_dup (st\_ nst _/) (((x, Uty ([[v: (T) | phi]])) :: Gamma))) as Hnodup... *)
+(*     constructor... *)
+(*     + simpl. rewrite nstate_to_tystate_hd. eapply st_type_closed_ctx_destruct_front... *)
+(*     + intros e HeD. *)
+(*       apply H3. constructor... rewrite state_tystate_same_none... *)
+(*       exists e_x. split... intros ee HeeD c'. *)
+(*       destruct tau_a; split... *)
+(*       { assert (exists c0 : constant, e_x0 -->* c0)... *)
+(*         eapply step_preserve_ctx_denotation... apply eta_drop_lete_not_bot... } *)
+(*       { eapply step_preserve_ctx_denotation_over... apply eta_drop_lete_not_bot... } *)
+(* Qed. *)
 
 (* Global Hint Resolve ctx_inv_destruct_front: core. *)
 
@@ -147,16 +144,19 @@ Proof with eauto.
   apply (rev_ind (fun Gamma => forall nst x t1 t2,
                       ctx_inv nst ((x, Uty (t1 u--> t2)) :: Gamma) -> ctx_inv nst Gamma))...
   - intros (a & tau_a) Gamma Hind nst x t1 t2 Hinv.
+    assert (type_ctx_no_dup (st\_ nst _/) ((x, Uty (t1 u--> t2)) :: Gamma <l> a :l: tau_a)) as Hnodup. apply ctx_inv_implies_no_dup in Hinv...
     rewrite app_comm_cons in Hinv... apply destruct_ctx_inv in Hinv... destruct Hinv as (H1 & H2 & H3).
     assert (ctx_inv nst Gamma) as Hinv...
     apply destructst_type_closed_ctx in H2. destruct H2 as (Hnst & Hfind & Hctx & Htau & Hwf)...
     constructor...
-    + constructor... eapply st_type_closed_in_ctx_destruct_arrar_front...
+    + constructor; auto. inversion Hnodup... eapply st_type_closed_in_ctx_destruct_arrar_front in Htau...
     + intros. eapply H3... constructor...
-      rewrite nstate_tystate_same_none...
-      intros e_x He_xD. assert (exists c0 : constant, e_x -->* c0) as He_xE... apply inv_ctx_implies_head in H1. apply destruct_ctx_inv_one in H1. destruct H1... destruct H1...
-      destruct  He_xE as (c0 & Hc0).
-      eapply step_preserve_ctx_denotation... apply eta_drop_lete_not_bot...
+      rewrite state_tystate_same_none...
+      assert (l_find_right_most Gamma x = None) as Hfindx...
+      intros e_x He_xD. assert (exists c0 : constant, e_x -->* c0) as He_xE... apply inv_ctx_implies_head in H1. apply destruct_ctx_inv_one in H1. destruct H1...
+      destruct tau_a.
+      { eapply step_preserve_ctx_denotation... apply eta_drop_lete_not_bot... }
+      { eapply step_preserve_ctx_denotation_over... apply eta_drop_lete_not_bot... }
 Qed.
 
 Lemma ctx_inv_destruct_underoarr: forall Gamma nst x a T phia tau_b,
@@ -166,7 +166,7 @@ Admitted.
 
 Lemma ctx_inv_front_destruct_over: forall st a T phi Gamma,
     ctx_inv st ((a, Oty ({{v:T | phi}})) :: Gamma) ->
-    (forall c_x, tmR_aux st ({{v:T | phi}}) c_x -> ctx_inv (a |-> (c_x, T); st) Gamma).
+    (forall (c_x: constant), tmR_aux st ({{v:T | phi}}) c_x -> ctx_inv (a |-> c_x; st) Gamma).
 Admitted.
 
 Global Hint Resolve ctx_inv_front_destruct_over: core.

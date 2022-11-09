@@ -4,6 +4,9 @@ Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
 From PLF Require Import Types.
 From PLF Require Import Smallstep.
+From Coq Require Import Arith.PeanoNat.
+From Coq Require Import Logic.ClassicalFacts.
+From Coq Require Import Classical.
 
 Ltac invert :=
   match goal with | H : ?T |- _ =>
@@ -25,7 +28,18 @@ Inductive constant : Type :=
 Global Hint Constructors constant: core.
 
 Lemma constant_eqb_spec: forall (c c': constant), c = c' \/ c <> c'.
-Admitted.
+Proof with eauto.
+  destruct c, c'...
+  - destruct b, b0.
+    + left...
+    + right... intro HH. inversion HH...
+    + right... intro HH. inversion HH...
+    + left...
+  - right. intro HH. inversion HH.
+  - right. intro HH. inversion HH.
+  - destruct (Nat.eq_dec n n0).
+    left... right... intro HH. inversion HH...
+Qed.
 
 Inductive ty : Type :=
 | TBase : base_ty -> ty
@@ -54,6 +68,7 @@ Inductive value : Type :=
 | vbiop: biop -> value
 | cid_value : cid -> value
 | vlam : string -> ty -> tm -> value
+| vfix : string -> ty -> string -> base_ty -> tm -> value
 with tm : Type :=
 | texn
 | tvalue: value -> tm
@@ -101,6 +116,11 @@ with value_subst (x:string) (s:value) (t:value) : value :=
        | vconst _ => t
        | vvar y => if String.eqb x y then s else t
        | vlam y T t1 => vlam y T (if String.eqb x y then t1 else (subst x s t1))
+       |  vfix f T_f y T_y t1 =>
+            vfix f T_f y T_y
+                 (if String.eqb x f then t1
+                  else if String.eqb x y then t1
+                       else (subst x s t1))
        end.
 
 Notation "'[' x ':=' s ']' t" := (subst x s t) (at level 20).
@@ -133,6 +153,7 @@ Inductive step : tm -> tm -> Prop :=
 | ST_Lete1: forall x e1 e1' e, e1 --> e1' -> (tlete x e1 e) --> (tlete x e1' e)
 | ST_Lete2: forall x v1 e, (tlete x (tvalue v1) e) --> (subst x v1 e)
 | ST_LetAppLam: forall T x y v_x e1 e, (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
+| ST_LetAppFix: forall f T_f T x y v_x e1 e, (tletapp y ((vfix f T_f x T e1)) v_x e) --> tlete y (subst f (vfix f T_f x T e1) (subst x v_x e1)) e
 | ST_Matchb_true: forall e1 e2, (tmatchb true e1 e2) --> e1
 | ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e1
 where "t1 '-->' t2" := (step t1 t2).
@@ -184,6 +205,14 @@ Definition ret_ty_of_op (op: biop): base_ty :=
 Definition ty_of_op (op: biop): ty :=
   (fst_ty_of_op op) t--> ((snd_ty_of_op op) t--> (ret_ty_of_op op)).
 
+Lemma op_ty_spec: forall op, ty_of_op op = fst_ty_of_op op t--> (snd_ty_of_op op t--> ret_ty_of_op op).
+Proof with eauto.
+  intros.
+  destruct op...
+Qed.
+
+Global Hint Resolve op_ty_spec: core.
+
 (* appear free *)
 
 Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
@@ -192,6 +221,7 @@ Fixpoint appear_free_in_tvalue (id:string) (v:value) : Prop :=
   | vbiop _ => False
   | vvar x => x = id
   | vlam x xty e => x <> id /\ appear_free_in_ttm id e
+  | vfix f fty x xty e => f <> id /\ x <> id /\ appear_free_in_ttm id e
   end
 with appear_free_in_ttm (id:string) (e:tm) : Prop :=
        match e with
@@ -201,13 +231,74 @@ with appear_free_in_ttm (id:string) (e:tm) : Prop :=
            appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
        | tletapp x v1 v2 e =>
            appear_free_in_tvalue id v1 \/ appear_free_in_tvalue id v2 \/ (x <> id /\ appear_free_in_ttm id e)
+       | tmatchb v e1 e2 =>
+           appear_free_in_tvalue id v \/ appear_free_in_ttm id e1 \/ appear_free_in_ttm id e2
        | vexn => False
        end.
 
 Notation " x '\FVtm' e " := (appear_free_in_ttm x e) (at level 40).
 Notation " x '\FVvalue' e " := (appear_free_in_tvalue x e) (at level 40).
 
-Lemma lete_preserve_not_free: forall x a e_a e, ~ x \FVtm e_a -> ~ x \FVtm e -> ~ x \FVtm tlete a e_a e.
+Lemma lemma1: forall x t s t0,
+  ~ (x \FVtm t \/ s <> x /\ x \FVtm t0) -> (~ x \FVtm t /\ (s = x \/ ~ x \FVtm t0)).
+Proof with eauto.
+  intros. split. intro HH. apply H. left...
+  destruct (classic (s = x)). left... right...
+Qed.
+
+
+Lemma lemma2: forall x v v0 s t,
+ ~ (x \FVvalue v \/ x \FVvalue v0 \/ s <> x /\ x \FVtm t) -> (~ x \FVtm v /\ ~  x \FVvalue v0 /\ (s = x \/ ~ x \FVtm t)).
+Proof with eauto.
+  intros; split. destruct (classic (s = x))...
+  split. destruct (classic (x \FVvalue v0))...
+  destruct (classic (s = x))... right. intro HH. apply H. right. right...
+Qed.
+
+
+Lemma lemma3: forall x v t t0,
+ ~ (x \FVvalue v \/ x \FVtm t \/ x \FVtm t0) -> (~ x \FVvalue v /\ ~ x \FVtm t /\ ~ x \FVtm t0).
+Proof with eauto.
+  intros; split. destruct (classic (x \FVvalue v))...
+  split. destruct (classic (x \FVtm t))... destruct (classic (x \FVtm t0))...
+Qed.
+
+Lemma not_free_rewrite: forall e x v, ~ x \FVtm e -> [x := v] e = e.
+Proof with eauto.
+  intro e.
+  apply (tm_mutual_rec
+           (fun e => forall x v, ~ appear_free_in_tvalue x e -> ([x := v]v e = e))
+           (fun e => forall x v, ~ appear_free_in_ttm x e -> ([x := v] e = e))
+        ); simpl; intros...
+  - destruct c... destruct (eqb_spec x s); subst... exfalso...
+  - destruct (eqb_spec x s); subst... assert ([x := v] t0 = t0)... rewrite H1...
+  - destruct (eqb_spec x s); subst... destruct (eqb_spec x s0); subst...
+    assert ([x := v] t0 = t0)... apply H... rewrite H1...
+  - eapply H in H0. rewrite H0...
+  - apply lemma1 in H1. destruct H1.
+    assert ([x := v] t = t)... rewrite H3.
+    destruct (eqb_spec x s); subst...
+    destruct H2; subst. exfalso...
+    assert ([x := v] t0 = t0)... rewrite H4...
+  - apply lemma2 in H2. destruct H2. destruct H3. simpl in H2.
+    eapply H in H2... rewrite H2.
+    eapply H0 in H3... rewrite H3.
+    destruct (eqb_spec x s); subst... destruct H4. exfalso...
+    eapply H1 in H4.  rewrite H4...
+  - apply lemma2 in H2. destruct H2. destruct H3. simpl in H2.
+    eapply H in H2... rewrite H2.
+    eapply H0 in H3... rewrite H3.
+    destruct (eqb_spec x s); subst... destruct H4. exfalso...
+    eapply H1 in H4.  rewrite H4...
+  - apply lemma3 in H2. destruct H2. destruct H3.
+    rewrite H... rewrite H0... rewrite H1...
+Qed.
+
+Global Hint Resolve not_free_rewrite: core.
+
+
+Lemma lete_preserve_not_free: forall e x a e_a, ~ x \FVtm e_a -> ~ x \FVtm e -> ~ x \FVtm tlete a e_a e.
+Proof with eauto.
 Admitted.
 
 Global Hint Resolve lete_preserve_not_free: core.

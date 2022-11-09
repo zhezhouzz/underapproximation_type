@@ -46,6 +46,9 @@ with value_has_type : context -> value -> ty -> Prop :=
 | T_Lam : forall Gamma x T11 T12 t12,
     has_type (update Gamma x T11) t12 T12 ->
     value_has_type Gamma (vlam x T11 t12) (TArrow T11 T12)
+| T_Fix : forall Gamma f x (T11: base_ty) T12 t12,
+    has_type (update (update Gamma f (T11 t--> T12)) x T11) t12 T12 ->
+    value_has_type Gamma (vfix f (T11 t--> T12) x T11 t12) (T11 t--> T12)
 
 where "Gamma '\N-' t '\Tin' T" := (has_type Gamma t T).
 Notation "Gamma '\N-' t '\Vin' T" := (value_has_type Gamma t T) (at level 40).
@@ -113,10 +116,8 @@ Lemma base_value_cid_exists:
   forall Gamma T v, Gamma \N- v \Vin (TBase T) -> ((exists c, v = vconst c) \/ (exists (name: string), v = name)).
 Proof.
   intros.
-  destruct v.
-  - inversion H.
-  - inversion H; subst. left; eauto. right; eauto.
-  - inversion H.
+  destruct v; inversion H.
+  subst. left; eauto. right; eauto.
 Qed.
 
 Global Hint Resolve base_value_cid_exists: core.
@@ -169,6 +170,7 @@ Proof.
          (fun e => forall T Gamma Gamma', includedin Gamma Gamma' -> (Gamma  \N- e \Tin T -> Gamma' \N- e \Tin T))).
   - intros; inversion H0; subst; eauto 7 using includedin_update.
   - intros; inversion H0; subst; eauto 7 using includedin_update.
+  - intros; inversion H1; subst; eauto 7 using includedin_update.
   - intros; inversion H1; subst; eauto 7 using includedin_update.
   - intros; inversion H0; subst; eauto 7 using includedin_update.
   - intros; inversion H1; subst; eauto 7 using includedin_update.
@@ -283,6 +285,12 @@ Proof with eauto.
     + rewrite update_shadow in H7...
     + rewrite update_permute in H7...
   - intros. inversion H0; subst; simpl; eauto.
+    destruct (eqb_spec x s); subst.
+    + rewrite update_shadow in H9...
+    + destruct (eqb_spec x s0); subst.
+      { rewrite <- update_permute in H9... rewrite update_shadow in H9... rewrite update_permute in H9... }
+      { rewrite (update_permute _ _ s x) in H9... rewrite (update_permute _ _ s0 x) in H9... }
+  - intros. inversion H0; subst; simpl; eauto.
   - intros. inversion H0; subst; simpl; eauto.
   - apply substitution_preserves_typing7.
   - intros x op v1 Hv1 v2 Hv2 e He Gamma y U v_y T HTop HTs.
@@ -310,19 +318,55 @@ Proof with eauto.
   - apply T_Lete with (T1 := T_y)...
     apply substitution_preserves_typing with T_x...
     inversion H0; subst...
+  - apply T_Lete with (T1 := T_y)...
+    apply substitution_preserves_typing with (TArrow T_x T_y)...
+    apply substitution_preserves_typing with T_x...
+    inversion H0; subst...
 Qed.
 
 Theorem preservation_value : forall t (v: value) T,
     empty \N- t \Tin T  -> t -->* v  ->
                   empty \N- v \Vin T.
-Proof.
+Proof with eauto.
 Admitted.
+
+Theorem const_ctx_independent_v : forall Gamma (c:constant) T,
+    Gamma \N- c \Vin T <-> empty \N- c \Vin T.
+Proof with eauto.
+  intros Gamma c T. split; intro HH.
+  - inversion HH...
+  - eapply value_weakening_empty...
+Qed.
 
 Theorem const_ctx_independent : forall Gamma (c:constant) T,
     Gamma \N- c \Tin T <-> empty \N- c \Tin T.
-Proof.
-Admitted.
+Proof with eauto.
+  intros Gamma c T. split; intro HH.
+  - inversion HH; subst. inversion H1; subst...
+  - inversion HH; subst. rewrite <- const_ctx_independent_v in H1...
+Qed.
 
+Lemma constant_base_ty_unique: forall (c_x: constant) Gamma1 Gamma2 T1 T2,
+    Gamma1 \N- c_x \Tin T1  -> Gamma2 \N- c_x \Tin T2 -> T1 = T2.
+Proof with eauto.
+  intros.
+  inversion H; subst.
+  inversion H0; subst.
+  inversion H3; subst.
+  inversion H4; subst...
+Qed.
+
+
+Lemma ty_implies_ty_of_const_eq: forall (T:base_ty) (c_x: constant), empty \N- c_x \Tin T -> (ty_of_const c_x) = T.
+Proof with eauto.
+  intros.
+  inversion H; subst.
+  inversion H2; subst...
+Qed.
+
+
+Global Hint Resolve ty_implies_ty_of_const_eq: core.
+Global Hint Rewrite ty_implies_ty_of_const_eq: core.
 
 (* Definition any_ctx_const_nat_typed_is_nat: forall Gamma (c: constant), Gamma \N- c \Vin TNat -> exists (n: nat), c = n. *)
 (* Proof with eauto. *)

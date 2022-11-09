@@ -19,7 +19,7 @@ From Coq Require Import Recdef.
 Import CoreLangSimp.
 Import NormalTypeSystemSimp.
 Import LinearContext.
-Import Nstate.
+(* Import Nstate. *)
 Import NoDup.
 Import RfTypeDef.
 Import TypeClosedSimp.
@@ -34,47 +34,208 @@ Ltac tmR_implies_has_type :=
   end.
 
 Ltac tmR_implies_no_dup :=
-  match goal with | H : tmR_aux ?st ?Gamma _ |- type_ctx_no_dup ?st ?Gamma =>
-                      solve [eapply tmR_in_ctx_aux_implies_no_dup; eauto]
+  match goal with | H : tmR_in_ctx_aux ?st ?Gamma _ |- type_ctx_no_dup ?st ?Gamma =>
+                      solve [eapply tmR_in_ctx_aux_implies_no_dup; auto]
   end.
 
-Lemma tmR_in_ctx_id_eq_c: forall st Gamma (id: string) c,
+(* Lemma eta_a1: forall id a (c: constant) c_x e, *)
+(*     id <> a -> *)
+(*     [id := c] tlete a c_x e <=< tlete a c_x ([id := c] e). *)
+(* Admitted. *)
+
+Lemma eta_a2: forall id c_x, tlete id c_x id <-< c_x.
+Admitted.
+
+Lemma c_to_c: forall (c1 c2: constant), c1 -->* c2 -> c2 = c1.
+Proof with eauto.
+  intros. inversion H; subst... inversion H0.
+Qed.
+
+Global Hint Resolve c_to_c: core.
+
+Lemma mk_eq_c_is_c_empty: forall st (c c_x: constant),
+    tmR_in_ctx_aux st [] (mk_eq_constant c) c_x -> c = c_x.
+Proof with eauto.
+  intros. rewrite tmR_in_ctx_to_under in H. inversion H; subst.
+  destruct H1.
+  assert (c_x -->* c)...
+Qed.
+
+
+Lemma mk_eq_c_is_c: forall Gamma st (c c_x: constant),
+    tmR_in_ctx_aux st Gamma (mk_eq_constant c) c_x -> c = c_x.
+Proof with eauto.
+  intro Gamma.
+  induction Gamma; intros. eapply mk_eq_c_is_c_empty...
+  destruct a as (a & tau_a).
+  inversion H; subst.
+Admitted.
+
+(* closed; ctx inv *)
+Lemma mk_eq_tm_ruduce_to_c: forall st Gamma (c: constant) (c_x: tm),
+    tmR_in_ctx_aux st Gamma (mk_eq_constant c) c_x -> c_x -->* c.
+Admitted.
+
+Lemma eta_a3: forall id (c_x: constant) e1 e2,
+  tlete id c_x (tmatchb c_x e1 e2) <-< tlete id c_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma eta_a4: forall id a (c_x: tm),
+    id <> a -> tlete a c_x id <-< id.
+Admitted.
+
+Lemma eta_match1: forall a c_x (c: constant) e1 e2,
+    tlete a c_x (tmatchb c e1 e2) <-< tmatchb c (tlete a c_x e1) (tlete a c_x e2).
+Admitted.
+
+Lemma eta_match2: forall (a id: string) (c_x: tm) e1 e2,
+    id <> a ->
+    tmatchb id (tlete a c_x e1) (tlete a c_x e2) <-< tlete a c_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma eta_match3: forall (id: string) (c: constant) (e_x: tm) e1 e2,
+    tlete id e_x (tmatchb c e1 e2) <-< tlete id e_x (tmatchb id e1 e2).
+Admitted.
+
+Lemma tmR_head_not_base_ty: forall st a a0 T phi tau_b Gamma c (id :string),
+    tmR_in_ctx_aux st ((a, Uty (a0 o: {{v:T | phi}} o--> tau_b)) :: Gamma) (mk_eq_constant c) id -> a <> id.
+Admitted.
+
+Lemma tmR_head_not_base_ty2: forall st a t1 t2 Gamma c (id :string),
+    tmR_in_ctx_aux st ((a, Uty (t1 u--> t2)) :: Gamma) (mk_eq_constant c) id -> a <> id.
+Admitted.
+
+Lemma tmR_in_ctx_id_match: forall Gamma st (id: string) c,
     tmR_in_ctx_aux st Gamma (mk_eq_constant c) id ->
-    (forall e tau, tmR_in_ctx_aux st Gamma tau e <-> tmR_in_ctx_aux st Gamma tau (subst id c e)).
+    (forall e1 e2 (tau: underty), tmR_in_ctx_aux st Gamma tau (tmatchb c e1 e2) ->
+                             tmR_in_ctx_aux st Gamma tau (tmatchb id e1 e2)).
+Proof with eauto.
+  intro Gamma.
+  induction Gamma; intros st id c Hc e1 e2 tau.
+  rewrite tmR_in_ctx_to_under in Hc. inversion Hc; subst. destruct H0. inversion H0; subst. inversion H4; subst. inversion H5.
+  intro HD.
+  - destruct a as (a & tau_a).
+    assert (type_ctx_no_dup (st\_ st _/) ((a, tau_a) :: Gamma)) as Hnodup. eapply tmR_in_ctx_aux_implies_no_dup in HD...
+    inversion HD; subst.
+    + constructor...
+      intros c_x Hc_xD.
+      assert (tmR_in_ctx_aux (a |-> c_x; st) Gamma tau (tlete a c_x (tmatchb id e1 e2)))...
+      inversion Hc; subst...
+      assert (tmR_in_ctx_aux (a |-> c_x; st) Gamma (mk_eq_constant c) (tlete a c_x id))...
+      destruct (eqb_spec a id).
+      { subst...
+        assert (tmR_in_ctx_aux (id |-> c_x; st) Gamma (mk_eq_constant c) c_x)...
+        eapply step_preserve_ctx_denotation... apply eta_a2. apply mk_eq_c_is_c in H0. subst.
+        eapply step_preserve_ctx_denotation... apply eta_a3. }
+      { assert (tmR_in_ctx_aux (a |-> c_x; st) Gamma tau (tmatchb c (tlete a c_x e1) ( tlete a c_x e2)))...
+        eapply step_preserve_ctx_denotation... apply eta_match1.
+        eapply IHGamma with (id:=id) in H0...
+        eapply step_preserve_ctx_denotation... apply eta_match2...
+        eapply step_preserve_ctx_denotation... apply eta_a4... }
+    + constructor...
+      inversion Hc; subst...
+      destruct H15 as (e_x_hat2 & He_x_hat2D & HH2).
+      destruct H9 as (e_x_hat1 & He_x_hat1D & HH1).
+      destruct (eqb_spec a id).
+      { subst...
+        exists e_x_hat1. split...
+        intros e_x He_xD v_x_hat HvE.
+        assert (tmR_in_ctx_aux (id |-> v_x_hat; st) Gamma tau (tlete id e_x (tmatchb c e1 e2))). apply HH1...
+        assert (tmR_in_ctx_aux (id |-> v_x_hat; st) Gamma (mk_eq_constant c) (tlete id e_x id))...
+        assert (tmR_in_ctx_aux (id |-> v_x_hat; st) Gamma (mk_eq_constant c) e_x)...
+        eapply step_preserve_ctx_denotation... apply eta_a2. apply mk_eq_tm_ruduce_to_c in H1.
+        eapply step_preserve_ctx_denotation... apply eta_match3...
+      }
+      {
+        exists e_x_hat2. split...
+        intros e_x He_xD v_x_hat HvE.
+        assert (tmR_in_ctx_aux (a |-> v_x_hat; st) Gamma tau (tlete a e_x (tmatchb c e1 e2)))...
+        assert (tmR_in_ctx_aux (a |-> v_x_hat; st) Gamma tau (tmatchb c (tlete a e_x e1) (tlete a e_x e2)))...
+        eapply step_preserve_ctx_denotation... eapply eta_match1.
+        eapply IHGamma with (id:=id) (c:=c) in H0...
+        eapply step_preserve_ctx_denotation... apply eta_match2...
+        (* assert (tmR_in_ctx_aux (a |-> v_x_hat; st) Gamma (mk_eq_constant c) (tlete a e_x id))... *)
+        eapply step_preserve_ctx_denotation... apply eta_a4...
+      }
+    + constructor...
+      assert (a <> id). eapply tmR_head_not_base_ty...
+      intros.
+      assert (tmR_in_ctx_aux st Gamma tau (tlete a e_x (tmatchb c e1 e2)))...
+      assert (tmR_in_ctx_aux st Gamma tau (tmatchb c (tlete a e_x e1) (tlete a e_x e2)))...
+      eapply step_preserve_ctx_denotation... eapply eta_match1.
+      eapply IHGamma with (id:=id) (c:=c) in H4...
+      eapply step_preserve_ctx_denotation... apply eta_match2...
+      inversion Hc; subst.
+      eapply step_preserve_ctx_denotation... apply eta_a4...
+    + constructor...
+      assert (a <> id). eapply tmR_head_not_base_ty2...
+      intros.
+      assert (tmR_in_ctx_aux st Gamma tau (tlete a e_x (tmatchb c e1 e2)))...
+      assert (tmR_in_ctx_aux st Gamma tau (tmatchb c (tlete a e_x e1) (tlete a e_x e2)))...
+      eapply step_preserve_ctx_denotation... eapply eta_match1.
+      eapply IHGamma with (id:=id) (c:=c) in H4...
+      eapply step_preserve_ctx_denotation... apply eta_match2...
+      inversion Hc; subst.
+      eapply step_preserve_ctx_denotation... apply eta_a4...
+Qed.
+
+Lemma st_type_closed_subst_c: forall x (c_x: constant) st (tau:underty),
+    st_type_closed (st\_ x |-> c_x; st _/) tau ->
+    st_type_closed (st\_ st _/) (<u[ x |c-> c_x ]> tau).
 Admitted.
 
-Lemma tmR_in_ctx_state_implies_subst: forall (st: nstate) a T (c_a: constant) Gamma tau,
-    st a = Some (tvalue c_a, T) ->
-    l_find_right_most Gamma a = None ->
-    (forall e, tmR_in_ctx_aux st Gamma tau e <-> tmR_in_ctx_aux st Gamma tau ([a := c_a] e)).
+Lemma oarr_name_unique: forall st s o tau e,
+    under_tmR_aux st (s o: o o--> tau) e -> st s = None.
 Admitted.
 
-Lemma under_tmR_aux_st_update: forall x (c_x: constant) (T:base_ty) st tau,
-    empty \N- c_x \Tin T ->
-    (forall e, under_tmR_aux (x |-> (tvalue c_x, T); st) tau e <->
-            under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Lemma under_subst_preserve_ty: forall x c_x tau,
+    (u\_ <u[ x |c-> c_x ]> tau _/) = (u\_ tau _/).
 Admitted.
 
-Lemma empty_under_denotation_const_to_over: forall st T phi (c: constant),
-    (forall e' : tm, tmR_in_ctx_aux st [] ([[v:T | phi]]) e' -> e' -->* c) -> overbase_tmR_aux st ({{v:T | phi}}) c.
+Lemma map_none_implies_hd {A: Type}: forall x (c_x:A) st s,
+    (x |-> c_x; st) s = None -> x <> s.
+Proof with eauto.
+  intros.
+  intro HH. subst. rewrite update_eq in H. inversion H.
+Qed.
+
+Global Hint Resolve map_none_implies_hd: core.
+
+Lemma under_tmR_aux_st_update: forall x (c_x: constant) tau st,
+    (forall e, under_tmR_aux (x |-> c_x; st) tau e <-> under_tmR_aux st (<u[ x |c-> c_x ]> tau) e).
+Proof with eauto.
+  intros x c_x.
+  induction tau; split; intros.
+  - inversion H; subst... destruct H1. constructor... apply st_type_closed_subst_c in H0...
+  - inversion H; subst... destruct H1. admit.
+  - inversion H; subst... destruct H1. destruct o.
+    simpl.
+    assert (x <> s). eapply oarr_name_unique in H...
+    destruct (eqb_spec x s); subst... exfalso...
+    constructor...
+    + apply st_type_closed_subst_c in H0... simpl in H0.
+      destruct (eqb_spec x s); subst... exfalso...
+    + split...  simpl. rewrite under_subst_preserve_ty...
+      intros c_x' Hc_x'D e3 Happ.
+      inversion Happ; subst.
+      apply IHtau... rewrite update_permute... apply H2... admit.
+  - admit.
 Admitted.
 
-Global Hint Resolve empty_under_denotation_const_to_over: core.
 
-Lemma over_head_denotation_implies_forall: forall st a T0 phi0 Gamma T phi c_x c,
+(* Lemma empty_under_denotation_const_to_over: forall st T phi (c: constant), *)
+(*     (forall e' : tm, tmR_in_ctx_aux st [] ([[v:T | phi]]) e' -> e' -->* c) -> overbase_tmR_aux st ({{v:T | phi}}) c. *)
+(* Admitted. *)
+
+(* Global Hint Resolve empty_under_denotation_const_to_over: core. *)
+
+Lemma over_head_denotation_implies_forall: forall st a T0 phi0 Gamma T phi (c_x: constant) c,
     tmR_aux st ({{v:T0 | phi0}}) c_x ->
     (forall e' : tm, tmR_in_ctx_aux st ((a, Oty ({{v:T0 | phi0}})) :: Gamma) ([[v:T | phi]]) e' -> e' -->* c) ->
-    (forall e' : tm, tmR_in_ctx_aux (a |-> (c_x, T0); st) Gamma ([[v:T | phi]]) e' -> e' -->* c).
+    (forall e' : tm, tmR_in_ctx_aux (a |-> c_x; st) Gamma ([[v:T | phi]]) e' -> e' -->* c).
 Admitted.
 
 Global Hint Resolve over_head_denotation_implies_forall: core.
-
-Lemma term_order_implies_nstate_order: forall e1 e2 T a st Gamma tau e,
-    e1 <-< e2 -> tmR_in_ctx_aux (a |-> (e2, T); st) Gamma tau e ->
-    tmR_in_ctx_aux (a |-> (e1, T); st) Gamma tau e.
-Admitted.
-
-Global Hint Resolve term_order_implies_nstate_order: core.
 
 Lemma under_head_denotation_implies_exists: forall st a T0 phi0 Gamma T phi c,
     (forall e' : tm, tmR_in_ctx_aux st ((a, Uty ([[v:T0 | phi0]])) :: Gamma) ([[v:T | phi]]) e' -> e' -->* c) ->
@@ -120,7 +281,7 @@ Lemma tmR_in_ctx_overhead_not_free: forall st a T phi Gamma tau (c_a: constant) 
     ~ a \FVtm e ->
     tmR_aux st ({{v:T | phi}}) c_a ->
     tmR_in_ctx_aux st ((a, Oty ({{v:T | phi}})) :: Gamma) tau e ->
-    tmR_in_ctx_aux (a |-> (tvalue c_a, T); st) Gamma tau e.
+    tmR_in_ctx_aux (a |->  c_a; st) Gamma tau e.
 Admitted.
 
 Lemma tmR_in_ctx_oarrhead_not_free: forall st x a Ta phia taub Gamma tau e,
@@ -153,4 +314,14 @@ Admitted.
 Lemma closed_op_rty_implies_snd_rty_exists: forall st Gamma op v1 v2,
     st_type_closed_in_ctx (st\_ st _/) Gamma (mk_op_retty_from_cids op v1 v2) ->
     (exists phi2, tmR_in_ctx_aux st Gamma ([[v: snd_ty_of_op op | phi2]]) v2).
+Admitted.
+
+Lemma constraint_phi_implies_order: forall st x (c_x c_x': constant) T phi,
+    overbase_tmR_aux (x |-> c_x; st) ({{v:T | well_founded_constraint x phi}}) c_x' -> const_order c_x' c_x.
+Admitted.
+
+Lemma constraint_phi_implies_subtyping: forall st T phi x c_x c_x',
+    st_type_closed_in_ctx (state_to_tystate st) nil ({{v:T | phi}}) ->
+    overbase_tmR_aux (x |-> c_x; st) ({{v:T | well_founded_constraint x phi}}) c_x' ->
+    overbase_tmR_aux st ({{v:T | phi}}) c_x'.
 Admitted.

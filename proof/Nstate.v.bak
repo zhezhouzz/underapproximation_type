@@ -7,10 +7,12 @@ From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From PLF Require Import NormalTypeSystemSimp.
 From PLF Require Import RfTypeDef.
+From PLF Require Import TermOrdering.
 From PLF Require Import LinearContext.
 Import ListNotations.
 
 Import NormalTypeSystemSimp.
+Import TermOrdering.
 
 (* First we define the ty state *)
 
@@ -48,6 +50,27 @@ Definition state_in_non_deter_state (st: state) (nst: nstate): Prop :=
         end).
 
 Notation " st '\NSTin' nst " := (state_in_non_deter_state st nst) (at level 40).
+
+Lemma term_order_implies_include: forall e1 e2 x (T: base_ty) nst st,
+    e1 <-< e2 -> (st \NSTin (x |-> (e1, T); nst)) -> (st \NSTin (x |-> (e2, T); nst)).
+Proof with eauto.
+  intros e1 e2 x T nst st (Ho1 & Ho2) Hst.
+  intros x'. unfold state_in_non_deter_state in Hst.
+  assert (match (x |-> (e1, T); nst) x' with
+           | Some (e, T) => empty \N- e \Tin T /\ match st x' with
+                                                | Some c => e -->* c
+                                                | None => False
+                                                end
+           | None => True
+           end)... apply Hst.
+  destruct (eqb_spec x x'); subst.
+  - rewrite update_eq. rewrite update_eq in H. destruct H. split...
+    destruct (st x'); subst...
+  - rewrite update_neq. rewrite update_neq in H.
+    destruct (nst x'); subst... apply n. apply n.
+Qed.
+
+Global Hint Rewrite term_order_implies_include: core.
 
 Definition nstate_to_tystate (nst: nstate) :=
   fun x => (match nst x with
