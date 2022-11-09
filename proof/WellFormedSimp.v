@@ -188,7 +188,6 @@ Qed.
 (*     ctx_inv nst ((x, Uty (t1 u--> t2)) :: Gamma) -> *)
 (*     tmR_in_ctx_aux nst Gamma tau e -> *)
 (*     tmR_in_ctx_aux nst ((x, Uty (t1 u--> t2)) :: Gamma) tau e. *)
-(* Admitted. *)
 
 Lemma inv_ctx_implies_head: forall nst x tau_x Gamma,
     ctx_inv nst ((x, tau_x) :: Gamma) -> ctx_inv nst [(x, tau_x)].
@@ -258,19 +257,36 @@ Global Hint Resolve ctx_inv_front_destruct_over: core.
 
 Lemma ctx_inv_implies_fresh_binding_last:
   forall Gamma x (tau_x: underty), ctx_inv empty (Gamma <l> x :l: Uty tau_x) -> ~ appear_free_in_underty x tau_x.
-Admitted.
+Proof with eauto.
+  intros. apply destruct_ctx_inv in H. destruct H. destruct H0...
+  apply destructst_type_closed_ctx in H0.
+  destruct H0 as (Ha & Hb & Hc & Hd & He)...
+  inversion Hd.
+  assert (type_ctx_no_dup empty ((x, Uty tau_x) :: nil) ). constructor...
+  apply type_ctx_no_dup_implies_head_free in H3. apply l_find_right_most_none_neq_hd in H3. exfalso...
+Qed.
+
 
 Lemma ctx_inv_implies_type_closed_last:
   forall st Gamma x (tau_x: underty),
     ctx_inv st (Gamma <l> x :l: Uty tau_x) -> st_type_closed_in_ctx (st\_ st _/) Gamma tau_x.
-Admitted.
+Proof with eauto.
+  intros. apply destruct_ctx_inv in H. destruct H. destruct H0...
+  apply destructst_type_closed_ctx in H0.
+  destruct H0 as (Ha & Hb & Hc & Hd & He)...
+Qed.
+
 
 Lemma ctx_inv_implies_mem_fresh_and_close:
   forall Gamma1 x (tau_x: underty) Gamma2,
     ctx_inv empty (Gamma1 ++ ((x, Uty tau_x)::nil) ++ Gamma2) ->
     st_type_closed_in_ctx empty (Gamma1 ++ ((x, Uty tau_x)::nil)) tau_x /\
       ~ appear_free_in_underty x tau_x.
-Admitted.
+Proof with eauto.
+  intros.
+  assert (type_ctx_no_dup empty ((x, Uty tau_x) :: nil) ). constructor...
+  apply type_ctx_no_dup_implies_head_free in H0. apply l_find_right_most_none_neq_hd in H0. exfalso...
+Qed.
 
 Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
 
@@ -279,7 +295,6 @@ Global Hint Resolve ctx_inv_implies_mem_fresh_and_close: core.
 (*   name_not_free_in_ctx_and_ty a Gamma tau -> *)
 (*   ctx_inv ((a, aty)::Gamma) -> *)
 (*   ctx_inv Gamma. *)
-(* Admitted. *)
 
 
 (* Lemma ctx_inv_denotation_right_destruct: forall Gamma x (xty: underty) (tau: underty) e, *)

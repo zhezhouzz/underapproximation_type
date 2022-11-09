@@ -1,7 +1,7 @@
 Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
-From PLF Require Import Types.
-From PLF Require Import Smallstep.
+(* From PLF Require Import Types. *)
+(* From PLF Require Import Smallstep. *)
 From PLF Require Import CoreLangSimp.
 
 (* Ltac invert := *)
@@ -345,6 +345,11 @@ Proof with eauto.
   - inversion HH; subst. inversion H1; subst...
   - inversion HH; subst. rewrite <- const_ctx_independent_v in H1...
 Qed.
+
+Lemma ty_unique: forall Gamma e T1 T2,
+    Gamma \N- e \Tin T1  -> Gamma \N- e \Tin T2 -> T1 = T2.
+Proof with eauto.
+Admitted.
 
 Lemma constant_base_ty_unique: forall (c_x: constant) Gamma1 Gamma2 T1 T2,
     Gamma1 \N- c_x \Tin T1  -> Gamma2 \N- c_x \Tin T2 -> T1 = T2.

@@ -1,7 +1,5 @@
 Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
-From PLF Require Import Types.
-(* From PLF Require Import Smallstep. *)
 From PLF Require Import CoreLangSimp.
 From PLF Require Import NormalTypeSystemSimp.
 From Coq Require Import Logic.FunctionalExtensionality.

@@ -12,8 +12,23 @@ Import CoreLangSimp.
 Import NormalTypeSystemSimp.
 Import ListNotations.
 
+(* Meet Axiom *)
+(* meet operation, the trick here is encode the conjunction into the target language, via a poly equal operator.
+  let x1 = e1 in
+  let x2 = e2 in
+  let x3 = x1 ==T x2 in
+  match x3 with
+  | true -> x2
+  | false -> err
+
+ *)
+Lemma meet_of_two_terms_exists: forall e1 e2 T,
+    empty \N- e1 \Tin T -> empty \N- e2 \Tin T ->
+    (exists e3, (empty \N- e3 \Tin T) /\ (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c)).
+Admitted.
+
 Definition term_order (e e': tm) :=
-  (forall v, e -->* v -> e' -->* v) /\ (forall Gamma T, Gamma \N- e \Tin T -> forall Gamma T, Gamma \N- e' \Tin T).
+  (forall v, e -->* v -> e' -->* v) /\ (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
 
 Notation " e1 '<-<' e2 " := (term_order e1 e2) (at level 90).
 
@@ -24,8 +39,8 @@ Proof. intros. destruct H. auto. Qed.
 
 Global Hint Resolve term_order_fst: core.
 
-Lemma term_order_snd: forall (e e': tm), term_order e e' -> (forall Gamma T, Gamma \N- e \Tin T -> forall Gamma T, Gamma \N- e' \Tin T).
-Proof. intros. destruct H. eapply H1. eauto. Qed.
+Lemma term_order_snd: forall (e e': tm), term_order e e' -> (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
+Proof. intros. destruct H. eapply H1. auto. Qed.
 
 Global Hint Resolve term_order_snd: core.
 

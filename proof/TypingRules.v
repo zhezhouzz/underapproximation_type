@@ -17,7 +17,7 @@ From Coq Require Import Lists.List.
 Import CoreLangSimp.
 Import LinearContext.
 Import NoDup.
-(* Import Nstate. *)
+Import Ax.
 Import TypeClosedSimp.
 Import DenotationSimp.
 Import CtxErase.
@@ -115,6 +115,7 @@ with value_under_type_check : context -> value -> underty -> Prop :=
     (Gamma <l> x :l: Uty (t1 u--> t2)) \C- e \Tin tau ->
     Gamma \C- (vlam x (u\_ (t1 u--> t2) _/) e) \Vin ((t1 u--> t2) u--> tau)
 | UT_LamFix: forall Gamma x T phi f e tau,
+    x <> f ->
     well_formed Gamma (x o: {{v:T | phi}} o--> tau) ->
     Gamma \C- (vlam x T (vlam f (T t--> u\_ tau _/) e)) \Vin (x o: {{v:T | phi}} o--> ((x o: {{v:T | well_founded_constraint x phi}} o--> tau) u--> tau)) ->
     Gamma \C- (vfix f (T t--> u\_ tau _/) x T e) \Vin (x o: {{v:T | phi}} o--> tau)
@@ -126,12 +127,6 @@ Scheme value_under_type_check_rec := Induction for value_under_type_check Sort P
 
 Global Hint Constructors term_under_type_chek: core.
 Global Hint Constructors value_under_type_check: core.
-
-(* Definition mk_op_retty_spec: forall Gamma op (cid1 cid2: cid) (phi1 phi2: refinement), *)
-(*     ctx_inv Gamma -> *)
-(*     Gamma \C- cid1 \Vin [[v:TNat | phi1]] -> *)
-(*     Gamma \C- cid2 \Vin [[v:TNat | phi2]] -> *)
-(*     tmR_in_ctx Gamma (mk_op_retty_from_cids op cid1 cid2) (apply_op op n1 n2). *)
 
 Lemma type_judgement_implies_inv: forall Gamma e tau,
     Gamma \C- e \Tin tau -> well_formed Gamma tau.
@@ -183,26 +178,6 @@ Proof with eauto.
   + apply type_judgement_implies_inv in H6. destruct H6...
 Qed.
 
-(* Function Renaming Axiom *)
-Lemma Function_Renaming_Axiom: forall Gamma x T e tau,
-    Gamma \C- vlam x T e \Tin tau -> l_find_right_most Gamma x = None.
-Admitted.
-
-(* Renaming Axiom *)
-Lemma Function_Renaming_Axiom2: forall Gamma x T y T' e tau,
-    Gamma \C- vlam x T (vlam y T' e) \Vin tau ->
-    l_find_right_most Gamma x = None /\ l_find_right_most Gamma y = None /\ y <> x.
-Admitted.
-(* Proof with eauto. *)
-(*   intros... *)
-(*   inversion H; subst. *)
-(*   + apply Function_Renaming_Axiom in H. split... *)
-(*     inversion H2; subst... *)
-(*     assert (Gamma \C- vlam x T (vlam y T' e) \Tin tau)... apply Function_Renaming_Axiom in H0... split... *)
-(*   + apply type_judgement_implies_lam_var_not_in_Gamma in H. split... apply lam_has_type_tm_to_value in H6. *)
-(*     apply type_judgement_implies_lam_var_not_in_Gamma in H6. split... *)
-(* Qed. *)
-
 Lemma type_judgement_implies_basic_type_judgement: forall Gamma e tau,
     Gamma \C- e \Tin tau -> (erase_ctx Gamma) \N- e \Tin u\_ tau _/.
 Proof with eauto.
@@ -219,7 +194,7 @@ Proof with eauto.
     assert (type_ctx_no_dup empty (Gamma <l> x :l: (t1 u--> t2))). apply type_judgement_implies_no_dup in t...
     erewrite no_dup_implies_ctx_lift in H...
   - destruct w. constructor... simpl in H. inversion H; subst. inversion H4; subst. inversion H5; subst.
-    rewrite update_permute... apply Function_Renaming_Axiom2 in v... destruct v... destruct H3...
+    rewrite state_permute...
   - apply subtyping_same_ty in i. simpl in i. rewrite <- i. eapply weakening...
   - apply subtyping_same_ty in i. simpl in i. rewrite <- i...
   - rewrite <- e1...

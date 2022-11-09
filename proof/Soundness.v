@@ -17,9 +17,11 @@ From Coq Require Import Lists.List.
 
 Import CoreLangSimp.
 Import NoDup.
+Import Ax.
 Import LinearContext.
 Import TypeClosedSimp.
 Import DenotationSimp.
+Import DenotationAux.
 Import WellFormedSimp.
 Import TypeDisj.
 Import SubtypingSimp.
@@ -106,9 +108,8 @@ Proof with eauto.
     assert (well_formed (Gamma <l> x :l: (t1 u--> t2)) tau) as HH. apply type_judgement_implies_inv in He...
     destruct HH as (Hinv' & Hclosed'). apply tmR_in_ctx_preserve_arrarr...
   (* fix *)
-  - intros x T phi f e tau (Hinv & Hclosed) He HeD.
+  - intros x T phi f e tau Hxf (Hinv & Hclosed) He HeD.
     eapply tmR_in_ctx_preserve_fix...
-    apply Function_Renaming_Axiom2 in He... destruct He... destruct H0...
   (* value *)
   - auto.
   (* err *)

@@ -38,11 +38,6 @@ Ltac tmR_implies_no_dup :=
                       solve [eapply tmR_in_ctx_aux_implies_no_dup; auto]
   end.
 
-(* Lemma eta_a1: forall id a (c: constant) c_x e, *)
-(*     id <> a -> *)
-(*     [id := c] tlete a c_x e <=< tlete a c_x ([id := c] e). *)
-(* Admitted. *)
-
 Lemma c_to_c: forall (c1 c2: constant), c1 -->* c2 -> c2 = c1.
 Proof with eauto.
   intros. inversion H; subst... inversion H0.
@@ -78,6 +73,48 @@ Proof with eauto.
   - intros. destruct a.
     apply tmR_in_ctx_aux_implies_no_dup in H.
     apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
+
+Lemma under_variable_has_same_type_in_ctx: forall st Gamma x (tau: underty),
+    ctx_inv st Gamma ->
+    tmR_in_ctx_aux st (Gamma ++ ((x, Uty tau)::nil)) tau x.
+Proof with eauto.
+  intros st Gamma x tau Hinv.
+  induction Gamma.
+  - simpl.
+    assert (type_ctx_no_dup empty ((x, Uty tau)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+  -  destruct a.
+     assert (type_ctx_no_dup empty ((s, o) :: nil)). constructor...
+     apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
+
+Lemma over_variable_has_eq_type_in_ctx: forall st Gamma x T phi,
+    ctx_inv st Gamma ->
+    tmR_in_ctx_aux st (Gamma ++ ((x, Oty ({{v: T | phi}}))::nil)) (mk_eq_var T x) x.
+Proof with eauto.
+  intros st Gamma x T phi Hinv.
+  induction Gamma.
+  - simpl.
+    assert (type_ctx_no_dup empty ((x, Oty ({{v: T | phi}}))::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+  -  destruct a.
+     assert (type_ctx_no_dup empty ((s, o) :: nil)). constructor...
+     apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
+
+Lemma under_variable_has_eq_type_in_ctx: forall st Gamma x T phi,
+    ctx_inv st Gamma ->
+    tmR_in_ctx_aux st (Gamma ++ ((x, Uty ([[v: T | phi]]))::nil)) (mk_eq_var T x) x.
+Proof with eauto.
+  intros st Gamma x T phi Hinv.
+  induction Gamma.
+  - simpl.
+    assert (type_ctx_no_dup empty ((x, Oty ({{v: T | phi}}))::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+  -  destruct a.
+     assert (type_ctx_no_dup empty ((s, o) :: nil)). constructor...
+     apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
 Qed.
 
 Lemma tmR_head_not_base_ty: forall st a a0 T phi tau_b Gamma c (id :string),
@@ -241,11 +278,6 @@ Proof with eauto.
     apply type_ctx_no_dup_implies_head_free in H0. apply l_find_right_most_none_neq_hd in H0. exfalso. apply H0...
 Qed.
 
-(* Lemma empty_under_denotation_const_to_over: forall st T phi (c: constant), *)
-(*     (forall e' : tm, tmR_in_ctx_aux st [] ([[v:T | phi]]) e' -> e' -->* c) -> overbase_tmR_aux st ({{v:T | phi}}) c. *)
-(* Admitted. *)
-
-(* Global Hint Resolve empty_under_denotation_const_to_over: core. *)
 
 Lemma over_head_denotation_implies_forall: forall st a T0 phi0 Gamma T phi (c_x: constant) c,
     tmR_aux st ({{v:T0 | phi0}}) c_x ->
@@ -485,3 +517,96 @@ Proof with eauto.
     assert (type_ctx_no_dup empty ((x, Uty tau)::nil)). constructor...
     apply type_ctx_no_dup_implies_head_free in H0. apply l_find_right_most_none_neq_hd in H0. exfalso...
 Qed.
+
+Lemma meet_of_two_terms_implies_denotation_aux: forall (tau: underty) st  e1 e2 e3,
+    under_tmR_aux st tau e1 -> under_tmR_aux st tau e2 -> empty \N- e3 \Tin ou\_ tau _/ ->
+    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> under_tmR_aux st tau e3.
+Proof with eauto.
+  induction tau; intros.
+  - constructor... inversion H... split... intros.
+    inversion H0; subst... destruct H6. rewrite H2. split... inversion H; subst... destruct H9...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    destruct H4. inversion H8; subst.
+    assert (under_tmR_aux (s |-> c_x; st) tau (tlete x1 e1 (tlete x2 c_x (tletapp x x1 x2 x)))).
+    eapply H9...
+    assert (under_tmR_aux (s |-> c_x; st) tau (tlete x1 e2 (tlete x2 c_x (tletapp x x1 x2 x)))).
+    eapply H6...
+    assert (type_ctx_no_dup empty ((s, Uty tau)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H14. apply l_find_right_most_none_neq_hd in H14. exfalso...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    destruct H4. inversion H8; subst.
+    assert (type_ctx_no_dup empty ((x, Uty tau1)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H12. apply l_find_right_most_none_neq_hd in H12. exfalso...
+Qed.
+
+Lemma meet_of_three_terms_implies_denotation_aux: forall st (tau: underty) e1 e2 e3 e,
+    under_tmR_aux st tau e1 -> under_tmR_aux st tau e2 -> under_tmR_aux st tau e3 -> empty \N- e \Tin ou\_ tau _/ ->
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c) -> under_tmR_aux st tau e.
+Proof with eauto.
+  induction tau; intros.
+  - inversion H;subst. inversion H0;subst. inversion H1;subst.
+    destruct H5. destruct H7. destruct H9.
+    constructor... split... intros... rewrite H3. split...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    inversion H9; subst.
+    assert (type_ctx_no_dup empty ((s, Uty tau)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H12. apply l_find_right_most_none_neq_hd in H12. exfalso...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    inversion H9; subst.
+    assert (type_ctx_no_dup empty ((x, Uty tau1)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H12. apply l_find_right_most_none_neq_hd in H12. exfalso...
+Qed.
+
+
+Lemma meet_of_four_terms_implies_denotation_aux: forall st (tau: underty) e1 e2 e3 e4 e,
+    under_tmR_aux st tau e1 -> under_tmR_aux st tau e2 -> under_tmR_aux st tau e3 -> under_tmR_aux st tau e4 -> empty \N- e \Tin u\_ tau _/ ->
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c) -> under_tmR_aux st tau e.
+Proof with eauto.
+  induction tau; intros.
+  - inversion H;subst. inversion H0;subst. inversion H1;subst. inversion H2;subst.
+    destruct H6. destruct H8. destruct H10.  destruct H12.
+    constructor... split... intros... rewrite H4. split... split...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    inversion H10; subst.
+    assert (type_ctx_no_dup empty ((s, Uty tau)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H13. apply l_find_right_most_none_neq_hd in H13. exfalso...
+  - inversion H; subst... inversion H0; subst...
+    constructor... split... intros...
+    inversion H10; subst.
+    assert (type_ctx_no_dup empty ((x, Uty tau1)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H13. apply l_find_right_most_none_neq_hd in H13. exfalso...
+Qed.
+
+Lemma meet_of_two_terms_implies_denotation: forall st (tau: underty) e1 e2 e3,
+    tmR_aux st tau e1 -> tmR_aux st tau e2 -> empty \N- e3 \Tin ou\_ tau _/ ->
+    (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c) -> tmR_aux st tau e3.
+Proof with eauto.
+  intros.
+  inversion H; subst. inversion H0; subst.
+  constructor... eapply meet_of_two_terms_implies_denotation_aux in H2...
+Qed.
+
+Lemma meet_of_three_terms_implies_denotation: forall st (tau: underty) e1 e2 e3 e,
+    tmR_aux st tau e1 -> tmR_aux st tau e2 -> tmR_aux st tau e3 -> empty \N- e \Tin ou\_ tau _/ ->
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c) -> tmR_aux st tau e.
+Proof with eauto.
+  intros.
+  inversion H; subst. inversion H0; subst. inversion H1; subst.
+  constructor... eapply meet_of_three_terms_implies_denotation_aux in H3...
+Qed.
+
+Lemma meet_of_four_terms_implies_denotation: forall st (tau: underty) e1 e2 e3 e4 e,
+    tmR_aux st tau e1 -> tmR_aux st tau e2 -> tmR_aux st tau e3 -> tmR_aux st tau e4 -> empty \N- e \Tin u\_ tau _/ ->
+    (forall c, e -->* c <-> e1 -->* c /\ e2 -->* c /\ e3 -->* c /\ e4 -->* c) -> tmR_aux st tau e.
+Proof with eauto.
+  intros.
+  inversion H; subst. inversion H0; subst. inversion H1; subst. inversion H2; subst.
+  constructor... eapply meet_of_four_terms_implies_denotation_aux in H4...
+Qed.
+
+

@@ -19,6 +19,7 @@ Import TermOrdering.
 Import TypeClosedSimp.
 Import DenotationSimp.
 Import TermMeet.
+Import Ax.
 Import NoDup.
 Import DenotationAux.
 Import WellFormedSimp.
@@ -134,13 +135,9 @@ Lemma st_type_closed_in_ctx_construct_arrarr: forall st Gamma (t1 t2: underty),
     st_type_closed_in_ctx st Gamma t1 ->
     st_type_closed_in_ctx st Gamma t2 ->
     st_type_closed_in_ctx st Gamma (t1 u--> t2).
-Admitted.
-
-Lemma st_type_closed_in_ctx_construct_oarr: forall st Gamma (a: string) Ta phia (t2: underty),
-    st_type_closed_in_ctx st Gamma ({{v: Ta | phia}}) ->
-    st_type_closed_in_ctx st (Gamma ++ ((a, Oty ({{v: Ta | phia}}))::nil)) t2 ->
-    st_type_closed_in_ctx st Gamma (a o: {{v: Ta | phia}} o--> t2).
-Admitted.
+Proof with eauto.
+  intros. rewrite st_type_close_arrarr_app_ctx_aux...
+Qed.
 
 Lemma subtyping_soundness_arrarr: forall Gamma st (tau11 tau12 tau21 tau22: underty),
     (* u\_ tau21 _/ = u\_ tau11 _/ -> u\_ tau12 _/ = u\_ tau22 _/ -> *)
@@ -249,11 +246,6 @@ Qed.
 (*   inversion H0; subst. *)
 (*   constructor... assert  *)
 
-Lemma st_type_closed_in_ctx_last_samety: forall st Gamma x T phi1 phi2 tau,
-    st_type_closed_in_ctx st (Gamma ++ ((x, Oty ({{v:T | phi1}}))::nil)) tau ->
-    st_type_closed_in_ctx st (Gamma ++ ((x, Oty ({{v:T | phi2}}))::nil)) tau.
-Admitted.
-
 Lemma subtyping_soundness_oarr: forall Gamma st x T phi11 phi21 tau12 tau22,
     u\_ tau12 _/ = u\_ tau22 _/ ->
     well_formed_type (x o: {{v:T | phi11}} o--> tau12) -> well_formed_type (x o: {{v:T | phi21}} o--> tau22) ->
@@ -279,7 +271,7 @@ Proof with eauto.
     inversion Hsub1; subst...
     inversion Hsub2; subst...
     constructor... apply st_type_closed_in_ctx_construct_oarr...
-    apply (st_type_closed_in_ctx_last_samety (st\_ st _/) ((a, Uty (t1 u--> t2)) :: Gamma) x T phi21 phi11)...
+    apply (st_type_closed_in_ctx_last_samety ((a, Uty (t1 u--> t2)) :: Gamma) (st\_ st _/)  x T phi21 phi11)...
     constructor... apply st_type_closed_in_ctx_construct_oarr...
     (* + inversion Hsub2; subst... *)
     (*   constructor... *)

@@ -9,6 +9,7 @@ From PLF Require Import RfTypeDef.
 From PLF Require Import TypeClosedSimp.
 From PLF Require Import TermOrdering.
 From Coq Require Import Logic.FunctionalExtensionality.
+From Coq Require Import Logic.PropExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Logic.Classical.
 From Coq Require Import Lists.List.
@@ -71,7 +72,12 @@ Inductive is_application: tm -> tm -> tm -> Prop :=
 
 (* Axiom *)
 Lemma exists_fresh_var_of_value: forall (e: value), exists (x1 x2: string), x1 <> x2 /\ ~ x1 \FVvalue e.
-Admitted.
+Proof with eauto.
+  intros.
+  destruct (exists_not_free_var_in_tm e).
+  destruct (exist_fresh_var x).
+  exists x, x0. split...
+Qed.
 
 Definition application_exists: forall (e1 e2: value) x, exists (x1 x2: string),
     is_application e1 e2 (tlete x1 e1 (tlete x2 e2 (tletapp x x1 x2 x))).
@@ -235,9 +241,19 @@ Lemma make_op_ret_is_close: forall st op a b,
 Proof with auto.
   intros.
   constructor... intro x'. intros. rewrite not_appear_free_in_refinement_alt. intros...
-  apply functional_extensionality.
-  intros.
-Admitted.
+  apply functional_extensionality. intro x. apply propositional_extensionality.
+  split; intro He.
+  - destruct He as (c_a & c_b & Ha & Hb & Heval).
+    exists c_a, c_b.
+    destruct (eqb_spec x' a); subst. rewrite H1 in H. inversion H.
+    destruct (eqb_spec x' b); subst. rewrite H1 in H0. inversion H0.
+    split... rewrite update_neq... split... rewrite update_neq...
+  - destruct He as (c_a & c_b & Ha & Hb & Heval).
+    exists c_a, c_b.
+    destruct (eqb_spec x' a); subst. rewrite H1 in H. inversion H.
+    destruct (eqb_spec x' b); subst. rewrite H1 in H0. inversion H0.
+    rewrite update_neq in Ha... rewrite update_neq in Hb...
+Qed.
 
 Global Hint Resolve make_op_ret_is_close: core.
 
@@ -404,21 +420,33 @@ Proof with eauto.
     intros HH. inversion HH; subst. destruct H0. constructor... rewrite erase_const...
     rewrite <- nst_no_free_implies_eq_close_under...
     split... intros. apply H1... erewrite Hfree...
-  - intros. inversion H; subst... constructor... admit.
+  - intros. inversion H; subst... constructor...
+    assert (type_ctx_no_dup empty ((x, Uty (tau) )::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H2. apply l_find_right_most_none_neq_hd in H2. exfalso...
     split...
     destruct H1. intros c_x Hc_xD e3 Happ. inversion Happ; subst. setoid_rewrite state_permute in H2...
-    rewrite <- IHtau... apply H2... destruct o. rewrite tmR_nst_no_free_implies_eq_over... admit. admit.
-  - intros. inversion H; subst... constructor... admit.
+    rewrite <- IHtau... apply H2... destruct o. rewrite tmR_nst_no_free_implies_eq_over...
+    + intro HH. apply Hfree. constructor...
+    + intro HH. apply Hfree. constructor... destruct o.
+    assert (type_ctx_no_dup empty ((x, Oty ({{v:b | r}}))::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H5. apply l_find_right_most_none_neq_hd in H5. exfalso...
+  - intros. inversion H; subst... constructor...
+    assert (type_ctx_no_dup empty ((x, Uty tau)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H2. apply l_find_right_most_none_neq_hd in H2. exfalso...
     split...
     destruct H1. intros c_x Hc_xD e3 Happ. inversion Happ; subst. setoid_rewrite state_permute.
-    rewrite IHtau... apply H2... destruct o. rewrite <- tmR_nst_no_free_implies_eq_over... admit. admit.
-  - intros. inversion H; subst... destruct H1... constructor... admit.
-    split...
-    intros e_x He_x e3 Happ. inversion Happ; subst. rewrite <- IHtau2... eapply H2... rewrite -> IHtau1... admit. admit.
-  - intros. inversion H; subst... destruct H1... constructor... admit.
-    split...
-    intros e_x He_x e3 Happ. inversion Happ; subst. rewrite IHtau2... eapply H2... rewrite IHtau1 in He_x... admit. admit.
-Admitted.
+    rewrite IHtau... apply H2... destruct o. rewrite <- tmR_nst_no_free_implies_eq_over...
+    + intro HH. apply Hfree. constructor...
+    + intro HH. apply Hfree. constructor... destruct o.
+      assert (type_ctx_no_dup empty ((x, Oty ({{v:b | r}}))::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H5. apply l_find_right_most_none_neq_hd in H5. exfalso...
+  - intros. inversion H; subst... destruct H1...
+    assert (type_ctx_no_dup empty ((x, Uty tau1)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H3. apply l_find_right_most_none_neq_hd in H3. exfalso...
+  - intros. inversion H; subst... destruct H1...
+    assert (type_ctx_no_dup empty ((x, Uty tau1)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H3. apply l_find_right_most_none_neq_hd in H3. exfalso...
+Qed.
 
 Lemma tmR_nst_no_free_implies_eq: forall (tau: underty) st x e_x_hat,
     ~ appear_free_in_underty x tau -> (forall e, tmR_aux (x |-> e_x_hat; st) tau e <-> tmR_aux st tau e).
@@ -428,11 +456,6 @@ Proof with eauto.
   - inversion H0; subst. rewrite tmR_nst_no_free_implies_eq_aux in H3...
   - inversion H0; subst. constructor... rewrite tmR_nst_no_free_implies_eq_aux ...
 Qed.
-
-(* Definition E_Hat_Oracle: state -> base_ty -> refinement -> tm. *)
-(* Admitted. *)
-
-(* Definition E_Hat_Oracle_spec st T phi e := (e = E_Hat_Oracle st T phi). *)
 
 (* The denotation does not guarantee the well-formedness (inv_ctx). *)
 (* The denotation implies no dup. *)
@@ -538,10 +561,13 @@ Qed.
 Lemma mk_eq_constant_is_itsefl_in_ctx: forall st Gamma (c c': constant),
     tmR_in_ctx_aux st Gamma (mk_eq_constant c) c' <-> c' = c.
 Proof with eauto.
-  intros.
-  split.
-  intros.
-Admitted.
+  intros. induction Gamma... split; intros. inversion H; subst. inversion H0; subst. inversion H3; subst. destruct H2.
+  assert (c' -->* c)... inversion H5; subst... inversion H6.
+  subst. constructor... constructor... constructor... constructor... intro x'. intros. rewrite not_appear_free_in_refinement_alt. intros...
+  split... simpl... intros. subst...
+  destruct a. assert (type_ctx_no_dup empty ((s, o)::nil)). constructor...
+    apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
 
 (* denotation in ctx Lemmas *)
 
@@ -563,18 +589,6 @@ Qed.
 
 
 Global Hint Resolve denotation_ctx_implies_last_well_formed_type: core.
-
-Lemma under_variable_has_same_type_in_ctx: forall st Gamma x (tau: underty),
-    tmR_in_ctx_aux st (Gamma ++ ((x, Uty tau)::nil)) tau x.
-Admitted.
-
-Lemma over_variable_has_eq_type_in_ctx: forall st Gamma x T phi,
-    tmR_in_ctx_aux st (Gamma ++ ((x, Oty ({{v: T | phi}}))::nil)) (mk_eq_var T x) x.
-Admitted.
-
-Lemma under_variable_has_eq_type_in_ctx: forall st Gamma x T phi,
-    tmR_in_ctx_aux st (Gamma ++ ((x, Uty ([[v: T | phi]]))::nil)) (mk_eq_var T x) x.
-Admitted.
 
 Lemma step_preserve_ctx_denotation_over: forall Gamma (e e': tm),
     e' <-< e -> (forall st (tau: overbasety), tmR_in_ctx_aux st Gamma tau e -> tmR_in_ctx_aux st Gamma tau e').
@@ -630,7 +644,13 @@ Qed.
 
 Lemma denotation_in_ctx_implies_not_free_not_in_ctx: forall Gamma st tau e x,
     tmR_in_ctx_aux st Gamma tau e -> l_find_right_most Gamma x = None -> ~ x \FVtm e.
-Admitted.
+Proof with auto.
+  intros.
+  induction Gamma. inversion H; subst. apply tmR_has_type in H1. eapply empty_has_type_implies_closed in H1... apply H1.
+  destruct a.
+ apply tmR_in_ctx_aux_implies_no_dup in H.
+  apply type_ctx_no_dup_implies_head_free in H. apply l_find_right_most_none_neq_hd in H. exfalso...
+Qed.
 
 Global Hint Resolve denotation_in_ctx_implies_not_free_not_in_ctx: core.
 

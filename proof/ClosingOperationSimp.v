@@ -18,26 +18,6 @@ Import DenotationSimp.
 Import CtxInvariantSimp.
 Import ListNotations.
 
-Definition close_phi_to (x: string) (T: basic_ty) (phi: refinement) (tau: overunderty): overunderty.
-Admitted.
-
-Definition close_underty_to (x: string) (tau_x: underty) (tau: overunderty) :=
-  match tau_x with
-  | [[v: T | phi ]] => close_phi_to x T phi tau
-  | _ => tau
-  end.
-
-Lemma close_underty_to_spec: forall Gamma (x: string) (tau_x: underty) (tau: overunderty),
-    ctx_inv (Gamma ++ ((x, Uty tau_x)::nil)) ->
-    (forall e, tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) tau e <->
-            tmR_in_ctx (Gamma ++ ((x, Uty tau_x)::nil)) (close_underty_to x tau_x tau) e).
-Admitted.
-
-Lemma ty_subst_under_empty_ctx_not_free: forall x c_x tau,
-    ~ appear_free_in_underty x tau ->
-    ty_subst_under_ctx x c_x nil tau = (nil, Uty tau).
-Admitted.
-
 Lemma denotation_spec: forall (tau tau_x: underty) x e,
     ~ appear_free_in_underty x tau ->
     tmR_in_ctx [(x, Uty tau_x)] tau e ->
@@ -76,5 +56,3 @@ Proof with eauto.
   - inversion Hinv; subst. apply app_eq_unit in H. destruct H; destruct H; subst.
     + inversion H4; subst. apply H3 in HexD. repeat constructor... unfold under_tmR.
       destruct H3 as (e_x & HexD & Hev). exists e_x. intros H
-
-                          

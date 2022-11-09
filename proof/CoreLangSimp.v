@@ -2,17 +2,50 @@
 
 Set Warnings "-notation-overridden,-parsing".
 From PLF Require Import Maps.
-From PLF Require Import Types.
-From PLF Require Import Smallstep.
+(* From PLF Require Import Types. *)
+(* From PLF Require Import Smallstep. *)
 From Coq Require Import Arith.PeanoNat.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
 
-Ltac invert :=
-  match goal with | H : ?T |- _ =>
-                      match type of T with Prop => solve [exfalso; apply H; auto]
-                      end
-  end.
+Definition relation (X : Type) := X -> X -> Prop.
+Definition deterministic {X : Type} (R : relation X) :=
+  forall x y1 y2 : X, R x y1 -> R x y2 -> y1 = y2.
+
+Inductive multi {X : Type} (R : relation X) : relation X :=
+  | multi_refl : forall (x : X), multi R x x
+  | multi_step : forall (x y z : X),
+                    R x y ->
+                    multi R y z ->
+                    multi R x z.
+
+Global Hint Constructors multi : core.
+
+Theorem multi_R : forall (X : Type) (R : relation X) (x y : X),
+    R x y -> (multi R) x y.
+Proof.
+  intros X R x y H.
+  apply multi_step with y. apply H. apply multi_refl.
+Qed.
+
+
+Theorem multi_trans :
+  forall (X : Type) (R : relation X) (x y z : X),
+      multi R x y  ->
+      multi R y z ->
+      multi R x z.
+Proof.
+  intros X R x y z G H.
+  induction G.
+    - (* multi_refl *) assumption.
+    - (* multi_step *)
+      apply multi_step with y. assumption.
+      apply IHG. assumption.
+Qed.
+
+Definition normal_form {X : Type}
+              (R : relation X) (t : X) : Prop :=
+  ~ exists t', R t t'.
 
 (* ----------------------------------------------------------------- *)
 (** *** Syntax *)
@@ -301,9 +334,3 @@ Qed.
 
 Global Hint Resolve not_free_rewrite: core.
 
-
-Lemma lete_preserve_not_free: forall e x a e_a, ~ x \FVtm e_a -> ~ x \FVtm e -> ~ x \FVtm tlete a e_a e.
-Proof with eauto.
-Admitted.
-
-Global Hint Resolve lete_preserve_not_free: core.

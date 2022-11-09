@@ -16,6 +16,8 @@ Import CoreLangSimp.
 Import LinearContext.
 Import TypeClosedSimp.
 Import DenotationSimp.
+Import DenotationAux.
+Import Ax.
 Import TermMeet.
 Import TermOrdering.
 Import NoDup.
@@ -78,7 +80,7 @@ Proof with eauto.
       intros e_x' He_xD' v_x_hat HvE.
       assert (tmR_in_ctx_aux (a |-> v_x_hat; st) (Gamma ++ ((x, Uty tau_x)::nil)) tau (tlete a e_x' e)). apply HH1...
       assert (tmR_in_ctx_aux (a |-> v_x_hat; st) Gamma tau_x (tlete a e_x' e_x)). apply HH2...
-      apply meet_of_two_terms_term_order in HE3... destruct HE3 as (HEE1 & HEE2).
+      eapply meet_of_two_terms_term_order in HE3... destruct HE3 as (HEE1 & HEE2).
       assert (tmR_in_ctx_aux (a |-> v_x_hat; st) Gamma tau (tlete x (tlete a e_x' e_x) (tlete a e_x' e)))...
       eapply IHGamma with (tau_x:= tau_x)... eapply ctx_inv_destruct_underbase...
       eapply step_preserve_ctx_denotation... eapply eta_lete_neq...
