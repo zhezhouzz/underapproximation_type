@@ -1,18 +1,10 @@
 -Q . PLF
 Maps.v
-# Imp.v
-# Smallstep.v
-# Types.v
-# Stlc.v
-# MoreStlc.v
-# BasicConstant.v
-# CoreLang.v
-# NormalTypeSystem.v
 CoreLangSimp.v
 NormalTypeSystemSimp.v
 Ax.v
-LinearContext.v
 TermOrdering.v
+LinearContext.v
 RfTypeDef.v
 NoDup.v
 TypeClosedSimp.v

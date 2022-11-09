@@ -56,11 +56,6 @@ Notation "Gamma '\N-' t '\Vin' T" := (value_has_type Gamma t T) (at level 40).
 Global Hint Constructors has_type: core.
 Global Hint Constructors value_has_type: core.
 
-Lemma empty_has_type_implies_closed: forall e T, empty \N- e \Tin T -> (forall x, ~ x \FVtm e).
-Admitted.
-
-Global Hint Resolve empty_has_type_implies_closed: core.
-
 Lemma eval_op_is_type_safe: forall Gamma op (c1 c2 c3: constant) (T1 T2 T3: base_ty),
     Gamma \N- c1 \Vin T1 -> Gamma \N- c2 \Vin T2 ->
                                  eval_op op c1 c2 c3 -> ty_of_op op = T1 t--> (T2 t--> T3) ->
@@ -324,12 +319,6 @@ Proof with eauto.
     inversion H0; subst...
 Qed.
 
-Theorem preservation_value : forall t (v: value) T,
-    empty \N- t \Tin T  -> t -->* v  ->
-                  empty \N- v \Vin T.
-Proof with eauto.
-Admitted.
-
 Theorem const_ctx_independent_v : forall Gamma (c:constant) T,
     Gamma \N- c \Vin T <-> empty \N- c \Vin T.
 Proof with eauto.
@@ -345,11 +334,6 @@ Proof with eauto.
   - inversion HH; subst. inversion H1; subst...
   - inversion HH; subst. rewrite <- const_ctx_independent_v in H1...
 Qed.
-
-Lemma ty_unique: forall Gamma e T1 T2,
-    Gamma \N- e \Tin T1  -> Gamma \N- e \Tin T2 -> T1 = T2.
-Proof with eauto.
-Admitted.
 
 Lemma constant_base_ty_unique: forall (c_x: constant) Gamma1 Gamma2 T1 T2,
     Gamma1 \N- c_x \Tin T1  -> Gamma2 \N- c_x \Tin T2 -> T1 = T2.

@@ -48,3 +48,21 @@ Definition const_order (c1 c2: constant) : Prop :=
 (* for vfix Axiom *)
 Lemma const_order_is_well_founded: well_founded const_order.
 Admitted.
+
+
+(* Facts *)
+Theorem preservation_value : forall t (v: value) T,
+    empty \N- t \Tin T  -> t -->* v  ->
+                  empty \N- v \Vin T.
+Proof with eauto.
+Admitted.
+
+Lemma ty_unique: forall Gamma e T1 T2,
+    Gamma \N- e \Tin T1  -> Gamma \N- e \Tin T2 -> T1 = T2.
+Proof with eauto.
+Admitted.
+
+Lemma empty_has_type_implies_closed: forall e T, empty \N- e \Tin T -> (forall x, ~ x \FVtm e).
+Admitted.
+
+Global Hint Resolve empty_has_type_implies_closed: core.
