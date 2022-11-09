@@ -1,8 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-(* From PLF Require Import Types. *)
-(* From PLF Require Import Smallstep. *)
-From PLF Require Import CoreLangSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
 
 (* Ltac invert := *)
 (*   match goal with | H : ?T \N- _ => *)
@@ -10,7 +8,7 @@ From PLF Require Import CoreLangSimp.
 (*                       end *)
 (*   end. *)
 
-Import CoreLangSimp.
+Import CoreLang.
 
 Definition context := partial_map ty.
 
@@ -357,7 +355,46 @@ Qed.
 Global Hint Resolve ty_implies_ty_of_const_eq: core.
 Global Hint Rewrite ty_implies_ty_of_const_eq: core.
 
-(* Definition any_ctx_const_nat_typed_is_nat: forall Gamma (c: constant), Gamma \N- c \Vin TNat -> exists (n: nat), c = n. *)
-(* Proof with eauto. *)
-(*   intros. inversion H; subst. exists n... *)
-(* Qed. *)
+(* Term Ordering *)
+
+Definition term_order (e e': tm) :=
+  (forall v, e -->* v -> e' -->* v) /\ (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
+
+Notation " e1 '<-<' e2 " := (term_order e1 e2) (at level 90).
+
+Notation " e1 '<=<' e2 " := (term_order e1 e2 /\ term_order e2 e1) (at level 90).
+
+Lemma term_order_fst: forall (e e': tm), term_order e e' -> (forall v, e -->* v -> e' -->* v).
+Proof. intros. destruct H. auto. Qed.
+
+Global Hint Resolve term_order_fst: core.
+
+Lemma term_order_snd: forall (e e': tm), term_order e e' -> (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
+Proof. intros. destruct H. eapply H1. auto. Qed.
+
+Global Hint Resolve term_order_snd: core.
+
+Lemma term_order_eq_trans (e1 e2 e3: tm): e1 <=< e2 -> e2 <=< e3 -> e1 <=< e3.
+Proof with eauto.
+  intros.
+  destruct H as ((HT1 & HE1) & HT2 & HE2).
+  destruct H0 as ((HT1' & HE1') & HT2' & HE2').
+  repeat split...
+Qed.
+
+Lemma term_order_const_bound (e1: tm) (c2: constant): e1 <-< c2 -> (forall v, e1 -->* v -> v = c2).
+Proof with eauto.
+  intros. destruct H... apply H in H0. inversion H0; subst... inversion H2.
+Qed.
+
+Global Hint Resolve term_order_const_bound: core.
+
+Lemma term_order_trans (e1 e2 e3: tm): e1 <-< e2 -> e2 <-< e3 -> e1 <-< e3.
+Proof with eauto.
+  intros.
+  destruct H as (HT1 & HE1).
+  destruct H0 as (HT1' & HE1').
+  repeat split...
+Qed.
+
+Global Hint Resolve term_order_trans: core.

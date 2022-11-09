@@ -1,15 +1,15 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
 From Coq Require Import Lists.List.
 From Coq Require Import Strings.String.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Logic.Classical.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import RfTypeDef.
-From PLF Require Import LinearContext.
-From PLF Require Import NoDup.
+From CT Require Import NormalTypeSystem.
+From CT Require Import RfTypeDef.
+From CT Require Import LinearContext.
+From CT Require Import NoDup.
 Import NoDup.
 Import Ax.
 Import ListNotations.

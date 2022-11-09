@@ -1,29 +1,29 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import LinearContext.
-From PLF Require Import RfTypeDef.
-From PLF Require Import TypeClosedSimp.
-From PLF Require Import DenotationSimp.
-From PLF Require Import CtxErase.
-From PLF Require Import WellFormedSimp.
-From PLF Require Import TypeDisj.
-From PLF Require Import SubtypingSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
+From CT Require Import NormalTypeSystem.
+From CT Require Import LinearContext.
+From CT Require Import RfTypeDef.
+From CT Require Import TypeClosed.
+From CT Require Import Denotation.
+From CT Require Import CtxErase.
+From CT Require Import WellFormed.
+From CT Require Import TypeDisj.
+From CT Require Import Subtyping.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Lists.List.
 
-Import CoreLangSimp.
+Import CoreLang.
 Import LinearContext.
 Import NoDup.
 Import Ax.
-Import TypeClosedSimp.
-Import DenotationSimp.
+Import TypeClosed.
+Import Denotation.
 Import CtxErase.
-Import WellFormedSimp.
+Import WellFormed.
 Import TypeDisj.
-Import SubtypingSimp.
+Import Subtyping.
 Import ListNotations.
 
 (* Definition apply_op_over_refinements op (phi1 phi2: refinement): refinement := *)

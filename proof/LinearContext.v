@@ -1,6 +1,6 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import Ax.
+From CT Require Import Maps.
+From CT Require Import Ax.
 From Coq Require Import Lists.List.
 Import ListNotations.
 Import Ax.

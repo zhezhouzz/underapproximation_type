@@ -1,28 +1,27 @@
 (** * MoreStlc: More on the Simply Typed Lambda-Calculus *)
 
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import LinearContext.
-From PLF Require Import RfTypeDef.
-From PLF Require Import TypeClosedSimp.
-From PLF Require Import TermOrdering.
-From PLF Require Import DenotationSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
+From CT Require Import NormalTypeSystem.
+From CT Require Import LinearContext.
+From CT Require Import RfTypeDef.
+From CT Require Import TypeClosed.
+From CT Require Import Denotation.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Lists.List.
 From Coq Require Import FunInd.
 From Coq Require Import Recdef.
 
-Import CoreLangSimp.
-Import NormalTypeSystemSimp.
+Import CoreLang.
+Import NormalTypeSystem.
 Import LinearContext.
 Import RfTypeDef.
-Import TypeClosedSimp.
+Import TypeClosed.
 Import NoDup.
 Import Ax.
-Import DenotationSimp.
+Import Denotation.
 Import ListNotations.
 
 Definition erase_remove_dup (ctx: lcontxt) : lcontxt :=

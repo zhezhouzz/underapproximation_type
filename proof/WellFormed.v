@@ -1,21 +1,21 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import LinearContext.
-From PLF Require Import RfTypeDef.
-From PLF Require Import TypeClosedSimp.
-From PLF Require Import DenotationSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
+From CT Require Import NormalTypeSystem.
+From CT Require Import LinearContext.
+From CT Require Import RfTypeDef.
+From CT Require Import TypeClosed.
+From CT Require Import Denotation.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Lists.List.
 
-Import CoreLangSimp.
+Import CoreLang.
 Import LinearContext.
 Import NoDup.
-Import TypeClosedSimp.
-Import DenotationSimp.
-Import TermOrdering.
+Import Ax.
+Import TypeClosed.
+Import Denotation.
 Import ListNotations.
 
 (* define the non-empty nst *)

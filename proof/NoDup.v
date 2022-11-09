@@ -1,17 +1,17 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
+From CT Require Import Maps.
 From Coq Require Import Lists.List.
 From Coq Require Import Strings.String.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
-From PLF Require Import RfTypeDef.
-From PLF Require Import LinearContext.
-From PLF Require Import Ax.
+From CT Require Import RfTypeDef.
+From CT Require Import LinearContext.
+From CT Require Import Ax.
 
 Import ListNotations.
-Import CoreLangSimp.
-Import NormalTypeSystemSimp.
+Import CoreLang.
+Import NormalTypeSystem.
 Import Ax.
 
 Definition tystate := string -> option base_ty.

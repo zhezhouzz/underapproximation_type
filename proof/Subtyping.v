@@ -1,28 +1,27 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
-From PLF Require Import LinearContext.
-From PLF Require Import RfTypeDef.
-From PLF Require Import TypeClosedSimp.
-From PLF Require Import DenotationSimp.
-From PLF Require Import TermMeet.
-From PLF Require Import DenotationAux.
-From PLF Require Import WellFormedSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
+From CT Require Import NormalTypeSystem.
+From CT Require Import LinearContext.
+From CT Require Import RfTypeDef.
+From CT Require Import TypeClosed.
+From CT Require Import Denotation.
+From CT Require Import TermMeet.
+From CT Require Import DenotationAux.
+From CT Require Import WellFormed.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Lists.List.
 
-Import CoreLangSimp.
+Import CoreLang.
 Import LinearContext.
-Import TermOrdering.
-Import TypeClosedSimp.
-Import DenotationSimp.
+Import TypeClosed.
+Import Denotation.
 Import TermMeet.
 Import Ax.
 Import NoDup.
 Import DenotationAux.
-Import WellFormedSimp.
+Import WellFormed.
 Import ListNotations.
 
 Inductive tmR_sub_in_ctx_aux: state -> context -> overunderty -> overunderty -> Prop :=

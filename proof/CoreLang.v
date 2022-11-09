@@ -1,9 +1,5 @@
-(** * MoreStlc: More on the Simply Typed Lambda-Calculus *)
-
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-(* From PLF Require Import Types. *)
-(* From PLF Require Import Smallstep. *)
+From CT Require Import Maps.
 From Coq Require Import Arith.PeanoNat.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.

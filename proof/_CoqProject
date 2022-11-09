@@ -1,21 +1,20 @@
--Q . PLF
+-Q . CT
 Maps.v
-CoreLangSimp.v
-NormalTypeSystemSimp.v
+CoreLang.v
+NormalTypeSystem.v
 Ax.v
-TermOrdering.v
 LinearContext.v
 RfTypeDef.v
 NoDup.v
-TypeClosedSimp.v
-DenotationSimp.v
-WellFormedSimp.v
+TypeClosed.v
+Denotation.v
+WellFormed.v
 CtxErase.v
 TermMeet.v
 DenotationAux.v
 TypeDisj.v
-DenotationSpecsSimp.v
-WellFormedSpecsSimp.v
-SubtypingSimp.v
+DenotationSpecs.v
+WellFormedSpecs.v
+Subtyping.v
 TypingRules.v
 Soundness.v

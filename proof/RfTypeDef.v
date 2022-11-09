@@ -1,11 +1,11 @@
 Set Warnings "-notation-overridden,-parsing".
-From PLF Require Import Maps.
-From PLF Require Import CoreLangSimp.
-From PLF Require Import NormalTypeSystemSimp.
+From CT Require Import Maps.
+From CT Require Import CoreLang.
+From CT Require Import NormalTypeSystem.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.ClassicalFacts.
 
-Import NormalTypeSystemSimp.
+Import NormalTypeSystem.
 
 Definition state := partial_map constant.
 (* The second constant is the self reference; the refinement is untyped *)
