@@ -358,13 +358,13 @@ Global Hint Rewrite ty_implies_ty_of_const_eq: core.
 (* Term Ordering *)
 
 Definition term_order (e e': tm) :=
-  (forall v, e -->* v -> e' -->* v) /\ (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
+  (forall (v: value), e -->* v -> e' -->* v) /\ (forall Gamma T, Gamma \N- e \Tin T -> Gamma \N- e' \Tin T).
 
 Notation " e1 '<-<' e2 " := (term_order e1 e2) (at level 90).
 
 Notation " e1 '<=<' e2 " := (term_order e1 e2 /\ term_order e2 e1) (at level 90).
 
-Lemma term_order_fst: forall (e e': tm), term_order e e' -> (forall v, e -->* v -> e' -->* v).
+Lemma term_order_fst: forall (e e': tm), term_order e e' -> (forall (v: value), e -->* v -> e' -->* v).
 Proof. intros. destruct H. auto. Qed.
 
 Global Hint Resolve term_order_fst: core.
@@ -382,7 +382,7 @@ Proof with eauto.
   repeat split...
 Qed.
 
-Lemma term_order_const_bound (e1: tm) (c2: constant): e1 <-< c2 -> (forall v, e1 -->* v -> v = c2).
+Lemma term_order_const_bound (e1: tm) (c2: constant): e1 <-< c2 -> (forall (v: value), e1 -->* v -> v = c2).
 Proof with eauto.
   intros. destruct H... apply H in H0. inversion H0; subst... inversion H2.
 Qed.

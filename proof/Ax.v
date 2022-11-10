@@ -16,8 +16,22 @@ Admitted.
 Definition exists_not_free_var_in_tm: forall e, exists x, ~ x \FVtm e.
 Admitted.
 
-Lemma closed_term_has_no_free_var: forall e x T, empty \N- e \Tin T -> ~ x \FVtm e.
+Lemma term_has_no_free_var: forall e x, ~ x \FVtm e.
 Admitted.
+
+Lemma value_has_no_free_var: forall e x, ~ x \FVvalue e.
+Proof with eauto.
+  intros... intro H...
+  assert (~ x \FVtm e). apply term_has_no_free_var. apply H0. simpl...
+Qed.
+
+Local Hint Resolve term_has_no_free_var: core.
+Local Hint Resolve value_has_no_free_var: core.
+
+Lemma closed_term_has_no_free_var: forall e x T, empty \N- e \Tin T -> ~ x \FVtm e.
+Proof with eauto.
+  intros...
+Qed.
 
 Lemma lete_preserve_not_free: forall e x a e_a, ~ x \FVtm e_a -> ~ x \FVtm e -> ~ x \FVtm tlete a e_a e.
 Proof with eauto.
@@ -49,11 +63,19 @@ Admitted.
 
 
 (* Facts *)
+Theorem multi_preservation : forall t t' T,
+    empty \N- t \Tin T  -> t -->* t'  ->
+                  empty \N- t' \Tin T.
+Proof with eauto.
+Admitted.
+
 Theorem preservation_value : forall t (v: value) T,
     empty \N- t \Tin T  -> t -->* v  ->
                   empty \N- v \Vin T.
 Proof with eauto.
-Admitted.
+  intros. eapply multi_preservation in H...
+  inversion H...
+Qed.
 
 Lemma ty_unique: forall Gamma e T1 T2,
     Gamma \N- e \Tin T1  -> Gamma \N- e \Tin T2 -> T1 = T2.
@@ -67,6 +89,69 @@ Global Hint Resolve empty_has_type_implies_closed: core.
 
 
 (* Term Fact *)
+
+Lemma let_reduction_spec: forall x e_x e (v: value),
+    tlete x e_x e -->* v <-> (exists (v_x: value), e_x -->* v_x /\ (subst x v_x e) -->* v).
+Admitted.
+
+Lemma reduction_eq_implies_ty_eq: forall e1 e2,
+    (forall (v: value), e1 -->* v <-> e2 -->* v) ->
+    (forall Gamma T, Gamma \N- e1 \Tin T <-> Gamma \N- e2 \Tin T).
+Admitted.
+
+Lemma reduction_eq_implies_eq: forall e1 e2,
+    (forall (v: value), e1 -->* v <-> e2 -->* v) -> e1 <=< e2.
+Proof with eauto.
+  intros.
+  split.
+  - split. intros... rewrite <- H... apply reduction_eq_implies_ty_eq... symmetry...
+  - split. intros... rewrite H... apply reduction_eq_implies_ty_eq...
+Qed.
+
+Lemma subst_letx_same: forall x1 v1 x,
+  (if (x1 =? x)%string then x else if (x1 =? x)%string then v1 else x) = x.
+Proof with eauto.
+  intros.
+  destruct (eqb_spec x1 x); subst...
+Qed.
+
+Lemma value_only_reduce_to_itself: forall (v v': value),
+    v -->* v' <-> v = v'.
+Proof with eauto.
+  intros. split; intro H...
+  - inversion H; subst... inversion H0.
+  - subst...
+Qed.
+
+Lemma reduce_value_prop_same: forall (v: value) P,
+   (exists (v_x : value), v -->* v_x /\ P v_x) <-> P v.
+Proof with eauto.
+  split; intros.
+  - setoid_rewrite value_only_reduce_to_itself in H. destruct H as (v' & Hv' & HH); subst...
+  - exists v. split...
+Qed.
+
+Lemma eta_app_value_value: forall x (v1 v2: value) x1 x2,
+    x1 <> x2 -> ~ x1 \FVtm v2 ->
+    tletapp x v1 v2 x <=< tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x)).
+Proof with eauto.
+  intros. apply reduction_eq_implies_eq.
+  split; intro HE.
+  - rewrite let_reduction_spec. rewrite reduce_value_prop_same.
+    simpl. rewrite not_free_rewrite_value...
+    rewrite let_reduction_spec. rewrite reduce_value_prop_same. rewrite <- eqb_neq in H. rewrite H. rewrite eqb_refl.
+    simpl. rewrite not_free_rewrite_value... rewrite eqb_refl.
+    destruct (eqb_spec x2 x); destruct (eqb_spec x1 x); simpl; subst...
+    + rewrite <- eqb_neq in n... rewrite n...
+    + rewrite <- eqb_neq in n... rewrite n...
+  - rewrite let_reduction_spec in HE. apply reduce_value_prop_same in HE.
+    simpl in HE. rewrite not_free_rewrite_value in HE... rewrite <- eqb_neq in H. rewrite H in HE. rewrite eqb_refl in HE.
+    rewrite let_reduction_spec in HE. apply reduce_value_prop_same in HE.
+    simpl in HE. rewrite not_free_rewrite_value in HE... rewrite eqb_refl in HE.
+    destruct (eqb_spec x2 x); destruct (eqb_spec x1 x); simpl in HE; subst...
+    + rewrite <- eqb_neq in n... rewrite n in HE...
+    + rewrite <- eqb_neq in n... rewrite n in HE...
+Qed.
 
 (* Meet Axiom *)
 (* meet operation, the trick here is encode the conjunction into the target language, via a poly equal operator.
@@ -82,11 +167,6 @@ Global Hint Resolve empty_has_type_implies_closed: core.
 Lemma meet_of_two_terms_exists: forall e1 e2 T,
     empty \N- e1 \Tin T -> empty \N- e2 \Tin T ->
     (exists e3, (empty \N- e3 \Tin T) /\ (forall c, e3 -->* c <-> e1 -->* c /\ e2 -->* c)).
-Admitted.
-
-Lemma eta_app_value_value: forall x (v1 v2: value) x1 x2,
-    x1 <> x2 -> ~ x1 \FVtm v2 ->
-    tletapp x v1 v2 x <=< tlete x1 v1 (tlete x2 v2 (tletapp x x1 x2 x)).
 Admitted.
 
 Lemma eta_reduction: forall x1 (f: value) x2 (v: value),
