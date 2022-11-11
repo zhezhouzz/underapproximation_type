@@ -184,7 +184,7 @@ Inductive step : tm -> tm -> Prop :=
 | ST_LetAppLam: forall T x y v_x e1 e, (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
 | ST_LetAppFix: forall f T_f T x y v_x e1 e, (tletapp y ((vfix f T_f x T e1)) v_x e) --> tlete y (subst f (vfix f T_f x T e1) (subst x v_x e1)) e
 | ST_Matchb_true: forall e1 e2, (tmatchb true e1 e2) --> e1
-| ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e1
+| ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e2
 where "t1 '-->' t2" := (step t1 t2).
 
 Notation multistep := (multi step).
