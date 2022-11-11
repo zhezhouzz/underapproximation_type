@@ -4,6 +4,7 @@ From CT Require Import CoreLang.
 From CT Require Import NormalTypeSystem.
 From CT Require Import LinearContext.
 From CT Require Import RfTypeDef.
+From CT Require Import TermMeet.
 From CT Require Import TypeClosed.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.PropExtensionality.
@@ -19,6 +20,7 @@ Import LinearContext.
 Import RfTypeDef.
 Import TypeClosed.
 Import NoDup.
+Import TermMeet.
 Import Ax.
 Import ListNotations.
 

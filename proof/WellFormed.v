@@ -13,6 +13,7 @@ From Coq Require Import Lists.List.
 Import CoreLang.
 Import LinearContext.
 Import NoDup.
+Import TermMeet.
 Import Ax.
 Import TypeClosed.
 Import Denotation.

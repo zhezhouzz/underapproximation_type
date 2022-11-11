@@ -6,11 +6,11 @@ Ax.v
 LinearContext.v
 RfTypeDef.v
 NoDup.v
+TermMeet.v
 TypeClosed.v
 Denotation.v
 WellFormed.v
 CtxErase.v
-TermMeet.v
 DenotationAux.v
 TypeDisj.v
 DenotationSpecs.v
