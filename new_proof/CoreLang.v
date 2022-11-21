@@ -70,9 +70,11 @@ with _open_tm (k : nat) (s : value) (e : tm): tm :=
        match e with
        | terr => e
        | tvalue v => tvalue (_open_value k s v)
-       | tlete e1 e2 => tlete (_open_tm k s e1) (_open_tm k s e2)
-       | tletapp v1 v2 e => tletapp (_open_value k s v1) (_open_value k s v2) (_open_tm k s e)
-       | tletbiop op v1 v2 e => tletbiop op (_open_value k s v1) (_open_value k s v2) (_open_tm k s e)
+       | tlete e1 e2 => tlete (_open_tm k s e1) (_open_tm (S k) s e2)
+       | tletapp v1 v2 e =>
+           tletapp (_open_value k s v1) (_open_value k s v2) (_open_tm (S k) s e)
+       | tletbiop op v1 v2 e =>
+           tletbiop op (_open_value k s v1) (_open_value k s v2) (_open_tm (S k) s e)
        | tmatchb v e1 e2 => tmatchb (_open_value k s v) (_open_tm k s e1) (_open_tm k s e2)
        end.
 
@@ -97,10 +99,13 @@ with _close_tm (x : atom) (s : nat) (e : tm): tm :=
        match e with
        | terr => e
        | tvalue v => tvalue (_close_value x s v)
-       | tlete e1 e2 => tlete (_close_tm x s e1) (_close_tm x s e2)
-       | tletapp v1 v2 e => tletapp (_close_value x s v1) (_close_value x s v2) (_close_tm x s e)
-       | tletbiop op v1 v2 e => tletbiop op (_close_value x s v1) (_close_value x s v2) (_close_tm x s e)
-       | tmatchb v e1 e2 => tmatchb (_close_value x s v) (_close_tm x s e1) (_close_tm x s e2)
+       | tlete e1 e2 => tlete (_close_tm x s e1) (_close_tm x (S s) e2)
+       | tletapp v1 v2 e =>
+           tletapp (_close_value x s v1) (_close_value x s v2) (_close_tm x (S s) e)
+       | tletbiop op v1 v2 e =>
+           tletbiop op (_close_value x s v1) (_close_value x s v2) (_close_tm x (S s) e)
+       | tmatchb v e1 e2 =>
+           tmatchb (_close_value x s v) (_close_tm x s e1) (_close_tm x s e2)
        end.
 
 Notation "'{' s '<v~' x '}' e" := (_close_value x s e) (at level 20, s constr).
@@ -119,9 +124,12 @@ Inductive lc: tm -> Prop :=
 | lc_vfix: forall Tf e (L: aset),
     (forall (f:atom), f ∉ L -> lc ({0 ~t> f} e)) -> lc (vfix Tf e)
 | lc_terr: lc terr
-| lc_tlete: forall (e1 e2: tm), lc e1 -> lc e2 -> lc (tlete e1 e2)
-| lc_tletapp: forall (v1 v2: value) e, lc v1 -> lc v2 -> lc e -> lc (tletapp v1 v2 e)
-| lc_tletbiop: forall op (v1 v2: value) e, lc v1 -> lc v2 -> lc e -> lc (tletbiop op v1 v2 e)
+| lc_tlete: forall (e1 e2: tm) (L: aset),
+    lc e1 -> (forall (x: atom), x ∉ L -> lc (e2 ^t^ x)) -> lc (tlete e1 e2)
+| lc_tletapp: forall (v1 v2: value) e (L: aset),
+    lc v1 -> lc v2 -> (forall (x: atom), x ∉ L -> lc (e ^t^ x)) -> lc (tletapp v1 v2 e)
+| lc_tletbiop: forall op (v1 v2: value) e (L: aset),
+    lc v1 -> lc v2 -> (forall (x: atom), x ∉ L -> lc (e ^t^ x)) -> lc (tletbiop op v1 v2 e)
 | lc_tmatchb: forall (v: value) e1 e2, lc v -> lc e1 -> lc e2 -> lc (tmatchb v e1 e2).
 
 Global Hint Constructors lc: core.

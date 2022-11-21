@@ -87,11 +87,11 @@ Ltac apply_by_set_solver :=
   end.
 
 Ltac auto_exists_L :=
-  let acc := collect_stales tt in econstructor; instantiate (1 := acc).
+  let acc := collect_stales tt in econstructor; auto; instantiate (1 := acc).
 
 Ltac auto_exists_L_and_solve :=
   match goal with
-  | [ |- ?P /\ _ ] => constructor; auto_exists_L_and_solve
+  | [ |- ?P /\ _ ] => constructor; auto; auto_exists_L_and_solve
   | _ => auto_exists_L; intros; repeat split; apply_by_set_solver
   end.
 
@@ -120,6 +120,10 @@ Ltac var_dec_solver :=
 Ltac auto_eq_post :=
   repeat match goal with
          | [ |- ?a ?e1 = ?a ?e2 ] =>
+             assert (e1 = e2) as HH; try (rewrite HH; auto)
+         | [|- ?a ?b ?e1 = ?a ?b ?e2 ] =>
+             assert (e1 = e2) as HH; try (rewrite HH; auto)
+         | [|- ?a ?b ?c ?e1 = ?a ?b ?c ?e2 ] =>
              assert (e1 = e2) as HH; try (rewrite HH; auto)
          | [ |- ?a ?b ?c1 = ?a ?b ?c2 ] =>
              assert (c1 = c2); auto

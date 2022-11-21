@@ -123,131 +123,193 @@ Proof with eauto.
   - assert (x <> atom) by my_set_solver. rewrite decide_False...
 Qed.
 
-Fixpoint lc_at_value (k : nat) (v : value): Prop :=
-  match v with
-  | vbiop _ => True
-  | vconst _ => True
-  | vfvar _ => True
-  | vbvar n => n < k
-  | vlam T e => lc_at_tm (S k) e
-  | vfix Tf e => lc_at_tm (S k) e
-  end
-with lc_at_tm (k : nat) (e : tm): Prop :=
-       match e with
-       | terr => True
-       | tvalue v => lc_at_value k v
-       | tlete e1 e2 => lc_at_tm k e1 /\ lc_at_tm k e2
-       | tletapp v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm k e
-       | tletbiop op v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm k e
-       | tmatchb v e1 e2 => lc_at_value k v /\ lc_at_tm k e1 /\ lc_at_tm k e2
-       end.
+(* Fixpoint lc_at_value (k : nat) (v : value): Prop := *)
+(*   match v with *)
+(*   | vbiop _ => True *)
+(*   | vconst _ => True *)
+(*   | vfvar _ => True *)
+(*   | vbvar n => n < k *)
+(*   | vlam T e => lc_at_tm (S k) e *)
+(*   | vfix Tf e => lc_at_tm (S k) e *)
+(*   end *)
+(* with lc_at_tm (k : nat) (e : tm): Prop := *)
+(*        match e with *)
+(*        | terr => True *)
+(*        | tvalue v => lc_at_value k v *)
+(*        | tlete e1 e2 => lc_at_tm k e1 /\ lc_at_tm (S k) e2 *)
+(*        | tletapp v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm (S k) e *)
+(*        | tletbiop op v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm (S k) e *)
+(*        | tmatchb v e1 e2 => lc_at_value k v /\ lc_at_tm k e1 /\ lc_at_tm k e2 *)
+(*        end. *)
 
 Ltac ex_specialize_L :=
   match goal with
   | [ H : ex (fun (L: aset) => _) |- _] => destruct H; specialize_L
   end.
 
-(* #[global] *)
-(* Instance tm_stale : Stale tm := fv_tm. *)
-(* Arguments tm_stale /. *)
-(* Arguments stale /. *)
+(* Definition lc_implies_lc_at_tm: forall e, lc e -> lc_at_tm 0 e. *)
+(* Proof with auto. *)
+(*   intros. induction H; simpl; repeat split; auto. *)
+(*   - rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve. *)
+(*   - rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve. *)
+(*   - split. *)
+(* Qed. *)
 
-Lemma lc_at_eq_cofinite_tm: forall e k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)).
+(* Lemma lc_at_eq_cofinite_tm: forall e k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)). *)
+(* Proof with auto. *)
+(*   apply (tm_mutual_rec *)
+(*            (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e))) *)
+(*            (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)))); *)
+(*     simpl; split; intros; auto; *)
+(*     try eempty_aset; *)
+(*     try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve). *)
+(*   - destruct (Nat.eq_dec k bn). *)
+(*     + subst. exists ∅... intros. rewrite decide_True... simpl... *)
+(*     + exists ∅... intros. rewrite decide_False... simpl. lia. *)
+(*   - ex_specialize_L. *)
+(*     destruct (Nat.eq_dec k bn). *)
+(*     + subst. rewrite decide_True in H... *)
+(*     + rewrite decide_False in H... *)
+(* Qed. *)
+
+(* Lemma lc_at_eq_cofinite_value: forall e k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e)). *)
+(* Proof with auto. *)
+(*   apply (value_mutual_rec *)
+(*            (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e))) *)
+(*            (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)))); *)
+(*     simpl; split; intros; auto; *)
+(*     try eempty_aset; *)
+(*     try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve). *)
+(*   - destruct (Nat.eq_dec k bn). *)
+(*     + subst. exists ∅... intros. rewrite decide_True... simpl... *)
+(*     + exists ∅... intros. rewrite decide_False... simpl. lia. *)
+(*   - ex_specialize_L. *)
+(*     destruct (Nat.eq_dec k bn). *)
+(*     + subst. rewrite decide_True in H... *)
+(*     + rewrite decide_False in H... *)
+(* Qed. *)
+
+(* Lemma open_rec_lc_tm_aux: forall (v: value) (u: tm) (k: nat), lc_at_tm k u -> {k ~t> v} u = u. *)
+(* Proof with eauto. *)
+(*   intro v. *)
+(*   apply (tm_mutual_rec *)
+(*            (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u) *)
+(*            (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros; *)
+(*     try repeat rewrite_by_fol; auto. *)
+(*   - rewrite decide_False... lia. *)
+(* Qed. *)
+
+(* Lemma open_rec_lc_value_aux: forall (v: value) (u: value) (k: nat), lc_at_value k u -> {k ~v> v} u = u. *)
+(* Proof with eauto. *)
+(*   intro v. *)
+(*   apply (value_mutual_rec *)
+(*            (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u) *)
+(*            (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros; *)
+(*     try repeat rewrite_by_fol; auto. *)
+(*   - rewrite decide_False... lia. *)
+(* Qed. *)
+
+(* Ltac ltac_lc_at_tm_order := *)
+(*   match goal with *)
+(*   | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ (S ?k') _] => *)
+(*       specialize (H (S k) (S k')); apply H; auto; lia *)
+(*   | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ ?k' _] => *)
+(*       specialize (H k k'); apply H; auto; lia *)
+(*   | _ => auto; lia *)
+(*   end. *)
+
+(* Lemma lc_at_tm_order: forall u k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u. *)
+(* Proof with auto. *)
+(*   apply (tm_mutual_rec *)
+(*            (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u) *)
+(*            (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u)); *)
+(*     simpl; intros; auto; *)
+(*     try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order. *)
+(* Qed. *)
+
+(* Lemma lc_at_value_order: forall u k k', k <= k' -> lc_at_value k u -> lc_at_value k' u. *)
+(* Proof with auto. *)
+(*   apply (value_mutual_rec *)
+(*            (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u) *)
+(*            (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u)); *)
+(*     simpl; intros; auto; *)
+(*     try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order. *)
+(* Qed. *)
+
+(* There is a typo in the paper *)
+Lemma fact1_tm: forall u v (e: tm) i j,
+    i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e.
 Proof with auto.
+  intros u v.
   apply (tm_mutual_rec
-           (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e)))
-           (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e))));
-    simpl; split; intros; auto;
-    try eempty_aset;
-    try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve).
-  - destruct (Nat.eq_dec k bn).
-    + subst. exists ∅... intros. rewrite decide_True... simpl...
-    + exists ∅... intros. rewrite decide_False... simpl. lia.
-  - ex_specialize_L.
-    destruct (Nat.eq_dec k bn).
-    + subst. rewrite decide_True in H...
-    + rewrite decide_False in H...
+           (fun (e: value) => forall i j, i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e)
+           (fun (e: tm) => forall i j, i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e)
+        ); simpl; intros; auto;
+    try repeat match goal with
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ = ?a _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ = ?a _ _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ _ = ?a _ _ _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               end.
+  - repeat var_dec_solver.
 Qed.
 
-Lemma lc_at_eq_cofinite_value: forall e k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e)).
+Lemma fact1_value: forall u v (e: value) i j,
+    i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e.
 Proof with auto.
+  intros u v.
   apply (value_mutual_rec
-           (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e)))
-           (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e))));
-    simpl; split; intros; auto;
-    try eempty_aset;
-    try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve).
-  - destruct (Nat.eq_dec k bn).
-    + subst. exists ∅... intros. rewrite decide_True... simpl...
-    + exists ∅... intros. rewrite decide_False... simpl. lia.
-  - ex_specialize_L.
-    destruct (Nat.eq_dec k bn).
-    + subst. rewrite decide_True in H...
-    + rewrite decide_False in H...
+           (fun (e: value) => forall i j, i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e)
+           (fun (e: tm) => forall i j, i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e)
+        ); simpl; intros; auto;
+    try repeat match goal with
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ = ?a _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ = ?a _ _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ _ = ?a _ _ _ |- _ = _ ] =>
+                   inversion H'';
+                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
+               end.
+  - repeat var_dec_solver.
 Qed.
 
-Definition lc_implies_lc_at_tm: forall e, lc e -> lc_at_tm 0 e.
-Proof with auto.
-  - intros. induction H; simpl; auto.
-    + rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve.
-    + rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve.
-Qed.
-
-Lemma open_rec_lc_tm_aux: forall (v: value) (u: tm) (k: nat), lc_at_tm k u -> {k ~t> v} u = u.
-Proof with eauto.
-  intro v.
-  apply (tm_mutual_rec
-           (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u)
-           (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros;
-    try repeat rewrite_by_fol; auto.
-  - rewrite decide_False... lia.
-Qed.
-
-Lemma open_rec_lc_value_aux: forall (v: value) (u: value) (k: nat), lc_at_value k u -> {k ~v> v} u = u.
-Proof with eauto.
-  intro v.
-  apply (value_mutual_rec
-           (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u)
-           (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros;
-    try repeat rewrite_by_fol; auto.
-  - rewrite decide_False... lia.
-Qed.
-
-Ltac ltac_lc_at_tm_order :=
-  match goal with
-  | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ (S ?k') _] =>
-      specialize (H (S k) (S k')); apply H; auto; lia
-  | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ ?k' _] =>
-      specialize (H k k'); apply H; auto; lia
-  | _ => auto; lia
-  end.
-
-Lemma lc_at_tm_order: forall u k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u.
-Proof with auto.
-  apply (tm_mutual_rec
-           (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u)
-           (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u));
-    simpl; intros; auto;
-    try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order.
-Qed.
-
-Lemma lc_at_value_order: forall u k k', k <= k' -> lc_at_value k u -> lc_at_value k' u.
-Proof with auto.
-  apply (value_mutual_rec
-           (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u)
-           (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u));
-    simpl; intros; auto;
-    try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order.
+Lemma tvalue_eq: forall (v1 v2: value), tvalue v1 = tvalue v2 -> v1 = v2.
+Proof.
+  intros. inversion H. auto.
 Qed.
 
 Lemma open_rec_lc_tm: forall (v: value) (u: tm) (k: nat), lc u -> {k ~t> v} u = u.
 Proof with eauto.
-  intros. apply lc_implies_lc_at_tm in H. apply open_rec_lc_tm_aux. apply lc_at_tm_order with (k:=0); auto. lia.
+  intros. generalize dependent k.
+  induction H; simpl; intros; auto;
+    try (repeat match goal with
+                | [H: forall (k: nat), _ = _ |- (_: tm) ] => rewrite H; auto
+                | [H: forall (k: nat), _ = _ |- (_: value) ] =>
+                    specialize (H k); simpl in H; apply tvalue_eq in H; rewrite H
+                end; auto;
+         auto_eq_post;
+         let accL := collect_stales tt in
+         pose (Atom.fv_of_set accL) as y;
+         pose (Atom.fv_of_set_fresh accL);
+         repeat match goal with
+                | [H: forall (x: atom), _ |- _ ] =>
+                    specialize (H y)
+                end;
+         apply fact1_tm with (j := 0) (v:= vfvar y); auto; auto_apply; my_set_solver).
 Qed.
 
 Lemma open_rec_lc_value: forall (v: value) (u: value) (k: nat), lc u -> {k ~v> v} u = u.
 Proof with eauto.
-  intros. apply lc_implies_lc_at_tm in H. apply open_rec_lc_value_aux. apply lc_at_value_order with (k:=0); auto. lia.
+  intros.
+  apply open_rec_lc_tm with (v:=v) (k:=k) in H. simpl in H. apply tvalue_eq in H. auto.
 Qed.
 
 Lemma subst_open_value: forall (v: value) (x:atom) (u: value) (w: value) (k: nat),
@@ -320,51 +382,6 @@ Qed.
 
 (* The second class of lemmas *)
 
-(* There is a typo in the paper *)
-Lemma fact1_tm: forall u v (e: tm) i j,
-    i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e.
-Proof with auto.
-  intros u v.
-  apply (tm_mutual_rec
-           (fun (e: value) => forall i j, i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e)
-           (fun (e: tm) => forall i j, i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e)
-        ); simpl; intros; auto;
-    try repeat match goal with
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ = ?a _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ = ?a _ _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ _ = ?a _ _ _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               end.
-  - repeat var_dec_solver.
-Qed.
-
-Lemma fact1_value: forall u v (e: value) i j,
-    i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e.
-Proof with auto.
-  intros u v.
-  apply (value_mutual_rec
-           (fun (e: value) => forall i j, i <> j -> {i ~v> u} ({j ~v> v} e) = {j ~v> v} e -> {i ~v> u} e = e)
-           (fun (e: tm) => forall i j, i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e)
-        ); simpl; intros; auto;
-    try repeat match goal with
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ = ?a _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ = ?a _ _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               | [H: ?i <> ?j, H': context [_ -> _ = _], H'': ?a _ _ _ = ?a _ _ _ |- _ = _ ] =>
-                   inversion H'';
-                   (specialize (H' (S i) (S j)); rewrite H'; auto) || (specialize (H' i j); rewrite H'; auto)
-               end.
-  - repeat var_dec_solver.
-Qed.
-
 Lemma fact2_tm: forall (x y z: atom) (e: tm) i j,
     x <> y -> i <> j -> y ∉ fv_tm e ->
     {i ~t> y} ({j ~t> z} ({j <t~ x} e)) = {j ~t> z} ({j <t~ x} ({i ~t> y} e)).
@@ -380,6 +397,9 @@ Proof with auto.
         ); simpl; intros; auto; try (repeat rewrite_by_set_solver; auto); try (rewrite H; auto).
   - repeat var_dec_solver.
   - repeat var_dec_solver.
+  - auto_eq_post; rewrite H0; auto; set_solver.
+  - auto_eq_post; rewrite H1; auto; set_solver.
+  - auto_eq_post; rewrite H1; auto; set_solver.
 Qed.
 
 Lemma fact2_value: forall (x y z: atom) (e: value) i j,
@@ -397,6 +417,9 @@ Proof with auto.
         ); simpl; intros; auto; try (repeat rewrite_by_set_solver; auto); try (rewrite H; auto).
   - repeat var_dec_solver.
   - repeat var_dec_solver.
+  - auto_eq_post; rewrite H0; auto; set_solver.
+  - auto_eq_post; rewrite H1; auto; set_solver.
+  - auto_eq_post; rewrite H1; auto; set_solver.
 Qed.
 
 Lemma subst_lc_tm: forall x (u: value) (t: tm), lc t -> lc u -> lc ([x := u]t t).
@@ -465,7 +488,25 @@ Proof.
   intros. apply open_close_var_value_aux. apply open_rec_lc_value; auto.
 Qed.
 
-Lemma open_close_lc_tm: forall (x: atom) (t: tm) (k: nat),
+Lemma close_var_lc_tm': forall (x: atom) (t: tm),
+    lc t -> forall k, body ({k ~t> x} t).
+Proof.
+  intros. generalize dependent k.
+  induction H; simpl; intros; auto.
+    (* try (auto_exists_L; intros; repeat split; auto). *)
+  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
+  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
+  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
+  - let acc := collect_stales tt in pose acc.
+    pose (fv_of_set a).
+    pose (fv_of_set_fresh a).
+    assert (s ∉ L) by my_set_solver.
+    specialize (H0 s H1 (S k)). destruct H0.
+    auto_exists_L. intros; repeat split; auto.
+    auto_exists_L. intros; repeat split; auto. fold _open_tm.
+Admitted.
+
+Lemma close_var_lc_tm: forall (x: atom) (t: tm) (k: nat),
     lc t ->
     (exists (L: aset), forall (x': atom), x' ∉ L -> lc ({k ~t> x'} ({k <t~ x} t))).
 Proof.
@@ -475,7 +516,8 @@ Proof.
   - auto_exists_L; intros; repeat split; auto.
   - auto_exists_L; intros; repeat split; auto.
   - auto_exists_L; intros; repeat split; auto. repeat var_dec_solver. constructor.
-  - auto_exists_L; intros; repeat split; auto.
+  - 
+    auto_exists_L; intros; repeat split; auto.
     auto_exists_L; intros; repeat split; auto.
     rewrite fact2_tm; auto.
     assert (x0 ∉ L) by my_set_solver.
@@ -555,4 +597,38 @@ Proof.
   erewrite <- subst_intro_value; auto. instantiate (1:= s).
   apply subst_lc_value; auto. apply H.
   my_set_solver. my_set_solver.
+Qed.
+
+(* Lemma for MNF *)
+
+Ltac solve_let_lc_body H :=
+  split; intros; try repeat split; auto;
+    inversion H; subst; auto;
+    try destruct_hyp_conj; try match goal with
+    | [ H: body _ |- _ ] => inversion H; subst; clear H
+    (* | [ H: lc _ |- _ ] => inversion H; subst; clear H *)
+    end;
+    auto_exists_L; intros; repeat split; auto;
+    auto_apply; my_set_solver.
+
+Lemma lete_lc_body: forall e1 e, lc (tlete e1 e) <-> lc e1 /\ body e.
+Proof.
+  solve_let_lc_body H.
+Qed.
+
+Lemma letapp_lc_body: forall (v1 v2: value) e, lc (tletapp v1 v2 e) <-> lc v1 /\ lc v2 /\ body e.
+Proof.
+  solve_let_lc_body H.
+Qed.
+
+Lemma letbiop_lc_body: forall op (v1 v2: value) e, lc (tletbiop op v1 v2 e) <-> lc v1 /\ lc v2 /\ body e.
+Proof.
+  solve_let_lc_body H.
+Qed.
+
+Lemma lc_fix_iff_body: forall T e, lc (vfix T e) <-> body e.
+Proof.
+  split; unfold body; intros.
+  - inversion H; subst. exists L. auto.
+  - destruct H as (L & HL). econstructor. apply HL.
 Qed.
