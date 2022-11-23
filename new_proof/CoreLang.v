@@ -24,6 +24,8 @@ Coercion TBase : base_ty >-> ty.
 Coercion cbool : bool >-> constant.
 Coercion cnat : nat >-> constant.
 
+Notation " t1 '⤍' t2" := (TArrow t1 t2) (at level 18, right associativity).
+
 Inductive biop : Type :=
 | op_plus
 | op_eq
@@ -185,7 +187,7 @@ with tm_subst (x : atom) (s : value) (e : tm): tm :=
 (* Definition value_subst (x:atom) (s:value) (t:value) : value := (x \v\ t) ^v^ s. *)
 (* Definition tm_subst (x:atom) (s:value) (t:tm) : tm := (x \t\ t) ^t^ s. *)
 
-Notation "'[' x ':=' s ']t' t" := (tm_subst x s t) (at level 20).
-Notation "'[' x ':=' s ']v' t" := (value_subst x s t) (at level 20).
+Notation "'{' x ':=' s '}t' t" := (tm_subst x s t) (at level 20).
+Notation "'{' x ':=' s '}v' t" := (value_subst x s t) (at level 20).
 
 Notation "x # s" := (x ∉ stale s) (at level 40).

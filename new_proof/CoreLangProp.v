@@ -104,21 +104,21 @@ Proof.
 Qed.
 
 Lemma subst_fresh_value: forall (v: value) (x:atom) (u: value),
-    x ∉ (fv_value v) -> [x := u]v v = v.
+    x ∉ (fv_value v) -> {x := u}v v = v.
 Proof with eauto.
   apply (value_mutual_rec
-           (fun (v: value) => forall (x:atom) (u: value), x ∉ (fv_value v) -> [x := u]v v = v)
-           (fun (e: tm) => forall (x:atom) (u: value), x ∉ (fv_tm e) -> [x := u]t e = e)
+           (fun (v: value) => forall (x:atom) (u: value), x ∉ (fv_value v) -> {x := u}v v = v)
+           (fun (e: tm) => forall (x:atom) (u: value), x ∉ (fv_tm e) -> {x := u}t e = e)
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto).
   - assert (x <> atom) by my_set_solver. rewrite decide_False...
 Qed.
 
 Lemma subst_fresh_tm: forall (e: tm) (x:atom) (u: value),
-    x ∉ (fv_tm e) -> [x := u]t e = e.
+    x ∉ (fv_tm e) -> {x := u}t e = e.
 Proof with eauto.
   apply (tm_mutual_rec
-           (fun (v: value) => forall (x:atom) (u: value), x ∉ (fv_value v) -> [x := u]v v = v)
-           (fun (e: tm) => forall (x:atom) (u: value), x ∉ (fv_tm e) -> [x := u]t e = e)
+           (fun (v: value) => forall (x:atom) (u: value), x ∉ (fv_value v) -> {x := u}v v = v)
+           (fun (e: tm) => forall (x:atom) (u: value), x ∉ (fv_tm e) -> {x := u}t e = e)
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto).
   - assert (x <> atom) by my_set_solver. rewrite decide_False...
 Qed.
@@ -313,13 +313,13 @@ Proof with eauto.
 Qed.
 
 Lemma subst_open_value: forall (v: value) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> [x := w]v ({k ~v> u} v) = ({k ~v> [x := w]v u} ([x := w]v v)).
+    lc w -> {x := w}v ({k ~v> u} v) = ({k ~v> {x := w}v u} ({x := w}v v)).
 Proof with eauto.
   apply (value_mutual_rec
            (fun (v: value) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> [x := w]v ({k ~v> u} v) = ({k ~v> [x := w]v u} ([x := w]v v)))
+                lc w -> {x := w}v ({k ~v> u} v) = ({k ~v> {x := w}v u} ({x := w}v v)))
            (fun (e: tm) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> [x := w]t ({k ~t> u} e) = ({k ~t> [x := w]v u} ([x := w]t e)))
+                lc w -> {x := w}t ({k ~t> u} e) = ({k ~t> {x := w}v u} ({x := w}t e)))
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto);
     try repeat match goal with
                | [H: context [ tm_subst _ _ _ = _ ] |- _ ] => rewrite H; auto
@@ -334,13 +334,13 @@ Proof with eauto.
 Qed.
 
 Lemma subst_open_tm: forall (v: tm) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> [x := w]t ({k ~t> u} v) = ({k ~t> [x := w]v u} ([x := w]t v)).
+    lc w -> {x := w}t ({k ~t> u} v) = ({k ~t> {x := w}v u} ({x := w}t v)).
 Proof with eauto.
   apply (tm_mutual_rec
            (fun (v: value) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> [x := w]v ({k ~v> u} v) = ({k ~v> [x := w]v u} ([x := w]v v)))
+                lc w -> {x := w}v ({k ~v> u} v) = ({k ~v> {x := w}v u} ({x := w}v v)))
            (fun (e: tm) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> [x := w]t ({k ~t> u} e) = ({k ~t> [x := w]v u} ([x := w]t e)))
+                lc w -> {x := w}t ({k ~t> u} e) = ({k ~t> {x := w}v u} ({x := w}t e)))
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto);
     try repeat match goal with
                | [H: context [ tm_subst _ _ _ = _ ] |- _ ] => rewrite H; auto
@@ -354,12 +354,12 @@ Proof with eauto.
     + rewrite decide_False... rewrite decide_False...
 Qed.
 
-Lemma close_var_rename_tm: forall x y (e: tm) k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ([x := y]t e).
+Lemma close_var_rename_tm: forall x y (e: tm) k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ({x := y}t e).
 Proof with auto.
   intros x y.
   apply (tm_mutual_rec
-           (fun (v: value) => forall k, y ∉ (fv_value v) -> {k <v~ x} v = {k <v~ y} ([x := y]v v))
-           (fun (e: tm) => forall k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ([x := y]t e))
+           (fun (v: value) => forall k, y ∉ (fv_value v) -> {k <v~ x} v = {k <v~ y} ({x := y}v v))
+           (fun (e: tm) => forall k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ({x := y}t e))
         ); simpl; intros; auto; try (repeat rewrite_by_set_solver; auto).
   - destruct (atom_dec x atom).
      + subst. rewrite decide_True... rewrite decide_True... simpl. rewrite decide_True...
@@ -367,12 +367,12 @@ Proof with auto.
        assert (y <> atom) by my_set_solver. rewrite decide_False...
 Qed.
 
-Lemma close_var_rename_value: forall x y (e: value) k, y ∉ (fv_value e) -> {k <v~ x} e = {k <v~ y} ([x := y]v e).
+Lemma close_var_rename_value: forall x y (e: value) k, y ∉ (fv_value e) -> {k <v~ x} e = {k <v~ y} ({x := y}v e).
 Proof with auto.
   intros x y.
   apply (value_mutual_rec
-           (fun (v: value) => forall k, y ∉ (fv_value v) -> {k <v~ x} v = {k <v~ y} ([x := y]v v))
-           (fun (e: tm) => forall k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ([x := y]t e))
+           (fun (v: value) => forall k, y ∉ (fv_value v) -> {k <v~ x} v = {k <v~ y} ({x := y}v v))
+           (fun (e: tm) => forall k, y ∉ (fv_tm e) -> {k <t~ x} e = {k <t~ y} ({x := y}t e))
         ); simpl; intros; auto; try (repeat rewrite_by_set_solver; auto).
   - destruct (atom_dec x atom).
      + subst. rewrite decide_True... rewrite decide_True... simpl. rewrite decide_True...
@@ -422,7 +422,7 @@ Proof with auto.
   - auto_eq_post; rewrite H1; auto; set_solver.
 Qed.
 
-Lemma subst_lc_tm: forall x (u: value) (t: tm), lc t -> lc u -> lc ([x := u]t t).
+Lemma subst_lc_tm: forall x (u: value) (t: tm), lc t -> lc u -> lc ({x := u}t t).
 Proof with auto.
   intros x u t Hlct.
   induction Hlct; simpl; intros; auto; try (constructor; auto);
@@ -436,7 +436,7 @@ Proof with auto.
   - repeat var_dec_solver.
 Qed.
 
-Lemma subst_lc_value: forall x (u: value) (t: value), lc t -> lc u -> lc ([x := u]t t).
+Lemma subst_lc_value: forall x (u: value) (t: value), lc t -> lc u -> lc ({x := u}t t).
 Proof with auto.
   intros x u t Hlct.
   induction Hlct; simpl; intros; auto; try (constructor; auto);
@@ -529,7 +529,7 @@ Admitted.
 
 Lemma subst_intro_tm: forall (v: tm) (x:atom) (w: value) (k: nat),
     x # v ->
-    lc w -> [x := w]t ({k ~t> x} v) = ({k ~t> w} v).
+    lc w -> {x := w}t ({k ~t> x} v) = ({k ~t> w} v).
 Proof.
   intros.
   specialize (subst_open_tm v x x w k) as J.
@@ -539,7 +539,7 @@ Qed.
 
 Lemma subst_intro_value: forall (v: value) (x:atom) (w: value) (k: nat),
     x # v ->
-    lc w -> [x := w]v ({k ~v> x} v) = ({k ~v> w} v).
+    lc w -> {x := w}v ({k ~v> x} v) = ({k ~v> w} v).
 Proof.
   intros.
   specialize (subst_open_value v x x w k) as J.
@@ -548,20 +548,20 @@ Proof.
 Qed.
 
 Lemma subst_open_var_tm: forall x y (u: value) (t: tm) (k: nat),
-    x <> y -> lc u -> [x := u]t ({k ~t> y} t) = ({k ~t> y} ([x := u]t t)).
+    x <> y -> lc u -> {x := u}t ({k ~t> y} t) = ({k ~t> y} ({x := u}t t)).
 Proof.
   intros.
   rewrite subst_open_tm; auto. simpl. rewrite decide_False; auto.
 Qed.
 
 Lemma subst_open_var_value: forall x y (u: value) (t: value) (k: nat),
-    x <> y -> lc u -> [x := u]v ({k ~v> y} t) = ({k ~v> y} ([x := u]v t)).
+    x <> y -> lc u -> {x := u}v ({k ~v> y} t) = ({k ~v> y} ({x := u}v t)).
 Proof.
   intros.
   rewrite subst_open_value; auto. simpl. rewrite decide_False; auto.
 Qed.
 
-Lemma subst_body_tm: forall x (u: value) (t: tm), body t -> lc u -> body ([x := u]t t).
+Lemma subst_body_tm: forall x (u: value) (t: tm), body t -> lc u -> body ({x := u}t t).
 Proof with auto.
   intros.
   destruct H. auto_exists_L; intros; repeat split; auto.
@@ -569,7 +569,7 @@ Proof with auto.
   apply subst_lc_tm; auto. apply H. my_set_solver. my_set_solver.
 Qed.
 
-Lemma subst_body_value: forall x (u: value) (t: value), body t -> lc u -> body ([x := u]v t).
+Lemma subst_body_value: forall x (u: value) (t: value), body t -> lc u -> body ({x := u}v t).
 Proof with auto.
   intros.
   destruct H. auto_exists_L; intros; repeat split; auto. simpl.
