@@ -632,3 +632,22 @@ Proof.
   - inversion H; subst. exists L. auto.
   - destruct H as (L & HL). econstructor. apply HL.
 Qed.
+
+Lemma lc_implies_body_tm: forall (e: tm), lc e -> body e.
+Proof. intros. exists ∅; intros; rewrite open_rec_lc_tm; auto.
+Qed.
+
+Lemma lc_implies_body_value: forall (e: value), lc e -> body e.
+Proof. intros. exists ∅; intros. rewrite open_rec_lc_tm; auto.
+Qed.
+
+Ltac lc_solver :=
+  repeat match goal with
+         | [ |- lc (tmatchb _ _ _)] => apply lc_tmatchb; (repeat split; auto)
+         | [ |- lc (tletapp _ _ _)] => rewrite letapp_lc_body; (repeat split; auto)
+         | [ |- lc (tletbiop _ _ _ _)] => rewrite letbiop_lc_body; (repeat split; auto)
+         | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
+         | [ |- lc (tvalue (vfix _ _))] => rewrite lc_fix_iff_body; auto
+         | [ |- lc (tvalue (vlam _ _))] => rewrite lc_abs_iff_body; auto
+         | [H: lc ?e |- body ?e] => apply lc_implies_body_tm; auto
+         end.

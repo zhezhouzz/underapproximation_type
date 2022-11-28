@@ -95,9 +95,20 @@ Ltac auto_exists_L_and_solve :=
   | _ => auto_exists_L; intros; repeat split; apply_by_set_solver
   end.
 
-Ltac var_dec_solver :=
+Ltac auto_exfalso :=
   match goal with
-  | [H: ?a <> ?a |- _ ] => exfalso; lia
+  | [H: ?a <> ?a |- _ ] => exfalso; auto
+  | [H: False |- _] => inversion H
+  | [H: Some _ = None |- _ ] => inversion H
+  | [H: None = Some _ |- _ ] => inversion H
+  | [H1: [] = _ ++ _ |- _ ] => symmetry in H1; apply app_eq_nil in H1; destruct H1 as (_ & H1); inversion H1
+  end.
+
+Ltac var_dec_solver :=
+  try auto_exfalso;
+  match goal with
+  | [H: Some ?a = Some ?b |- _] => inversion H; subst; clear H; simpl; auto
+  (* | [H: ?a <> ?a |- _ ] => exfalso; lia *)
   | [H: context [ decide (?a = ?a) ] |- _ ] => rewrite decide_True in H; auto
   | [H: context [ decide (?a = ?b) ] |- _ ] =>
       match goal with

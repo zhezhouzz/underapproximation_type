@@ -17,37 +17,37 @@ Inductive eval_op: biop -> constant -> constant -> constant -> Prop :=
 
 Global Hint Constructors eval_op: core.
 
-Reserved Notation "t1 '--->' t2" (at level 60).
+Reserved Notation "t1 '↪' t2" (at level 60).
 
 Inductive step : tm -> tm -> Prop :=
 | ST_LetOp: forall op (c1 c2 c3: constant) e,
     body e ->
-    eval_op op c1 c2 c3 -> (tletbiop op c1 c2 e) ---> (e ^t^ c3)
+    eval_op op c1 c2 c3 -> (tletbiop op c1 c2 e) ↪ (e ^t^ c3)
 | ST_Lete1: forall e1 e1' e,
     body e ->
-    e1 ---> e1' ->
-    (tlete e1 e) ---> (tlete e1' e)
+    e1 ↪ e1' ->
+    (tlete e1 e) ↪ (tlete e1' e)
 | ST_Lete2: forall (v1: value) e,
     lc v1 -> body e ->
-    (tlete (tvalue v1) e) ---> (e ^t^ v1)
+    (tlete (tvalue v1) e) ↪ (e ^t^ v1)
 | ST_LetAppLam: forall T (v_x: value) e1 e,
     body e1 -> body e -> lc v_x ->
-    (tletapp (vlam T e1) v_x e) ---> tlete (e1 ^t^ v_x) e
+    (tletapp (vlam T e1) v_x e) ↪ tlete (e1 ^t^ v_x) e
 | ST_LetAppFix: forall T_f (v_x: value) (v1: value) e,
     body v1 -> lc v_x -> body e ->
-    tletapp (vfix T_f v1) v_x e --->
+    tletapp (vfix T_f v1) v_x e ↪
             tletapp (v1 ^v^ (vfix T_f v1)) v_x e
 | ST_Matchb_true: forall e1 e2,
     lc e1 -> lc e2 ->
-    (tmatchb true e1 e2) ---> e1
+    (tmatchb true e1 e2) ↪ e1
 | ST_Matchb_false: forall e1 e2,
     lc e1 -> lc e2 ->
-    (tmatchb false e1 e2) ---> e2
-where "t1 '--->' t2" := (step t1 t2).
+    (tmatchb false e1 e2) ↪ e2
+where "t1 '↪' t2" := (step t1 t2).
 
 Definition relation (X : Type) := X -> X -> Prop.
 
-Lemma step_regular: forall e1 e2, e1 ---> e2 -> lc e1 /\ lc e2.
+Lemma step_regular: forall e1 e2, e1 ↪ e2 -> lc e1 /\ lc e2.
 Proof.
   intros.
   induction H; split; auto.
@@ -63,12 +63,12 @@ Proof.
   - rewrite letapp_lc_body; split; auto. apply open_lc_value; auto. rewrite lc_fix_iff_body; auto.
 Qed.
 
-Lemma step_regular1: forall e1 e2, e1 ---> e2 -> lc e1.
+Lemma step_regular1: forall e1 e2, e1 ↪ e2 -> lc e1.
 Proof.
   intros. apply step_regular in H. destruct H; auto.
 Qed.
 
-Lemma step_regular2: forall e1 e2, e1 ---> e2 -> lc e2.
+Lemma step_regular2: forall e1 e2, e1 ↪ e2 -> lc e2.
 Proof.
   intros. apply step_regular in H. destruct H; auto.
 Qed.
@@ -109,9 +109,25 @@ Proof.
 Qed.
 
 Definition normal_form (t : tm) : Prop :=
-  ~ exists t', t ---> t'.
+  ~ exists t', t ↪ t'.
 
 Definition deterministic {tm : Type} (R : relation tm) :=
   forall x y1 y2 : tm, R x y1 -> R x y2 -> y1 = y2.
 
-Notation "t1 '--->*' t2" := (multistep t1 t2) (at level 40).
+Notation "t1 '↪*' t2" := (multistep t1 t2) (at level 40).
+
+Lemma multi_step_regular: forall e1 e2, e1 ↪* e2 -> lc e1 /\ lc e2.
+Proof.
+  intros.
+  induction H; auto. destruct IHmultistep. split; auto. eapply step_regular1; eauto.
+Qed.
+
+Lemma multi_step_regular1: forall e1 e2, e1 ↪* e2 -> lc e1.
+Proof.
+  intros. apply multi_step_regular in H. destruct H; auto.
+Qed.
+
+Lemma multi_step_regular2: forall e1 e2, e1 ↪* e2 -> lc e2.
+Proof.
+  intros. apply multi_step_regular in H. destruct H; auto.
+Qed.

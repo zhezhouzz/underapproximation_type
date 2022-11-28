@@ -7,3 +7,4 @@ CoreLangProp.v
 OperationalSemantics.v
 ListCtx.v
 BasicTyping.v
+BasicTypingProp.v

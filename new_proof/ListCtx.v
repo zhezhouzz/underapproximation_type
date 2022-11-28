@@ -28,28 +28,21 @@ Ltac auto_destruct_pair :=
          | [a: prod _ _ |- _] => destruct a
          end.
 
-Ltac auto_exfalso :=
-  match goal with
-  | [H: ?a <> ?a |- _ ] => exfalso; auto
-  | [H: False |- _] => inversion H
-  | [H: Some _ = None |- _ ] => inversion H
-  | [H: None = Some _ |- _ ] => inversion H
-  | [H1: [] = _ ++ _ |- _ ] => symmetry in H1; apply app_eq_nil in H1; destruct H1 as (_ & H1); inversion H1
-  end.
-
 Ltac list_app_simpl :=
   auto_destruct_pair;
   try auto_exfalso;
   repeat match goal with
-  | [H: ?Γ1 ++ [(?x1, ?t1)] = ?Γ2 ++ [(?x2, ?t2)] |- _ ] => apply app_inj_tail in H; destruct H; subst
-  | [H: (?x1, ?t1) = (?x2, ?t2) |- _ ] => inversion H; subst; clear H
-  | [H: context [ ?a ++ []] |- _ ] => rewrite app_nil_r in H
-  | [ |- context [ ?a ++ []] ] => rewrite app_nil_r
-  | [H: context [ [] ++ ?a] |- _ ] => rewrite app_nil_l in H
-  | [ |- context [ [] ++ ?a] ] => rewrite app_nil_l
-  | [H: context [(_ :: _) ++ _] |- _ ] => rewrite <- app_comm_cons in H
-  | [ |- context [(_ :: _) ++ _]] => rewrite <- app_comm_cons
-  end; auto.
+         | [H: ?Γ1 ++ [(?x1, ?t1)] = ?Γ2 ++ [(?x2, ?t2)] |- _ ] => apply app_inj_tail in H; destruct H; subst
+         | [H: (?x1, ?t1) = (?x2, ?t2) |- _ ] => inversion H; subst; clear H
+         | [H: context [ ?a ++ []] |- _ ] => rewrite app_nil_r in H
+         | [ |- context [ ?a ++ []] ] => rewrite app_nil_r
+         | [H: context [ [] ++ ?a] |- _ ] => rewrite app_nil_l in H
+         | [ |- context [ [] ++ ?a] ] => rewrite app_nil_l
+         | [H: context [(_ :: _) ++ _] |- _ ] => rewrite <- app_comm_cons in H
+         | [ |- context [(_ :: _) ++ _]] => rewrite <- app_comm_cons
+         | [H: context [(_ ++ _) ++ _] |- _ ] => rewrite <- app_assoc in H
+         | [ |- context [(_ ++ _) ++ _]] => rewrite <- app_assoc
+         end; auto.
 
 (* list context definition *)
 
@@ -60,6 +53,10 @@ Fixpoint ctxdom {A: Type} (Γ: listctx A) : aset :=
   | [] => ∅
   | (x, _) :: Γ => {[x]} ∪ ctxdom Γ
   end.
+
+#[global]
+Instance listctx_stale {A:Type} : Stale (listctx A) := ctxdom.
+Arguments listctx_stale /.
 
 Lemma ctxdom_app_union {A: Type}: forall (Γ1 Γ2: listctx A), ctxdom (Γ1 ++ Γ2) = (ctxdom Γ1) ∪ (ctxdom Γ2).
 Proof.
@@ -159,14 +156,14 @@ Proof with auto.
     + var_dec_solver; auto. my_set_solver. apply IHΓ. my_set_solver.
 Qed.
 
-Ltac listctx_set_simpl :=
+Ltac listctx_set_simpl' :=
   list_app_simpl;
   repeat match goal with
          | [H: ctxfind _ _ = None |- _ ] => rewrite ctxfind_none_iff_not_in_dom in H
-         | [H: context [_ ∈ ctxdom (_ ++ _)] |- _ ] =>
+         | [H: context [ctxdom (_ ++ _)] |- _ ] =>
              rewrite ctxdom_app_union in H; simpl in H
          | [|- ctxfind _ _ = None ] => rewrite ctxfind_none_iff_not_in_dom
-         | [|- context [_ ∈ ctxdom (_ ++ _)]] =>
+         | [|- context [ctxdom (_ ++ _)]] =>
              rewrite ctxdom_app_union; simpl
          | [H: ok (((?x, _) :: _) ++ [(?y, _)]) |- _ ] =>
              rewrite <- app_comm_cons in H
@@ -174,19 +171,11 @@ Ltac listctx_set_simpl :=
              rewrite ok_pre_destruct in H; destruct H
          | [H: ok (_ ++ [(_, _)]) |- _ ] =>
              rewrite ok_post_destruct in H; destruct H
-         | [H: _ ∉ ctxdom (_ ++ [(_, _)]) |- _ ] =>
+         | [H: context [ctxdom (_ ++ [(_, _)])] |- _ ] =>
              rewrite ctxdom_app_union in H; simpl in H
-         | [|- _ ∉ ctxdom (_ ++ [(_, _)])] =>
+         | [|- context [ctxdom (_ ++ [(_, _)])]] =>
              rewrite ctxdom_app_union; simpl
          end.
-
-Ltac listctx_set_solver :=
-  listctx_set_simpl;
-  try match goal with
-  | [H: ok (_ ++ (?x, _) :: ?Γ) |- ?x ∉ ctxdom ?Γ ] =>
-      apply ok_weak_post in H; rewrite ok_pre_destruct in H; destruct H; auto
-  end;
-  my_set_solver.
 
 Lemma ctxfind_some_implies_in_dom {A: Type}: forall (Γ: listctx A) x (a: A),
     ctxfind Γ x = Some a -> x ∈ ctxdom Γ.
@@ -202,23 +191,94 @@ Proof with auto.
   intros. rewrite ctxfind_none_iff_not_in_dom in H. my_set_solver.
 Qed.
 
+Lemma ctxfind_app {A: Type}: forall Γ1 Γ2 x (T: A),
+    ok (Γ1 ++ Γ2) ->
+    ctxfind (Γ1 ++ Γ2) x = Some T <-> ctxfind Γ1 x = Some T \/ ctxfind Γ2 x = Some T.
+Proof.
+  induction Γ1; split; intros; listctx_set_simpl'.
+  - destruct H0; auto. inversion H0.
+  - destruct (Atom.atom_dec a x); subst; simpl in H0; auto.
+    + left. repeat var_dec_solver.
+    + simpl. repeat var_dec_solver. rewrite <- IHΓ1; auto.
+  - destruct H0; simpl in H0; auto.
+    + repeat var_dec_solver. rewrite IHΓ1; auto.
+    + repeat var_dec_solver. apply ctxfind_some_implies_in_dom in H0. my_set_solver.
+      rewrite IHΓ1; auto.
+Qed.
+
+Lemma ctxfind_app_weaken {A: Type}: forall Γ1 Γ2 Γ3 x (T: A),
+    ok (Γ1 ++ Γ2 ++ Γ3) ->
+    ctxfind (Γ1 ++ Γ3) x = Some T -> ctxfind (Γ1 ++ Γ2 ++ Γ3) x = Some T.
+Proof.
+  induction Γ1; simpl; intros; listctx_set_simpl'.
+  - rewrite ctxfind_app; auto.
+  - repeat var_dec_solver.
+Qed.
+
+Lemma ok_app_weaken {A: Type}: forall (Γ1 Γ2: listctx A) x (Tx :A),
+    ok (Γ1 ++ (x, Tx) :: Γ2) -> ok (Γ1 ++ Γ2).
+Proof.
+  induction Γ1; simpl; intros; listctx_set_simpl'; auto.
+  - apply IHΓ1 in H. rewrite ok_pre_destruct. split; auto. listctx_set_simpl'. my_set_solver.
+Qed.
+
+Lemma ctxfind_find_mid_eq {A: Type}: forall (Γ1 Γ3: listctx A) x (U T:A),
+    ok (Γ1 ++ (x, U) :: Γ3) ->
+    ctxfind (Γ1 ++ (x, U) :: Γ3) x = Some T -> U = T.
+Proof.
+  induction Γ1; simpl; intros; listctx_set_simpl'; auto.
+  - repeat var_dec_solver.
+  - repeat var_dec_solver. my_set_solver. apply IHΓ1 in H0; auto.
+Qed.
+
+Lemma ctxfind_find_mid_neq {A: Type}: forall (Γ1 Γ3: listctx A) x y (U T:A),
+    x <> y ->
+    ok (Γ1 ++ (x, U) :: Γ3) ->
+    ctxfind (Γ1 ++ (x, U) :: Γ3) y = Some T -> ctxfind (Γ1 ++ Γ3) y = Some T.
+Proof.
+  induction Γ1; simpl; intros; listctx_set_simpl'; auto.
+  - repeat var_dec_solver.
+  - repeat var_dec_solver. my_set_solver.
+Qed.
+
+Ltac listctx_set_simpl :=
+  list_app_simpl;
+  repeat (listctx_set_simpl' ||
+            (match goal with
+             | [H1: ok (?Γ1 ++ (?x, ?U) :: ?Γ3), H: ctxfind (?Γ1 ++ (?x, ?U) :: ?Γ3) ?x = Some ?T |- _ ] => assert (U = T) as Htmp by (apply (ctxfind_find_mid_eq _ _ _ _ T) in H1; auto); subst; try clear Htmp
+             | [H: ctxfind (?Γ1 ++ (?z, _) :: ?Γ3) ?x = Some ?T
+                |- ctxfind (?Γ1 ++ ?Γ3) ?x = Some ?T ] => apply ctxfind_find_mid_neq in H; auto
+             end)).
+
+Ltac listctx_set_solver1 :=
+  listctx_set_simpl;
+  repeat match goal with
+         | [H: ctxfind (?Γ1 ++ ?Γ3) ?x = Some ?T |- ctxfind (?Γ1 ++ ?Γ2 ++ ?Γ3) ?x = Some ?T ] => apply ctxfind_app_weaken; auto
+         | [H: ok (?Γ1 ++ _ :: ?Γ2) |- ok (?Γ1 ++ ?Γ2) ] => apply ok_app_weaken in H; exact H
+         | [H: ok (_ ++ (?x, _) :: ?Γ) |- ?x ∉ ctxdom ?Γ ] =>
+             apply ok_weak_post in H; rewrite ok_pre_destruct in H; destruct H; auto
+         | [H: ok (?a ++ ?b ++ ?c) |- ok ((?a ++ ?b) ++ ?c) ] => rewrite <- app_assoc; exact H
+         | [H: ok (?a ++ ?b ++ ?c) |- ok (?a ++ ?b ++ ?c ++ [(?x, _)]) ] =>
+             rewrite -> app_assoc; rewrite -> app_assoc; constructor
+         end; listctx_set_simpl; my_set_solver.
+
 Lemma ctxfind_none_neq_tl {A: Type}: forall (Γ: listctx A) x tx a,
     ctxfind ((x, tx):: Γ) a = None -> ctxfind Γ a = None.
-Proof. intros; listctx_set_solver. Qed.
+Proof. intros; listctx_set_solver1. Qed.
 
 Lemma ctxfind_weak_pre {A: Type}: forall (Γ1 Γ2 : listctx A) a,
     ctxfind (Γ1 ++ Γ2) a = None ->
     ctxfind Γ1 a = None.
-Proof. intros; listctx_set_solver. Qed.
+Proof. intros; listctx_set_solver1. Qed.
 
 Lemma ctxfind_weak_post {A: Type}: forall (Γ1  Γ2: listctx A) a,
     ctxfind (Γ1 ++ Γ2) a = None ->
     ctxfind Γ2 a = None.
-Proof. intros; listctx_set_solver. Qed.
+Proof. intros; listctx_set_solver1. Qed.
 
 Lemma ctxfind_weak_unit {A: Type}: forall x (tau_x: A) a,
     ctxfind ((x, tau_x)::nil) a = None -> a <> x.
-Proof. intros; listctx_set_solver. Qed.
+Proof. intros; listctx_set_solver1. Qed.
 
 Lemma l_find_implies_in {A:Type}: forall (ctx: listctx A) (x: atom) (t: A),
       ctxfind ctx x = Some t -> In (x, t) ctx.
@@ -243,7 +303,7 @@ Qed.
 Lemma ok_first_not_equal_hd {A:Type}: forall (Γ: list (prod atom A)) (x y: atom) (a b: A),
     ok ((x, a) :: Γ ++ [(y, b)]) -> x <> y.
 Proof.
-  intros. listctx_set_solver.
+  intros. listctx_set_solver1.
 Qed.
 
 Ltac auto_exfalso_ok :=
@@ -254,6 +314,9 @@ Ltac auto_exfalso_ok :=
       apply ok_first_not_equal_hd in H; exfalso; auto
   end;
   auto_exfalso.
+
+Ltac listctx_set_solver :=
+  listctx_set_solver1; auto_exfalso_ok.
 
 Lemma ctxfind_last_eq {A:Type}: forall (ctx: list (prod atom A)) name tau,
     ok (ctx ++ [(name, tau)]) ->
