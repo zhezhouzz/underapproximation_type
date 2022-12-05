@@ -72,10 +72,10 @@ Inductive tm_has_type : context -> tm -> ty -> Prop :=
     Γ ⊢t op ⋮v T1 ⤍ T2 ⤍ Tx ->
     (forall (x: atom), x ∉ L -> (Γ ++ [(x, TBase Tx)]) ⊢t e ^t^ x ⋮t T) ->
     Γ ⊢t tletbiop op v1 v2 e ⋮t T
-| T_LetApp : forall Γ v1 v2 e (T1 Tx: base_ty) T (L: aset),
+| T_LetApp : forall Γ v1 v2 e T1 Tx T (L: aset),
     Γ ⊢t v1 ⋮v T1 ⤍ Tx ->
     Γ ⊢t v2 ⋮v T1 ->
-    (forall (x: atom), x ∉ L -> (Γ ++ [(x, TBase Tx)]) ⊢t e ^t^ x ⋮t T) ->
+    (forall (x: atom), x ∉ L -> (Γ ++ [(x, Tx)]) ⊢t e ^t^ x ⋮t T) ->
     Γ ⊢t tletapp v1 v2 e ⋮t T
 | T_Matchb: forall Γ v e1 e2 T,
     Γ ⊢t v ⋮v TBool ->
@@ -101,6 +101,57 @@ Scheme value_has_type_mutual_rec := Induction for value_has_type Sort Prop
 
 Global Hint Constructors tm_has_type: core.
 Global Hint Constructors value_has_type: core.
+
+Lemma tricky_closed_value_exists: forall (T: ty), exists v, forall Γ, ok Γ -> Γ ⊢t v ⋮v T.
+Proof.
+  destruct T.
+  - destruct b. exists 0. constructor; auto. exists true. constructor; auto.
+  - exists (vlam T1 terr). econstructor; eauto.
+Qed.
+
+Lemma subseteq_trans_cons: forall x (s1 s2 s3: aset), {[x]} ∪ s1 ⊆ {[x]} ∪ s2 -> s2 ⊆ {[x]} ∪ s3 -> {[x]} ∪ s1 ⊆ {[x]} ∪ s3.
+Proof.
+  intros.
+  assert ({[x]} ∪ s2 ⊆ {[x]} ∪ s3). fast_set_solver.
+  fast_set_solver.
+Qed.
+
+Ltac auto_pose_fv a :=
+  let acc := collect_stales tt in
+  pose (fv_of_set acc) as a;
+  assert (a ∉ acc) by (apply fv_of_set_fresh; auto).
+
+Lemma basic_typing_contains_fv_tm: forall Γ e T, Γ ⊢t e ⋮t T -> fv_tm e ⊆ ctxdom Γ.
+Proof.
+   apply (tm_has_type_mutual_rec
+           (fun Γ v T P => fv_value v ⊆ ctxdom Γ)
+           (fun Γ e T P => fv_tm e ⊆ ctxdom Γ)
+        ); simpl; intros; subst; listctx_set_simpl;
+     try (fast_set_solver);
+     (auto_pose_fv x; repeat specialize_with x; listctx_set_simpl';
+      match goal with
+      | [ H: fv_tm ({?k ~t> _} ?e) ⊆ _ |- context [ctxdom ?Γ] ] =>
+          assert (({[x]} ∪ fv_tm e) ⊆ ({[x]} ∪ fv_tm ({k ~t> x} e))) by (apply open_with_fresh_include_fv_tm; fast_set_solver);
+          mmy_set_simpl1; eapply subseteq_trans_cons in H; eauto;
+          assert (fv_tm e ⊆ ctxdom Γ) by mmy_set_solver1; auto; fast_set_solver
+      end).
+Qed.
+
+Lemma basic_typing_contains_fv_value: forall Γ e T, Γ ⊢t e ⋮v T -> fv_value e ⊆ ctxdom Γ.
+Proof.
+   apply (value_has_type_mutual_rec
+           (fun Γ v T P => fv_value v ⊆ ctxdom Γ)
+           (fun Γ e T P => fv_tm e ⊆ ctxdom Γ)
+        ); simpl; intros; subst; listctx_set_simpl;
+     try (fast_set_solver);
+     (auto_pose_fv x; repeat specialize_with x; listctx_set_simpl';
+      match goal with
+      | [ H: fv_tm ({?k ~t> _} ?e) ⊆ _ |- context [ctxdom ?Γ] ] =>
+          assert (({[x]} ∪ fv_tm e) ⊆ ({[x]} ∪ fv_tm ({k ~t> x} e))) by (apply open_with_fresh_include_fv_tm; fast_set_solver);
+          mmy_set_simpl1; eapply subseteq_trans_cons in H; eauto;
+          assert (fv_tm e ⊆ ctxdom Γ) by mmy_set_solver1; auto; fast_set_solver
+      end).
+Qed.
 
 Ltac instantiate_atom_listctx :=
   let acc := collect_stales tt in
@@ -138,3 +189,13 @@ Proof.
          end; lc_solver; listctx_set_solver);
     try (econstructor; auto; instantiate_atom_listctx).
 Qed.
+
+Ltac basic_typing_regular_simp :=
+  repeat match goal with
+    | [H: _ ⊢t _ ⋮v _ |- lc _] => apply basic_typing_regular_value in H; destruct H; auto
+    | [H: _ ⊢t _ ⋮t _ |- lc _] => apply basic_typing_regular_tm in H; destruct H; auto
+    | [H: _ ⊢t _ ⋮v _ |- body _] => apply basic_typing_regular_value in H; destruct H; auto
+    | [H: _ ⊢t _ ⋮t _ |- body _] => apply basic_typing_regular_tm in H; destruct H; auto
+    | [H: _ ⊢t _ ⋮v _ |- ok _] => apply basic_typing_regular_value in H; destruct H; auto
+    | [H: _ ⊢t _ ⋮t _ |- ok _] => apply basic_typing_regular_tm in H; destruct H; auto
+    end.

@@ -500,10 +500,10 @@ Proof.
   - let acc := collect_stales tt in pose acc.
     pose (fv_of_set a).
     pose (fv_of_set_fresh a).
-    assert (s ∉ L) by my_set_solver.
-    specialize (H0 s H1 (S k)). destruct H0.
-    auto_exists_L. intros; repeat split; auto.
-    auto_exists_L. intros; repeat split; auto. fold _open_tm.
+    (* assert (s ∉ L) by my_set_solver. *)
+    (* specialize (H0 s H1 (S k)). destruct H0. *)
+    (* auto_exists_L. intros; repeat split; auto. *)
+    (* auto_exists_L. intros; repeat split; auto. fold _open_tm. *)
 Admitted.
 
 Lemma close_var_lc_tm: forall (x: atom) (t: tm) (k: nat),
@@ -582,8 +582,8 @@ Proof.
   intros. destruct H.
   let acc := collect_stales tt in pose acc.
   pose (Atom.fv_of_set a).
-  assert (s ∉ a). apply Atom.fv_of_set_fresh.
-  erewrite <- subst_intro_tm; auto. instantiate (1:= s).
+  assert (a0 ∉ a). apply Atom.fv_of_set_fresh.
+  erewrite <- subst_intro_tm; auto. instantiate (1:= a0).
   apply subst_lc_tm; auto. apply H.
   my_set_solver. my_set_solver.
 Qed.
@@ -593,10 +593,42 @@ Proof.
   intros. destruct H.
   let acc := collect_stales tt in pose acc.
   pose (Atom.fv_of_set a).
-  assert (s ∉ a). apply Atom.fv_of_set_fresh.
-  erewrite <- subst_intro_value; auto. instantiate (1:= s).
+  assert (a0 ∉ a). apply Atom.fv_of_set_fresh.
+  erewrite <- subst_intro_value; auto. instantiate (1:= a0).
   apply subst_lc_value; auto. apply H.
   my_set_solver. my_set_solver.
+Qed.
+
+Lemma open_with_fresh_include_fv_tm: forall (x: atom) e k,
+    x ∉ fv_tm e -> ({[x]} ∪ fv_tm e) ⊆ ({[x]} ∪ fv_tm ({k ~t> x} e)).
+Proof.
+  intros x.
+  apply (tm_mutual_rec
+           (fun (e: value) => forall k, x ∉ fv_tm e -> ({[x]} ∪ fv_value e) ⊆ ({[x]} ∪ fv_value ({k ~v> x} e)))
+           (fun (e: tm) => forall k, x ∉ fv_tm e -> ({[x]} ∪ fv_tm e) ⊆ ({[x]} ∪ fv_tm ({k ~t> x} e)))
+        ); simpl; intros; auto;
+    try (var_dec_solver; fast_set_solver);
+    repeat match goal with
+           | [H: context [{_ ~v> _} ?e] |- context [{?k ~v> _} ?e]] => specialize (H k)
+           | [H: context [{_ ~t> _} ?e] |- context [{?k ~t> _} ?e]] => specialize (H k)
+           | [H: ?P -> _ ⊆ _ |- _] => assert P as Htmp by fast_set_solver; specialize (H Htmp); try clear Htmp
+           end; repeat my_set_solver.
+Qed.
+
+Lemma open_with_fresh_include_fv_value: forall (x: atom) e k,
+    x ∉ fv_value e -> ({[x]} ∪ fv_value e) ⊆ ({[x]} ∪ fv_value ({k ~v> x} e)).
+Proof.
+  intros x.
+  apply (value_mutual_rec
+           (fun (e: value) => forall k, x ∉ fv_tm e -> ({[x]} ∪ fv_value e) ⊆ ({[x]} ∪ fv_value ({k ~v> x} e)))
+           (fun (e: tm) => forall k, x ∉ fv_tm e -> ({[x]} ∪ fv_tm e) ⊆ ({[x]} ∪ fv_tm ({k ~t> x} e)))
+        ); simpl; intros; auto;
+    try (var_dec_solver; fast_set_solver);
+    repeat match goal with
+           | [H: context [{_ ~v> _} ?e] |- context [{?k ~v> _} ?e]] => specialize (H k)
+           | [H: context [{_ ~t> _} ?e] |- context [{?k ~t> _} ?e]] => specialize (H k)
+           | [H: ?P -> _ ⊆ _ |- _] => assert P as Htmp by fast_set_solver; specialize (H Htmp); try clear Htmp
+           end; repeat my_set_solver.
 Qed.
 
 (* Lemma for MNF *)
@@ -643,11 +675,14 @@ Qed.
 
 Ltac lc_solver :=
   repeat match goal with
-         | [ |- lc (tmatchb _ _ _)] => apply lc_tmatchb; (repeat split; auto)
-         | [ |- lc (tletapp _ _ _)] => rewrite letapp_lc_body; (repeat split; auto)
-         | [ |- lc (tletbiop _ _ _ _)] => rewrite letbiop_lc_body; (repeat split; auto)
-         | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
-         | [ |- lc (tvalue (vfix _ _))] => rewrite lc_fix_iff_body; auto
-         | [ |- lc (tvalue (vlam _ _))] => rewrite lc_abs_iff_body; auto
-         | [H: lc ?e |- body ?e] => apply lc_implies_body_tm; auto
-         end.
+    | [ |- lc (tvalue (vfvar _))] => constructor
+    | [ |- lc (tmatchb _ _ _)] => apply lc_tmatchb; (repeat split; auto)
+    | [ |- lc (tletapp _ _ _)] => rewrite letapp_lc_body; (repeat split; auto)
+    | [ |- lc (tletbiop _ _ _ _)] => rewrite letbiop_lc_body; (repeat split; auto)
+    | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
+    | [ |- lc (tvalue (vfix _ _))] => rewrite lc_fix_iff_body; auto
+    | [ |- lc (tvalue (vlam _ _))] => rewrite lc_abs_iff_body; auto
+    | [H: lc ?e |- body ?e] => apply lc_implies_body_tm; auto
+    | [H: lc ?e |- lc (?e ^t^ _)] => rewrite open_rec_lc_tm; auto
+    | [|- body _ ] => eexists; auto_exists_L_intros
+    end.

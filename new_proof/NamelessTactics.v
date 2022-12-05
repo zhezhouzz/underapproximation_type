@@ -5,7 +5,66 @@ From CT Require Import CoreLang.
 
 Import CoreLang.
 
-Ltac my_set_solver := fast_set_solver!! || set_solver.
+Lemma setunion_cons_cons: forall (x: atom) (s1 s2: aset), {[x]} ∪ s1 ∪ ({[x]} ∪ s2) = ({[x]} ∪ s1 ∪ s2).
+Proof. fast_set_solver. Qed.
+
+Lemma setunion_empty_left: forall (s: aset), ∅ ∪ s = s.
+Proof. fast_set_solver. Qed.
+
+Lemma subseteq_substract_both: forall (x: atom) (s1 s2: aset), x ∉ s1 -> x ∉ s2 -> {[x]} ∪ s1 ⊆ {[x]} ∪ s2 -> s1 ⊆ s2.
+Proof.
+  intros.
+  apply (difference_mono _ _ {[x]} {[x]}) in H1; auto.
+  repeat rewrite difference_union_distr_l in H1.
+  repeat rewrite difference_diag in H1.
+  repeat rewrite setunion_empty_left in H1.
+  rewrite difference_disjoint in H1.
+  rewrite difference_disjoint in H1; fast_set_solver.
+  fast_set_solver.
+Qed.
+
+Lemma setunion_cons_right: forall x (s2: aset), (s2 ∪ ({[x]} ∪ ∅)) = ({[x]} ∪ s2).
+Proof. fast_set_solver. Qed.
+
+Ltac mmy_set_simpl1 :=
+  (repeat match goal with
+     | [H: context [({[?x]} ∪ ?s ∪ ({[?x]} ∪ _))] |- _] => rewrite (setunion_cons_cons x s _) in H
+     | [H: context [(?s2 ∪ ({[?x]} ∪ ∅))] |- _ ] => setoid_rewrite (setunion_cons_right x s2) in H
+     end).
+
+Lemma subseteq_substract_both': forall (x: atom) (s1 s2: aset), x ∉ s1 -> x ∉ s2 -> {[x]} ∪ s1 ⊆ s2 ∪ ({[x]} ∪ ∅) -> s1 ⊆ s2.
+Proof.
+  intros. mmy_set_simpl1.
+  apply subseteq_substract_both in H1; auto.
+Qed.
+
+Ltac mmy_set_solver1 :=
+  mmy_set_simpl1;
+  match goal with
+  | [H: ?s1 ∪ ?s2 ∪ ?s3 ⊆ ?s4 ∪ ?s5 ∪ ?s6 |- ?s1 ∪ (?s2 ∪ ?s3) ⊆ ?s4 ∪ (?s5 ∪ ?s6)] =>
+      assert (forall (ss1 ss2 ss3: aset), ss1 ∪ (ss2 ∪ ss3) = (ss1 ∪ ss2 ∪ ss3)) as Htmp by fast_set_solver;
+      do 2 rewrite Htmp; try clear Htmp; exact H
+  | [H: {[?x]} ∪ ?s1 ⊆ {[?x]} ∪ ?s2 |- ?s1 ⊆ ?s2] => apply (subseteq_substract_both x); auto; fast_set_solver
+  end.
+
+Lemma setunion_mono_cons: forall (x: atom) (s1 s2 s3 s4: aset),
+    {[x]} ∪ s1 ⊆ {[x]} ∪ s2 -> {[x]} ∪ s3 ⊆ {[x]} ∪ s4 -> {[x]} ∪ (s1 ∪ s3) ⊆ {[x]} ∪ (s2 ∪ s4).
+Proof.
+  intros.
+  apply (union_mono ({[x]} ∪ s1) ({[x]} ∪ s2) ({[x]} ∪ s3) ({[x]} ∪ s4)) in H; auto.
+   mmy_set_solver1.
+Qed.
+
+Ltac mmy_set_solver2 :=
+  mmy_set_simpl1;
+  match goal with
+  | [ |- {[?x]} ∪ (?s1 ∪ ?s3) ⊆ {[?x]} ∪ (?s2 ∪ ?s4)] => apply setunion_mono_cons; auto
+  | [H: ?s1 ∪ ?s2 ∪ ?s3 ⊆ ?s4 ∪ ?s5 ∪ ?s6 |- ?s1 ∪ (?s2 ∪ ?s3) ⊆ ?s4 ∪ (?s5 ∪ ?s6)] =>
+      assert (forall (ss1 ss2 ss3: aset), ss1 ∪ (ss2 ∪ ss3) = (ss1 ∪ ss2 ∪ ss3)) as Htmp by fast_set_solver;
+      do 2 rewrite Htmp; try clear Htmp; exact H
+  end.
+
+Ltac my_set_solver := mmy_set_solver2 || fast_set_solver!! || set_solver.
 
 Ltac rewrite_by_set_solver :=
   match goal with
@@ -87,7 +146,10 @@ Ltac apply_by_set_solver :=
   end.
 
 Ltac auto_exists_L :=
-  let acc := collect_stales tt in econstructor; auto; instantiate (1 := acc).
+  let acc := collect_stales tt in econstructor; eauto; instantiate (1 := acc).
+
+Ltac auto_exists_L_intros :=
+let acc := collect_stales tt in instantiate (1 := acc); intros; simpl.
 
 Ltac auto_exists_L_and_solve :=
   match goal with
@@ -102,26 +164,32 @@ Ltac auto_exfalso :=
   | [H: Some _ = None |- _ ] => inversion H
   | [H: None = Some _ |- _ ] => inversion H
   | [H1: [] = _ ++ _ |- _ ] => symmetry in H1; apply app_eq_nil in H1; destruct H1 as (_ & H1); inversion H1
-  end.
+  end || (exfalso; fast_set_solver !!).
+
+Ltac rw_decide_true a b :=
+  assert (a = b) as Hrw_decide_true; auto; rewrite (decide_True _ _ Hrw_decide_true); clear Hrw_decide_true.
+
+Ltac rw_decide_true_in a b H :=
+  assert (a = b) as Hrw_decide_true; auto; rewrite (decide_True _ _ Hrw_decide_true) in H; clear Hrw_decide_true.
 
 Ltac var_dec_solver :=
   try auto_exfalso;
   match goal with
   | [H: Some ?a = Some ?b |- _] => inversion H; subst; clear H; simpl; auto
-  (* | [H: ?a <> ?a |- _ ] => exfalso; lia *)
-  | [H: context [ decide (?a = ?a) ] |- _ ] => rewrite decide_True in H; auto
+  | [H: ?a <> ?a |- _ ] => exfalso; lia
+  | [H: context [ decide (?a = ?a) ] |- _ ] => rw_decide_true_in a a H; auto
   | [H: context [ decide (?a = ?b) ] |- _ ] =>
       match goal with
-      | [H': a = b |- _ ] => rewrite decide_True in H; auto
-      | [H': a <> b |- _ ] => rewrite decide_False in H; auto
+      | [H': a = b |- _ ] => rw_decide_true_in a b H; auto
+      | [H': a <> b |- _ ] => rewrite (decide_False _ _ H') in H; auto
       | _ => destruct (Nat.eq_dec a b); subst; simpl in H; simpl
       | _ => destruct (Atom.atom_dec a b); subst; simpl in H; simpl
       end
-  | [ |- context [ decide (?a = ?a) ] ] => rewrite decide_True; auto
+  | [ |- context [ decide (?a = ?a) ] ] => rw_decide_true a a; auto
   | [ |- context [ decide (?a = ?b) ] ] =>
       match goal with
-      | [H: a = b |- _ ] => rewrite decide_True; auto
-      | [H: a <> b |- _ ] => rewrite decide_False; auto
+      | [H: a = b |- _ ] => rewrite (decide_True _ _ H); auto
+      | [H: a <> b |- _ ] => rewrite (decide_False _ _ H); auto
       | _ => destruct (Nat.eq_dec a b); subst; simpl; var_dec_solver
       | _ => destruct (Atom.atom_dec a b); subst; simpl; var_dec_solver
       end
@@ -150,3 +218,8 @@ Ltac equate x y :=
   idtac x;
   let dummy := constr:(eq_refl x : x = y) in idtac.
 
+Ltac specialize_with x :=
+  match goal with
+  | [H: forall x, x ∉ ?L -> _ |- _] =>
+      assert (x ∉ L) as Htmp by fast_set_solver; specialize (H x Htmp); try clear Htmp
+  end.

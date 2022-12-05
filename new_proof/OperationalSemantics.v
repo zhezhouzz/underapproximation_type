@@ -114,8 +114,7 @@ Definition normal_form (t : tm) : Prop :=
 Definition deterministic {tm : Type} (R : relation tm) :=
   forall x y1 y2 : tm, R x y1 -> R x y2 -> y1 = y2.
 
-Notation "t1 '↪*' t2" := (multistep t1 t2) (at level 40).
-
+Notation "t1 '↪*' t2" := (multistep t1 t2) (at level 40)
 Lemma multi_step_regular: forall e1 e2, e1 ↪* e2 -> lc e1 /\ lc e2.
 Proof.
   intros.
@@ -130,4 +129,29 @@ Qed.
 Lemma multi_step_regular2: forall e1 e2, e1 ↪* e2 -> lc e2.
 Proof.
   intros. apply multi_step_regular in H. destruct H; auto.
+Qed.
+
+Ltac step_regular_simp :=
+  repeat match goal with
+    | [H: _ ↪ _ |- lc _] => apply step_regular in H; destruct H; auto
+    | [H: _ ↪ _ |- body _] => apply step_regular in H; destruct H; auto
+    end.
+
+Lemma tlete_terr_exfalso: forall e (v: value), ~ tlete terr e ↪* v.
+Proof.
+  intros. intro H.
+  inversion H; subst. inversion H0; subst. inversion H6.
+Qed.
+
+Lemma tlete_value_exists: forall e (v_x v: value), tlete v_x e ↪* v <-> lc v_x /\ body e /\ e ^t^ v_x ↪* v.
+Proof.
+  split; intros.
+  - inversion H; subst. inversion H0; subst; auto. inversion H6.
+  - econstructor; repeat destruct_hyp_conj; auto. instantiate (1:= e ^t^ v_x). constructor; auto.
+    auto.
+Qed.
+
+Lemma open_eq_terr: forall e u, e ^t^ u = terr -> e = terr.
+Proof.
+  induction e; simpl; intros; auto; inversion H.
 Qed.

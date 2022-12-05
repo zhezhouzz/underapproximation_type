@@ -25,26 +25,6 @@ Instance termR_trans: Transitive termR.
 Proof. intros e1 e2 e3. unfold termR. intros. auto. Qed.
 Arguments termR_trans /.
 
-Lemma tlete_terr_exfalso: forall e (v: value), ~ tlete terr e ↪* v.
-Proof.
-  intros. intro H.
-  inversion H; subst. inversion H0; subst. inversion H6.
-Qed.
-
-Lemma tlete_value_exists: forall e (v_x v: value), tlete v_x e ↪* v <-> lc v_x /\ body e /\ e ^t^ v_x ↪* v.
-Proof.
-  split; intros.
-  - inversion H; subst. inversion H0; subst; auto. inversion H6.
-  - econstructor; repeat destruct_hyp_conj; auto. instantiate (1:= e ^t^ v_x). constructor; auto.
-    auto.
-Qed.
-
-Ltac op_simpl :=
-  match goal with
-  | [H: tlete terr _ ↪* (tvalue _) |- _ ] => apply tlete_terr_exfalso in H; inversion H
-  | [H: tlete (tvalue _) _ ↪* (tvalue _) |- _ ] => rewrite tlete_value_exists in H; repeat destruct_hyp_conj; auto
-  | [ |- ex (fun v_x => tvalue ?v ↪* tvalue v_x /\ _)] => exists v; split; auto
-  end.
 
 Lemma let_reduction_spec_forward_one_step: forall (e_x: tm) e (e': tm),
     tlete e_x e ↪ e' -> (exists (v_x: value), e_x = v_x /\ e' = e ^t^ v_x) \/ (exists (e_x': tm), e_x ↪ e_x' /\ e' = tlete e_x' e).
@@ -56,6 +36,29 @@ Proof.
 Qed.
 
 (* Need logical relation *)
+
+Lemma let_reduction_spec_forward: forall (e_x: tm),
+    lc e_x ->
+    (forall e (v: value),
+        (tlete e_x e ↪* v -> exists (v_x: value), e_x ↪* v_x /\ e ^t^ v_x ↪* v)).
+Proof.
+  intros e_x H.
+  induction H; intros.
+  - admit.
+  - admit.
+  - admit.
+  - admit.
+  - admit.
+  - admit.
+  - 
+
+  induction e_x; intros.
+  - op_simpl.
+  - op_simpl. eexists. split; eauto.
+  - 
+
+
+
 
 Lemma let_reduction_spec_forward: forall (e_x: tm) e (v: value),
     (tlete e_x e ↪* v -> exists (v_x: value), e_x ↪* v_x /\ e ^t^ v_x ↪* v).
@@ -75,7 +78,7 @@ Lemma let_reduction_spec_forward: forall (e_x: tm) e (v: value),
 Proof.
   induction e_x; intros.
   - op_simpl.
-  - op_simpl. exists v0. split; auto.
+  - op_simpl. eexists. split; eauto.
   - 
 
     
