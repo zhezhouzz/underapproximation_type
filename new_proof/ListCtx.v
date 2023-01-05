@@ -32,17 +32,17 @@ Ltac list_app_simpl :=
   auto_destruct_pair;
   try auto_exfalso;
   repeat match goal with
-         | [H: ?Γ1 ++ [(?x1, ?t1)] = ?Γ2 ++ [(?x2, ?t2)] |- _ ] => apply app_inj_tail in H; destruct H; subst
-         | [H: (?x1, ?t1) = (?x2, ?t2) |- _ ] => inversion H; subst; clear H
-         | [H: context [ ?a ++ []] |- _ ] => rewrite app_nil_r in H
-         | [ |- context [ ?a ++ []] ] => rewrite app_nil_r
-         | [H: context [ [] ++ ?a] |- _ ] => rewrite app_nil_l in H
-         | [ |- context [ [] ++ ?a] ] => rewrite app_nil_l
-         | [H: context [(_ :: _) ++ _] |- _ ] => rewrite <- app_comm_cons in H
-         | [ |- context [(_ :: _) ++ _]] => rewrite <- app_comm_cons
-         | [H: context [(_ ++ _) ++ _] |- _ ] => rewrite <- app_assoc in H
-         | [ |- context [(_ ++ _) ++ _]] => rewrite <- app_assoc
-         end; auto.
+    | [H: ?Γ1 ++ [(?x1, ?t1)] = ?Γ2 ++ [(?x2, ?t2)] |- _ ] => apply app_inj_tail in H; destruct H; subst
+    | [H: (?x1, ?t1) = (?x2, ?t2) |- _ ] => inversion H; subst; clear H
+    | [H: context [ ?a ++ []] |- _ ] => rewrite app_nil_r in H
+    | [ |- context [ ?a ++ []] ] => rewrite app_nil_r
+    | [H: context [ [] ++ ?a] |- _ ] => rewrite app_nil_l in H
+    | [ |- context [ [] ++ ?a] ] => rewrite app_nil_l
+    | [H: context [(_ :: _) ++ _] |- _ ] => rewrite <- app_comm_cons in H
+    | [ |- context [(_ :: _) ++ _]] => rewrite <- app_comm_cons
+    | [H: context [(_ ++ _) ++ _] |- _ ] => rewrite <- app_assoc in H
+    | [ |- context [(_ ++ _) ++ _]] => rewrite <- app_assoc
+    end; auto.
 
 (* list context definition *)
 
@@ -253,14 +253,56 @@ Proof.
   - repeat var_dec_solver. my_set_solver.
 Qed.
 
-Ltac listctx_set_simpl :=
+Lemma find_mid_eq_singleton_simp {A: Type} : forall (x1 x2: atom) (τ1 τ2: A) Γ1 Γ2,
+    [(x1, τ1)] = Γ1 ++ (x2, τ2) :: Γ2 -> x1 = x2 /\ τ1 = τ2 /\ Γ1 = [] /\ Γ2 = [].
+Proof.
+  intros.
+  destruct Γ1; listctx_set_simpl'; invclear H.
+  - repeat split; auto.
+  - listctx_set_simpl'.
+Qed.
+
+
+Lemma find_mid_eq_cons_simp {A: Type} : forall (x1 x2: atom) (τ1 τ2: A) Γ1 Γ2 Γ,
+    (x1, τ1) :: Γ = Γ1 ++ (x2, τ2) :: Γ2 ->
+    (x1 = x2 /\ τ1 = τ2 /\ Γ1 = [] /\ Γ2 = Γ) \/
+      (exists Γ1', Γ = Γ1' ++ (x2, τ2) ::  Γ2 /\ Γ1 = (x1, τ1) :: Γ1').
+Proof.
+  intros.
+  destruct Γ1; invclear H.
+  - left. repeat split; auto.
+  - right. exists Γ1. repeat split; auto.
+Qed.
+
+Ltac listctx_set_simpl1 :=
   list_app_simpl;
   repeat (listctx_set_simpl' ||
             (match goal with
+             | [H: context [ctxfind [] _] |- _ ] => progress simpl in H
+             | [|- context [ctxfind [] _]] => progress simpl
              | [H1: ok (?Γ1 ++ (?x, ?U) :: ?Γ3), H: ctxfind (?Γ1 ++ (?x, ?U) :: ?Γ3) ?x = Some ?T |- _ ] => assert (U = T) as Htmp by (apply (ctxfind_find_mid_eq _ _ _ _ T) in H1; auto); subst; try clear Htmp
              | [H: ctxfind (?Γ1 ++ (?z, _) :: ?Γ3) ?x = Some ?T
                 |- ctxfind (?Γ1 ++ ?Γ3) ?x = Some ?T ] => apply ctxfind_find_mid_neq in H; auto
+| [H: (_, _) :: _ = (_, _):: _ |- _ ] => invclear H
+            | [H: [(_, _)] = _ ++ (_, _) :: _ |- _ ] => apply find_mid_eq_singleton_simp in H; mydestr; subst
+            | [H: (_, _) :: _ = _ ++ (_, _) :: _ |- _ ] => apply find_mid_eq_cons_simp in H; destruct H; mydestr; subst
              end)).
+
+Ltac listctx_set_simpl2 :=
+  repeat (listctx_set_simpl1 ||
+            match goal with
+            | [H: (_, _) :: _ = (_, _):: _ |- _ ] => invclear H
+            | [H: [(_, _)] = _ ++ (_, _) :: _ |- _ ] => apply find_mid_eq_singleton_simp in H; mydestr; subst
+            | [H: (_, _) :: _ = _ ++ (_, _) :: _ |- _ ] => apply find_mid_eq_cons_simp in H; destruct H; mydestr; subst
+            end).
+
+Ltac listctx_set_simpl3 :=
+  match goal with
+  | [H: _ ++ [_] = [_] |- _ ] => apply elt_eq_unit in H; mydestr; subst
+  | [H: _ ++ [_] = _ :: _ ++ [_] |- _ ] => rewrite app_comm_cons in H; listctx_set_simpl2
+  end || listctx_set_simpl2.
+
+Ltac listctx_set_simpl := listctx_set_simpl3.
 
 Ltac listctx_set_solver1 :=
   repeat (listctx_set_simpl;
@@ -418,4 +460,60 @@ Ltac listctx_set_solver3 :=
     end; auto;
   listctx_set_solver2.
 
-Ltac listctx_set_solver := listctx_set_solver3.
+Lemma ok_single {A: Type}: forall (x: atom) (T: A), ok [(x, T)].
+Proof.
+  intros.
+  rewrite ok_pre_destruct; split; auto; fast_set_solver.
+Qed.
+
+Ltac listctx_set_solver4 :=
+  match goal with
+  | [|- ok [(_, _)]] => apply ok_single
+  end || listctx_set_solver3.
+
+Lemma ctxfind_in {A: Type}: forall Γv1 (x: atom) (u: A) Γv2,
+    ok (Γv1 ++ (x, u) :: Γv2) ->
+    ctxfind (Γv1 ++ (x, u) :: Γv2) x = Some u.
+Proof.
+  induction Γv1; simpl; intros; mydestr; auto.
+  - repeat var_dec_solver.
+  - repeat var_dec_solver; listctx_set_solver4.
+Qed.
+
+Lemma ok_mid_insert {A: Type} : forall Γ1 (x: atom) (T: A) Γ2,
+    (x ∉ ctxdom Γ1 ∪ ctxdom Γ2 /\ ok (Γ1 ++ Γ2)) <-> ok (Γ1 ++ (x, T) :: Γ2).
+Proof.
+  induction Γ1; split; simpl; intros; mydestr; repeat split; auto; try listctx_set_solver4.
+  - rewrite ok_pre_destruct. split.
+    + apply IHΓ1; repeat split; listctx_set_solver4.
+    + listctx_set_solver4.
+  - rewrite ok_pre_destruct in H; mydestr. rewrite <- IHΓ1 in H; mydestr. listctx_set_solver4.
+Qed.
+
+Lemma ok_app_swap {A: Type} : forall (Γ1: listctx A) Γ2, ok (Γ1 ++ Γ2) <-> ok (Γ2 ++ Γ1).
+Proof.
+  induction Γ1; split; simpl; intros; mydestr; try listctx_set_solver4.
+  - rewrite ok_pre_destruct in H; mydestr. rewrite IHΓ1 in H.
+    rewrite <- ok_mid_insert; split; listctx_set_solver4.
+  - rewrite <- ok_mid_insert in H; mydestr. rewrite <- IHΓ1 in H0.
+    rewrite ok_pre_destruct; split; auto; listctx_set_solver4.
+Qed.
+
+Lemma ok_app_swap3 {A: Type} : forall (Γ1: listctx A) Γ2 Γ3, ok (Γ1 ++ Γ2 ++ Γ3) <-> ok (Γ2 ++ Γ1 ++ Γ3).
+Proof.
+  induction Γ1; split; simpl; intros; mydestr; try listctx_set_solver4.
+  - rewrite ok_pre_destruct in H; mydestr. rewrite IHΓ1 in H.
+    rewrite <- ok_mid_insert; split; listctx_set_solver4.
+  - rewrite <- ok_mid_insert in H; mydestr. rewrite <- IHΓ1 in H0.
+    rewrite ok_pre_destruct; split; auto; listctx_set_solver4.
+Qed.
+
+Ltac listctx_set_solver5 :=
+  match goal with
+  | [H: ok (?a ++ ?b) |- ok (?b ++ ?a)] => rewrite ok_app_swap; auto
+  | [H: ok (?a ++ ?b ++ ?c) |- ok (?b ++ ?a ++ ?c)] => rewrite ok_app_swap3; auto
+  | [H: ok (?Γ1 ++ ?Γ2 ++ ?Γ3) |- ok (?Γ1 ++ ?Γ3)] =>
+         rewrite ok_app_swap3 in H; listctx_set_solver4
+  end || listctx_set_solver4.
+
+Ltac listctx_set_solver := listctx_set_solver5.

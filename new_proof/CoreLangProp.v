@@ -491,38 +491,13 @@ Qed.
 Lemma close_var_lc_tm': forall (x: atom) (t: tm),
     lc t -> forall k, body ({k ~t> x} t).
 Proof.
-  intros. generalize dependent k.
-  induction H; simpl; intros; auto.
-    (* try (auto_exists_L; intros; repeat split; auto). *)
-  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
-  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
-  - auto_exists_L. intros; repeat split; auto. auto_exists_L.
-  - let acc := collect_stales tt in pose acc.
-    pose (fv_of_set a).
-    pose (fv_of_set_fresh a).
-    (* assert (s ∉ L) by my_set_solver. *)
-    (* specialize (H0 s H1 (S k)). destruct H0. *)
-    (* auto_exists_L. intros; repeat split; auto. *)
-    (* auto_exists_L. intros; repeat split; auto. fold _open_tm. *)
+
 Admitted.
 
 Lemma close_var_lc_tm: forall (x: atom) (t: tm) (k: nat),
     lc t ->
     (exists (L: aset), forall (x': atom), x' ∉ L -> lc ({k ~t> x'} ({k <t~ x} t))).
 Proof.
-  intros. generalize dependent k.
-  induction H; simpl; intros; auto.
-    (* try (auto_exists_L; intros; repeat split; auto). *)
-  - auto_exists_L; intros; repeat split; auto.
-  - auto_exists_L; intros; repeat split; auto.
-  - auto_exists_L; intros; repeat split; auto. repeat var_dec_solver. constructor.
-  - 
-    auto_exists_L; intros; repeat split; auto.
-    auto_exists_L; intros; repeat split; auto.
-    rewrite fact2_tm; auto.
-    assert (x0 ∉ L) by my_set_solver.
-    specialize (H0 x0 H3 (S k)).
-    destruct H0. apply H0.
 Admitted.
 
 (* The third class of lemmas *)
@@ -682,7 +657,155 @@ Ltac lc_solver :=
     | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
     | [ |- lc (tvalue (vfix _ _))] => rewrite lc_fix_iff_body; auto
     | [ |- lc (tvalue (vlam _ _))] => rewrite lc_abs_iff_body; auto
+    | [H: lc (tlete _ ?e) |- body ?e ] => rewrite lete_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: lc (tletapp _ _ ?e) |- body ?e ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: lc (tvalue (vlam _ ?e)) |- body ?e ] => rewrite lc_abs_iff_body in H; repeat destruct_hyp_conj; auto
+    | [H: lc (tvalue (vfix _ ?e)) |- body ?e ] => rewrite lc_fix_iff_body in H; repeat destruct_hyp_conj; auto
+    | [H: lc (tletapp ?e _ _) |- lc (tvalue ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: lc (tletapp _ ?e _) |- lc (tvalue ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
     | [H: lc ?e |- body ?e] => apply lc_implies_body_tm; auto
     | [H: lc ?e |- lc (?e ^t^ _)] => rewrite open_rec_lc_tm; auto
     | [|- body _ ] => eexists; auto_exists_L_intros
     end.
+
+Lemma subst_as_close_open_tm_: forall (x: atom) (u: value) (e: tm) (k: nat),
+    {k ~t> u} e = e ->
+    {k ~t> u} ({k <t~ x} e) = {x := u}t e.
+Proof.
+  intros x u.
+  apply (tm_mutual_rec
+           (fun (e: value) => forall k, {k ~v> u} e = e -> {k ~v> u} ({k <v~ x} e) = {x := u}v e)
+           (fun (e: tm) => forall k, {k ~t> u} e = e -> {k ~t> u} ({k <t~ x} e) = {x := u}t e)
+        ); simpl; intros; eauto.
+  - repeat var_dec_solver.
+  (* - repeat var_dec_solver. invclear H0; auto. *)
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. rewrite H0; auto.
+    + invclear H1; rewrite H4; auto.
+    + invclear H1; rewrite H3; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+Qed.
+
+Lemma subst_as_close_open_value_: forall (x: atom) (u: value) (e: value) (k: nat),
+    {k ~v> u} e = e ->
+    {k ~v> u} ({k <v~ x} e) = {x := u}v e.
+Proof.
+  intros x u.
+  apply (value_mutual_rec
+           (fun (e: value) => forall k, {k ~v> u} e = e -> {k ~v> u} ({k <v~ x} e) = {x := u}v e)
+           (fun (e: tm) => forall k, {k ~t> u} e = e -> {k ~t> u} ({k <t~ x} e) = {x := u}t e)
+        ); simpl; intros; eauto.
+  - repeat var_dec_solver.
+  (* - repeat var_dec_solver. invclear H0; auto. *)
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. invclear H0. rewrite H2; auto.
+  - rewrite H; auto. rewrite H0; auto.
+    + invclear H1; rewrite H4; auto.
+    + invclear H1; rewrite H3; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+  - rewrite H; auto. rewrite H0; auto. rewrite H1; auto.
+    + invclear H2; rewrite H6; auto.
+    + invclear H2; repeat rewrite H5; auto.
+    + invclear H2; repeat rewrite H4; auto.
+Qed.
+
+Lemma subst_as_close_open_tm: forall (x: atom) (u: value) (e: tm),
+    lc e -> {0 ~t> u} ({0 <t~ x} e) = {x := u}t e.
+Proof.
+  intros. eapply subst_as_close_open_tm_.
+  rewrite open_rec_lc_tm; auto.
+Qed.
+
+Lemma subst_as_close_open_value: forall (x: atom) (u: value) (e: value),
+    lc e -> {0 ~v> u} ({0 <v~ x} e) = {x := u}v e.
+Proof.
+  intros. eapply subst_as_close_open_value_.
+  rewrite open_rec_lc_value; auto.
+Qed.
+
+Lemma close_fresh_rec_tm: forall (x: atom) (e: tm) (k: nat), x ∉ fv_tm e -> { k <t~ x} e = e.
+Proof.
+  intros x.
+  apply (tm_mutual_rec
+           (fun (v: value) => forall (k: nat), x ∉ fv_value v -> { k <v~ x} v = v)
+           (fun (e: tm) => forall (k: nat), x ∉ fv_tm e -> { k <t~ x} e = e)
+        ); simpl; intros; auto; try var_dec_solver; rewrite H; auto; try fast_set_solver;
+    try (rewrite H0; auto; try fast_set_solver; rewrite H1; auto; try fast_set_solver).
+Qed.
+
+Lemma close_fresh_rec_value: forall (x: atom) (e: value) (k: nat), x ∉ fv_value e -> { k <v~ x} e = e.
+Proof.
+  intros x.
+  apply (value_mutual_rec
+           (fun (v: value) => forall (k: nat), x ∉ fv_value v -> { k <v~ x} v = v)
+           (fun (e: tm) => forall (k: nat), x ∉ fv_tm e -> { k <t~ x} e = e)
+        ); simpl; intros; auto; try var_dec_solver; rewrite H; auto; try fast_set_solver;
+    try (rewrite H0; auto; try fast_set_solver; rewrite H1; auto; try fast_set_solver).
+Qed.
+
+Lemma subst_close_tm: ∀ (x y: atom) u, x ∉ fv_value u -> x <> y ->
+                        forall e k, {k <t~ x} ({y := u }t e) = {y := u }t ({k <t~ x} e).
+Proof.
+  intros x y u Hux Hxy. apply (tm_mutual_rec
+           (fun (e: value) => forall (k: nat), {k <v~ x} ({y := u }v e) = {y := u }v ({k <v~ x} e))
+           (fun (e: tm) => forall (k: nat), {k <t~ x} ({y := u }t e) = {y := u }t ({k <t~ x} e))
+        ); simpl; intros; auto;
+    try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto).
+  repeat var_dec_solver; rewrite close_fresh_rec_value; auto.
+Qed.
+
+Lemma subst_close_value: ∀ (x y: atom) u, x ∉ fv_value u -> x <> y ->
+                        forall e k, {k <v~ x} ({y := u }v e) = {y := u }v ({k <v~ x} e).
+Proof.
+  intros x y u Hux Hxy. apply (value_mutual_rec
+           (fun (e: value) => forall (k: nat), {k <v~ x} ({y := u }v e) = {y := u }v ({k <v~ x} e))
+           (fun (e: tm) => forall (k: nat), {k <t~ x} ({y := u }t e) = {y := u }t ({k <t~ x} e))
+        ); simpl; intros; auto;
+    try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto).
+  repeat var_dec_solver; rewrite close_fresh_rec_value; auto.
+Qed.
+
+Lemma subst_commute_tm: forall x u_x y u_y e,
+    x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
+    {x := u_x }t ({y := u_y }t e) = {y := u_y }t ({x := u_x }t e).
+Proof.
+  intros x u_x y u_y e Hxy Hxuy Hyux. apply (tm_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.
+
+Lemma subst_commute_value: forall x u_x y u_y e,
+    x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
+    {x := u_x }v ({y := u_y }v e) = {y := u_y }v ({x := u_x }v e).
+Proof.
+  intros x u_x y u_y e Hxy Hxuy Hyux. apply (value_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.

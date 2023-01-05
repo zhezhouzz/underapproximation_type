@@ -1,0 +1,249 @@
+From stdpp Require Import mapset.
+From stdpp Require Import natmap.
+From CT Require Import CoreLangProp.
+From CT Require Import OperationalSemanticsProp.
+From CT Require Import BasicTypingProp.
+From CT Require Import SyntaxSugar.
+
+Import Atom.
+Import CoreLang.
+Import Tactics.
+Import NamelessTactics.
+Import ListCtx.
+Import OperationalSemantics.
+Import OperationalSemanticsProp.
+Import BasicTyping.
+Import SyntaxSugar.
+
+(* state works like vfvar *)
+Definition state := amap constant.
+
+#[global]
+Instance state_stale : @Stale aset state := dom aset.
+Arguments state_stale /.
+
+(* bstate works like vfbar, which is a finite map with a bound. *)
+Definition bstate := nat -> constant.
+
+(* Notation " 'b{' n '}[' m ']' " := *)
+  (* (bstate_constr n m) (at level 5, right associativity, format "b{ n }[ m ]", n constr, m constr). *)
+
+(* Definition bstate_emp: bstate := b{ 0 }[ fun _ => 0 ]. *)
+
+Definition bstate_push (c: constant) (bst: bstate) : bstate := fun i => match i with 0 => c | S i => m i end
+  match bst with
+  | b{ n }[ m ] => b{ S n }[ fun i => match i with 0 => c | S i => m i end ]
+  end.
+
+Definition bstate_push (c: constant) (bst: bstate) : bstate :=
+  match bst with
+  | b{ n }[ m ] => b{ S n }[ fun i => match i with 0 => c | S i => m i end ]
+  end.
+
+Definition bstate_find (bst: bstate) (i: nat) : option constant :=
+  match bst with
+  | b{ n }[ m ] => if decide (i < n) then Some (m i) else None
+  end.
+
+Notation "b∅" := bstate_emp  (format "b∅").
+Notation " '{↦' c '}' " := (bstate_push c) (at level 5, right associativity, format "{↦ c }", c constr).
+Notation " m 'b!!' i " := (bstate_find m i) (at level 80, m constr, i constr).
+
+Definition ty_of_state (st: state) : amap base_ty := ty_of_const <$> st.
+
+(* In order to defined the type denotation (logical relation) which is a recursive function, we should make sure the refinement type is structurally decreasing, which means we cannot do substution (or open, close) over the refinement types. Thus we lift all substition (open, close) into states: bstate is for bound variables, state is for free variables. *)
+Definition refinement : Type := bstate -> state -> constant -> Prop.
+
+(* n is the upper bound of indices that are allowed to be accessed; doesn't mean all idices appear in the refinement. *)
+(* d is a finite set of free variables that are allowed to be accessed; doesn't mean all free variables appear in the refinement. *)
+Inductive rty : Type :=
+| BaseOver (B: base_ty) (n: nat) (d: aset) (ϕ: refinement)
+| BaseUnder (B: base_ty) (n: nat) (d: aset) (ϕ: refinement)
+| DependArrow (B: base_ty) (n: nat) (d: aset) (ϕ: refinement) (τ: rty)
+| IndependArrow (τ1: rty) (τ2: rty).
+
+Global Hint Constructors rty: core.
+
+Notation "'[v:' B '|' n '|' d '|' ϕ ']'" :=
+  (BaseUnder B n d ϕ) (at level 5, format "[v: B | n | d | ϕ ]", B constr, ϕ constr).
+Notation "'{v:' B '|' n '|' d '|' ϕ '}'" :=
+  (BaseOver B n d ϕ) (at level 5, format "{v: B | n | d | ϕ }", B constr, ϕ constr).
+Notation "'-:{v:' B '|' n '|' d '|' ϕ '}' '⤑' τ" := (DependArrow B n d ϕ τ) (at level 80, right associativity, B constr, ϕ constr, τ constr).
+Notation " τ1 '⤑' τ2 " := (IndependArrow τ1 τ2) (at level 80, right associativity, τ1 constr, τ2 constr).
+
+(* free variables *)
+
+Fixpoint rty_fv τ : aset :=
+  match τ with
+  | {v: _ | _ | d | _ } => d
+  | [v: _ | _ | d | _ ] => d
+  | -:{v: _ | _ | d | _ } ⤑ τ => d ∪ (rty_fv τ)
+  | τ1 ⤑ τ2 => (rty_fv τ1) ∪ (rty_fv τ2)
+  end.
+
+#[global]
+Instance rty_stale : @Stale aset rty := rty_fv.
+Arguments rty_stale /.
+
+(* open *)
+
+(* Definition refinement_open_c (k: nat) (c: constant) (ϕ: refinement) : refinement := *)
+(*   fun bst st v => ϕ (<[ k := c ]> bst) st v. *)
+
+Definition refinement_open_a (k: nat) (x: atom) (ϕ: refinement) : refinement :=
+  fun bst st v => ϕ bst (match bst b!! k with
+                      | None => st
+                      | Some c => <[ x := c ]> st
+                      end) v.
+
+(* Fixpoint rty_open_c (k: nat) (c: constant) (τ: rty) : rty := *)
+(*   match τ with *)
+(*   | {v: B | n | d | ϕ } => {v: B | n ∖ {[k]} | d | refinement_open_c k c ϕ } *)
+(*   | [v: B | n | d | ϕ ] => [v: B | n ∖ {[k]} | d | refinement_open_c k c ϕ ] *)
+(*   | -:{v: B | n | d | ϕ } ⤑ τ => -:{v: B | n ∖ {[k]} | d | refinement_open_c k c ϕ } ⤑ (rty_open_c (S k) c τ) *)
+(*   | τ1 ⤑ τ2 => (rty_open_c k c τ1) ⤑ (rty_open_c k c τ2) *)
+(*   end. *)
+
+Fixpoint rty_open_a (k: nat) (a: atom) (τ: rty) : rty :=
+  match τ with
+  | {v: B | n | d | ϕ } => {v: B | n `min` k | {[a]} ∪ d | refinement_open_a k a ϕ }
+  | [v: B | n | d | ϕ ] => [v: B |  n `min` k | {[a]} ∪ d | refinement_open_a k a ϕ ]
+  | -:{v: B | n | d | ϕ } ⤑ τ => -:{v: B |  n `min` k | {[a]} ∪ d | refinement_open_a k a ϕ } ⤑ (rty_open_a (S k) a τ)
+  | τ1 ⤑ τ2 => (rty_open_a k a τ1) ⤑ (rty_open_a k a τ2)
+  end.
+
+(* Notation "'{' k '~c>' s '}' e" := (rty_open_c k s e) (at level 20, k constr). *)
+Notation "'{' k '~a>' s '}' e" := (rty_open_a k s e) (at level 20, k constr).
+
+(* Notation "e '^c^' s" := (rty_open_c 0 s e) (at level 20). *)
+(* Notation "e '^a^' s" := (rty_open_a 0 s e) (at level 20). *)
+
+(* subst *)
+
+(* The refinement type only works for the value with the base type (constants), thus the subst over lambda terms doesn't (shouldn't) works; and we should never update a non-lc term (e.g., vbvar _). *)
+(* The subst should guarantee: *)
+(* 1. the variable x1 is not in in the current state. *)
+(* 2. if the value v2 is a free variable x2, it should be in the current state, but not used in the further refinements. *)
+Definition state_subst: atom -> value -> state -> state :=
+  fun x1 v2 st => match v2 with
+               | vfvar x2 =>
+                   match st !! x2 with
+                   | None => st
+                   | Some c1 => <[x1 := c1]> st
+                   end
+               | vconst c2 => (<[x1 := c2]> st)
+               | vbvar _ => st
+               | vlam _ _ => st
+               | vfix _ _ => st
+               end.
+
+Notation " '{' x '↦' v '}' " := (state_subst x v) (at level 30, format "{ x ↦ v }", x constr, v constr).
+
+(* well formed, locally closed, closed with state *)
+
+Definition not_fv_in_refinement (x: atom) (ϕ: refinement) :=
+  forall (m: state), forall bst (c v: constant), ϕ bst (<[ x := c ]> m) v <-> ϕ bst m v.
+
+Definition bound_in_refinement (bound: nat) (ϕ: refinement) :=
+  forall st (n: nat) (m: nat -> constant) v, bound <= n -> ϕ b{n}[m] st v <-> ϕ b{bound}[m] st v.
+
+Definition wf_r (n: nat) (d: aset) (ϕ: refinement) :=
+  (forall (x: atom), x ∉ d -> not_fv_in_refinement x ϕ) /\ bound_in_refinement n ϕ.
+
+Definition not_underbasety rty: Prop :=
+  match rty with
+  | BaseUnder _ _ _ _ => False
+  | _ => True
+  end.
+
+Definition not_overbasety rty: Prop :=
+  match rty with
+  | BaseOver _ _ _ _ => False
+  | _ => True
+  end.
+
+Definition is_arr rty: Prop :=
+  match rty with
+  | BaseOver _ _ _ _ => False
+  | BaseUnder _ _ _ _ => False
+  | _ => True
+  end.
+
+Inductive valid_rty: rty -> Prop :=
+| valid_rty_over_base: forall B n d ϕ, wf_r n d ϕ -> valid_rty {v: B | n | d | ϕ }
+| valid_rty_under_base: forall B n d ϕ, wf_r n d ϕ -> valid_rty [v: B | n | d | ϕ ]
+| valid_rty_oarr: forall B n d ϕ (τ: rty),
+    wf_r n d ϕ ->
+    not_overbasety τ ->
+    valid_rty τ -> valid_rty ( -:{v: B | n | d | ϕ } ⤑ τ)
+| valid_rty_arrarr1: forall B n d ϕ (τ1 τ2: rty),
+    valid_rty ( -:{v: B | n | d | ϕ } ⤑ τ1) ->
+    not_overbasety τ2 ->
+    valid_rty τ2 ->
+    valid_rty (( -:{v: B | n | d | ϕ } ⤑ τ1) ⤑ τ2)
+| valid_rty_arrarr2: forall (τ11 τ12 τ2: rty),
+    valid_rty (τ11 ⤑ τ12) ->
+    valid_rty τ2 ->
+    not_overbasety τ2 ->
+    valid_rty ((τ11 ⤑ τ12) ⤑ τ2).
+
+Inductive lc_rty_idx: nat -> rty -> Prop :=
+| lc_rty_idx_baseover: forall B n m d ϕ, m <= n -> lc_rty_idx n {v: B | m | d | ϕ }
+| lc_rty_idx_underover: forall B n m d ϕ, m <= n -> lc_rty_idx n [v: B | m | d | ϕ ]
+| lc_rty_idx_oarr: forall B n m d ϕ τ,
+    lc_rty_idx (S n) τ ->
+    m <= n ->
+    lc_rty_idx n (-:{v: B | m | d | ϕ } ⤑ τ)
+| lc_rty_idx_arrarr: forall n τ1 τ2, lc_rty_idx n τ1 -> lc_rty_idx n τ2 -> lc_rty_idx n (τ1 ⤑ τ2).
+
+Definition lc_rty τ := lc_rty_idx 0 τ.
+
+Definition rty_body τ := lc_rty_idx 1 τ.
+
+Definition bstdom (bst: bstate) :=
+  match bst with
+  | bstate_constr b _ => b
+  end.
+
+Definition closed_rty (b: nat) (d: aset) (τ: rty) := valid_rty τ /\ lc_rty_idx b τ /\ (rty_fv τ) ⊆ d.
+
+Definition closed_rty_with_st (bst: bstate) (st: state) (τ: rty) := closed_rty (bstdom bst) (dom _ st) τ.
+
+Definition ok_stctx (bst: bstate) (st: state) (Γ: listctx rty) := ok Γ /\ (ctxdom Γ ∩ dom _ st ≡ ∅).
+
+Definition closed_rty_with_stctx (bst: bstate) (st: state) (τ: rty) (Γ: listctx rty) :=
+  closed_rty (bstdom bst) (ctxdom Γ ∪ dom _ st).
+
+(* Erase *)
+
+Fixpoint rty_erase ut : ty :=
+  match ut with
+  | {v: T | _ | _ | _ } => T
+  | [v: T | _ | _ | _ ] => T
+  | -:{v: T1 | _ | _ | _ } ⤑ τ => T1 ⤍ (rty_erase τ)
+  | t1 ⤑ t2 => (rty_erase t1) ⤍ (rty_erase t2)
+  end.
+
+Notation " '⌊' ty '⌋' " := (rty_erase ty) (at level 5, format "⌊ ty ⌋", ty constr).
+
+Definition listctx_fmap {A: Type} {B: Type} (f: A -> B) (l: listctx A) :=
+  List.map (fun e => (e.1, f e.2)) l.
+
+Definition ctx_erase := listctx_fmap rty_erase.
+
+Notation " '⌊' Γ '⌋*' " := (ctx_erase Γ) (at level 5, format "⌊ Γ ⌋*", Γ constr).
+
+(* Ty Function *)
+
+Definition mk_eq_constant c := [v: ty_of_const c | 0 | ∅ | fun _ _ v => v = c ].
+Definition mk_under_bot ty := [v: ty | 0 | ∅ | fun _ _ _ => False ].
+Definition mk_under_top ty := [v: ty | 0 | ∅ | fun _ _ _ => True ].
+Definition mk_over_top ty := {v: ty | 0 | ∅ | fun _ _ _ => True }.
+Definition mk_eq_var ty (x: atom) := [v: ty | 0 | {[x]} | fun _ st v => Some v = st !! x ].
+Definition mk_op_ret op :=
+  [v: ret_ty_of_op op | 2 | ∅ |
+    fun bst _ v => exists c_a c_b, (bst b!! 0) = Some c_a /\ (bst b!! 1) = Some c_b /\ eval_op op c_a c_b v ].
+Definition mk_op op :=
+  -:{v: fst_ty_of_op op | 0 | ∅ | fun _ _ _ => True } ⤑
+      (-:{v: snd_ty_of_op op | 1 | ∅ | fun _ _ _ => True } ⤑
+          mk_op_ret op).

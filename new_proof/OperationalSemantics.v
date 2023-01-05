@@ -114,7 +114,8 @@ Definition normal_form (t : tm) : Prop :=
 Definition deterministic {tm : Type} (R : relation tm) :=
   forall x y1 y2 : tm, R x y1 -> R x y2 -> y1 = y2.
 
-Notation "t1 '↪*' t2" := (multistep t1 t2) (at level 40)
+Notation "t1 '↪*' t2" := (multistep t1 t2) (at level 40).
+
 Lemma multi_step_regular: forall e1 e2, e1 ↪* e2 -> lc e1 /\ lc e2.
 Proof.
   intros.

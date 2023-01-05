@@ -35,7 +35,6 @@ Inductive biop : Type :=
 Global Hint Constructors biop: core.
 
 Inductive value : Type :=
-| vbiop (op: biop)
 | vconst (c: constant)
 | vfvar (atom: atom)
 | vbvar (bn: nat)
@@ -52,7 +51,6 @@ with tm : Type :=
 Scheme value_mutual_rec := Induction for value Sort Type
     with tm_mutual_rec := Induction for tm Sort Type.
 
-Coercion vbiop : biop >-> value.
 Coercion vconst : constant >-> value.
 Coercion vfvar : atom >-> value.
 Coercion tvalue : value >-> tm.
@@ -61,7 +59,6 @@ Coercion tvalue : value >-> tm.
 
 Fixpoint _open_value (k : nat) (s : value) (v : value): value :=
   match v with
-  | vbiop _ => v
   | vconst _ => v
   | vfvar _ => v
   | vbvar n => if decide (k = n) then s else v
@@ -83,14 +80,11 @@ with _open_tm (k : nat) (s : value) (e : tm): tm :=
 Notation "'{' k '~v>' s '}' e" := (_open_value k s e) (at level 20, k constr).
 Notation "'{' k '~t>' s '}' e" := (_open_tm k s e) (at level 20, k constr).
 
-(* Definition open_value s e := _open_value 0 s e. *)
-(* Definition open_tm s e := _open_tm 0 s e. *)
 Notation "e '^v^' s" := (_open_value 0 s e) (at level 20).
 Notation "e '^t^' s" := (_open_tm 0 s e) (at level 20).
 
 Fixpoint _close_value (x : atom) (s : nat) (v : value): value :=
   match v with
-  | vbiop _ => v
   | vconst _ => v
   | vfvar y => if decide (x = y) then vbvar s else v
   | vbvar _ => v
@@ -113,13 +107,10 @@ with _close_tm (x : atom) (s : nat) (e : tm): tm :=
 Notation "'{' s '<v~' x '}' e" := (_close_value x s e) (at level 20, s constr).
 Notation "'{' s '<t~' x '}' e" := (_close_tm x s e) (at level 20, s constr).
 
-(* Definition close_value x e := _close_value x 0 e. *)
-(* Definition close_tm x e := _close_tm x 0 e. *)
 Notation "x '\v\' e" := (_close_value x 0 e) (at level 20).
 Notation "x '\t\' e" := (_close_tm x 0 e) (at level 20).
 
 Inductive lc: tm -> Prop :=
-| lc_vbiop: forall (op: biop), lc op
 | lc_const: forall (c: constant), lc c
 | lc_vfvar: forall (a: atom), lc (vfvar a)
 | lc_vlam: forall T e (L: aset), (forall (x: atom), x ∉ L -> lc (e ^t^ x)) -> lc (vlam T e)
@@ -143,7 +134,6 @@ Definition var_open_tm (s: atom) (e: tm) := e ^t^ s.
 
 Fixpoint fv_value (v : value): aset :=
   match v with
-  | vbiop _ => ∅
   | vconst _ => ∅
   | vfvar y => {[ y ]}
   | vbvar _ => ∅
@@ -167,7 +157,6 @@ Definition body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> lc (e 
 
 Fixpoint value_subst (x : atom) (s : value) (v : value): value :=
   match v with
-  | vbiop _ => v
   | vconst _ => v
   | vfvar y => if decide (x = y) then s else v
   | vbvar _ => v
@@ -183,9 +172,6 @@ with tm_subst (x : atom) (s : value) (e : tm): tm :=
        | tletbiop op v1 v2 e => tletbiop op (value_subst x s v1) (value_subst x s v2) (tm_subst x s e)
        | tmatchb v e1 e2 => tmatchb (value_subst x s v) (tm_subst x s e1) (tm_subst x s e2)
        end.
-
-(* Definition value_subst (x:atom) (s:value) (t:value) : value := (x \v\ t) ^v^ s. *)
-(* Definition tm_subst (x:atom) (s:value) (t:tm) : tm := (x \t\ t) ^t^ s. *)
 
 Notation "'{' x ':=' s '}t' t" := (tm_subst x s t) (at level 20).
 Notation "'{' x ':=' s '}v' t" := (value_subst x s t) (at level 20).

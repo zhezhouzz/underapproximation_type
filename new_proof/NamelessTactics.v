@@ -2,8 +2,29 @@ From stdpp Require Import mapset.
 From CT Require Import Atom.
 From CT Require Import Tactics.
 From CT Require Import CoreLang.
+From Coq Require Import Logic.ClassicalFacts.
+From Coq Require Import Classical.
 
 Import CoreLang.
+
+Ltac destruct_hyp_conj :=
+  match goal with
+  | [H: ?P /\ ?Q |- _ ] =>
+      destruct H; repeat match goal with
+                    | [ H' : P /\ Q |- _ ] => clear H'
+                    end
+  | [H: atom * _ |- _ ] => destruct H
+  | [ H: ex _ |- _ ] => destruct H
+  end.
+
+Ltac destruct_hyp_disj :=
+  repeat match goal with
+    | [H: _ \/ _ |- _ ] => destruct H
+    end.
+
+Ltac mydestr := repeat destruct_hyp_conj.
+
+Ltac invclear H := inversion H; subst; clear H.
 
 Lemma setunion_cons_cons: forall (x: atom) (s1 s2: aset), {[x]} ∪ s1 ∪ ({[x]} ∪ s2) = ({[x]} ∪ s1 ∪ s2).
 Proof. fast_set_solver. Qed.
@@ -64,7 +85,16 @@ Ltac mmy_set_solver2 :=
       do 2 rewrite Htmp; try clear Htmp; exact H
   end.
 
-Ltac my_set_solver := mmy_set_solver2 || fast_set_solver!! || set_solver.
+Ltac my_set_solver :=
+  match goal with
+  | [H: context [∅ ∪ ?d] |- _ ] =>
+      assert (∅ ∪ d = d) as Htmp by fast_set_solver;
+      rewrite Htmp in H; try clear Htmp; auto
+  | [ |- context [∅ ∪ ?d] ] =>
+      assert (∅ ∪ d = d) as Htmp by fast_set_solver;
+      rewrite Htmp; try clear Htmp; auto
+  end ||
+    mmy_set_solver2 || fast_set_solver!! || set_solver.
 
 Ltac rewrite_by_set_solver :=
   match goal with
@@ -85,15 +115,6 @@ Ltac bi_iff_rewrite :=
   match goal with
   | [ H: context [ _ <-> _ ] |- _ ] =>
       (rewrite <- H; firstorder; auto) || (rewrite H; firstorder; auto)
-  end.
-
-Ltac destruct_hyp_conj :=
-  match goal with
-  | [H: ?P /\ ?Q |- _ ] =>
-      destruct H; repeat match goal with
-                         | [ H' : P /\ Q |- _ ] => clear H'
-                         end
-  | [ H: ex _ |- _ ] => destruct H
   end.
 
 #[global]
@@ -157,8 +178,17 @@ Ltac auto_exists_L_and_solve :=
   | _ => auto_exists_L; intros; repeat split; apply_by_set_solver
   end.
 
+Lemma empty_eq_app_exfalso {A: Type}: forall Γ1 (x: atom) (t: A) Γ2, ~ ([] = Γ1 ++ [(x, t)] ++ Γ2).
+Proof.
+  intros. intro H.
+  symmetry in H. apply app_eq_nil in H. mydestr.
+  apply app_eq_nil in H0. mydestr. inversion H0.
+Qed.
+
 Ltac auto_exfalso :=
   match goal with
+  | [H: [] = _ ++ [(_, _)] ++ _ |- _] => apply empty_eq_app_exfalso in H; inversion H
+  | [H: _ ++ [(_, _)] ++ _ = [] |- _] => symmetry in H; apply empty_eq_app_exfalso in H; inversion H
   | [H: ?a <> ?a |- _ ] => exfalso; auto
   | [H: False |- _] => inversion H
   | [H: Some _ = None |- _ ] => inversion H
@@ -177,6 +207,8 @@ Ltac var_dec_solver :=
   match goal with
   | [H: Some ?a = Some ?b |- _] => inversion H; subst; clear H; simpl; auto
   | [H: ?a <> ?a |- _ ] => exfalso; lia
+  | [ |- Some _ = None ] => exfalso; lia
+  | [ |- None = Some _ ] => exfalso; lia
   | [H: context [ decide (?a = ?a) ] |- _ ] => rw_decide_true_in a a H; auto
   | [H: context [ decide (?a = ?b) ] |- _ ] =>
       match goal with
@@ -185,6 +217,12 @@ Ltac var_dec_solver :=
       | _ => destruct (Nat.eq_dec a b); subst; simpl in H; simpl
       | _ => destruct (Atom.atom_dec a b); subst; simpl in H; simpl
       end
+  | [H: context [ decide (?a < ?b) ] |- _ ] =>
+      match goal with
+      | [H': a < b |- _ ] => rewrite (decide_True _ _ H') in H; auto
+      | [H': ~ (a < b) |- _ ] => rewrite (decide_False _ _ H') in H; auto
+      | _ => destruct (nat_lt_dec a b); subst; simpl in H; simpl
+      end
   | [ |- context [ decide (?a = ?a) ] ] => rw_decide_true a a; auto
   | [ |- context [ decide (?a = ?b) ] ] =>
       match goal with
@@ -192,6 +230,12 @@ Ltac var_dec_solver :=
       | [H: a <> b |- _ ] => rewrite (decide_False _ _ H); auto
       | _ => destruct (Nat.eq_dec a b); subst; simpl; var_dec_solver
       | _ => destruct (Atom.atom_dec a b); subst; simpl; var_dec_solver
+      end
+  | [ |- context [ decide (?a < ?b) ] ] =>
+      match goal with
+      | [H': a < b |- _ ] => rewrite (decide_True _ _ H'); auto
+      | [H': ~ (a < b) |- _ ] => rewrite (decide_False _ _ H'); auto
+      | _ => destruct (nat_lt_dec a b); subst; simpl; simpl; var_dec_solver
       end
   | _ => progress simpl
   end.
@@ -222,4 +266,55 @@ Ltac specialize_with x :=
   match goal with
   | [H: forall x, x ∉ ?L -> _ |- _] =>
       assert (x ∉ L) as Htmp by fast_set_solver; specialize (H x Htmp); try clear Htmp
+  end.
+
+Ltac pbc :=
+  match goal with
+  | [ |- ?ret] => destruct (classic ret); auto; exfalso
+  end.
+
+Lemma exists_forall_aux2 {A: Type}: forall P Q, ~ (∃ (a: A), P a /\ Q a) <-> (∀ (a: A), ~ P a \/ ~ Q a).
+Proof.
+  split; intros.
+  - destruct (classic (P a)); destruct (classic (Q a)); auto.
+    exfalso. apply H. exists a. split; auto.
+  - intro Hf. mydestr. destruct (H x).
+    + apply H2; auto.
+    + apply H2; auto.
+Qed.
+
+Lemma nexists {A: Type}: forall P, ~ (∃ (a: A), P a) <-> (forall (a: A), ~ P a).
+Proof.
+  split; intros.
+  - intro Hf. apply H; eexists; eauto.
+  - intro Hf; mydestr. eapply H; eauto.
+Qed.
+
+Lemma nand: forall P Q, ~ (P /\ Q) <-> (~ P \/ ~ Q).
+Proof.
+  split; intros.
+  - destruct (classic P); destruct (classic Q); auto.
+  - intro Hf; mydestr. destruct H; apply H; auto.
+Qed.
+
+Lemma nor_to_implies: forall P Q, (~ P \/ Q) <-> (P -> Q).
+Proof.
+  split; intros.
+  - destruct H; auto. exfalso; apply H; auto.
+  - destruct (classic P); auto.
+Qed.
+
+Lemma nneg: forall P, ~ ~ P <-> P.
+Proof.
+  split; intros.
+  - destruct (classic P); auto. exfalso. apply H; auto.
+  - intro Hf. apply Hf; auto.
+Qed.
+
+Ltac neg_simpl :=
+  repeat match goal with
+  | [H: ~ (exists _, _) |- _ ] => setoid_rewrite nexists in H
+  | [H: context [ ~ (_ /\ _)] |- _ ] => setoid_rewrite nand in H
+  | [H: context [ ~ ~ _ ] |- _ ] => setoid_rewrite nneg in H
+  | [H: context [ ~ _ \/ _ ]  |- _ ] => setoid_rewrite nor_to_implies in H
   end.

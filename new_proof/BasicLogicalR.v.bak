@@ -40,17 +40,8 @@ Proof.
   econstructor; auto. apply mk_app_body; auto.
 Qed.
 
-(* The logical relation only works for the halting terms *)
-
-Definition halt (e: tm) := exists (v: value), e ↪* v.
-
-Lemma op_trans_halt: forall (e e': tm), e ↪ e' -> halt e' -> halt e.
-Proof.
-  intros. destruct H0. exists x. eapply multistep_step; eauto.
-Qed.
-
 Fixpoint basicR (T: ty) (e: tm) : Prop :=
-  [] ⊢t e ⋮t T /\ halt e /\
+  [] ⊢t e ⋮t T /\
     match T with
     | TBase _ => True
     | T1 ⤍ T2 => forall e1, basicR T1 e1 -> basicR T2 (mk_app e e1)
@@ -62,20 +53,12 @@ Proof.
   induction T; destruct H; auto.
 Qed.
 
-Lemma basicR_halt: forall T e, basicR T e -> halt e.
-Proof.
-  intros.
-  induction T; simpl in H; repeat destruct_hyp_conj; auto.
-Qed.
-
 Ltac op_solver1 :=
   op_simpl;
   auto;
   repeat match goal with
-    | [H: halt ?e', H': ?e ↪ ?e' |- halt ?e ] => eapply op_trans_halt; eauto
     | [H: _ ⊢t ?e ⋮t _ |- lc ?e ] => apply basic_typing_regular_tm in H; destruct H; auto
     | [H: basicR _ ?e |- lc ?e ] => apply basicR_typable_empty in H; auto
-    | [H: basicR _ ?e |- halt ?e ] => apply basicR_halt in H; auto
     | [H: basicR _ ?e |- [] ⊢t ?e ⋮t _ ] => apply basicR_typable_empty in H; eauto
     | [H: _ ↪ ?e |- lc ?e] => apply multi_step_regular2 in H; auto
     | [H: ?Γ ⊢t ?e ⋮t ?T |- (?Γ ++ _) ⊢t ?e ⋮t _] => apply basic_typing_weaken_tm_pre; eauto
@@ -95,26 +78,25 @@ Proof.
     basic_typing_vfavr_solver.
 Qed.
 
-(* Lemma step_preserves_basicR : ∀ T e e', (e ↪ e') → basicR T e → basicR T e'. *)
-(* Proof. *)
-(*   induction T; simpl; intros; repeat destruct_hyp_conj; repeat split; auto; *)
-(*   try (eapply preservation; eauto). *)
-(*   op_solver1. *)
-(*   intros. apply IHT2 with (e := (mk_app e e1)); auto. *)
-(*   apply mk_app_step; op_solver1. *)
-(* Qed. *)
+Lemma step_preserves_basicR : ∀ T e e', (e ↪ e') → basicR T e → basicR T e'.
+Proof.
+  induction T; simpl; intros; repeat destruct_hyp_conj; split; auto;
+  try (eapply preservation; eauto).
+  intros. apply IHT2 with (e := (mk_app e e1)); auto.
+  apply mk_app_step; op_solver1.
+Qed.
 
-(* Lemma multistep_preserves_basicR : ∀ T e e', (e ↪* e') → basicR T e → basicR T e'. *)
-(* Proof. *)
-(*   intros. induction H; auto. apply IHmultistep. eapply step_preserves_basicR; eauto. *)
-(* Qed. *)
+Lemma multistep_preserves_basicR : ∀ T e e', (e ↪* e') → basicR T e → basicR T e'.
+Proof.
+  intros. induction H; auto. apply IHmultistep. eapply step_preserves_basicR; eauto.
+Qed.
 
 Lemma step_preserves_basicR' : ∀ T e e', [] ⊢t e ⋮t T -> (e ↪ e') → basicR T e' → basicR T e.
 Proof.
-  induction T; simpl; intros; repeat destruct_hyp_conj; repeat split; auto; try op_solver1.
+  induction T; simpl; intros; repeat destruct_hyp_conj; split; auto.
   intros. apply IHT2 with (e' := (mk_app e' e1)); auto.
   - unfold mk_app. eapply mk_app_typable; eauto. apply basicR_typable_empty; auto.
-  - econstructor; auto. apply basicR_typable_empty in H4. basic_typing_solver2.
+  - econstructor; auto. apply basicR_typable_empty in H3. basic_typing_solver2.
 Qed.
 
 Lemma multistep_preserves_basicR' : ∀ T e e', (e ↪* e') → [] ⊢t e ⋮t T -> basicR T e' → basicR T e.
@@ -122,6 +104,42 @@ Proof.
   intros T e e' H.
   induction H; intros; auto.
   eapply step_preserves_basicR'; eauto. apply IHmultistep; auto. eapply preservation; eauto.
+Qed.
+
+Lemma mk_app_err_step: forall e1 e1' e2,
+    lc e2 ->
+    e1 ⥇ e1' -> mk_app e1 e2 ⥇ mk_app e1' e2.
+Proof.
+  unfold mk_app; intros.
+  econstructor; auto. apply mk_app_body; auto.
+Qed.
+
+Lemma err_step_preserves_basicR : ∀ T e e', (e ⥇ e') → basicR T e → basicR T e'.
+Proof.
+  induction T; simpl; intros; repeat destruct_hyp_conj; split; auto;
+  try (eapply err_preservation; eauto).
+  intros. apply IHT2 with (e := (mk_app e e1)); auto.
+  apply mk_app_err_step; op_solver1.
+Qed.
+
+Lemma multierrstep_preserves_basicR : ∀ T e e', (e ⥇* e') → basicR T e → basicR T e'.
+Proof.
+  intros. induction H; auto. apply IHmultierrstep. eapply err_step_preserves_basicR; eauto.
+Qed.
+
+Lemma err_step_preserves_basicR' : ∀ T e e', [] ⊢t e ⋮t T -> (e ⥇ e') → basicR T e' → basicR T e.
+Proof.
+  induction T; simpl; intros; repeat destruct_hyp_conj; split; auto.
+  intros. apply IHT2 with (e' := (mk_app e' e1)); auto.
+  - unfold mk_app. eapply mk_app_typable; eauto. apply basicR_typable_empty; auto.
+  - econstructor; auto. apply basicR_typable_empty in H3. basic_typing_solver2.
+Qed.
+
+Lemma multierrstep_preserves_basicR' : ∀ T e e', (e ⥇* e') → [] ⊢t e ⋮t T -> basicR T e' → basicR T e.
+Proof.
+  intros T e e' H.
+  induction H; intros; auto.
+  eapply err_step_preserves_basicR'; eauto. apply IHmultierrstep; auto. eapply err_preservation; eauto.
 Qed.
 
 (* Instantiations *)
@@ -223,8 +241,6 @@ Ltac basic_typing_solver2 :=
      | [|- _ ⊢t (vconst _) ⋮v _ ] => constructor; listctx_set_solver
      | [|- _ ⊢t (vfvar _) ⋮v _ ] => constructor; listctx_set_solver
      | [|- _ ⊢t terr ⋮t _ ] => constructor; listctx_set_solver
-     | [H: halt ?e', H': ?e ↪ ?e' |- halt ?e ] => eapply op_trans_halt; eauto
-     | [H: basicR _ ?e |- halt ?e ] => apply basicR_halt in H; auto
      | [H: basicR _ (tvalue ?v) |- closed_value ?v] => apply basicR_typable_empty in H
      | [H: basicR _ ?e |- closed_tm ?e] => apply basicR_typable_empty in H
      | [H: _ ⊢t ?v ⋮v _ |- closed_value ?v] =>
@@ -297,12 +313,10 @@ Qed.
 
 Ltac instantiation_regular_solver :=
   match goal with
-  | [H: instantiation ?a ?b |- _ ∉ _ ] =>
-      apply instantiation_regular_ok in H; repeat destruct_hyp_conj; auto; listctx_set_solver
   | [H: instantiation ?a ?b |- ok _ ] =>
-      apply instantiation_regular_ok in H; repeat destruct_hyp_conj; auto; listctx_set_solver
+      apply instantiation_regular_ok in H; repeat destruct_hyp_conj; auto
   | [H: instantiation ?a ?b |- forall x v, ctxfind ?b x = Some v -> _ ] =>
-      apply instantiation_regular in H; repeat destruct_hyp_conj; eauto; listctx_set_solver
+      apply instantiation_regular in H; repeat destruct_hyp_conj; eauto
   end.
 
 Lemma msubst_vfix: ∀ ss Tx (e: value), value_msubst ss (vfix Tx e) = vfix Tx (value_msubst ss e).
@@ -416,6 +430,7 @@ Proof.
     rewrite msubst_vlam in H.
     rewrite msubst_open_tm; try instantiation_regular_solver. apply H; auto.
     rewrite app_assoc; auto.
+    fast_set_solver.
   - rewrite tm_msubst_closed. basic_typing_solver2. unfold closed_tm; listctx_set_solver.
   - rewrite msubst_value. eauto.
   - rewrite msubst_tlete. auto_exists_L; simpl; intros.
@@ -455,6 +470,7 @@ Proof.
     rewrite msubst_vlam in H.
     rewrite msubst_open_tm; try instantiation_regular_solver. apply H; auto.
     rewrite app_assoc; auto.
+    fast_set_solver.
   - rewrite tm_msubst_closed. basic_typing_solver2. unfold closed_tm; listctx_set_solver.
   - rewrite msubst_value. eauto.
   - rewrite msubst_tlete. auto_exists_L; simpl; intros.
@@ -530,7 +546,10 @@ Lemma basicR_app_aux: forall Tf Tx T,
     ty_arrow_argR Tf Tx T -> forall e_x e_f, basicR Tx e_x -> basicR Tf e_f -> basicR T (mk_app e_f e_x).
 Proof.
   intros Tx Tf T H.
-Admitted.
+  induction H; intros.
+  - split; auto. apply mk_app_typable with (T1 := Tx); basic_typing_solver2.
+  - apply H0; auto.
+Qed.
 
 Lemma basicR_app: forall Tx e_x T e_f, basicR (Tx ⤍ T) e_f -> basicR Tx e_x -> basicR T (mk_app e_f e_x).
 Proof.
@@ -555,35 +574,27 @@ Admitted.
 
 (* Lemma basic_R_perservation: forall (e e': tm) T, basicR e T -> *)
 
-Lemma msubst_R_tm: ∀ Γt Γv, instantiation Γt Γv → (forall e T, Γt ⊢t e ⋮t T -> halt e -> basicR T (tm_msubst Γv e)).
+Lemma msubst_R_tm: ∀ Γt Γv, instantiation Γt Γv → (forall e T, Γt ⊢t e ⋮t T -> basicR T (tm_msubst Γv e)).
 Proof.
-  intros. generalize dependent Γv. generalize dependent H1.
+  intros. generalize dependent Γv.
   apply (tm_has_type_mutual_rec
-           (fun Γt v T P => halt e -> ∀ Γv : env, instantiation Γt Γv → basicR T (value_msubst Γv v))
-           (fun Γt e T P => halt e -> ∀ Γv : env, instantiation Γt Γv → basicR T (tm_msubst Γv e))
+           (fun Γt v T P => ∀ Γv : env, instantiation Γt Γv → basicR T (value_msubst Γv v))
+           (fun Γt e T P => ∀ Γv : env, instantiation Γt Γv → basicR T (tm_msubst Γv e))
         ); simpl; intros; subst; listctx_set_simpl;
     repeat split; intros; repeat destruct_hyp_conj; auto;
     repeat match goal with
       | [|- [] ⊢t mk_app _ _ ⋮t ?T ] => eapply mk_app_typable; eauto
       | [|- _ ⊢t _ ⋮t _] => (eapply msubst_preserves_typing_tm; eauto) || (constructor; auto; eapply msubst_preserves_typing_value; eauto)
+      | [|- _ ⊢t (vbiop _) ⋮v _] => constructor; auto
       | [|- _ ⊢t _ ⋮v _] => try (eapply msubst_preserves_typing_value; eauto)
       end.
-  - rewrite value_msubst_closed. admit. basic_typing_solver2.
-  - eapply instantiation_R_exists in e0; eauto. repeat destruct_hyp_conj. erewrite msubst_var; eauto.
-  - rewrite msubst_vlam. admit.
+  - eapply instantiation_R_exists in H; eauto. repeat destruct_hyp_conj. erewrite msubst_var; eauto.
   - rewrite msubst_vlam.
-    assert (halt e1). basic_typing_solver2. destruct H4 as (v1 & Hv1).
-    auto_pose_fv x. repeat specialize_with x.
-    specialize (H (Γv ++ [(x, v1)])).
-    apply multistep_preserves_basicR' with ((tm_msubst Γv e0) ^t^ v1). admit.
-    admit.
-    admit.
-  - rewrite msubst_vfix. admit.
-  - rewrite msubst_vfix. destruct H4 as (v1 & Hv1).
-    auto_pose_fv x. repeat specialize_with x.
-    specialize (H (Γv ++ [(x, (vfix (Tx ⤍ T0) (value_msubst Γv (vlam Tx e0))))])). admit.
-  - admit
+    eapply multistep_preserves_basicR'. 
 
+    unfold mk_app. destruct T0.
+    
+  - admit.
   - rewrite msubst_terr. 
     apply basicR_typable_empty in Hv2. 
     

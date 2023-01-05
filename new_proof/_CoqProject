@@ -5,6 +5,16 @@ CoreLang.v
 NamelessTactics.v
 CoreLangProp.v
 OperationalSemantics.v
+OperationalSemanticsProp.v
 ListCtx.v
 BasicTyping.v
 BasicTypingProp.v
+SyntaxSugar.v
+ErrOperationalSemantics.v
+ErrOperationalSemanticsProp.v
+TermOrdering.v
+Refinement.v
+RefinementTac.v
+RefinementDenotation.v
+RefinementDenotationTac.v
+AuxTyping.v

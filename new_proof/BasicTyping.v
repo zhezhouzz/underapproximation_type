@@ -69,7 +69,7 @@ Inductive tm_has_type : context -> tm -> ty -> Prop :=
 | T_LetOp : forall Γ (op: biop) v1 v2 e (T1 T2 Tx: base_ty) T (L: aset),
     Γ ⊢t v1 ⋮v T1 ->
     Γ ⊢t v2 ⋮v T2 ->
-    Γ ⊢t op ⋮v T1 ⤍ T2 ⤍ Tx ->
+    (ty_of_op op) = T1 ⤍ T2 ⤍ Tx ->
     (forall (x: atom), x ∉ L -> (Γ ++ [(x, TBase Tx)]) ⊢t e ^t^ x ⋮t T) ->
     Γ ⊢t tletbiop op v1 v2 e ⋮t T
 | T_LetApp : forall Γ v1 v2 e T1 Tx T (L: aset),
@@ -84,7 +84,6 @@ Inductive tm_has_type : context -> tm -> ty -> Prop :=
     Γ ⊢t (tmatchb v e1 e2) ⋮t T
 with value_has_type : context -> value -> ty -> Prop :=
 | T_Const : forall Γ (c: constant), ok Γ -> Γ ⊢t c ⋮v (ty_of_const c)
-| T_Op : forall Γ (op: biop), ok Γ -> Γ ⊢t op ⋮v (ty_of_op op)
 | T_Var : forall Γ (x: atom) T,
     ok Γ ->
     ctxfind Γ x = Some T -> Γ ⊢t x ⋮v T
@@ -199,3 +198,34 @@ Ltac basic_typing_regular_simp :=
     | [H: _ ⊢t _ ⋮v _ |- ok _] => apply basic_typing_regular_value in H; destruct H; auto
     | [H: _ ⊢t _ ⋮t _ |- ok _] => apply basic_typing_regular_tm in H; destruct H; auto
     end.
+
+Lemma empty_basic_typing_base_const_exists: forall (v: value) (B: base_ty), [] ⊢t v ⋮v B -> (exists (c: constant), v = c).
+Proof.
+  intros. inversion H; subst.
+  - exists c; auto.
+  - inversion H1.
+Qed.
+
+Lemma empty_basic_typing_bool_value_exists: forall (v: value), [] ⊢t v ⋮v TBool -> v = true \/ v = false.
+Proof.
+  intros. inversion H; subst.
+  - destruct c; inversion H0. destruct b; inversion H0. left; auto. right; auto.
+  - inversion H1.
+Qed.
+
+Lemma empty_basic_typing_nat_value_exists: forall (v: value), [] ⊢t v ⋮v TNat -> (exists (i: nat), v = i).
+Proof.
+  intros. inversion H; subst.
+  - destruct c; inversion H0. exists n; auto.
+  - inversion H1.
+Qed.
+
+Lemma empty_basic_typing_arrow_value_lam_exists:
+  forall (v: value) T1 T2, [] ⊢t v ⋮v T1 ⤍ T2 ->
+                        (exists e, v = vlam T1 e) \/ (exists e, v = vfix (T1 ⤍ T2) (vlam T1 e)).
+Proof.
+  intros. inversion H; subst.
+  - inversion H1.
+  - left. exists e; auto.
+  - right; exists e; auto.
+Qed.
