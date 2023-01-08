@@ -50,7 +50,48 @@ Ltac my_simplify_map_eq1 :=
 (*           rewrite Htmp in H; try clear Htmp *)
 (*       end || simplify_map_eq1). *)
 
-Ltac my_simplify_map_eq := my_simplify_map_eq1.
+Ltac my_simplify_map_eq2 :=
+  repeat (match goal with
+          | [|- context [ <[?a:=_]> (<[?a:=_]> ?st) ]] =>
+              setoid_rewrite insert_insert
+          | [H: context [ <[?a:=_]> (<[?a:=_]> ?st) ] |- _ ] =>
+              setoid_rewrite insert_insert in H
+          | [|- context [<[?b:=?c0]> ?st !! ?b ] ] => setoid_rewrite lookup_insert
+          | [H: context [<[?b:=?c0]> ?st !! ?b ] |- _ ] => setoid_rewrite lookup_insert in H
+          | [H: ?st !! ?x = Some _ |- context [?st !! ?x]] => setoid_rewrite H
+          | [H: ?x ∈ dom _ ?st |- context [?st !! ?x]] =>
+              assert (exists c, st !! x = Some c) as Htmp by
+                (destruct (st !! x) eqn: HH; eauto;
+                 setoid_rewrite <- not_elem_of_dom in HH; set_solver); mydestr
+          | [H': ?a ∉ dom _ ?st |- context [?st !! ?a]] =>
+              assert (st !! a = None) as Htmp by (apply not_elem_of_dom; fast_set_solver);
+              rewrite Htmp; try clear Htmp
+          | [H': ?a ∉ dom _ ?st, H: context [?st !! ?a] |- _ ] =>
+              assert (st !! a = None) as Htmp by (apply not_elem_of_dom; fast_set_solver);
+              rewrite Htmp in H; try clear Htmp
+          end || my_simplify_map_eq1).
+
+Ltac my_simplify_map_eq3 :=
+  repeat (match goal with
+          | [H: ?x <> ?z |- context [<[?z:=_]> _ !! ?x ] ] =>
+              setoid_rewrite lookup_insert_ne; eauto; try fast_set_solver
+          | [H: ?z <> ?x |- context [<[?z:=_]> _ !! ?x ] ] =>
+              setoid_rewrite lookup_insert_ne; eauto; try fast_set_solver
+          | [H: ?x <> ?z, H': context [<[?z:=_]> _ !! ?x] |- _ ] =>
+              setoid_rewrite lookup_insert_ne in H; eauto; try fast_set_solver
+          | [H: ?z <> ?x, H': context [<[?z:=_]> _ !! ?x] |- _ ] =>
+              setoid_rewrite lookup_insert_ne in H; eauto; try fast_set_solver
+          | [H: ?x <> ?z |- context [(delete ?z _) !! ?x ] ] =>
+              setoid_rewrite lookup_delete_ne; eauto; try fast_set_solver
+          | [H: ?z <> ?x |- context [(delete ?z _) !! ?x ] ] =>
+              setoid_rewrite lookup_delete_ne; eauto; try fast_set_solver
+          | [H: ?x <> ?z, H': context [(delete ?z _) !! ?x] |- _ ] =>
+              setoid_rewrite lookup_delete_ne in H; eauto; try fast_set_solver
+          | [H: ?z <> ?x, H': context [(delete ?z _) !! ?x] |- _ ] =>
+              setoid_rewrite lookup_delete_ne in H; eauto; try fast_set_solver
+          end || my_simplify_map_eq2).
+
+Ltac my_simplify_map_eq := my_simplify_map_eq3.
 
 Lemma closed_rty_trans: forall n d1 d2 τ, d1 ⊆ d2 -> closed_rty n d1 τ -> closed_rty n d2 τ.
 Proof.
@@ -360,4 +401,16 @@ Ltac ctx_erase_simp3:=
     | [ |- context [ ok ⌊ ?a ⌋* ] ] => setoid_rewrite <- (ctx_erase_perserve_ok a)
     end || listctx_set_simpl; simpl.
 
-Ltac ctx_erase_simp:= ctx_erase_simp3.
+Lemma subst_perserve_erase: forall τ z c, ⌊({z:=c}r) τ⌋ = ⌊τ⌋.
+Proof.
+  induction τ; intros; destruct c; simpl; eauto; try (rewrite IHτ; auto);
+  try (rewrite IHτ1; rewrite IHτ2; auto).
+Qed.
+
+Ltac ctx_erase_simp4:=
+  repeat ((match goal with
+           | [H: context [⌊({_:=_}r) _⌋] |- _ ] => setoid_rewrite subst_perserve_erase in H
+           | [|- context [⌊({_:=_}r) _⌋] ] => setoid_rewrite subst_perserve_erase
+           end; auto) || ctx_erase_simp3).
+
+Ltac ctx_erase_simp:= ctx_erase_simp4.

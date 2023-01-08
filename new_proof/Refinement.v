@@ -162,32 +162,43 @@ Definition state_subst: atom -> value -> state -> state :=
 
 Notation " '{' x ':=' v '}s' " := (state_subst x v) (at level 20, format "{ x := v }s", x constr, v constr).
 
-Definition refinement_subst (x1: atom) (v2: value) (ϕ: refinement) : refinement :=
-  fun bst st v => ϕ bst (state_subst x1 v2 st) v.
+Definition refinement_subst (x1: atom) (v2: value) (d: aset) (ϕ: refinement) : refinement :=
+  if decide (x1 ∈ d) then
+    (fun bst st v => ϕ bst (state_insert_value x1 v2 st) v)
+  else
+    ϕ.
+    (* (fun bst st v => ϕ bst (delete x1 st) v). *)
+  (* fun bst st v => ϕ bst (state_insert_value x1 v2 st) v. *)
+  (* fun bst st v => ϕ bst (state_subst x1 v2 st) v. *)
 
 Definition refinement_set_subst (x1: atom) (s: value) (d: aset) : aset :=
-  match s with
-  | vfvar x => {[x]} ∪ (d ∖ {[x1]})
-  | vconst c => d ∖ {[x1]}
-  | vbvar _ => d
-  | vlam _ _ => d
-  | vfix _ _ => d
-  end.
+  if decide (x1 ∈ d) then
+    match s with
+    | vfvar x => {[x]} ∪ (d ∖ {[x1]})
+    | vconst c => d ∖ {[x1]}
+    | vbvar _ => d
+    | vlam _ _ => d
+    | vfix _ _ => d
+    end
+  else
+    d.
 
 Fixpoint rty_subst (x: atom) (s: value) (τ: rty) : rty :=
   match τ with
   | {v: B | n | d | ϕ } =>
-      if decide (x ∈ d)
-      then {v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ }
-      else {v: B | n | d | ϕ }
-  | [v: B | n | d | ϕ ] =>
-      if decide (x ∈ d)
-      then [v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ ]
-      else [v: B | n | d | ϕ ]
+      {v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ }
+      (* if decide (x ∈ d) *)
+      (* then {v: B | n | d | refinement_subst x s ϕ } *)
+      (* else {v: B | n | d | ϕ } *)
+  | [v: B | n | d | ϕ ] => [v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ ]
+      (* if decide (x ∈ d) *)
+      (* then [v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ ] *)
+      (* else [v: B | n | d | ϕ ] *)
   | -:{v: B | n | d | ϕ } ⤑ τ =>
-      if decide (x ∈ d)
-      then -:{v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ } ⤑ (rty_subst x s τ)
-      else -:{v: B | n | d | ϕ } ⤑ (rty_subst x s τ)
+      -:{v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ } ⤑ (rty_subst x s τ)
+      (* if decide (x ∈ d) *)
+      (* then -:{v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ } ⤑ (rty_subst x s τ) *)
+      (* else -:{v: B | n | d | ϕ } ⤑ (rty_subst x s τ) *)
   | τ1 ⤑ τ2 => (rty_subst x s τ1) ⤑ (rty_subst x s τ2)
   end.
 
@@ -195,8 +206,10 @@ Notation "'{' x ':=' s '}r'" := (rty_subst x s) (at level 20, format "{ x := s }
 
 (* well formed, locally closed, closed with state *)
 
-Definition not_fv_in_refinement (x: atom) (ϕ: refinement) :=
-  forall (m: state), forall bst (c v: constant), ϕ bst (<[ x := c ]> m) v <-> ϕ bst m v.
+Definition not_fv_in_refinement (d: aset) (ϕ: refinement) :=
+  forall (m m': state),
+    (forall (x: atom), x ∈ d -> m !! x = m' !! x) ->
+    forall bst (v: constant), ϕ bst m v <-> ϕ bst m' v.
 
 Definition bst_eq (n: nat) (bst1 bst2: bstate) := forall i, i < n -> bst1 i = bst2 i.
 
@@ -209,8 +222,14 @@ Proof.
   intros. apply H. intros. intro n. intros. exfalso. lia.
 Qed.
 
+Lemma not_in_aset_implies_same_in_refinement: forall (d: aset) (ϕ: refinement),
+    not_fv_in_refinement d ϕ ->
+    forall (x: atom), x ∉ d -> forall (m: state), forall bst (c v: constant), ϕ bst (<[ x := c ]> m) v <-> ϕ bst m v.
+Proof.
+  intros. apply H. intros. setoid_rewrite lookup_insert_ne; auto. fast_set_solver.
+Qed.
 Definition wf_r (n: nat) (d: aset) (ϕ: refinement) :=
-  (forall (x: atom), x ∉ d -> not_fv_in_refinement x ϕ) /\ bound_in_refinement n ϕ.
+  not_fv_in_refinement d ϕ /\ bound_in_refinement n ϕ.
 
 Definition not_underbasety rty: Prop :=
   match rty with

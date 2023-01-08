@@ -15,6 +15,7 @@ From Coq Require Import Classical.
 
 Import Atom.
 Import CoreLang.
+Import CoreLangProp.
 Import Tactics.
 Import NamelessTactics.
 Import ListCtx.
@@ -46,102 +47,444 @@ Ltac RD_simp :=
       end
   end.
 
-Ltac my_simplify_map_eq3 :=
-  repeat match goal with
-  | [ |- context [(<[?x:=?c_x]> (<[?x:=?c_y]> ?m))] ] =>
-      setoid_rewrite insert_insert; auto
-  | [ H: ?x <> ?y |- context [(<[?x:=?c_x]> (<[?y:=?c_y]> ?m))] ] =>
-      fail 1
-  | [ |- context [(<[?x:=?c_x]> (<[?y:=?c_y]> ?m))] ] =>
-      destruct (Atom.atom_dec x y); subst
-  end.
+(* Ltac my_simplify_map_eq_solver1 := *)
+(*   repeat match goal with *)
+(*   | [ |- context [(<[?x:=?c_x]> (<[?x:=?c_y]> ?m))] ] => *)
+(*       setoid_rewrite insert_insert; auto *)
+(*   | [ H: ?x <> ?y |- context [(<[?x:=?c_x]> (<[?y:=?c_y]> ?m))] ] => *)
+(*       fail 1 *)
+(*   | [ |- context [(<[?x:=?c_x]> (<[?y:=?c_y]> ?m))] ] => *)
+(*       destruct (Atom.atom_dec x y); subst *)
+(*   end. *)
 
-Global Hint Constructors lc_rty_idx: core.
-
-Lemma closed_rty_subst_excluded_forward: forall (n1 n2: nat) (z: atom) (c: constant) B (d1 d2: aset) ϕ,
-    z ∉ d1 -> z ∈ d2 ->
-    closed_rty n1 ({[z]} ∪ d1) {v:B|n2|d2|ϕ} ->
-    closed_rty n1 d1 {v:B|n2|d2 ∖ {[z]}|refinement_subst z c ϕ}.
-Proof.
-  unfold closed_rty. intros; mydestr. repeat split.
-  - denotation_simp. invclear H1. constructor. invclear H5. constructor; auto.
-    + intros.
-      unfold not_fv_in_refinement. intros. unfold refinement_subst. simpl.
-      unfold not_fv_in_refinement in H1. unfold refinement_subst in H1.
-      destruct (atom_dec x z); subst.
-      { my_simplify_map_eq. destruct (m !! z); my_simplify_map_eq3. apply H1. set_solver.  }
-      amap_solver1 Hstx. setoid_rewrite insert_commute. apply H0. set_solver. set_solver.
-      apply H0. set_solver.
-      my_simplify_map_eq3. setoid_rewrite insert_commute; set_solver.
-    + unfold bound_in_refinement in H2. unfold bound_in_refinement. eauto.
-  - refinement_solver3.
-  - set_solver.
-Qed.
-
-(* Lemma closed_rty_subst_excluded_backward: forall (n1 n2: nat) (z: atom) (c: constant) B (d1 d2: aset) ϕ, *)
+(* Lemma closed_rty_subst_excluded_over_forward: forall (n1 n2: nat) (z: atom) (c: constant) B (d1 d2: aset) ϕ, *)
 (*     z ∉ d1 -> *)
-(*     closed_rty n1 d1 {v:B|n2|d2 ∖ {[z]}|refinement_subst z c ϕ} -> closed_rty n1 ({[z]} ∪ d1) {v:B|n2|d2|ϕ}. *)
+(*     closed_rty n1 ({[z]} ∪ d1) {v:B|n2|d2|ϕ} -> *)
+(*     closed_rty n1 d1 {v:B|n2|refinement_set_subst z c d2|refinement_subst z c d2 ϕ}. *)
 (* Proof. *)
 (*   unfold closed_rty. intros; mydestr. repeat split. *)
-(*   - invclear H0. constructor. simpl in H2. invclear H4. constructor; auto. *)
+(*   - denotation_simp. invclear H0. constructor. invclear H4. constructor; auto. *)
 (*     + intros. *)
-(*       unfold not_fv_in_refinement. intros. unfold refinement_subst. simpl. *)
-(*       unfold not_fv_in_refinement in H0. unfold refinement_subst in H0. simpl in H0. *)
-(*       assert (x ∉ d2 ∖ {[z]}) as Htmp by fast_set_solver. *)
-(*       apply H0 with (m:=m) (bst:=bst) (c0:=c0) (v:=v) in Htmp. *)
-(*       destruct (Atom.atom_dec x z); subst. *)
-(*       setoid_rewrite insert_insert in Htmp; auto. simpl in Htmp. *)
-
-(*       my_simplify_map_eq2. setoid_rewrite insert_commute; set_solver. *)
-(*     + unfold bound_in_refinement in H2. unfold bound_in_refinement. eauto. *)
-(*   - refinement_solver3. *)
-(*   - set_solver. *)
+(*       unfold not_fv_in_refinement. intros. unfold refinement_subst. *)
+(*       unfold refinement_set_subst in H4. *)
+(*       amap_dec_solver; apply H0; intros; destruct (atom_dec x z); subst; my_simplify_map_eq3. *)
+(*     + unfold bound_in_refinement in H2. unfold bound_in_refinement. intros. *)
+(*       unfold refinement_subst. amap_dec_solver. *)
+(*   - refinement_solver. *)
+(*   - simpl in H2. simpl. unfold refinement_set_subst. *)
+(*     amap_dec_solver; set_solver. *)
 (* Qed. *)
+
+(* Lemma closed_rty_subst_excluded_over_backward: forall (n1 n2: nat) (z: atom) (c: constant) B (d1 d2: aset) ϕ, *)
+(*     z ∉ d1 -> valid_rty {v:B|n2|d2|ϕ} -> *)
+(*     closed_rty n1 d1 {v:B|n2|refinement_set_subst z c d2| refinement_subst z c d2 ϕ} -> closed_rty n1 ({[z]} ∪ d1) {v:B|n2|d2|ϕ}. *)
+(* Proof. *)
+(*   unfold closed_rty. intros; mydestr. repeat split. *)
+(*   - denotation_simp. *)
+(*   - refinement_solver. *)
+(*   - simpl in H3. simpl. unfold refinement_set_subst in H3. *)
+(*     amap_dec_solver. rewrite (union_difference_singleton z d2); auto. set_solver. *)
+(* Admitted. *)
+
+(* Lemma closed_rty_subst_excluded_under_forward: forall (n1 n2: nat) (z: atom) (c: constant) B (d1 d2: aset) ϕ, *)
+(*     z ∉ d1 -> *)
+(*     closed_rty n1 ({[z]} ∪ d1) [v:B|n2|d2|ϕ] -> *)
+(*     closed_rty n1 d1 [v:B|n2|refinement_set_subst z c d2|refinement_subst z c d2 ϕ]. *)
+(* Proof. *)
+(*   unfold closed_rty. intros; mydestr. repeat split. *)
+(*   - denotation_simp. invclear H0. constructor. invclear H4. constructor; auto. *)
+(*     + intros. *)
+(*       unfold not_fv_in_refinement. intros. unfold refinement_subst. *)
+(*       unfold refinement_set_subst in H4. *)
+(*       amap_dec_solver; apply H0; intros; destruct (atom_dec x z); subst; my_simplify_map_eq3. *)
+(*     + unfold bound_in_refinement in H2. unfold bound_in_refinement. intros. *)
+(*       unfold refinement_subst. amap_dec_solver. *)
+(*   - refinement_solver. *)
+(*   - simpl in H2. simpl. unfold refinement_set_subst. *)
+(*     amap_dec_solver; set_solver. *)
+(* Qed. *)
+
+Lemma wf_r_implies_state_dummy_insert: forall n2 d2 ϕ z,
+    wf_r n2 d2 ϕ -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. invclear H. apply H1. intros.
+  my_simplify_map_eq3.
+Qed.
+
+Lemma closed_rty_over_implies_state_dummy_insert: forall n1 d1 n2 d2 B ϕ z,
+    closed_rty n1 d1 {v:B|n2|d2|ϕ} -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. eapply wf_r_implies_state_dummy_insert; eauto. refinement_solver3.
+Qed.
+
+Lemma closed_rty_under_implies_state_dummy_insert: forall n1 d1 n2 d2 B ϕ z,
+    closed_rty n1 d1 [v:B|n2|d2|ϕ] -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. eapply wf_r_implies_state_dummy_insert; eauto. refinement_solver3.
+Qed.
 
 Lemma denotation_st_update_iff_subst:
   forall τ (z: atom) (c: constant) n bst (st: state) e,
     z ∉ (dom aset st) ->
-    ({n;bst;<[z:=c]> st}⟦τ⟧) e <-> ({n;bst;st}⟦({z:=c}r) τ⟧) e.
+    ({n;bst;<[z:=c]> st}⟦τ⟧ e) <-> (closed_rty n ({[z]} ∪ dom aset st) τ /\ {n;bst;st}⟦({z:=c}r) τ⟧ e).
 Proof.
   induction τ; split; simpl; intros; mydestr; subst.
-  - destruct (decide (z ∈ d)).
-    + split; auto. split; auto. denotation_simp.
-    apply closed_rty_subst_excluded; auto.
-    eexists; eauto.
-  - split; auto. split; auto. apply closed_rty_subst_excluded; auto.
+  - do 2 (split; denotation_simp; auto). split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + unfold refinement_subst. amap_dec_solver.
+    repeat eexists; eauto. rewrite closed_rty_over_implies_state_dummy_insert in H3; eauto.
+  - split; auto. split; auto.
+    + denotation_simp.
+    + repeat eexists; eauto.
+      unfold refinement_subst in H4. unfold refinement_subst in H2. unfold refinement_set_subst in H2.
+      amap_dec_solver.
+      rewrite closed_rty_over_implies_state_dummy_insert; eauto.
+  - split; auto; denotation_simp. split; auto. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + unfold refinement_subst. amap_dec_solver.
+      intros. apply H2; auto. rewrite closed_rty_under_implies_state_dummy_insert; eauto.
+  - split; auto. split; auto.
+    + denotation_simp.
+    + repeat eexists; eauto. intros. apply H3; auto.
+      unfold refinement_subst. unfold refinement_subst in H2. unfold refinement_set_subst in H2.
+      amap_dec_solver.
+      rewrite closed_rty_under_implies_state_dummy_insert in H5; eauto.
+  - split; auto; denotation_simp. split; auto; ctx_erase_simp4. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + intros. unfold refinement_subst in H4.
+      assert (ϕ bst (<[z:=c]> st) c_x).
+      { amap_dec_solver; auto. rewrite wf_r_implies_state_dummy_insert; eauto. refinement_solver3. }
+      apply H2 in H5; auto. rewrite IHτ in H5; mydestr; auto.
+  - split; auto; ctx_erase_simp4. split; auto.
+    + denotation_simp.
+    + intros. rewrite IHτ; auto. split; refinement_solver. apply H3; auto.
+      unfold refinement_subst. amap_dec_solver.
+      rewrite wf_r_implies_state_dummy_insert in H5; eauto. refinement_solver3.
+  - split; auto; denotation_simp. split; auto; ctx_erase_simp4. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + intros.
+      assert (({n;bst;<[z:=c]> st}⟦τ1⟧) e_x) as HH. rewrite IHτ1; auto. split; refinement_solver.
+      apply H2 in HH. rewrite IHτ2 in HH; auto. mydestr; auto.
+  - split; auto; ctx_erase_simp4. split; auto; denotation_simp.
+    + intros. rewrite IHτ2; auto. split; refinement_solver. apply H3. rewrite IHτ1 in H4; auto. mydestr; auto.
+Qed.
 
-    admit. eexists; eauto.
-  - split; auto. split; auto. admit.
-  - split; auto. split; auto. admit.
-  - split; auto. admit. split; auto. admit. intros. apply H1 in H3; auto. rewrite <- IHτ; auto.
-  - split; auto. admit. split; auto. admit. intros. apply H1 in H3; auto. rewrite IHτ; auto.
-  - split; auto. admit. split; auto. admit. intros.
-    rewrite <- IHτ1 in H2. apply H1 in H2; auto.
-    rewrite <- IHτ2; auto.
-  - split; auto. admit. split; auto. admit. intros.
-    rewrite IHτ1 in H2. apply H1 in H2; auto.
-    rewrite IHτ2; auto.
-Admitted.
+(* Lemma ctx_denotation_st_update_iff_subst: *)
+(*   forall Γ τ (z: atom) (c: constant) (st: state) e, *)
+(*     z ∉ (dom aset st) -> *)
+(*     ({<[z:=c]> st}⟦τ⟧{Γ} e) <-> (closed_rty 0 ({[z]} ∪ ctxdom Γ ∪ dom aset st) τ /\ {st}⟦({z:=c}r) τ⟧{Γ} e). *)
+(* Proof. *)
+(*   induction Γ; intros. *)
+(*   - split; intros; simpl; RD_simp. *)
+(*     + rewrite denotation_st_update_iff_subst in H1; mydestr; try split; auto; refinement_solver3. *)
+(*       RD_simp; auto. *)
+(*     + mydestr. RD_simp. rewrite denotation_st_update_iff_subst; auto. split; auto; refinement_solver3. *)
+(*   - split; intros; mydestr; simpl; RD_simp. *)
+(*     + invclear H0. split; refinement_solver3. constructor; auto; refinement_solver3. *)
+(*       admit. admit. ctx_erase_simp4. intros. apply H10 in H0. *)
+
+(*       rewrite IHΓ in H6. *)
+
+Fixpoint random_inhabitant (τ: rty) :=
+  match τ with
+  | {v: _ | _ | _ | _ } => terr
+  | [v: TNat | _ | _ | _ ] => nat-gen
+  | [v: TBool | _ | _ | _ ] => bool-gen
+  | -:{v: T1 | _ | _ | _ } ⤑ τ => vlam T1 (random_inhabitant τ)
+  | τ1 ⤑ τ2 => vlam (rty_erase τ1) (random_inhabitant τ2)
+  end.
+
+Ltac lc_solver2 :=
+  match goal with
+    | [H: lc (tlete ?u _) |- lc ?u] => invclear H; auto
+    end || lc_solver1.
+
+Lemma subst_subst_tm: ∀ (x : atom) (u_x : value) (y : atom) (u_y: value) (e: tm),
+    x ≠ y → y ∉ fv_value u_x →
+    {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e).
+Proof.
+  intros x u_x y u_y e Hxy Hyux. apply (tm_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.
+
+Lemma subst_subst_value: ∀ (x : atom) (u_x : value) (y : atom) (u_y e : value),
+    x ≠ y → y ∉ fv_value u_x →
+    {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e).
+Proof.
+  intros x u_x y u_y e Hxy Hyux. apply (value_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.
+
+Lemma fv_of_subst_value: forall x (u e: value), fv_value ({x := u }v e) ⊆ (fv_value e ∖ {[x]}) ∪ fv_value u.
+Proof.
+  intros x u. apply (value_mutual_rec
+           (fun (e: value) => fv_value ({x := u }v e) ⊆ fv_value e ∖ {[x]} ∪ fv_value u)
+           (fun (e: tm) => fv_tm ({x := u }t e) ⊆ fv_tm e ∖ {[x]} ∪ fv_value u)
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_tm: forall x (u : value) (e: tm), fv_tm ({x := u }t e) ⊆ (fv_tm e ∖ {[x]}) ∪ fv_value u.
+Proof.
+  intros x u. apply (tm_mutual_rec
+           (fun (e: value) => fv_value ({x := u }v e) ⊆ fv_value e ∖ {[x]} ∪ fv_value u)
+           (fun (e: tm) => fv_tm ({x := u }t e) ⊆ fv_tm e ∖ {[x]} ∪ fv_value u)
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_value_closed: forall x (u e: value),
+    fv_value u ≡ ∅ ->
+    fv_value ({x := u }v e) = (fv_value e ∖ {[x]}).
+Proof.
+  intros x u.
+  apply (value_mutual_rec
+           (fun (e: value) =>
+              fv_value u ≡ ∅ -> fv_value ({x := u }v e) = fv_value e ∖ {[x]})
+           (fun (e: tm) =>
+              fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = fv_tm e ∖ {[x]})
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_tm_closed: forall x (u: value) e,
+    fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = (fv_tm e ∖ {[x]}).
+Proof.
+  intros x u.
+  apply (tm_mutual_rec
+           (fun (e: value) =>
+              fv_value u ≡ ∅ -> fv_value ({x := u }v e) = fv_value e ∖ {[x]})
+           (fun (e: tm) =>
+              fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = fv_tm e ∖ {[x]})
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma tm_msubst_then_subst: forall Γ env,
+    instantiation Γ env ->
+    forall (z: atom) (u: value) e, z ∉ ctxdom env -> z # u ->
+    tm_msubst env ({z := u }t e) = ({z := value_msubst env u }t (tm_msubst env e)).
+Proof.
+  intros Γ env Hi. unfold closed_value.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_subst_tm; try basic_typing_solver.
+    rewrite IHHi; try fast_set_solver. simpl.
+    apply basic_typing_contains_fv_value in H.
+    pose (fv_of_subst_value x v u). set_solver.
+Qed.
+
+Lemma value_msubst_then_subst: forall Γ env,
+    instantiation Γ env ->
+    forall (z: atom) (u: value) e, z ∉ ctxdom env -> z # u ->
+    value_msubst env ({z := u }v e) = ({z := value_msubst env u }v (value_msubst env e)).
+Proof.
+  intros Γ env Hi. unfold closed_value.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_subst_value; try basic_typing_solver.
+    rewrite IHHi; try fast_set_solver.
+    apply basic_typing_contains_fv_value in H.
+    pose (fv_of_subst_value x v u). set_solver.
+Qed.
+
+Lemma tm_msubst_then_open: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, ctxdom env ∩ fv_value u = ∅ ->
+                    (tm_msubst env e) ^t^ u = (tm_msubst env (e ^t^ u)).
+Proof.
+  intros Γ env Hi.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_open_tm; try basic_typing_solver.
+    rewrite (subst_fresh_value u).
+    rewrite IHHi; auto; set_solver.
+    set_solver.
+Qed.
+
+Lemma value_msubst_then_open: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, ctxdom env ∩ fv_value u = ∅ ->
+                    (value_msubst env e) ^v^ u = (value_msubst env (e ^v^ u)).
+Proof.
+  intros Γ env Hi.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_open_value; try basic_typing_solver.
+    rewrite (subst_fresh_value u).
+    rewrite IHHi; auto; set_solver.
+    set_solver.
+Qed.
+
+Lemma tm_msubst_then_open_closed: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, fv_value u ≡ ∅ ->
+                    (tm_msubst env e) ^t^ u = (tm_msubst env (e ^t^ u)).
+Proof.
+  intros. eapply tm_msubst_then_open; eauto. set_solver.
+Qed.
+
+Lemma value_msubst_then_open_closed: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, fv_value u ≡ ∅ ->
+                    (value_msubst env e) ^v^ u = (value_msubst env (e ^v^ u)).
+Proof.
+   intros. eapply value_msubst_then_open; eauto. set_solver.
+Qed.
+
+Ltac basic_typing_solver5 :=
+  repeat (simpl; (basic_typing_solver4 ||
+                    match goal with
+                    | [H: _ ⊢t (tvalue _) ⋮t _  |- _ ] => invclear H; eauto
+                    | [H: ?Γ ⊢t ?e ⋮t _, H': ?z ∉ ctxdom ?Γ  |- ?z ∉ fv_tm ?e ] =>
+                        apply basic_typing_contains_fv_tm in H; simpl in H; fast_set_solver
+                    | [H: ?Γ ⊢t ?e ⋮v _, H': ?z ∉ ctxdom ?Γ  |- ?z ∉ fv_value ?e ] =>
+                        apply basic_typing_contains_fv_value in H; fast_set_solver
+                    | [H: ?Γ ⊢t tlete ?u _ ⋮t _ |- ?Γ ⊢t ?u ⋮t _ ] => invclear H; eauto
+                    | [H: ?Γ ⊢t tlete (tvalue ?u) _ ⋮t _ |- ?Γ ⊢t ?u ⋮v _ ] => invclear H; eauto
+                    end)).
+
+Lemma instantiation_implies_tm_msubst_closed:
+  forall Γ env, instantiation Γ env -> ∀ e T, Γ ⊢t e ⋮t T -> closed_tm (tm_msubst env e).
+Proof.
+  intros Γ env Hi. induction Hi; simpl; intros; basic_typing_solver5.
+  assert (c ⊢t ({x := v }t e0) ⋮t T0) by basic_typing_solver5; eauto.
+Qed.
+
+Lemma instantiation_implies_value_msubst_closed:
+  forall Γ env, instantiation Γ env -> ∀ (e: value) T, Γ ⊢t e ⋮v T -> closed_value (value_msubst env e).
+Proof.
+  intros Γ env Hi. induction Hi; simpl; intros; basic_typing_solver5.
+  assert (c ⊢t ({x := v }v e0) ⋮v T0) by basic_typing_solver5; eauto.
+Qed.
+
+Global Hint Unfold closed_value: core.
+Global Hint Unfold closed_tm: core.
+
+Ltac isolver :=
+  instantiation_regular_solver || (basic_typing_solver5; lc_solver2).
+
+Lemma tlete_reduce_to_subst: forall (u: value) z e,
+    lc u -> lc e ->
+    tlete u (z \t\ e) ↪* {z := u }t e.
+Proof.
+  intros.
+  apply multistep_trans with (y := (z \t\ e) ^t^ u).
+  apply multistep_R. econstructor; isolver.
+  setoid_rewrite subst_as_close_open_tm; eauto.
+  apply subst_lc_tm; auto.
+  setoid_rewrite subst_as_close_open_tm; eauto.
+  eapply multistep_refl. apply subst_lc_tm; auto; isolver.
+Qed.
+
+Lemma termR_let_one_step_from_basic_type: forall Γ (u: value) (z: atom) e T,
+    lc e -> z ∉ ctxdom Γ ->
+    Γ ⊢t (tlete u (z \t\ e)) ⋮t T ->
+    (tlete u (z \t\ e)) <-<{ Γ; T} ({z := u }t e).
+Proof.
+  intros. constructor; auto.
+  - eapply multi_preservation; eauto.
+    apply tlete_reduce_to_subst; isolver.
+  - unfold termRraw. intros. msubst_simpl.
+    rewrite lete_step_spec in H3; simpl; mydestr.
+    rewrite value_reduce_to_value_implies_same in H4; mydestr; subst.
+    invclear H1.
+    assert (closed_value (value_msubst env u)) by
+    (eapply instantiation_implies_value_msubst_closed; eauto; basic_typing_solver5).
+    assert (z ∉ ctxdom env) by instantiation_regular_solver.
+    erewrite tm_msubst_then_subst; eauto; try basic_typing_solver5.
+    erewrite tm_msubst_then_open_closed in H5; eauto; try basic_typing_solver5.
+    rewrite subst_as_close_open_tm in H5; eauto; try basic_typing_solver5.
+    erewrite tm_msubst_then_subst in H5; eauto; try basic_typing_solver5.
+    eapply value_msubst_closed in H1. rewrite H1 in H5; auto.
+    set_solver.
+Qed.
+
+Lemma instantiation_implies_value_msubst_lc:
+      ∀ Γ Γv, instantiation Γ Γv -> forall (e: value), lc e -> lc (value_msubst Γv e).
+Proof.
+  intros Γ Γv Hi. induction Hi; simpl; intros; auto.
+  - apply IHHi. apply subst_lc_value; basic_typing_solver3.
+Qed.
+
+Lemma termR_let_one_step_from_basic_type': forall Γ (u: value) (z: atom) e T,
+    lc e -> z ∉ ctxdom Γ ->
+    Γ ⊢t (tlete u (z \t\ e)) ⋮t T ->
+    ({z := u }t e) <-<{ Γ; T} (tlete u (z \t\ e)).
+Proof.
+  intros. constructor; auto.
+  - eapply multi_preservation; eauto.
+    apply tlete_reduce_to_subst; isolver.
+  - unfold termRraw. intros. msubst_simpl.
+    rewrite lete_step_spec. split.
+    + eapply msubst_preserves_body_tm; eauto. lc_solver.
+      setoid_rewrite subst_as_close_open_tm; eauto.
+      apply subst_lc_tm; auto.
+    + invclear H1.
+      exists (value_msubst env u). split.
+      { rewrite value_reduce_to_value_implies_same; split; auto.
+        eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver5. }
+      assert (z ∉ ctxdom env) by instantiation_regular_solver.
+      assert (closed_value (value_msubst env u)) by
+        (eapply instantiation_implies_value_msubst_closed; eauto; basic_typing_solver5).
+      erewrite tm_msubst_then_subst in H3; eauto; try basic_typing_solver5.
+      erewrite tm_msubst_then_open_closed; eauto; try basic_typing_solver5.
+      rewrite subst_as_close_open_tm; eauto; try basic_typing_solver5.
+      erewrite tm_msubst_then_subst; eauto; try basic_typing_solver5.
+      rewrite value_msubst_closed; auto.
+      set_solver.
+Qed.
+
+Lemma let_store_tyable: forall Γ u Tu z e T,
+         Γ ⊢t u ⋮t Tu -> (Γ ++ [(z, Tu)]) ⊢t e ⋮t T -> Γ ⊢t tlete u (z \t\ e) ⋮t T.
+Proof.
+  intros. auto_exists_L; intros.
+  rewrite subst_as_close_open_tm; eauto; try basic_typing_solver5.
+  apply basic_has_type_renaming; try basic_typing_solver5.
+Qed.
 
 Lemma rRctx_backward_over: forall Γ st z b n d ϕ (e: tm) τ,
+    not_overbasety τ ->
     {st}⟦ τ ⟧{ Γ ++ [(z, {v: b | n | d | ϕ})] } e <->
-    (forall (u: value), {st}⟦ {v: b | n | d | ϕ} ⟧{ Γ } u -> {st}⟦ { z := u }r τ ⟧{ Γ } ({ z := u }t e)).
+      (closed_rty 0 (ctxdom (Γ ++ [(z, {v: b | n | d | ϕ})]) ∪ dom aset st) τ /\
+         ok_dctx (dom aset st) (Γ ++ [(z, {v: b | n | d | ϕ})]) /\
+         (⌊Γ ++ [(z, {v: b | n | d | ϕ})]⌋*) ⊢t e ⋮t ⌊τ⌋ /\
+            (forall (u: value), {st}⟦ {v: b | n | d | ϕ} ⟧{ Γ } u -> {st}⟦ { z := u }r τ ⟧{ Γ } ({ z := u }t e))).
 Proof.
   induction Γ; split; simpl; intros; denotation_simp.
-  - RD_simp. apply H13 in H1. RD_simp. invclear H11.
+  - RD_simp. split; denotation_simp. split; auto. split; auto.
+    intros. RD_simp. apply H13 in H1. RD_simp.
+    rewrite denotation_st_update_iff_subst in H0; mydestr; auto; refinement_solver3.
+    eapply termR_perserve_rR; eauto; refinement_solver3. ctx_erase_simp4.
+    apply termR_let_one_step_from_basic_type; auto.
+    basic_typing_solver. refinement_solver3. refinement_solver. denotation_simp.
+  - constructor; try refinement_solver. intros.
+    assert (({st}⟦{v:b|n|d|ϕ}⟧{ [] }) c_x) as HH by (constructor; auto).
+    apply H3 in HH. RD_simp.
+    rewrite denotation_st_update_iff_subst; refinement_solver3.
+    split; refinement_solver3. denotation_simp.
+    eapply termR_perserve_rR; eauto; denotation_simp; refinement_solver3.
+    apply termR_let_one_step_from_basic_type'; basic_typing_solver5.
+    eapply let_store_tyable; eauto.
+  - invclear H0; denotation_simp.
+    + do 3 (split; auto). intros. invclear H0. apply ctxrR_cons_over; denotation_simp; auto.
+      admit. admit.
+      intros.
+      assert (({<[a:=c_x]> st}⟦{v:b|0|d|ϕ}⟧{Γ}) (tlete c_x (a \v\ u))) by auto.
+      assert ({<[a:=c_x]> st}⟦τ⟧{ Γ ++ [(z, {v:b|0|d|ϕ})] } (tlete c_x (a \t\ e))) by auto.
+      rewrite IHΓ in H3; mydestr.
+      assert (({<[a:=c_x]> st}⟦{v:b|0|d|ϕ}⟧{Γ}) ({a := c_x}v u)).
+      eapply termR_perserve_ctxrR; eauto.
+      assert (({st}⟦{v:b|0|d|ϕ}⟧{Γ}) (tlete c_x (a \v\ u))).
+      denotation_st_update_iff_subst
 
-    
-
-  - constructor. admit. admit. admit. intros.
-    assert (({st}⟦{v:b|n|d|ϕ}⟧{ [] }) c_x). constructor; auto. apply H in H1.
-    invclear H1. constructor. admit.
-  - invclear H.
-    + constructor; auto. admit. admit. simpl. simpl in H9. ctx_erase_simp. admit.
-      intros. apply H10 in H. rewrite IHΓ in H. admit.
-    + mydestr. constructor; auto. admit. admit. admit.
-      eexists x. split; auto. intros. eapply H1 in H2; eauto.
-      rewrite IHΓ in H2.
-
+      apply H10 in H0.
+    + do 3 (split; auto). intros.
+  - destruct (classic (not_overbasety r)).
+    + constructor; try refinement_solver3. admit.
+    + auto_ty_exfalso. apply ctxrR_cons_over; try refinement_solver3.
+      intros. rewrite IHΓ. split. admit. split. admit. split. admit.
+      intros. admit.
 Admitted.
 
 Lemma rRctx_backward_under: forall Γ z τ_z (e: tm) τ,
@@ -152,15 +495,6 @@ Lemma rRctx_backward_under: forall Γ z τ_z (e: tm) τ,
                                     (∀ (v_u: value), u_hat ↪* v_u -> ⟦ { z:= v_u }r τ ⟧{ Γ } (tlete u (e ^t^ z)))
                         )).
 Admitted.
-
-Fixpoint random_inhabitant (τ: rty) :=
-  match τ with
-  | {v: _ | _ | _ | _ } => terr
-  | [v: TNat | _ | _ | _ ] => nat-gen
-  | [v: TBool | _ | _ | _ ] => bool-gen
-  | -:{v: T1 | _ | _ | _ } ⤑ τ => vlam T1 (random_inhabitant τ)
-  | τ1 ⤑ τ2 => vlam (rty_erase τ1) (random_inhabitant τ2)
-  end.
 
 (* Lemma no_halting_term_is_inhabitant: forall τ (st: state) n bst e, *)
 (*     not_overbasety τ -> *)

@@ -809,3 +809,171 @@ Proof.
   try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
   try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
 Qed.
+
+Lemma subst_shadow_tm: forall (x z: atom) (u: value) (e: tm),
+    x # e -> {x := u }t ({z := x }t e) = {z := u }t e.
+Proof.
+  intros x z u.
+  apply (tm_mutual_rec
+           (fun (e: value) => x # e -> {x := u }v ({z := x }v e) = {z := u }v e)
+           (fun (e: tm) => x # e -> {x := u }t ({z := x }t e) = {z := u }t e)
+        ); simpl; intros; eauto.
+  - repeat var_dec_solver.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+Qed.
+
+Lemma subst_shadow_value: forall (x z: atom) (u: value) (e: value),
+    x # e -> {x := u }v ({z := x }v e) = {z := u }v e.
+Proof.
+  intros x z u.
+  apply (value_mutual_rec
+           (fun (e: value) => x # e -> {x := u }v ({z := x }v e) = {z := u }v e)
+           (fun (e: tm) => x # e -> {x := u }t ({z := x }t e) = {z := u }t e)
+        ); simpl; intros; eauto.
+  - repeat var_dec_solver.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+Qed.
+
+(* Inductive lc_n: nat -> tm -> Prop := *)
+(* | lc_n_const: forall (c: constant) n, lc_n n c *)
+(* | lc_n_vbvar: forall (m: nat) n, m < n -> lc_n n (vbvar m) *)
+(* | lc_n_vfvar: forall (a: atom) n, lc_n n (vfvar a) *)
+(* | lc_n_vlam: forall T e n (L: aset), *)
+(*     (forall (x: atom), x ∉ L -> lc_n n ({n ~t> x} e)) -> lc_n n (vlam T e) *)
+(* | lc_n_vfix: forall Tf e n (L: aset), *)
+(*     (forall (f:atom), f ∉ L -> lc_n n ({n ~t> f} e)) -> lc_n n (vfix Tf e) *)
+(* | lc_n_terr: forall n, lc_n n terr *)
+(* | lc_n_tlete: forall (e1 e2: tm) n (L: aset), *)
+(*     lc_n n e1 -> (forall (x: atom), x ∉ L -> lc_n n ({n ~t> x} e2)) -> lc_n n (tlete e1 e2) *)
+(* | lc_n_tletapp: forall (v1 v2: value) e n (L: aset), *)
+(*     lc_n n v1 -> lc_n n v2 -> (forall (x: atom), x ∉ L -> lc_n n ({n ~t> x} e)) -> *)
+(*     lc_n n (tletapp v1 v2 e) *)
+(* | lc_n_tletbiop: forall op (v1 v2: value) e n (L: aset), *)
+(*     lc_n n v1 -> lc_n n v2 -> (forall (x: atom), x ∉ L -> lc_n n ({n ~t> x} e)) -> *)
+(*     lc_n n (tletbiop op v1 v2 e) *)
+(* | lc_n_tmatchb: forall (v: value) e1 e2 n, *)
+(*     lc_n n v -> lc_n n e1 -> lc_n n e2 -> lc_n n (tmatchb v e1 e2). *)
+
+(* Global Hint Constructors lc_n: core. *)
+(* Global Hint Constructors lc: core. *)
+
+(* Lemma lc_iff_lc_n: forall e, lc e <-> lc_n 0 e. *)
+(* Proof with auto. *)
+(*   split; intros. *)
+(*   - induction H; auto; auto_exists_L. *)
+(*   - remember 0 as n. induction H; auto; subst; try auto_exists_L. invclear H. *)
+(* Qed. *)
+
+(* Lemma after_subst_is_constant: forall (c: constant) z (v: value) e, *)
+(*     ({z := v }t e = c) -> (z # e /\ e = c) \/ (e = z /\ v = c). *)
+(* Proof. *)
+(*   intros. destruct (classic (z # e)). *)
+(*   - left. split; auto. rewrite subst_fresh_tm in H; auto. *)
+(*   - right. generalize dependent e. *)
+(*     apply (tm_mutual_rec *)
+(*              (fun (e: value) => {z := v }v e = c → ¬ z # e → e = z ∧ v = c) *)
+(*              (fun (e: tm) => {z := v }t e = c → ¬ z # e → e = z ∧ v = c) *)
+(*           ); simpl; intros; eauto; *)
+(*     match goal with *)
+(*     | [H: _ = _ |- _ ] => invclear H *)
+(*     end. *)
+(*     + set_solver. *)
+(*     + repeat var_dec_solver. exfalso. set_solver. *)
+(*     + apply H in H3; auto; mydestr; subst. split; simpl; auto. var_dec_solver. *)
+(* Qed. *)
+
+(* Lemma after_subst_is_vbvar: forall (c: nat) z (v: value) e, *)
+(*     ({z := v }t e = vbvar c) -> (z # e /\ e = vbvar c) \/ (e = z /\ v = vbvar c). *)
+(* Proof. *)
+(*   intros. destruct (classic (z # e)). *)
+(*   - left. split; auto. rewrite subst_fresh_tm in H; auto. *)
+(*   - right. generalize dependent e. *)
+(*     apply (tm_mutual_rec *)
+(*              (fun (e: value) => {z := v }v e = vbvar c → ¬ z # e → e = z ∧ v = vbvar c) *)
+(*              (fun (e: tm) => {z := v }t e = vbvar c → ¬ z # e → e = z ∧ v = vbvar c) *)
+(*           ); simpl; intros; eauto; *)
+(*     match goal with *)
+(*     | [H: _ = _ |- _ ] => invclear H *)
+(*     end. *)
+(*     + repeat var_dec_solver. exfalso. set_solver. *)
+(*     + set_solver. *)
+(*     + apply H in H3; auto; mydestr; subst. split; simpl; auto. var_dec_solver. *)
+(* Qed. *)
+
+(* Lemma after_subst_is_vfvar: forall (c: atom) z (v: value) e, *)
+(*     ({z := v }t e = vfvar c) -> (z # e /\ e = vfvar c) \/ (e = z /\ v = vfvar c). *)
+(* Proof. *)
+(*   intros. destruct (classic (z # e)). *)
+(*   - left. split; auto. rewrite subst_fresh_tm in H; auto. *)
+(*   - right. generalize dependent e. *)
+(*     apply (tm_mutual_rec *)
+(*              (fun (e: value) => {z := v }v e = vfvar c → ¬ z # e → e = z ∧ v = vfvar c) *)
+(*              (fun (e: tm) => {z := v }t e = vfvar c → ¬ z # e → e = z ∧ v = vfvar c) *)
+(*           ); simpl; intros; eauto; *)
+(*     match goal with *)
+(*     | [H: _ = _ |- _ ] => invclear H *)
+(*     end. *)
+(*     + repeat var_dec_solver. exfalso. set_solver. *)
+(*     + set_solver. *)
+(* Qed. *)
+
+(* Lemma after_subst_is_vlam: forall z (v: value) e T e', *)
+(*     ({z := v }t e = vlam T e') -> *)
+(*     (∃ ee, e = vlam T ee /\ {z := v }t ee = e') \/ (e = z /\ v = vlam T e'). *)
+(* Proof. *)
+(*   intros z v. *)
+(*   apply (tm_mutual_rec *)
+(*            (fun (e: value) => ∀ (T : ty) (e' : tm), *)
+(*                 {z := v }v e = vlam T e' → *)
+(*                 (∃ ee, e = vlam T ee /\ {z := v }t ee = e') ∨ e = z ∧ v = vlam T e') *)
+(*            (fun (e: tm) => ∀ (T : ty) (e' : tm), *)
+(*                 {z := v }t e = vlam T e' → *)
+(*                 (∃ ee, e = vlam T ee /\ {z := v }t ee = e') ∨ e = z ∧ v = vlam T e') *)
+(*         ); simpl; intros; eauto; *)
+(*     match goal with *)
+(*     | [H: _ = _ |- _ ] => invclear H *)
+(*     end. *)
+(*   - right. repeat var_dec_solver. exfalso. set_solver. *)
+(*   - left. eexists; eauto. *)
+(*   - apply H in H2; destruct H2; auto; mydestr. *)
+(*     + left. exists x; eauto. rewrite H0; auto. *)
+(*     + right. split; rewrite H0; simpl; auto; var_dec_solver. *)
+(* Qed. *)
+
+(* Lemma lc_subst_implies_lc: forall (z: atom) (v: value) (e: tm) n, lc_n n ({z := v }t e) <-> lc_n n e. *)
+(* Proof. *)
+(*   split; intros. *)
+(*   - remember ({z := v }t e) as e'. induction H; symmetry in Heqe'. *)
+(*     + apply after_subst_is_constant in Heqe'. *)
+(*       destruct Heqe'; mydestr; subst; auto. *)
+(*     + apply after_subst_is_vbvar in Heqe'. *)
+(*       destruct Heqe'; mydestr; subst; auto. *)
+(*     + apply after_subst_is_vfvar in Heqe'. *)
+(*       destruct Heqe'; mydestr; subst; auto. *)
+(*     + apply after_subst_is_vlam in Heqe'. *)
+(*       destruct Heqe'; mydestr; subst; auto. *)
+(*       auto_exists_L; intros. *)
+(* Admitted. *)
+
+(* Lemma lc_subst_constant_implies_lc: forall (z: atom) (c: constant) (e: tm), lc ({z := c }t e) <-> lc e. *)
+(* Proof. *)
+(*   Admitted. *)
+
