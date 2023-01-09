@@ -125,7 +125,7 @@ Inductive ctxrR: state -> listctx rty -> rty -> tm -> Prop :=
     ok_dctx (dom _ st) ((x, {v: B | n | d | ϕ}) :: Γ) ->
     ((x, TBase B) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
      (forall (c_x: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_x ->
-                         ctxrR (<[ x := c_x ]> st) Γ τ (tlete c_x ({ 0 <t~ x} e))) ->
+                         ctxrR (<[ x := c_x ]> st) Γ τ ({x := c_x}t e)) ->
      ctxrR st ((x, {v: B | n | d | ϕ}) :: Γ) τ e
 | ctxrR_cons_under: forall st (x: atom) τ_x τ Γ e,
     not_overbasety τ_x ->

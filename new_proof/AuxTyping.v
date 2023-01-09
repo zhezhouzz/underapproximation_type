@@ -6,6 +6,7 @@ From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
 From CT Require Import Refinement.
 From CT Require Import RefinementDenotation.
+From CT Require Import RefinementDenotationTac.
 
 Import Atom.
 Import CoreLang.
@@ -18,6 +19,7 @@ Import BasicTyping.
 Import SyntaxSugar.
 Import Refinement.
 Import RefinementDenotation.
+Import RefinementDenotationTac.
 
 (* Well Formedness *)
 
@@ -34,27 +36,43 @@ Inductive wf_ctx: listctx rty -> Prop :=
     not_underbasety τ ->
     wf_ctx (Γ ++ [(x, τ)]).
 
-Lemma err_exists_denotation_excluded: forall Γ b n d ϕ,
-    (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ Γ } e) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr).
-Admitted.
+(* Lemma err_exists_rR_excluded: forall b n d ϕ, *)
+(*     (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ [] } e /\ exists (v: value), e ↪* v) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ [] } terr). *)
+(* Proof. *)
+(*   split; intros; mydestr. *)
+(*   -  *)
 
-Lemma wf_ctx_implies_ok: forall Γ, wf_ctx Γ -> ok Γ.
-Admitted.
+(* Lemma err_exists_denotation_excluded: forall Γ b n d ϕ, *)
+(*     (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ Γ } e /\ exists (v: value), e ↪* v) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr). *)
+(* Admitted. *)
 
-Lemma wf_ctx_implies_valid: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> valid_rty τ.
-Admitted.
+(* Lemma wf_ctx_implies_ok: forall Γ, wf_ctx Γ -> ok Γ. *)
+(* Admitted. *)
 
-Lemma wf_ctx_implies_lc_rty: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> lc_rty τ.
-Admitted.
+(* Lemma wf_ctx_implies_valid: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> valid_rty τ. *)
+(* Admitted. *)
 
-Lemma wf_ctx_regular:
-  ∀ Γ, wf_ctx Γ -> ok Γ /\ (forall x τ, ctxfind Γ x = Some τ -> valid_rty τ) /\ (forall x τ, ctxfind Γ x = Some τ -> lc_rty τ).
-Admitted.
+(* Lemma wf_ctx_implies_lc_rty: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> lc_rty τ. *)
+(* Admitted. *)
 
-Lemma wf_ctx_implies_mid_closed: forall Γ1 x τ Γ2, wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (rty_fv τ) ⊆ (ctxdom Γ1).
-Admitted.
+(* Lemma wf_ctx_regular: *)
+(*   ∀ Γ, wf_ctx Γ -> ok Γ /\ (forall x τ, ctxfind Γ x = Some τ -> valid_rty τ) /\ (forall x τ, ctxfind Γ x = Some τ -> lc_rty τ). *)
+(* Admitted. *)
 
-Lemma wf_ctx_implies_inhabitant_exists: forall Γ1 x τ Γ2, wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e).
+(* Lemma wf_ctx_implies_mid_closed: forall Γ1 x τ Γ2, wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (rty_fv τ) ⊆ (ctxdom Γ1). *)
+(* Admitted. *)
+
+Lemma wf_ctx_implies_inhabitant_exists: forall Γ2 Γ1 x τ,
+    not_overbasety τ ->
+    wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e).
+Proof.
+  apply (rev_ind (fun Γ2 =>
+                    forall Γ1 x τ, not_overbasety τ ->
+                              wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e)
+        )); intros; denotation_simp.
+  - invclear H0; listctx_set_simpl. admit. admit.
+  - invclear H1; listctx_set_simpl.
+  induction Γ1; simpl; intros.
 Admitted.
 
 Definition wf (Γ: listctx rty) (τ: rty) := wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ.
@@ -140,25 +158,33 @@ where
 Scheme value_under_type_check_rec := Induction for value_under_type_check Sort Prop
     with term_under_type_check_rec := Induction for term_under_type_check Sort Prop.
 
-Lemma rRctx_pre_weakening: forall Γ1 Γ2 τ, (Γ1 ++ Γ2) ⊢WF τ -> (forall e, ⟦τ⟧{Γ1} e -> ⟦τ⟧{Γ1 ++ Γ2} e).
+Lemma rRctx_pre_weakening: forall Γ2 Γ1 τ,
+    not_overbasety τ ->
+    (Γ1 ++ Γ2) ⊢WF τ -> (forall e, ⟦τ⟧{Γ1} e -> ⟦τ⟧{Γ1 ++ Γ2} e).
+Proof.
+  apply (rev_ind (fun Γ2 => forall Γ1 τ,
+                      not_overbasety τ ->
+                      (Γ1 ++ Γ2) ⊢WF τ -> (forall e, ⟦τ⟧{Γ1} e -> ⟦τ⟧{Γ1 ++ Γ2} e)));
+    intros; denotation_simp; auto.
+  - invclear H1. invclear H3; listctx_set_simpl. admit. admit.
 Admitted.
 
 Lemma rRctx_weakening_empty: forall Γ τ, Γ ⊢WF τ -> (forall e, ⟦τ⟧ e -> ⟦τ⟧{Γ} e).
 Admitted.
 
-Lemma rRctx_backward_over: forall Γ z b n d ϕ (e: tm) τ,
-    ⟦ τ ⟧{ Γ ++ [(z, {v: b | n | d | ϕ})] } e <->
-    (forall (u: value), ⟦ {v: b | n | d | ϕ} ⟧{ Γ } u -> ⟦ { z := u }r τ ⟧{ Γ } ({ z := u }t e)).
-Admitted.
+(* Lemma rRctx_backward_over: forall Γ z b n d ϕ (e: tm) τ, *)
+(*     ⟦ τ ⟧{ Γ ++ [(z, {v: b | n | d | ϕ})] } e <-> *)
+(*     (forall (u: value), ⟦ {v: b | n | d | ϕ} ⟧{ Γ } u -> ⟦ { z := u }r τ ⟧{ Γ } ({ z := u }t e)). *)
+(* Admitted. *)
 
-Lemma rRctx_backward_under: forall Γ z τ_z (e: tm) τ,
-    ~ not_overbasety τ_z ->
-    ⟦ τ ⟧{ Γ ++ [(z, τ_z)] } e <->
-      (∃ (u_hat: tm), ⟦ τ_z ⟧{ Γ } u_hat /\
-                        (forall (u: tm), ⟦ τ_z ⟧{ Γ } u ->
-                                    (∀ (v_u: value), u_hat ↪* v_u -> ⟦ { z:= v_u }r τ ⟧{ Γ } (tlete u (e ^t^ z)))
-                        )).
-Admitted.
+(* Lemma rRctx_backward_under: forall Γ z τ_z (e: tm) τ, *)
+(*     ~ not_overbasety τ_z -> *)
+(*     ⟦ τ ⟧{ Γ ++ [(z, τ_z)] } e <-> *)
+(*       (∃ (u_hat: tm), ⟦ τ_z ⟧{ Γ } u_hat /\ *)
+(*                         (forall (u: tm), ⟦ τ_z ⟧{ Γ } u -> *)
+(*                                     (∀ (v_u: value), u_hat ↪* v_u -> ⟦ { z:= v_u }r τ ⟧{ Γ } (tlete u (e ^t^ z))) *)
+(*                         )). *)
+(* Admitted. *)
 
 Theorem soundness: forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> ⟦ τ ⟧{ Γ } e.
 Proof.
@@ -169,13 +195,13 @@ Proof.
   - apply rRctx_weakening_empty; auto. admit.
   (* var base *)
   - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. rewrite rRctx_backward_over.
+    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit.
     intros. apply rRctx_weakening_empty. admit. admit. admit.
   - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. rewrite rRctx_backward_under. admit. admit. admit.
+    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit. admit. admit.
   (* var arr *)
   - apply ctxfind_some_spec in e; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. rewrite rRctx_backward_under. admit. admit. admit.
+    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit. admit. admit.
   (* lam *)
   - auto_pose_fv x. repeat specialize_with x. admit.
   - auto_pose_fv x. repeat specialize_with x. admit.
@@ -197,7 +223,8 @@ Proof.
     | [H: _ ⊢ _ ⩔ _ ⩵ _ |- _ ] => unfold disjunction in H; erewrite <- H; split; auto
     end.
   (* lete *)
-  - auto_pose_fv x. repeat specialize_with x. admit.
+  - auto_pose_fv x. repeat specialize_with x.
+    admit.
   (* letop *)
   - auto_pose_fv x. repeat specialize_with x. admit.
   - auto_pose_fv x. repeat specialize_with x. admit.

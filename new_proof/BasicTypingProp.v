@@ -640,7 +640,19 @@ Ltac basic_typing_solver4 :=
   | [H: (?Γ1 ++ ?Γ2) ⊢t ?e ⋮v ?T |- (?Γ2 ++ ?Γ1) ⊢t ?e ⋮v ?T ] => rewrite basic_has_type_swap2_value; auto
   end || basic_typing_solver3.
 
-Ltac basic_typing_solver := basic_typing_solver4.
+Ltac basic_typing_solver5 :=
+  repeat (simpl; (basic_typing_solver4 ||
+                    match goal with
+                    | [H: _ ⊢t (tvalue _) ⋮t _  |- _ ] => invclear H; eauto
+                    | [H: ?Γ ⊢t ?e ⋮t _, H': ?z ∉ ctxdom ?Γ  |- ?z ∉ fv_tm ?e ] =>
+                        apply basic_typing_contains_fv_tm in H; simpl in H; fast_set_solver
+                    | [H: ?Γ ⊢t ?e ⋮v _, H': ?z ∉ ctxdom ?Γ  |- ?z ∉ fv_value ?e ] =>
+                        apply basic_typing_contains_fv_value in H; fast_set_solver
+                    | [H: ?Γ ⊢t tlete ?u _ ⋮t _ |- ?Γ ⊢t ?u ⋮t _ ] => invclear H; eauto
+                    | [H: ?Γ ⊢t tlete (tvalue ?u) _ ⋮t _ |- ?Γ ⊢t ?u ⋮v _ ] => invclear H; eauto
+                    end)).
+
+Ltac basic_typing_solver := basic_typing_solver5.
 
 Ltac lc_simpl :=
   simpl;

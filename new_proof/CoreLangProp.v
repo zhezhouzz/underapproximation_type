@@ -852,6 +852,71 @@ Proof.
     rewrite H1; auto; try fast_set_solver.
 Qed.
 
+Lemma subst_subst_tm: ∀ (x : atom) (u_x : value) (y : atom) (u_y: value) (e: tm),
+    x ≠ y → y ∉ fv_value u_x →
+    {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e).
+Proof.
+  intros x u_x y u_y e Hxy Hyux. apply (tm_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.
+
+Lemma subst_subst_value: ∀ (x : atom) (u_x : value) (y : atom) (u_y e : value),
+    x ≠ y → y ∉ fv_value u_x →
+    {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e).
+Proof.
+  intros x u_x y u_y e Hxy Hyux. apply (value_mutual_rec
+           (fun (e: value) => {x := u_x }v ({y := u_y }v e) = {y := {x := u_x }v u_y }v ({x := u_x }v e))
+           (fun (e: tm) => {x := u_x }t ({y := u_y }t e) = {y := {x := u_x }v u_y }t ({x := u_x }t e))
+        ); simpl; intros; auto;
+  try (rewrite H; auto; rewrite H0; auto; rewrite H1; auto);
+  try (repeat var_dec_solver; rewrite subst_fresh_value; auto).
+Qed.
+
+Lemma fv_of_subst_value: forall x (u e: value), fv_value ({x := u }v e) ⊆ (fv_value e ∖ {[x]}) ∪ fv_value u.
+Proof.
+  intros x u. apply (value_mutual_rec
+           (fun (e: value) => fv_value ({x := u }v e) ⊆ fv_value e ∖ {[x]} ∪ fv_value u)
+           (fun (e: tm) => fv_tm ({x := u }t e) ⊆ fv_tm e ∖ {[x]} ∪ fv_value u)
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_tm: forall x (u : value) (e: tm), fv_tm ({x := u }t e) ⊆ (fv_tm e ∖ {[x]}) ∪ fv_value u.
+Proof.
+  intros x u. apply (tm_mutual_rec
+           (fun (e: value) => fv_value ({x := u }v e) ⊆ fv_value e ∖ {[x]} ∪ fv_value u)
+           (fun (e: tm) => fv_tm ({x := u }t e) ⊆ fv_tm e ∖ {[x]} ∪ fv_value u)
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_value_closed: forall x (u e: value),
+    fv_value u ≡ ∅ ->
+    fv_value ({x := u }v e) = (fv_value e ∖ {[x]}).
+Proof.
+  intros x u.
+  apply (value_mutual_rec
+           (fun (e: value) =>
+              fv_value u ≡ ∅ -> fv_value ({x := u }v e) = fv_value e ∖ {[x]})
+           (fun (e: tm) =>
+              fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = fv_tm e ∖ {[x]})
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma fv_of_subst_tm_closed: forall x (u: value) e,
+    fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = (fv_tm e ∖ {[x]}).
+Proof.
+  intros x u.
+  apply (tm_mutual_rec
+           (fun (e: value) =>
+              fv_value u ≡ ∅ -> fv_value ({x := u }v e) = fv_value e ∖ {[x]})
+           (fun (e: tm) =>
+              fv_value u ≡ ∅ -> fv_tm ({x := u }t e) = fv_tm e ∖ {[x]})
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
 (* Inductive lc_n: nat -> tm -> Prop := *)
 (* | lc_n_const: forall (c: constant) n, lc_n n c *)
 (* | lc_n_vbvar: forall (m: nat) n, m < n -> lc_n n (vbvar m) *)

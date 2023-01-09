@@ -679,6 +679,252 @@ Proof.
     + eapply instantiation_implies_msubst_lc; eauto.
 Qed.
 
+Lemma tm_msubst_then_subst: forall Γ env,
+    instantiation Γ env ->
+    forall (z: atom) (u: value) e, z ∉ ctxdom env -> z # u ->
+    tm_msubst env ({z := u }t e) = ({z := value_msubst env u }t (tm_msubst env e)).
+Proof.
+  intros Γ env Hi. unfold closed_value.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_subst_tm; try basic_typing_solver.
+    rewrite IHHi; try fast_set_solver. simpl.
+    apply basic_typing_contains_fv_value in H.
+    pose (fv_of_subst_value x v u). set_solver.
+Qed.
+
+Lemma value_msubst_then_subst: forall Γ env,
+    instantiation Γ env ->
+    forall (z: atom) (u: value) e, z ∉ ctxdom env -> z # u ->
+    value_msubst env ({z := u }v e) = ({z := value_msubst env u }v (value_msubst env e)).
+Proof.
+  intros Γ env Hi. unfold closed_value.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_subst_value; try basic_typing_solver.
+    rewrite IHHi; try fast_set_solver.
+    apply basic_typing_contains_fv_value in H.
+    pose (fv_of_subst_value x v u). set_solver.
+Qed.
+
+Lemma tm_msubst_then_open: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, ctxdom env ∩ fv_value u = ∅ ->
+                    (tm_msubst env e) ^t^ u = (tm_msubst env (e ^t^ u)).
+Proof.
+  intros Γ env Hi.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_open_tm; try basic_typing_solver.
+    rewrite (subst_fresh_value u).
+    rewrite IHHi; auto; set_solver.
+    set_solver.
+Qed.
+
+Lemma value_msubst_then_open: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, ctxdom env ∩ fv_value u = ∅ ->
+                    (value_msubst env e) ^v^ u = (value_msubst env (e ^v^ u)).
+Proof.
+  intros Γ env Hi.
+  induction Hi; simpl; intros; mydestr; auto.
+  - setoid_rewrite subst_open_value; try basic_typing_solver.
+    rewrite (subst_fresh_value u).
+    rewrite IHHi; auto; set_solver.
+    set_solver.
+Qed.
+
+Lemma tm_msubst_then_open_closed: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, fv_value u ≡ ∅ ->
+                    (tm_msubst env e) ^t^ u = (tm_msubst env (e ^t^ u)).
+Proof.
+  intros. eapply tm_msubst_then_open; eauto. set_solver.
+Qed.
+
+Lemma value_msubst_then_open_closed: forall Γ env,
+    instantiation Γ env ->
+    forall (u: value) e, fv_value u ≡ ∅ ->
+                    (value_msubst env e) ^v^ u = (value_msubst env (e ^v^ u)).
+Proof.
+   intros. eapply value_msubst_then_open; eauto. set_solver.
+Qed.
+
+Lemma instantiation_implies_tm_msubst_closed:
+  forall Γ env, instantiation Γ env -> ∀ e T, Γ ⊢t e ⋮t T -> closed_tm (tm_msubst env e).
+Proof.
+  intros Γ env Hi. induction Hi; simpl; intros; basic_typing_solver5.
+  assert (c ⊢t ({x := v }t e0) ⋮t T0) by basic_typing_solver5; eauto.
+Qed.
+
+Lemma instantiation_implies_value_msubst_closed:
+  forall Γ env, instantiation Γ env -> ∀ (e: value) T, Γ ⊢t e ⋮v T -> closed_value (value_msubst env e).
+Proof.
+  intros Γ env Hi. induction Hi; simpl; intros; basic_typing_solver5.
+  assert (c ⊢t ({x := v }v e0) ⋮v T0) by basic_typing_solver5; eauto.
+Qed.
+
+Global Hint Unfold closed_value: core.
+Global Hint Unfold closed_tm: core.
+
+Ltac isolver :=
+  instantiation_regular_solver || (basic_typing_solver5; lc_solver1).
+
+Lemma tlete_reduce_to_subst: forall (u: value) z e,
+    lc u -> lc e ->
+    tlete u (z \t\ e) ↪* {z := u }t e.
+Proof.
+  intros.
+  apply multistep_trans with (y := (z \t\ e) ^t^ u).
+  apply multistep_R. econstructor; isolver.
+  setoid_rewrite subst_as_close_open_tm; eauto.
+  apply subst_lc_tm; auto.
+  setoid_rewrite subst_as_close_open_tm; eauto.
+  eapply multistep_refl. apply subst_lc_tm; auto; isolver.
+Qed.
+
+Lemma value_reduce_to_value_implies_same: forall (v1 v2: value), v1 ↪* v2 <-> v1 = v2 /\ lc v2.
+Proof.
+  split; intros.
+  - invclear H; auto. invclear H0.
+  - mydestr; subst. apply multistep_refl; auto.
+Qed.
+
+Lemma termR_let_one_step_from_basic_type: forall Γ (u: value) (z: atom) e T,
+    lc e -> z ∉ ctxdom Γ ->
+    Γ ⊢t (tlete u (z \t\ e)) ⋮t T ->
+    (tlete u (z \t\ e)) <-<{ Γ; T} ({z := u }t e).
+Proof.
+  intros. constructor; auto.
+  - eapply multi_preservation; eauto.
+    apply tlete_reduce_to_subst; isolver.
+  - unfold termRraw. intros. msubst_simpl.
+    rewrite lete_step_spec in H3; simpl; mydestr.
+    rewrite value_reduce_to_value_implies_same in H4; mydestr; subst.
+    invclear H1.
+    assert (closed_value (value_msubst env0 u)) by
+    (eapply instantiation_implies_value_msubst_closed; eauto; basic_typing_solver5).
+    assert (z ∉ ctxdom env0) by instantiation_regular_solver.
+    erewrite tm_msubst_then_subst; eauto; try basic_typing_solver5.
+    erewrite tm_msubst_then_open_closed in H5; eauto; try basic_typing_solver5.
+    rewrite subst_as_close_open_tm in H5; eauto; try basic_typing_solver5.
+    erewrite tm_msubst_then_subst in H5; eauto; try basic_typing_solver5.
+    eapply value_msubst_closed in H1. rewrite H1 in H5; auto.
+    set_solver.
+Qed.
+
+Lemma instantiation_implies_value_msubst_lc:
+      ∀ Γ Γv, instantiation Γ Γv -> forall (e: value), lc e -> lc (value_msubst Γv e).
+Proof.
+  intros Γ Γv Hi. induction Hi; simpl; intros; auto.
+  - apply IHHi. apply subst_lc_value; basic_typing_solver3.
+Qed.
+
+Lemma termR_let_one_step_from_basic_type': forall Γ (u: value) (z: atom) e T,
+    lc e -> z ∉ ctxdom Γ ->
+    Γ ⊢t (tlete u (z \t\ e)) ⋮t T ->
+    ({z := u }t e) <-<{ Γ; T} (tlete u (z \t\ e)).
+Proof.
+  intros. constructor; auto.
+  - eapply multi_preservation; eauto.
+    apply tlete_reduce_to_subst; isolver.
+  - unfold termRraw. intros. msubst_simpl.
+    rewrite lete_step_spec. split.
+    + eapply msubst_preserves_body_tm; eauto. lc_solver.
+      setoid_rewrite subst_as_close_open_tm; eauto.
+      apply subst_lc_tm; auto.
+    + invclear H1.
+      exists (value_msubst env0 u). split.
+      { rewrite value_reduce_to_value_implies_same; split; auto.
+        eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver5. }
+      assert (z ∉ ctxdom env0) by instantiation_regular_solver.
+      assert (closed_value (value_msubst env0 u)) by
+        (eapply instantiation_implies_value_msubst_closed; eauto; basic_typing_solver5).
+      erewrite tm_msubst_then_subst in H3; eauto; try basic_typing_solver5.
+      erewrite tm_msubst_then_open_closed; eauto; try basic_typing_solver5.
+      rewrite subst_as_close_open_tm; eauto; try basic_typing_solver5.
+      erewrite tm_msubst_then_subst; eauto; try basic_typing_solver5.
+      rewrite value_msubst_closed; auto.
+      set_solver.
+Qed.
+
+Lemma termR_tm_subst: forall γ Tx T (v_x: value) e e' (x: atom),
+    [] ⊢t v_x ⋮v Tx ->
+    e <-<{γ ++ [(x, Tx)]; T} e' ->
+    ({x := v_x}t e) <-<{γ; T} ({x := v_x}t e').
+Proof.
+    intros.
+    assert (ok (γ ++ [(x, Tx)])) as HH. invclear H0. basic_typing_solver.
+    invclear H0. repeat split; auto.
+  - assert (γ ⊢t v_x ⋮v Tx) by basic_typing_solver3.
+    eapply basic_typing_subst_tm_pre in H0; basic_typing_solver3.
+  - assert (γ ⊢t v_x ⋮v Tx) by basic_typing_solver3.
+    eapply basic_typing_subst_tm_pre in H0; basic_typing_solver3.
+  - unfold termRraw. intros Γv u Hi. intros. msubst_simpl.
+    unfold termRraw in H3.
+    specialize (H3 (Γv ++ [(x, v_x)]) u).
+    assert (instantiation (γ ++ [(x, Tx)]) (Γv ++ [(x, v_x )])).
+    { rewrite instantiation_app_spec. exists γ, [(x, Tx)]; repeat split; auto.
+        repeat constructor; auto; try fast_set_solver. }
+    assert (tm_msubst (Γv ++ [(x, v_x)]) e ↪* u); auto.
+    rewrite tm_msubst_swap_hd_tl with (Γ := (γ ++ [(x, Tx)])); auto.
+    apply H3 in H5; auto.
+    rewrite tm_msubst_swap_hd_tl with (Γ := (γ ++ [(x, Tx)])) in H5; auto.
+Qed.
+
+Lemma termR_value_iff_same: forall (v v': value) T,
+  v <-<{ []; T} v' <-> (v = v' /\ [] ⊢t v ⋮v T).
+Proof.
+  split; intros.
+  - invclear H. split; basic_typing_solver. unfold termRraw in H2.
+    assert (instantiation [] []); auto.
+    apply (H2 _ v) in H. simpl in H.
+    rewrite value_reduce_to_value_implies_same in H; mydestr; subst; auto.
+    simpl. apply multistep_refl; auto. basic_typing_solver.
+  - mydestr; subst; auto.
+Qed.
+
+Lemma value_msubst_swap_hd_tl: forall Γv Γ Γv',
+    instantiation Γ (Γv ++ Γv') ->
+    ∀ e, value_msubst (Γv ++ Γv') e = value_msubst (Γv' ++ Γv) e.
+Proof.
+  induction Γv; intros.
+  - listctx_set_simpl.
+  - invclear H. rewrite instantiation_app_spec in H5; mydestr; subst.
+    listctx_set_simpl. simpl.
+    rewrite IHΓv with (Γ := (x0 ++ x1)); auto.
+    rewrite value_msubst_mid_subst with (Γ := (x1 ++ (x, T) :: x0)); eauto.
+    + rewrite instantiation_app_spec. exists x1, ((x, T) :: x0). repeat split; auto.
+      apply ok_mid_insert; split; listctx_set_solver5.
+      constructor; auto; listctx_set_solver5.
+    + basic_typing_solver3.
+    + rewrite instantiation_app_spec. exists x0, x1. split; auto.
+Qed.
+
+Lemma termR_value_subst: forall γ Tx T (v_x: value) (e e': value) (x: atom),
+    [] ⊢t v_x ⋮v Tx ->
+    e <-<{γ ++ [(x, Tx)]; T} e' ->
+    ({x := v_x}v e) <-<{γ; T} ({x := v_x}v e').
+Proof.
+    intros.
+    assert (ok (γ ++ [(x, Tx)])) as HH. invclear H0. basic_typing_solver.
+    invclear H0. repeat split; auto.
+  - assert (γ ⊢t v_x ⋮v Tx) by basic_typing_solver3.
+    eapply basic_typing_subst_tm_pre in H1; basic_typing_solver3.
+  - assert (γ ⊢t v_x ⋮v Tx) by basic_typing_solver3.
+    eapply basic_typing_subst_tm_pre in H2; basic_typing_solver3.
+  - unfold termRraw. intros Γv u Hi. intros. msubst_simpl.
+    unfold termRraw in H3.
+    specialize (H3 (Γv ++ [(x, v_x)]) u).
+    assert (instantiation (γ ++ [(x, Tx)]) (Γv ++ [(x, v_x )])).
+    { rewrite instantiation_app_spec. exists γ, [(x, Tx)]; repeat split; auto.
+        repeat constructor; auto; try fast_set_solver. }
+    msubst_simpl; auto.
+    assert (tm_msubst (Γv ++ [(x, v_x)]) e ↪* u); auto.
+    rewrite tm_msubst_swap_hd_tl with (Γ := (γ ++ [(x, Tx)])); auto.
+    simpl; auto. msubst_simpl; auto.
+    assert (value_msubst (Γv ++ [(x, v_x)]) e' ↪* u).
+    { apply H3 in H4; auto. msubst_simpl; auto. }
+    rewrite value_msubst_swap_hd_tl with (Γ := (γ ++ [(x, Tx)])) in H6; auto.
+Qed.
+
 Ltac termR_solver :=
   repeat (match goal with
           | [H: termRraw [] ?e ?e' |- ?e' ↪* _ ] =>

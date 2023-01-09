@@ -581,26 +581,6 @@ Proof.
     intros. apply IHτ2 with (e := (mk_app e e_x)); eauto. termR_solver; refinement_solver.
 Qed.
 
-
-Lemma value_reduce_to_value_implies_same: forall (v1 v2: value), v1 ↪* v2 <-> v1 = v2 /\ lc v2.
-Proof.
-  split; intros.
-  - invclear H; auto. invclear H0.
-  - mydestr; subst. apply multistep_refl; auto.
-Qed.
-
-Lemma termR_value_iff_same: forall (v v': value) T,
-  v <-<{ []; T} v' <-> (v = v' /\ [] ⊢t v ⋮v T).
-Proof.
-  split; intros.
-  - invclear H. split; basic_typing_solver. unfold termRraw in H2.
-    assert (instantiation [] []); auto.
-    apply (H2 _ v) in H. simpl in H.
-    rewrite value_reduce_to_value_implies_same in H; mydestr; subst; auto.
-    simpl. apply multistep_refl; auto. basic_typing_solver.
-  - mydestr; subst; auto.
-Qed.
-
 Lemma termR_perserve_rR_over: forall b n1 d ϕ (e e': value),
     valid_rty {v:b|n1|d|ϕ} ->
     e' <-<{[]; b } e ->
@@ -619,9 +599,8 @@ Proof.
   induction Γ; intros; invclear H2.
   - constructor. intros. eapply termR_perserve_rR; eauto.
   - constructor; auto. termR_solver.
-    intros. apply IHΓ with (e:= (tlete c_x (x \t\ e))); eauto.
-    apply termR_elete with (Tx := B); auto. constructor; auto; refinement_solver; basic_typing_solver2.
-    simpl in H1. termR_solver.
+    intros. apply IHΓ with (e:= ({x := c_x }t e)); eauto. denotation_simp.
+    apply termR_tm_subst with (Tx := B); eauto. basic_typing_solver. termR_solver.
   - constructor; auto. termR_solver.
     destruct H12 as (e_x_hat & He_x_hat & HH). exists e_x_hat. split; auto.
     intros. apply IHΓ with (e:= (tlete e_x (x \t\ e))); eauto.
@@ -629,27 +608,30 @@ Proof.
     simpl in H1. termR_solver.
 Qed.
 
-Lemma termR_perserve_ctxrR': forall Γ b n d ϕ (e e': tm),
-    valid_rty {v:b|n|d|ϕ} ->
-    e' <-<{ ⌊ Γ ⌋* ; b } e -> (forall st, {st}⟦{v:b|n|d|ϕ}⟧{Γ} e -> {st}⟦{v:b|n|d|ϕ}⟧{Γ} e').
-Proof.
-  induction Γ; intros; invclear H.
-  - constructor. invclear H1. eapply termR_perserve_rR_over; eauto.
-    invclear H; mydestr; refinement_solver.
-  - invclear H1; constructor; auto; try termR_solver.
-    + apply IHΓ. with (e(tlete c_x (x \t\ e)))
-
-      apply H10 in H. eapply IHΓ.
-  - constructor; auto. termR_solver.
-    intros. apply IHΓ with (e:= (tlete c_x (x \t\ e))); eauto.
-    apply termR_elete with (Tx := B); auto. constructor; auto; refinement_solver; basic_typing_solver2.
-    simpl in H1. termR_solver.
-  - constructor; auto. termR_solver.
-    destruct H12 as (e_x_hat & He_x_hat & HH). exists e_x_hat. split; auto.
-    intros. apply IHΓ with (e:= (tlete e_x (x \t\ e))); eauto.
-    apply termR_elete with (Tx := ⌊ τ_x ⌋ ); auto. constructor; auto; refinement_solver.
-    simpl in H1. termR_solver.
-Qed.
+(* Lemma termR_perserve_ctxrR': forall Γ b n d ϕ (e e': value), *)
+(*     valid_rty {v:b|n|d|ϕ} -> *)
+(*     e' <-<{ ⌊ Γ ⌋* ; b } e -> (forall st, {st}⟦{v:b|n|d|ϕ}⟧{Γ} e -> {st}⟦{v:b|n|d|ϕ}⟧{Γ} e'). *)
+(* Proof. *)
+(*   induction Γ; intros; invclear H. *)
+(*   - constructor. invclear H1. eapply termR_perserve_rR_over; eauto. *)
+(*     invclear H; mydestr; refinement_solver. *)
+(*   - invclear H1; constructor; auto; try termR_solver. *)
+(*     + apply IHΓ with (e := ({x := c_x }v e)); refinement_solver. *)
+(*       eapply termR_value_subst; eauto. denotation_simp. *)
+(*       assert (B = ty_of_const x0) by (invclear H2; auto); subst. *)
+(*       termR_solver. *)
+(*     + mydestr. exists x0. split; auto. intros. eapply H1 in H2; eauto. *)
+(*       eapply IHΓ. *)
+(*   - constructor; auto. termR_solver. *)
+(*     intros. apply IHΓ with (e:= (tlete c_x (x \t\ e))); eauto. *)
+(*     apply termR_elete with (Tx := B); auto. constructor; auto; refinement_solver; basic_typing_solver2. *)
+(*     simpl in H1. termR_solver. *)
+(*   - constructor; auto. termR_solver. *)
+(*     destruct H12 as (e_x_hat & He_x_hat & HH). exists e_x_hat. split; auto. *)
+(*     intros. apply IHΓ with (e:= (tlete e_x (x \t\ e))); eauto. *)
+(*     apply termR_elete with (Tx := ⌊ τ_x ⌋ ); auto. constructor; auto; refinement_solver. *)
+(*     simpl in H1. termR_solver. *)
+(* Qed. *)
 
 (* terr *)
 
@@ -669,13 +651,21 @@ Lemma ctxrR_err_overbase_forall_forward: forall Γ st τ x b n d ϕ,
 Proof.
   intros. pbc. apply H. clear H. neg_simpl.
   constructor; auto; refinement_solver2.
-  intros.
-  assert (({<[x:=c_x]> st}⟦τ⟧{Γ}) terr); auto.
-  apply termR_perserve_ctxrR with (e:= terr); auto; refinement_solver2.
-  apply tyable_implies_terr_termR.
-  econstructor; eauto; refinement_solver2; mydestr.
-  apply basic_typing_weaken_value_empty; eauto. refinement_solver2.
-  auto_exists_L_intros. do 2 constructor; refinement_solver2.
+  (* intros. *)
+  (* assert (({<[x:=c_x]> st}⟦τ⟧{Γ}) terr); auto. *)
+  (* apply termR_perserve_ctxrR with (e:= terr); auto; refinement_solver2. *)
+  (* apply tyable_implies_terr_termR. *)
+  (* econstructor; eauto; refinement_solver2; mydestr. *)
+  (* apply basic_typing_weaken_value_empty; eauto. refinement_solver2. *)
+  (* auto_exists_L_intros. do 2 constructor; refinement_solver2. *)
+Qed.
+
+Lemma let_store_typable: forall Γ u Tu z e T,
+         Γ ⊢t u ⋮t Tu -> (Γ ++ [(z, Tu)]) ⊢t e ⋮t T -> Γ ⊢t tlete u (z \t\ e) ⋮t T.
+Proof.
+  intros. auto_exists_L; intros.
+  rewrite subst_as_close_open_tm; eauto; try basic_typing_solver.
+  apply basic_has_type_renaming; try basic_typing_solver.
 Qed.
 
 Lemma ctxrR_err_overbase_forall_backward: forall Γ st τ x b n d ϕ,
@@ -690,6 +680,12 @@ Proof.
   apply termR_perserve_ctxrR with (e:= (tlete x0 (x \t\ terr))); auto; refinement_solver2.
   eapply tyable_implies_terr_termR_terr; refinement_solver2.
   apply basic_typing_weaken_value_empty; eauto. refinement_solver2.
+  (* assert (({<[x:=x0]> st}⟦τ⟧{Γ}) terr); auto. constructor. *)
+  apply termR_perserve_ctxrR with (e:= terr); auto; refinement_solver2.
+  apply tyable_implies_terr_termR.
+  apply let_store_typable with (Tu:=b); eauto.
+  refinement_solver; basic_typing_solver.
+  rewrite basic_has_type_head_to_tail_tm in H14; auto.
 Qed.
 
 Lemma ctxrR_err_overbase_forall: forall Γ st τ x b n d ϕ,

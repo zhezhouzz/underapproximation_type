@@ -65,6 +65,7 @@ Ltac lc_solver1 :=
   match goal with
   | [|- lc (tvalue (vconst _))] => constructor
   | [|- body (tvalue (vbvar 0))] => apply body_vbvar_zero; auto
+  | [H: lc (tlete ?u _) |- lc ?u] => invclear H; auto
   end || lc_solver.
 
 Ltac step_solver1 :=
