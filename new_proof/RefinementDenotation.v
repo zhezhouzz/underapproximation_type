@@ -29,7 +29,7 @@ Fixpoint rR (n: nat) (bst: bstate) (st: state) (τ: rty) (e: tm) : Prop :=
     | -:{v: B | _ | d | ϕ } ⤑ τ =>
         forall (c_x: constant),
           [] ⊢t c_x ⋮v B -> ϕ bst st c_x -> rR (S n) (<b[↦ c_x ]> bst) st τ (mk_app e c_x)
-    | τ1 ⤑ τ2 => forall (e_x: tm), rR n bst st τ1 e_x -> rR n bst st τ2 (mk_app e e_x)
+    | τ1 ⤑ τ2 => forall (v_x: value), rR n bst st τ1 v_x -> rR n bst st τ2 (mk_app e v_x)
     end.
 
 Lemma bst_eq_trans: forall n n' (bst1 bst2: bstate), n' <= n -> bst_eq n bst1 bst2 -> bst_eq n' bst1 bst2.
@@ -229,3 +229,21 @@ Inductive ctxrR2: bstate -> state -> listctx rty -> rty -> rty -> Prop :=
 
 Notation " '{' st '}⟦' τ1 '⟧⊆⟦' τ2 '⟧{' Γ '}' " := (forall bst, ctxrR2 bst st Γ τ1 τ2) (at level 20, format "{ st }⟦ τ1 ⟧⊆⟦ τ2 ⟧{ Γ }", st constr, τ1 constr, τ2 constr, Γ constr).
 Notation " '⟦' τ1 '⟧⊆⟦' τ2 '⟧{' Γ '}' " := (forall bst, ctxrR2 bst ∅ Γ τ1 τ2) (at level 20, format "⟦ τ1 ⟧⊆⟦ τ2 ⟧{ Γ }", τ1 constr, τ2 constr, Γ constr).
+
+Inductive wf_ctx: listctx rty -> Prop :=
+| wf_ctx_nil: wf_ctx []
+| wf_ctx_cons_ubase: forall Γ x b n d ϕ,
+    wf_ctx Γ ->
+    ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr) ->
+    ok_dctx ∅ (Γ ++ [(x, [v: b | n | d | ϕ])]) ->
+    wf_ctx (Γ ++ [(x, [v: b | n | d | ϕ ])])
+| wf_ctx_cons: forall Γ x τ,
+    wf_ctx Γ ->
+    not_underbasety τ ->
+    ok_dctx ∅ (Γ ++ [(x, τ)]) ->
+    wf_ctx (Γ ++ [(x, τ)]).
+
+Definition wf (Γ: listctx rty) (τ: rty) :=
+  wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ.
+
+Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr).

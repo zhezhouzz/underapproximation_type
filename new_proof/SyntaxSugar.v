@@ -312,3 +312,5 @@ Proof.
   apply basic_typing_weaken_tm_pre; eauto; basic_typing_solver2.
   apply basic_typing_weaken_tm_pre; eauto; basic_typing_solver2.
 Qed.
+
+Global Hint Resolve mk_app_body: core.

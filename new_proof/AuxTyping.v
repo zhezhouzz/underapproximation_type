@@ -23,18 +23,18 @@ Import RefinementDenotationTac.
 
 (* Well Formedness *)
 
-Inductive wf_ctx: listctx rty -> Prop :=
-| wf_ctx_nil: wf_ctx []
-| wf_ctx_cons_ubase: forall Γ x b n d ϕ,
-    wf_ctx Γ ->
-    x ∉ ctxdom Γ ->
-    ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr) ->
-    wf_ctx (Γ ++ [(x, [v: b | n | d | ϕ ])])
-| wf_ctx_cons: forall Γ x τ,
-    wf_ctx Γ ->
-    x ∉ ctxdom Γ ->
-    not_underbasety τ ->
-    wf_ctx (Γ ++ [(x, τ)]).
+(* Inductive wf_ctx: listctx rty -> Prop := *)
+(* | wf_ctx_nil: wf_ctx [] *)
+(* | wf_ctx_cons_ubase: forall Γ x b n d ϕ, *)
+(*     wf_ctx Γ -> *)
+(*     x ∉ ctxdom Γ -> *)
+(*     ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr) -> *)
+(*     wf_ctx (Γ ++ [(x, [v: b | n | d | ϕ ])]) *)
+(* | wf_ctx_cons: forall Γ x τ, *)
+(*     wf_ctx Γ -> *)
+(*     x ∉ ctxdom Γ -> *)
+(*     not_underbasety τ -> *)
+(*     wf_ctx (Γ ++ [(x, τ)]). *)
 
 (* Lemma err_exists_rR_excluded: forall b n d ϕ, *)
 (*     (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ [] } e /\ exists (v: value), e ↪* v) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ [] } terr). *)
@@ -62,22 +62,22 @@ Inductive wf_ctx: listctx rty -> Prop :=
 (* Lemma wf_ctx_implies_mid_closed: forall Γ1 x τ Γ2, wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (rty_fv τ) ⊆ (ctxdom Γ1). *)
 (* Admitted. *)
 
-Lemma wf_ctx_implies_inhabitant_exists: forall Γ2 Γ1 x τ,
-    not_overbasety τ ->
-    wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e).
-Proof.
-  apply (rev_ind (fun Γ2 =>
-                    forall Γ1 x τ, not_overbasety τ ->
-                              wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e)
-        )); intros; denotation_simp.
-  - invclear H0; listctx_set_simpl. admit. admit.
-  - invclear H1; listctx_set_simpl.
-  induction Γ1; simpl; intros.
-Admitted.
+(* Lemma wf_ctx_implies_inhabitant_exists: forall Γ2 Γ1 x τ, *)
+(*     not_overbasety τ -> *)
+(*     wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e). *)
+(* Proof. *)
+(*   apply (rev_ind (fun Γ2 => *)
+(*                     forall Γ1 x τ, not_overbasety τ -> *)
+(*                               wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e) *)
+(*         )); intros; denotation_simp. *)
+(*   - invclear H0; listctx_set_simpl. admit. admit. *)
+(*   - invclear H1; listctx_set_simpl. *)
+(*   induction Γ1; simpl; intros. *)
+(* Admitted. *)
 
-Definition wf (Γ: listctx rty) (τ: rty) := wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ.
+(* Definition wf (Γ: listctx rty) (τ: rty) := wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ. *)
 
-Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr).
+(* Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr). *)
 
 (* Disjunction *)
 

@@ -652,7 +652,35 @@ Ltac basic_typing_solver5 :=
                     | [H: ?Γ ⊢t tlete (tvalue ?u) _ ⋮t _ |- ?Γ ⊢t ?u ⋮v _ ] => invclear H; eauto
                     end)).
 
-Ltac basic_typing_solver := basic_typing_solver5.
+Lemma vlam_tyable_dummy: forall Γ e Tx T,
+  Γ ⊢t e ⋮t T -> Γ ⊢t vlam Tx e ⋮v Tx ⤍ T.
+Proof.
+  intros. auto_exists_L; intros.
+  rewrite open_rec_lc_tm; basic_typing_solver5.
+Qed.
+
+Lemma vlam_implies_open_tyable: forall Γ e1 v2 Tx T,
+  Γ ⊢t v2 ⋮v Tx -> Γ ⊢t vlam Tx e1 ⋮v Tx ⤍ T -> Γ ⊢t e1 ^t^ v2 ⋮t T.
+Proof.
+  intros. invclear H0. auto_pose_fv x. repeat specialize_with x.
+  eapply basic_typing_subst_tm_pre in H3; eauto.
+  rewrite subst_open_tm in H3; basic_typing_solver5.
+  simpl in H3. var_dec_solver.
+  rewrite subst_fresh_tm in H3; basic_typing_solver5.
+Qed.
+
+Ltac basic_typing_solver6 :=
+  repeat (basic_typing_solver5 ||
+            (match goal with
+             | [H: ?Γ ⊢t vlam ?Tx ?e1 ⋮v ?Tx ⤍ ?T |- ?Γ ⊢t ?e1 ^t^ ?v2 ⋮t ?T] =>
+                 apply vlam_implies_open_tyable with (Tx := Tx); eauto
+             | [ |- _ ⊢t tvalue _ ⋮t _ ⤍ _ ] => constructor; auto
+             | [ |- _ ⊢t vlam _ _ ⋮v _ ⤍ _ ] => apply vlam_tyable_dummy; eauto
+
+             | [H: _ ⊢t (tvalue ?v) ⋮t _ |- _ ⊢t ?v ⋮v _ ] => invclear H; eauto
+             end)).
+
+Ltac basic_typing_solver := basic_typing_solver6.
 
 Ltac lc_simpl :=
   simpl;

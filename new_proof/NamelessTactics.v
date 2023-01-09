@@ -318,3 +318,7 @@ Ltac neg_simpl :=
   | [H: context [ ~ ~ _ ] |- _ ] => setoid_rewrite nneg in H
   | [H: context [ ~ _ \/ _ ]  |- _ ] => setoid_rewrite nor_to_implies in H
   end.
+
+Ltac neg_apply H := pbc; apply H; clear H; neg_simpl.
+
+Ltac exfalso_apply H := exfalso; auto; eapply H; eauto.

@@ -72,7 +72,7 @@ Definition base_type_max_term (b: base_ty) :=
   end.
 
 Ltac denotation_simp0 :=
-  my_simplify_map_eq;
+  my_simplify_map_eq3;
   ctx_erase_simp;
   repeat match goal with
     | [H: forall bst, ({0;bst; _ }⟦ _ ⟧) _ |- _ ] => specialize (H b∅); invclear H; mydestr
@@ -330,8 +330,16 @@ Ltac refinement_solver3 :=
      | [|- rty_fv (({ _ := _ }r) _) ⊆ _] => eapply rty_fv_subst_excluded_forward; eauto
      end) || refinement_solver2.
 
+Ltac refinement_solver4 :=
+  repeat (match goal with
+          | [H: ({_;_;_}⟦_⟧ _) |- _ ⊢t ?v ⋮v _ ] => apply rR_regular1 in H; mydestr
+          | [H: closed_rty _ _ _ |- lc_rty_idx _ _] => invclear H; mydestr; auto
+          | [H: closed_rty _ _ _ |- context [rty_fv _]] => invclear H; mydestr; auto
+          end || refinement_solver3).
+
 Ltac refinement_solver :=
-  (refinement_solver3 || ctx_erase_simp).
+  (refinement_solver4 ||
+     (try denotation_simp; refinement_solver4)).
 
 Lemma refinement_shadow_update_st: forall bst c n ϕ (x: atom) d st (v: constant),
     x ∉ d -> wf_r n d ϕ -> ϕ bst (<[x:=c]> st) v <-> ϕ bst st v.
@@ -450,7 +458,7 @@ Ltac ctxrR_shadow_update_st_tac :=
         H': ({0;b∅;?st}⟦?τ⟧) _ |- ?ret ] =>
       (* idtac H' *)
       (rewrite <- lc_rR_shadow_update_st with (a:=a0) (c:=c) in H'
-       ;eauto; refinement_solver);
+       ;eauto; refinement_solver3);
       match ret with
       | context [({_↦?v_x}) _] => eapply H with (v_x := v_x) in H'; eauto
       | _ => apply H in H'
@@ -532,7 +540,7 @@ Proof.
       constructor; auto. refinement_solver. ok_dctx_solver_slow.
       exists x. split. rewrite rR_shadow_update_st; eauto; refinement_solver.
       intros; mydestr.
-      rewrite lc_rR_shadow_update_st in H12; auto; try refinement_solver.
+      rewrite lc_rR_shadow_update_st in H12; auto; try refinement_solver3.
       eapply H2 with (v_x := v_x) in H12; eauto.
       assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver.
       simpl in H1. destruct v_x; try auto_ty_exfalso.
@@ -576,9 +584,9 @@ Proof.
   - repeat (split; try termR_solver).
     intros. apply IHτ with (e := (mk_app e c_x)); eauto; termR_solver.
   - repeat (split; try termR_solver).
-    intros. apply IHτ2 with (e := (mk_app e e_x)); eauto. termR_solver; refinement_solver.
+    intros. apply IHτ2 with (e := (mk_app e v_x)); eauto. termR_solver; refinement_solver.
   - repeat (split; try termR_solver).
-    intros. apply IHτ2 with (e := (mk_app e e_x)); eauto. termR_solver; refinement_solver.
+    intros. apply IHτ2 with (e := (mk_app e v_x)); eauto. termR_solver; refinement_solver.
 Qed.
 
 Lemma termR_perserve_rR_over: forall b n1 d ϕ (e e': value),

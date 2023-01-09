@@ -389,14 +389,20 @@ Proof.
     rewrite ok_pre_destruct. constructor; auto.
 Qed.
 
+Lemma ctx_erase_commute_app: forall Γ1 Γ2, ⌊ Γ1 ++ Γ2 ⌋* = ⌊ Γ1 ⌋* ++  ⌊ Γ2 ⌋*.
+Proof.
+  induction Γ1; simpl; listctx_set_simpl; intros; simpl; auto.
+  rewrite IHΓ1; auto.
+Qed.
+
 Ltac ctx_erase_simp3:=
   repeat match goal with
     | [H: context [ctxdom ⌊ ?Γ ⌋*] |- _ ] =>
         setoid_rewrite (ctx_erase_perserve_ctxdom Γ) in H
     | [ |- context [ctxdom ⌊ ?Γ ⌋*]] =>
         setoid_rewrite (ctx_erase_perserve_ctxdom Γ)
-    | [H: context [ ⌊ ?a ++ ?b ⌋* ] |- _ ] => setoid_rewrite (ctx_erase_commute_okapp a b) in H
-    | [ |- context [ ⌊ ?a ++ ?b ⌋* ] ] => setoid_rewrite (ctx_erase_commute_okapp a b)
+    | [H: context [ ⌊ ?a ++ ?b ⌋* ] |- _ ] => setoid_rewrite (ctx_erase_commute_app a b) in H
+    | [ |- context [ ⌊ ?a ++ ?b ⌋* ] ] => setoid_rewrite (ctx_erase_commute_app a b)
     | [H: context [ ok ⌊ ?a ⌋* ] |- _ ] => setoid_rewrite <- (ctx_erase_perserve_ok a) in H
     | [ |- context [ ok ⌊ ?a ⌋* ] ] => setoid_rewrite <- (ctx_erase_perserve_ok a)
     end || listctx_set_simpl; simpl.

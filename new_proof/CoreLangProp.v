@@ -917,6 +917,28 @@ Proof.
         ); simpl; intros; auto; repeat var_dec_solver; set_solver.
 Qed.
 
+Lemma body_vbvar_0: body (vbvar 0).
+Proof.
+  unfold body. exists ∅. intros. constructor.
+Qed.
+
+Global Hint Resolve body_vbvar_0: core.
+
+Lemma lc_tletapp: forall (v x: value), lc v -> lc x -> lc (tletapp v x (vbvar 0)).
+Proof.
+  intros. auto_exists_L; simpl; intros; auto.
+Qed.
+
+Global Hint Resolve lc_tletapp: core.
+
+Lemma body_tletapp_0: forall (v: value), lc v -> body (tletapp v (vbvar 0) (vbvar 0)).
+Proof.
+  intros. auto_exists_L; intros. simpl.
+  rewrite open_rec_lc_value; auto.
+Qed.
+
+Global Hint Resolve body_tletapp_0: core.
+
 (* Inductive lc_n: nat -> tm -> Prop := *)
 (* | lc_n_const: forall (c: constant) n, lc_n n c *)
 (* | lc_n_vbvar: forall (m: nat) n, m < n -> lc_n n (vbvar m) *)
