@@ -139,34 +139,35 @@ Definition state_insert_value: atom -> value -> state -> state :=
 
 Notation " '{' x '↦' v '}' " := (state_insert_value x v) (at level 20, format "{ x ↦ v }", x constr, v constr).
 
-Definition state_subst: atom -> value -> state -> state :=
-  fun x1 v2 st => match v2 with
-               | vfvar x2 =>
-                   match st !! x2 with
-                   | None => st
-                   | Some c2 =>
-                       match st !! x1 with
-                       | None => st
-                       | Some _ => <[x1 := c2]> st
-                       end
-                   end
-               | vconst c2 =>
-                   match st !! x1 with
-                   | None => st
-                   | Some _ => (<[x1 := c2]> st)
-                   end
-               | vbvar _ => st
-               | vlam _ _ => st
-               | vfix _ _ => st
-               end.
+Definition state_subst_var (a b: atom) (st: state) :=
+  match st !! b with
+  | None => delete a st
+  | Some c => <[a := c]> st
+  end.
 
-Notation " '{' x ':=' v '}s' " := (state_subst x v) (at level 20, format "{ x := v }s", x constr, v constr).
+Definition state_subst: aset -> atom -> value -> state -> state :=
+  fun d x1 v2 st =>
+    if decide (x1 ∈ d) then
+      match v2 with
+      | vfvar x2 =>
+          if decide (x2 ∈ d) then
+            state_subst_var x1 x2 st
+          else st
+      | vconst c2 => <[x1 := c2]> st
+      | vbvar _ => st
+      | vlam _ _ => st
+      | vfix _ _ => st
+      end
+    else st.
+
+Notation " '{' x ':={' d '}' v '}' " := (state_subst d x v) (at level 20, format "{ x :={ d } v }", x constr, v constr).
 
 Definition refinement_subst (x1: atom) (v2: value) (d: aset) (ϕ: refinement) : refinement :=
-  if decide (x1 ∈ d) then
-    (fun bst st v => ϕ bst (state_insert_value x1 v2 st) v)
-  else
-    ϕ.
+  (fun bst st v => ϕ bst (state_subst d x1 v2 st) v).
+  (* if decide (x1 ∈ d) then *)
+  (*   (fun bst st v => ϕ bst (state_insert_value x1 v2 st) v) *)
+  (* else *)
+  (*   ϕ. *)
     (* (fun bst st v => ϕ bst (delete x1 st) v). *)
   (* fun bst st v => ϕ bst (state_insert_value x1 v2 st) v. *)
   (* fun bst st v => ϕ bst (state_subst x1 v2 st) v. *)
@@ -174,7 +175,10 @@ Definition refinement_subst (x1: atom) (v2: value) (d: aset) (ϕ: refinement) : 
 Definition refinement_set_subst (x1: atom) (s: value) (d: aset) : aset :=
   if decide (x1 ∈ d) then
     match s with
-    | vfvar x => {[x]} ∪ (d ∖ {[x1]})
+    | vfvar x =>
+        if decide (x ∈ d) then
+          if decide (x1 = x) then d else (d ∖ {[x1]})
+        else d
     | vconst c => d ∖ {[x1]}
     | vbvar _ => d
     | vlam _ _ => d
@@ -222,12 +226,19 @@ Proof.
   intros. apply H. intros. intro n. intros. exfalso. lia.
 Qed.
 
+Ltac var_dec_solver2 :=
+  repeat (match goal with
+          | [|- context [decide ?H]] => destruct (decide H); simpl; auto
+          end; try var_dec_solver).
+
 Lemma not_in_aset_implies_same_in_refinement: forall (d: aset) (ϕ: refinement),
     not_fv_in_refinement d ϕ ->
-    forall (x: atom), x ∉ d -> forall (m: state), forall bst (c v: constant), ϕ bst (<[ x := c ]> m) v <-> ϕ bst m v.
+    forall (x: atom), x ∉ d -> forall (m: state), forall bst v_x (v: constant), ϕ bst ({x :={d} v_x} m) v <-> ϕ bst m v.
 Proof.
-  intros. apply H. intros. setoid_rewrite lookup_insert_ne; auto. fast_set_solver.
+  intros. apply H. intros.
+  destruct v_x; unfold state_subst; simpl; auto; var_dec_solver2.
 Qed.
+
 Definition wf_r (n: nat) (d: aset) (ϕ: refinement) :=
   not_fv_in_refinement d ϕ /\ bound_in_refinement n ϕ.
 
@@ -421,3 +432,32 @@ Qed.
 Definition well_founded_constraint (ϕ: refinement) := fun bst st c => (bst 0) ≻ c /\ ϕ bst st c.
 
 Notation " '≻≻' ϕ " := (well_founded_constraint ϕ) (at level 20, ϕ constr).
+
+Fixpoint random_inhabitant (τ: rty) :=
+  match τ with
+  | {v: _ | _ | _ | _ } => terr
+  | [v: TNat | _ | _ | _ ] => nat-gen
+  | [v: TBool | _ | _ | _ ] => bool-gen
+  | -:{v: T1 | _ | _ | _ } ⤑ τ => vlam T1 (random_inhabitant τ)
+  | τ1 ⤑ τ2 => vlam (rty_erase τ1) (random_inhabitant τ2)
+  end.
+
+Lemma random_inhabitant_tyable: ∀ (τ: rty) Γ,
+    ok Γ -> Γ ⊢t (random_inhabitant τ) ⋮t ⌊τ⌋.
+Proof.
+  induction τ; simpl; intros; auto.
+  - destruct B; auto.
+  - basic_typing_solver6.
+  - basic_typing_solver6.
+Qed.
+
+Global Hint Resolve random_inhabitant_tyable: core.
+
+Lemma random_inhabitant_lc: forall τ, lc (random_inhabitant τ).
+Proof.
+  intros.
+  assert ([] ⊢t (random_inhabitant τ) ⋮t ⌊τ⌋);
+  basic_typing_solver6.
+Qed.
+
+Global Hint Resolve random_inhabitant_lc: core.

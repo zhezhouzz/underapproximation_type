@@ -89,6 +89,10 @@ Ltac my_simplify_map_eq3 :=
               setoid_rewrite lookup_delete_ne in H; eauto; try fast_set_solver
           | [H: ?z <> ?x, H': context [(delete ?z _) !! ?x] |- _ ] =>
               setoid_rewrite lookup_delete_ne in H; eauto; try fast_set_solver
+          | [H: context [(delete ?z _) !! ?z] |- _ ] =>
+              setoid_rewrite lookup_delete in H; eauto; try fast_set_solver
+          | [|- context [(delete ?z _) !! ?z] ] =>
+              setoid_rewrite lookup_delete; eauto; try fast_set_solver
           end || my_simplify_map_eq2).
 
 Ltac my_simplify_map_eq := my_simplify_map_eq3.
@@ -152,6 +156,24 @@ Proof.
   intros. invclear H; auto.
 Qed.
 
+Lemma state_insert_subseteq_dom: forall (st: state) a v,
+    dom aset st ⊆ dom aset (({a↦v}) st).
+Proof.
+  intros. destruct v; simpl; my_simplify_map_eq3.
+  - destruct (st !! atom); my_simplify_map_eq3.
+Qed.
+
+Global Hint Resolve state_insert_subseteq_dom: core.
+
+Lemma dom_subseteq_state_insert: forall (st: state) a v,
+    dom aset (({a↦v}) st) ⊆ {[a]} ∪ dom aset st.
+Proof.
+  intros. destruct v; simpl; my_simplify_map_eq3.
+  - destruct (st !! atom); my_simplify_map_eq3.
+Qed.
+
+Global Hint Resolve dom_subseteq_state_insert: core.
+
 Ltac closed_rty_solver :=
   repeat match goal with
     | [H1: closed_rty ?n ?d1 ?τ, H2: closed_rty ?n ?d2 ?τ |- closed_rty ?n ?d3 ?τ ] =>
@@ -172,9 +194,9 @@ Ltac closed_rty_solver :=
         destruct H; mydestr; repeat split; auto
     | [H: valid_rty (?τ1 ⤑ ?τ2) |- valid_rty ?τ2] => invclear H; auto
     | [H: lc_rty_idx _ (?τ1 ⤑ ?τ2) |- lc_rty_idx _ ?τ2] => invclear H; auto
-    | [H: closed_rty ?n ?d1 ?τ |- closed_rty ?n ?d2 ?τ ] => apply (closed_rty_trans _ d1 d2); fast_set_solver
+    | [H: closed_rty ?n ?d1 ?τ |- closed_rty ?n ?d2 ?τ ] => apply (closed_rty_trans _ d1 d2); auto; fast_set_solver
     | [H: ok_dctx ?d [(_, ?τ)] |- closed_rty 0 ?d ?τ ] => apply ok_dctx_single_implies_closed_rty in H; auto
-    | [|- rty_fv ?x ⊆ _ ] => refinement_simp1; my_set_solver
+    | [|- rty_fv ?x ⊆ _ ] => refinement_simp1; my_set_solver; auto
     end.
 
 Lemma empty_eq_app_exfalso {A: Type}: forall Γ1 (x: atom) (t: A) Γ2, ~ ([] = Γ1 ++ [(x, t)] ++ Γ2).

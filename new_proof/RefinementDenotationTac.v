@@ -120,36 +120,36 @@ Global Hint Resolve base_type_max_term_reduce_to_constant: core.
 
 Ltac denotation_simp1 :=
   repeat (denotation_simp0;
-   mydestr;
-   repeat match goal with
-   | [H: ¬ is_arr _ |- _ ] => apply not_is_arr in H; destruct H; mydestr; subst
-   | [H: ¬ not_underbasety _ |- _ ] => apply not_not_underbasety in H; mydestr; subst
-   | [H: ¬ ({_}⟦ _ ⟧{ [] }) _ |- _ ] => rewrite not_ctxrR_empty_iff_not_rR in H
-   | [ |- ¬ ({_}⟦ _ ⟧{ [] }) _ ] => rewrite not_ctxrR_empty_iff_not_rR
-   (* | [H: {_}⟦ _ ⟧{ [] } _ |- _ ] => invclear H *)
-   | [H: closed_rty 0 _ [v:_|?n|_|_] |- _ ] =>
-       match n with
-       | 0 => fail 1
-       | _ => assert (n = 0) by (apply closed_rty_0_underbase in H; auto); subst
-       end
-   | [H: closed_rty 0 _ {v:_|?n|_|_} |- _ ] =>
-       match n with
-       | 0 => fail 1
-       | _ => assert (n = 0) by (apply closed_rty_0_overbase in H; auto); subst
-       end
-   | [H: ?e ↪* (tvalue ?v), H': [] ⊢t ?e ⋮t (TBase _)  |- _ ] =>
-       match v with
-       | vconst _ => fail 1
-       | _ => assert (exists c, v = vconst c) as Htmp by (eapply base_type_reduce_to_constant in H; eauto);
-             destruct Htmp; subst
-       end
-   | [H: base_type_max_term _ ↪* (tvalue ?v) |- _ ] =>
-       match v with
-       | vconst _ => fail 1
-       | _ => assert (exists c, v = vconst c) as Htmp by (eapply base_type_max_term_reduce_to_constant in H; eauto);
-             destruct Htmp; subst
-       end
-   end).
+          mydestr;
+          repeat match goal with
+            | [H: ¬ is_arr _ |- _ ] => apply not_is_arr in H; destruct H; mydestr; subst
+            | [H: ¬ not_underbasety _ |- _ ] => apply not_not_underbasety in H; mydestr; subst
+            | [H: ¬ ({_}⟦ _ ⟧{ [] }) _ |- _ ] => rewrite not_ctxrR_empty_iff_not_rR in H
+            | [ |- ¬ ({_}⟦ _ ⟧{ [] }) _ ] => rewrite not_ctxrR_empty_iff_not_rR
+            (* | [H: {_}⟦ _ ⟧{ [] } _ |- _ ] => invclear H *)
+            | [H: closed_rty 0 _ [v:_|?n|_|_] |- _ ] =>
+                match n with
+                | 0 => fail 1
+                | _ => assert (n = 0) by (apply closed_rty_0_underbase in H; auto); subst
+                end
+            | [H: closed_rty 0 _ {v:_|?n|_|_} |- _ ] =>
+                match n with
+                | 0 => fail 1
+                | _ => assert (n = 0) by (apply closed_rty_0_overbase in H; auto); subst
+                end
+            | [H: ?e ↪* (tvalue ?v), H': [] ⊢t ?e ⋮t (TBase _)  |- _ ] =>
+                match v with
+                | vconst _ => fail 1
+                | _ => assert (exists c, v = vconst c) as Htmp by (eapply base_type_reduce_to_constant in H; eauto);
+                      destruct Htmp; subst
+                end
+            | [H: base_type_max_term _ ↪* (tvalue ?v) |- _ ] =>
+                match v with
+                | vconst _ => fail 1
+                | _ => assert (exists c, v = vconst c) as Htmp by (eapply base_type_max_term_reduce_to_constant in H; eauto);
+                      destruct Htmp; subst
+                end
+            end).
 
 Ltac denotation_simp := denotation_simp1.
 
@@ -204,29 +204,29 @@ Ltac refinement_solver0 :=
           | [ |- ok ((_, _) :: _)] => rewrite ok_pre_destruct; split; ctx_erase_simp
           | [H: closed_rty _ _ ?τ |- _ ∉ rty_fv ?τ ] => invclear H; mydestr; try fast_set_solver
           | [H: closed_rty _ _ (-:{v: _ | _ | _ | _}⤑ ?τ) |- ?ret ] =>
-               match ret with
-               | not_overbasety ?τ => invclear H; mydestr; auto
-               | valid_rty ?τ => invclear H; mydestr; auto
-               end
-           | [H: valid_rty (-:{v: _ | _ | _ | _}⤑ ?τ) |- ?ret ] =>
-               match ret with
-               | not_overbasety ?τ => invclear H; auto
-               | valid_rty ?τ => invclear H; auto
-               end
-           | [H: closed_rty _ _ (?τ1 ⤑ ?τ2) |- ?ret ] =>
-               match ret with
-               | not_overbasety ?τ1 => invclear H; mydestr; auto
-               | valid_rty ?τ1 => invclear H; mydestr; auto
-               | not_overbasety ?τ2 => invclear H; mydestr; auto
-               | valid_rty ?τ2 => invclear H; mydestr; auto
-               end
-           | [H: valid_rty (?τ1 ⤑ ?τ2) |- ?ret ] =>
-               match ret with
-               | not_overbasety ?τ1 => invclear H; auto
-               | valid_rty ?τ1 => invclear H; auto
-               | not_overbasety ?τ2 => invclear H; auto
-               | valid_rty ?τ2 => invclear H; auto
-               end
+              match ret with
+              | not_overbasety ?τ => invclear H; mydestr; auto
+              | valid_rty ?τ => invclear H; mydestr; auto
+              end
+          | [H: valid_rty (-:{v: _ | _ | _ | _}⤑ ?τ) |- ?ret ] =>
+              match ret with
+              | not_overbasety ?τ => invclear H; auto
+              | valid_rty ?τ => invclear H; auto
+              end
+          | [H: closed_rty _ _ (?τ1 ⤑ ?τ2) |- ?ret ] =>
+              match ret with
+              | not_overbasety ?τ1 => invclear H; mydestr; auto
+              | valid_rty ?τ1 => invclear H; mydestr; auto
+              | not_overbasety ?τ2 => invclear H; mydestr; auto
+              | valid_rty ?τ2 => invclear H; mydestr; auto
+              end
+          | [H: valid_rty (?τ1 ⤑ ?τ2) |- ?ret ] =>
+              match ret with
+              | not_overbasety ?τ1 => invclear H; auto
+              | valid_rty ?τ1 => invclear H; auto
+              | not_overbasety ?τ2 => invclear H; auto
+              | valid_rty ?τ2 => invclear H; auto
+              end
           end || refinement_simp1 || eauto || listctx_set_solver || fast_set_solver).
 
 Ltac refinement_solver2 :=
@@ -258,25 +258,52 @@ Ltac amap_dec_solver :=
   | [ |- None = Some _ ] => exfalso; lia
   | [H: context [ decide (?a ∈ ?d) ] |- _ ] => destruct (decide (a ∈ d)); subst; my_simplify_map_eq; eauto
   | [|- context [ decide (?a ∈ ?d) ] ] => destruct (decide (a ∈ d)); subst; my_simplify_map_eq; eauto
-  | _ => progress (intros; simpl; eauto)
+  | _ => progress (intros; simpl; eauto; var_dec_solver2)
   end.
 
-Lemma wf_r_subst_excluded_forward: forall n d ϕ z (c: constant),
+Lemma wf_r_subst_excluded_forward_c: forall n d ϕ z (c: constant),
     wf_r n d ϕ -> wf_r n (refinement_set_subst z c d) (refinement_subst z c d ϕ).
 Proof.
   intros. invclear H. unfold refinement_subst. unfold refinement_set_subst.
   amap_dec_solver; constructor; auto.
   - unfold not_fv_in_refinement. intros. apply H0. intros.
+    unfold state_subst. amap_dec_solver.
     destruct (atom_dec x z); subst; my_simplify_map_eq3.
+  - unfold bound_in_refinement in H1. unfold bound_in_refinement. intros. amap_dec_solver.
+  - unfold not_fv_in_refinement. intros. apply H0. intros.
+    unfold state_subst. var_dec_solver2.
   - unfold bound_in_refinement in H1. unfold bound_in_refinement. intros. amap_dec_solver.
 Qed.
 
-Lemma not_overbasety_subst_excluded_forward: forall τ z c, not_overbasety τ ->  not_overbasety (({z:=c}r) τ).
+Lemma wf_r_subst_excluded_forward: forall n d ϕ z (c: value),
+    wf_r n d ϕ -> wf_r n (refinement_set_subst z c d) (refinement_subst z c d ϕ).
+Proof.
+  intros. invclear H. unfold refinement_subst. unfold refinement_set_subst.
+  amap_dec_solver; constructor; auto.
+  - destruct c; auto; unfold not_fv_in_refinement; intros; apply H0; intros;
+      unfold state_subst; amap_dec_solver.
+    + destruct (atom_dec x z); subst; my_simplify_map_eq3.
+    + unfold state_subst_var. destruct (decide (z = atom)).
+      { assert (m !! atom = m' !! atom) by fast_set_solver. rewrite <- H3.
+        destruct (m!!atom);
+          destruct (atom_dec x atom); subst; my_simplify_map_eq3.
+      }
+      { assert (m !! atom = m' !! atom) by fast_set_solver. rewrite <- H3.
+        destruct (m!!atom); my_simplify_map_eq3;
+          destruct (atom_dec z x); subst; my_simplify_map_eq3. }
+  - unfold bound_in_refinement in H1. unfold bound_in_refinement. intros. amap_dec_solver.
+  - unfold not_fv_in_refinement. intros. apply H0. intros.
+    unfold state_subst. var_dec_solver2.
+  - unfold bound_in_refinement in H1. unfold bound_in_refinement. intros. amap_dec_solver.
+Qed.
+
+Lemma not_overbasety_subst_excluded_forward: forall τ z c,
+    not_overbasety τ -> not_overbasety (({z:=c}r) τ).
 Proof.
   induction τ; intros; auto.
 Qed.
 
-Lemma valid_rty_subst_excluded_forward: forall τ (z: atom) (c: constant),
+Lemma valid_rty_subst_excluded_forward: forall τ (z: atom) (c: value),
     valid_rty τ -> valid_rty (({z:=c}r) τ).
 Proof.
   induction τ; intros.
@@ -290,7 +317,7 @@ Proof.
     + simpl. constructor; eauto. apply not_overbasety_subst_excluded_forward; auto.
 Qed.
 
-Lemma lc_rty_idx_subst_excluded_forward: forall τ (z: atom) (c: constant) n1,
+Lemma lc_rty_idx_subst_excluded_forward: forall τ (z: atom) (c: value) n1,
     lc_rty_idx n1 τ -> lc_rty_idx n1 (({z:=c}r) τ).
 Proof.
   induction τ; intros; invclear H; constructor; auto.
@@ -299,12 +326,22 @@ Qed.
 Lemma rty_fv_subst_excluded_forward: forall τ (z: atom) (c: constant) d1,
     rty_fv τ ⊆ {[z]} ∪ d1 -> rty_fv (({z:=c}r) τ) ⊆ d1.
 Proof.
-  induction τ; intros; simpl in H; simpl; unfold refinement_set_subst.
+  induction τ; simpl; intros; unfold refinement_set_subst.
   - amap_dec_solver; set_solver.
   - amap_dec_solver; set_solver.
   - amap_dec_solver; set_solver.
   - set_solver.
 Qed.
+
+(* Lemma rty_fv_subst_excluded_forward1: forall τ (z: atom) (c: value) d1, *)
+(*     rty_fv τ ⊆ d1 -> rty_fv (({z:=c}r) τ) ⊆ d1. *)
+(* Proof. *)
+(*   induction τ; intros; simpl in H; simpl; unfold refinement_set_subst. *)
+(*   - destruct c; amap_dec_solver; var_dec_solver2; try set_solver. *)
+(*   - destruct c; amap_dec_solver; var_dec_solver2; try set_solver. *)
+(*   - destruct c; amap_dec_solver; var_dec_solver2; try set_solver. *)
+(*   - set_solver. *)
+(* Qed. *)
 
 Lemma closed_rty_subst_excluded_forward: forall τ (z: atom) (c: constant) n1 (d1: aset),
     z ∉ d1 -> closed_rty n1 ({[z]} ∪ d1) τ -> closed_rty n1 d1 ({z := c}r τ).
@@ -318,17 +355,36 @@ Proof.
 Qed.
 
 Ltac refinement_solver3 :=
-  (repeat match goal with
-     | [H: closed_rty _ _ _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto
-     | [H: closed_rty _ _ ?τ |- valid_rty ?τ] => invclear H; mydestr; eauto
-     | [H: valid_rty _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto
-     | [H: ok_dctx _ ((?z, _) :: _) |- ?z ∉ _ ] => invclear H; auto
-     | [H: not_overbasety ?τ |- not_overbasety (({ _ := _}r) ?τ)] =>
-         eapply not_overbasety_subst_excluded_forward; eauto
-     | [|- valid_rty (({ _ := _ }r) _)] => eapply valid_rty_subst_excluded_forward; eauto
-     | [|- lc_rty_idx _ (({ _ := _ }r) _)] => eapply lc_rty_idx_subst_excluded_forward; eauto
-     | [|- rty_fv (({ _ := _ }r) _) ⊆ _] => eapply rty_fv_subst_excluded_forward; eauto
-     end) || refinement_solver2.
+  repeat (match goal with
+          | [H: closed_rty _ _ _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto
+          | [H: closed_rty _ _ ?τ |- valid_rty ?τ] => invclear H; mydestr; eauto
+          | [H: valid_rty _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto
+          | [H: ok_dctx _ ((?z, _) :: _) |- ?z ∉ _ ] => invclear H; auto
+          | [H: not_overbasety ?τ |- not_overbasety (({ _ := _}r) ?τ)] =>
+              eapply not_overbasety_subst_excluded_forward; eauto
+          | [|- valid_rty (({ _ := _ }r) _)] => eapply valid_rty_subst_excluded_forward; eauto
+          | [|- lc_rty_idx _ (({ _ := _ }r) _)] => eapply lc_rty_idx_subst_excluded_forward; eauto
+          | [|- rty_fv (({ _ := _ }r) _) ⊆ _] => eapply rty_fv_subst_excluded_forward; eauto
+          end || refinement_solver2).
+
+Lemma wf_r_implies_state_dummy_insert: forall n2 d2 ϕ z,
+    wf_r n2 d2 ϕ -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. invclear H. apply H1. intros.
+  my_simplify_map_eq3.
+Qed.
+
+Lemma closed_rty_over_implies_state_dummy_insert: forall n1 d1 n2 d2 B ϕ z,
+    closed_rty n1 d1 {v:B|n2|d2|ϕ} -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. eapply wf_r_implies_state_dummy_insert; eauto. refinement_solver3.
+Qed.
+
+Lemma closed_rty_under_implies_state_dummy_insert: forall n1 d1 n2 d2 B ϕ z,
+    closed_rty n1 d1 [v:B|n2|d2|ϕ] -> z ∉ d2 -> (forall st bst c v, (ϕ bst (<[z:=c]> st) v <-> ϕ bst st v)).
+Proof.
+  intros. eapply wf_r_implies_state_dummy_insert; eauto. refinement_solver3.
+Qed.
 
 Ltac refinement_solver4 :=
   repeat (match goal with
@@ -337,25 +393,70 @@ Ltac refinement_solver4 :=
           | [H: closed_rty _ _ _ |- context [rty_fv _]] => invclear H; mydestr; auto
           end || refinement_solver3).
 
-Ltac refinement_solver :=
-  (refinement_solver4 ||
-     (try denotation_simp; refinement_solver4)).
+Ltac refinement_solver5 :=
+  (match goal with
+   | [H: closed_rty _ _ (-:{v: _ | _ | _ | _}⤑ _) |- closed_rty _ _ _] =>
+       invclear H; mydestr; refinement_solver4
+   | [H: closed_rty _ _ (_ ⤑ _) |- closed_rty _ _ _] =>
+       invclear H; mydestr; refinement_solver4
+   | [H: ({_;_;_}⟦ ?τ ⟧) _ |- valid_rty ?τ] => apply rR_regular1 in H; mydestr; refinement_solver4
+   | [H: ({_;_;_}⟦?τ⟧) _ |- _ ∉ rty_fv ?τ ] => apply rR_regular1 in H; mydestr; refinement_solver4
+   | [H: ({_}⟦?τ⟧{ _ }) _ |- closed_rty _ _ ?τ] =>
+       apply ctxrR_regular in H; mydestr; refinement_solver4
+   end) || refinement_solver4.
 
-Lemma refinement_shadow_update_st: forall bst c n ϕ (x: atom) d st (v: constant),
-    x ∉ d -> wf_r n d ϕ -> ϕ bst (<[x:=c]> st) v <-> ϕ bst st v.
+Lemma tyable_implies_closed_value: forall v_x T, [] ⊢t v_x ⋮v T -> closed_value v_x.
 Proof.
-  intros. eapply not_in_aset_implies_same_in_refinement; eauto. refinement_solver.
+  unfold closed_value. intros. apply basic_typing_contains_fv_value in H.
+  set_solver.
+Qed.
+
+Lemma tyable_implies_closed_tm: forall v_x T, [] ⊢t v_x ⋮t T -> closed_tm v_x.
+Proof.
+  unfold closed_tm. intros. apply basic_typing_contains_fv_tm in H.
+  set_solver.
+Qed.
+
+Ltac refinement_solver6 :=
+  match goal with
+  | [H: is_arr ?τ_x |- ok_dctx _ ((_, ?τ_x) :: _)] =>
+      apply ok_dctx_cons_arr; refinement_solver5
+  | [|- ok_dctx _ ((_, {v:_|_|_|_}) :: _)] => constructor; refinement_solver5
+  | [|- ok_dctx _ ((_, [v:_|_|_|_]) :: _)] => constructor; refinement_solver5
+  | [H: [] ⊢t ?v ⋮v _ |- closed_value ?v] => eapply tyable_implies_closed_value in H; eauto
+  | [H: [] ⊢t ?v ⋮t _ |- closed_tm ?v] => eapply tyable_implies_closed_tm in H; eauto
+  | [H: ({_}⟦ ?τ ⟧{ _ }) terr |- valid_rty ?τ ] => apply ctxrR_regular in H; mydestr; refinement_solver5
+  end || refinement_solver5.
+
+Ltac refinement_solver :=
+  (refinement_solver6; (try denotation_simp; refinement_solver6)).
+
+Lemma not_in_aset_implies_same_insert_refinement: forall (d: aset) (ϕ: refinement),
+    not_fv_in_refinement d ϕ ->
+    forall (x: atom), x ∉ d -> forall (m: state), forall bst v_x (v: constant), ϕ bst ({x  ↦ v_x} m) v <-> ϕ bst m v.
+Proof.
+  intros. apply H. intros.
+  destruct v_x; simpl; auto; var_dec_solver2;
+    assert (x <> x0) by fast_set_solver; my_simplify_map_eq3.
+  destruct (m!!atom); my_simplify_map_eq3.
+Qed.
+
+Lemma refinement_shadow_update_st: forall bst v_x n ϕ (x: atom) d st (v: constant),
+    x ∉ d -> wf_r n d ϕ -> ϕ bst ({ x ↦ v_x } st) v <-> ϕ bst st v.
+Proof.
+  intros.
+  eapply not_in_aset_implies_same_insert_refinement; eauto. refinement_solver.
 Qed.
 
 Ltac rR_shadow_update_st_tac :=
   repeat match goal with
-    | [H: valid_rty {v: _ |_ |?d|?ϕ} |- ?ϕ _ (<[_:=_]> _) _ ] =>
+    | [H: valid_rty {v: _ |_ |?d|?ϕ} |- ?ϕ _ ({ _ ↦ _ } _) _ ] =>
         rewrite refinement_shadow_update_st with (d:=d); auto; refinement_solver
-    | [H: valid_rty [v: _ |_ |?d|?ϕ] |- ?ϕ _ (<[_:=_]> _) _ ] =>
+    | [H: valid_rty [v: _ |_ |?d|?ϕ] |- ?ϕ _ ({ _ ↦ _ } _) _ ] =>
         rewrite refinement_shadow_update_st with (d:=d); auto; refinement_solver
-    | [H: valid_rty {v: _ |_ |?d|?ϕ}, H': ?ϕ _ (<[_:=_]> _) _ |- ?ϕ _ _ _ ] =>
+    | [H: valid_rty {v: _ |_ |?d|?ϕ}, H': ?ϕ _ ({ _ ↦ _ } _) _ |- ?ϕ _ _ _ ] =>
         rewrite refinement_shadow_update_st with (d:=d) in H'; auto; refinement_solver
-    | [H: valid_rty [v: _ |_ |?d|?ϕ], H': ?ϕ _ (<[_:=_]> _) _ |- ?ϕ _ _ _ ] =>
+    | [H: valid_rty [v: _ |_ |?d|?ϕ], H': ?ϕ _ ({ _ ↦ _ } _) _ |- ?ϕ _ _ _ ] =>
         rewrite refinement_shadow_update_st with (d:=d) in H'; auto; refinement_solver
     | [H: closed_rty _ _ ?τ, H': ?ϕ ?bst _ ?c_x |- ?ϕ ?bst _ ?c_x] =>
         match τ with
@@ -363,10 +464,18 @@ Ltac rR_shadow_update_st_tac :=
         end
     end.
 
+(* Ltac refinement_solver5 := *)
+(*   (match goal with *)
+(*    | [H: closed_rty _ _ (-:{v: _ | _ | _ | _}⤑ _) |- closed_rty _ _ _] => *)
+(*        invclear H; mydestr; refinement_solver4 *)
+(*    | [H: closed_rty _ _ (_ ⤑ _) |- closed_rty _ _ _] => *)
+(*        invclear H; mydestr; refinement_solver4 *)
+(*    end || refinement_solver4). *)
+
 Lemma rR_shadow_update_st: forall τ n st,
     closed_rty n (dom aset st) τ ->
-    (forall bst (a: atom) c e, a ∉ (rty_fv τ) ->
-                      ({n; bst; <[a:=c]> st}⟦τ⟧) e <-> ({n; bst; st}⟦τ⟧) e
+    (forall bst (a: atom) (c: value) e, a ∉ (rty_fv τ) ->
+                                   ({n; bst; { a ↦ c } st}⟦τ⟧) e <-> ({n; bst; st}⟦τ⟧) e
     ).
 Proof.
   induction τ; split; simpl; intros; mydestr; subst;
@@ -375,25 +484,41 @@ Proof.
   - exists x. repeat split; auto. rR_shadow_update_st_tac.
   - intros. apply H3; auto. rR_shadow_update_st_tac.
   - intros. apply H3; auto. rR_shadow_update_st_tac.
-  - intros. refinement_simp1. apply H3 in H4. apply IHτ in H4; refinement_solver.
+  - intros. refinement_simp1. apply H3 in H4. apply IHτ in H4; auto; refinement_solver5.
     rewrite refinement_shadow_update_st with (d:=d); auto; refinement_solver.
-  - intros. refinement_simp1. apply H3 in H4. apply IHτ; refinement_solver.
+  - intros. refinement_simp1. apply H3 in H4. apply IHτ; refinement_solver5.
     rewrite <- refinement_shadow_update_st with (d:=d); auto; refinement_solver.
   - intros. refinement_simp1.
     rewrite <- IHτ1 with (a:= a) (c:=c) in H4; auto; refinement_solver.
-    apply H3 in H4. rewrite IHτ2 in H4; by refinement_solver.
+    apply H3 in H4. rewrite IHτ2 in H4; refinement_solver5.
   - intros. refinement_simp1.
     rewrite IHτ1 in H4 by refinement_solver.
-    apply H3 in H4; rewrite IHτ2; auto; refinement_solver.
+    apply H3 in H4; rewrite IHτ2; auto; refinement_solver5.
+Qed.
+
+Lemma rR_shadow_update_st_c: forall τ n st,
+    closed_rty n (dom aset st) τ ->
+    (forall bst (a: atom) (c: constant) e, a ∉ (rty_fv τ) ->
+                                      ({n; bst; <[a:=c]> st}⟦τ⟧) e <-> ({n; bst; st}⟦τ⟧) e
+    ).
+Proof.
+  intros. eapply rR_shadow_update_st with (c:=c) in H; eauto.
 Qed.
 
 Lemma lc_rR_shadow_update_st: forall τ st (a: atom) c e,
     closed_rty 0 (dom aset st) τ -> a ∉ (rty_fv τ) ->
-    ({<[a:=c]> st}⟦τ⟧) e <-> ({st}⟦τ⟧) e.
+    ({ { a ↦ c } st}⟦τ⟧) e <-> ({st}⟦τ⟧) e.
 Proof.
   split; intros.
   - rewrite rR_shadow_update_st in H1; eauto.
   - rewrite rR_shadow_update_st; eauto.
+Qed.
+
+Lemma lc_rR_shadow_update_st_c: forall τ st (a: atom) c e,
+    closed_rty 0 (dom aset st) τ -> a ∉ (rty_fv τ) ->
+    ({ <[a:=c]> st}⟦τ⟧) e <-> ({st}⟦τ⟧) e.
+Proof.
+  intros. eapply lc_rR_shadow_update_st with (c:=c) in H; eauto.
 Qed.
 
 Lemma subst_insert_lookup_neq_Some {A:Type}: forall (a b: atom) (c0 c1: A) (st: amap A),
@@ -410,15 +535,15 @@ Qed.
 
 Ltac amap_solver1 Hsta :=
   repeat match goal with
-  | [|- <[?a:=_]> (<[?b:=_]> ?st) = <[?b:=_]> (<[?a:=_]> ?st)] =>
-      setoid_rewrite (insert_commute st a b); auto; try fast_set_solver
-  | [H: ?st !! ?a = None |- context [<[?b:=?c0]> ?st !! ?a ] ] =>
-      setoid_rewrite (subst_insert_lookup_neq_None a b c0); auto; try fast_set_solver
-  | [H: ?st !! ?a = Some ?c1 |- context [<[?b:=?c0]> ?st !! ?a ] ] =>
-      setoid_rewrite (subst_insert_lookup_neq_Some a b c0 c1); auto; try fast_set_solver
-  | [|- context [<[?b:=?c0]> ?st !! ?a ] ] =>
-      destruct (st !! a) eqn: Hsta
-  end.
+    | [|- <[?a:=_]> (<[?b:=_]> ?st) = <[?b:=_]> (<[?a:=_]> ?st)] =>
+        setoid_rewrite (insert_commute st a b); auto; try fast_set_solver
+    | [H: ?st !! ?a = None |- context [<[?b:=?c0]> ?st !! ?a ] ] =>
+        setoid_rewrite (subst_insert_lookup_neq_None a b c0); auto; try fast_set_solver
+    | [H: ?st !! ?a = Some ?c1 |- context [<[?b:=?c0]> ?st !! ?a ] ] =>
+        setoid_rewrite (subst_insert_lookup_neq_Some a b c0 c1); auto; try fast_set_solver
+    | [|- context [<[?b:=?c0]> ?st !! ?a ] ] =>
+        destruct (st !! a) eqn: Hsta
+    end.
 
 Lemma subst_st_insert_commute:forall (v_x: value) (a b: atom) (c: constant) st,
     fv_value v_x ∩ {[a; b]} = ∅ ->
@@ -452,19 +577,6 @@ Ltac ok_dctx_solver_slow :=
       apply (ok_dctx_trans τ d1 d2); simpl; auto; refinement_set_simp; set_solver
   end.
 
-Ltac ctxrR_shadow_update_st_tac :=
-  match goal with
-  | [H: context [{0;b∅;<[?a0:=?c]> ?st}⟦?τ⟧ _],
-        H': ({0;b∅;?st}⟦?τ⟧) _ |- ?ret ] =>
-      (* idtac H' *)
-      (rewrite <- lc_rR_shadow_update_st with (a:=a0) (c:=c) in H'
-       ;eauto; refinement_solver3);
-      match ret with
-      | context [({_↦?v_x}) _] => eapply H with (v_x := v_x) in H'; eauto
-      | _ => apply H in H'
-      end
-  end.
-
 Ltac auto_ty_exfalso1 :=
   match goal with
   | [H: [] ⊢t (vfvar _) ⋮v _ |- _ ] => invclear H; listctx_set_simpl
@@ -489,72 +601,222 @@ Ltac auto_ty_exfalso2 :=
               end
           end || auto_ty_exfalso1).
 
-Ltac auto_ty_exfalso := auto_ty_exfalso2.
+Lemma auto_ty_base: forall τ_x,
+    not_overbasety τ_x -> ¬ is_arr τ_x -> (exists b n d ϕ, τ_x = [v:b|n|d|ϕ]).
+Proof.
+  intros. destruct τ_x; invclear H.
+  - eauto.
+  - neg_apply H0; simpl; auto.
+  - neg_apply H0; simpl; auto.
+Qed.
 
-Lemma ctxrR_shadow_update_st: forall Γ st τ,
+Ltac auto_ty_exfalso3 :=
+  match goal with
+  | [H: not_overbasety ?τ_x, H': ¬ is_arr ?τ_x |- _ ] =>
+      apply auto_ty_base in H; auto; mydestr; subst; try clear H; try clear H'
+  end || auto_ty_exfalso2.
+
+Ltac auto_ty_exfalso := auto_ty_exfalso3.
+
+Lemma over_inhabitant_only_constant: forall (u: value) st b n d ϕ,
+    ({0;b∅;st}⟦{v:b|n|d|ϕ}⟧) u -> (exists (c: constant), u = c).
+Proof.
+  intros. invclear H; mydestr. exists x. invclear H3. auto.
+Qed.
+
+Ltac RD_simp :=
+  repeat match goal with
+    | [H: ({_}⟦ _ ⟧{ [] }) _ |- _ ] => invclear H
+    | [|- ({_}⟦ _ ⟧{ [] }) _ ] => constructor
+    | [H: ({_}⟦_⟧{ (_, {v:_|_|_|_}) :: _ }) _ |- _ ] => invclear H; try auto_ty_exfalso
+    | [H: ({0;b∅;_}⟦{v:_|_|_|_}⟧) (tvalue ?u) |- _ ] =>
+        match u with
+        | vconst _ => idtac
+        | _ => destruct (over_inhabitant_only_constant _ _ _ _ _ _ H); subst
+        end
+    end.
+
+Lemma denotation_st_update_iff_subst:
+  forall τ (z: atom) (c: constant) n bst (st: state) e,
+    z ∉ (dom aset st) ->
+    ({n;bst;<[z:=c]> st}⟦τ⟧ e) <-> (closed_rty n ({[z]} ∪ dom aset st) τ /\ {n;bst;st}⟦({z:=c}r) τ⟧ e).
+Proof.
+  induction τ; split; simpl; intros; mydestr; subst.
+  - do 2 (split; denotation_simp; auto). split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + unfold refinement_subst. unfold state_subst. amap_dec_solver.
+      repeat eexists; eauto. rewrite closed_rty_over_implies_state_dummy_insert in H3; eauto.
+  - split; auto. split; auto.
+    + denotation_simp.
+    + repeat eexists; eauto.
+      unfold refinement_subst in H4. unfold refinement_subst in H2.
+      unfold refinement_set_subst in H2.
+      unfold state_subst in H2. unfold state_subst in H4.
+      amap_dec_solver.
+      rewrite closed_rty_over_implies_state_dummy_insert; eauto.
+  - split; auto; denotation_simp. split; auto. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + unfold refinement_subst. unfold state_subst. amap_dec_solver.
+      intros. apply H2; auto. rewrite closed_rty_under_implies_state_dummy_insert; eauto.
+  - split; auto. split; auto.
+    + denotation_simp.
+    + repeat eexists; eauto. intros. apply H3; auto.
+      unfold refinement_subst. unfold refinement_subst in H2. unfold refinement_set_subst in H2. unfold state_subst. unfold state_subst in H2.
+      amap_dec_solver.
+      rewrite closed_rty_under_implies_state_dummy_insert in H5; eauto.
+  - split; auto; denotation_simp. split; auto; ctx_erase_simp4. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + intros. unfold refinement_subst in H4.
+      assert (ϕ bst (<[z:=c]> st) c_x).
+      { unfold state_subst in H4.
+        unfold state_subst in H2.
+        amap_dec_solver; auto. rewrite wf_r_implies_state_dummy_insert; eauto. refinement_solver3. }
+      apply H2 in H5; auto. rewrite IHτ in H5; mydestr; auto.
+  - split; auto; ctx_erase_simp4. split; auto.
+    + denotation_simp.
+    + intros. rewrite IHτ; auto. split; refinement_solver. apply H3; auto.
+      unfold refinement_subst. unfold state_subst. unfold state_subst in H3. amap_dec_solver.
+      rewrite wf_r_implies_state_dummy_insert in H5; eauto. refinement_solver3.
+  - split; auto; denotation_simp. split; auto; ctx_erase_simp4. split; auto.
+    + eapply closed_rty_subst_excluded_forward in H1; eauto.
+    + intros.
+      assert (({n;bst;<[z:=c]> st}⟦τ1⟧) v_x) as HH. rewrite IHτ1; auto. split; refinement_solver4.
+      apply H2 in HH. rewrite IHτ2 in HH; auto. mydestr; auto.
+  - split; auto; ctx_erase_simp4. split; auto; denotation_simp.
+    + intros. rewrite IHτ2; auto. split; refinement_solver. apply H3. rewrite IHτ1 in H4; auto. mydestr; auto.
+Qed.
+
+Lemma state_insert_insert_neq: forall (a b: atom) (c_a: constant) (v_b: value) (st: state),
+    a <> b -> a ∉ fv_value v_b ->
+    {a ↦ c_a} ({b ↦ v_b} st) = {b ↦ v_b} ({a ↦ c_a} st).
+Proof.
+  intros. destruct v_b; simpl; auto.
+  - setoid_rewrite insert_commute at 1; auto.
+  - assert (a <> atom) by fast_set_solver. my_simplify_map_eq3.
+    destruct (st !! atom) eqn:Hst; my_simplify_map_eq3.
+    setoid_rewrite insert_commute at 1; auto.
+Qed.
+
+Lemma state_insert_insert_neq_better: forall (a b: atom) (c_a: constant) (v_b: value) (st: state),
+    a <> b -> v_b <> a ->
+    {a ↦ c_a} ({b ↦ v_b} st) = {b ↦ v_b} ({a ↦ c_a} st).
+Proof.
+  intros. destruct v_b; auto.
+  - apply state_insert_insert_neq; auto. set_solver.
+  - apply state_insert_insert_neq; auto. set_solver.
+Qed.
+
+(* Ltac ctxrR_shadow_update_st_tac := *)
+(*   match goal with *)
+(*   | [H: context [{0;b∅;{?a0 ↦ ?c} ?st}⟦?τ⟧ _], *)
+(*         H': ({0;b∅;?st}⟦?τ⟧) _ |- ?ret ] => *)
+(*       (* idtac H' *) *)
+(*       (rewrite <- lc_rR_shadow_update_st with (a:=a0) (c:=c) in H' *)
+(*        ;eauto; refinement_solver3); *)
+(*       match ret with *)
+(*       | context [({_↦?v_x}) _] => eapply H with (v_x := v_x) in H'; eauto *)
+(*       | _ => apply H in H' *)
+(*       end *)
+(*   end. *)
+
+Lemma state_insert_closed_value:
+  forall (v: value) a (st: state), closed_value v -> (exists (c: constant), v = c) \/ ({a↦v} st = st).
+Proof.
+  unfold closed_value. intros. destruct v; simpl in H.
+  - left. eauto.
+  - set_solver.
+  - right; eauto.
+  - right; eauto.
+  - right; eauto.
+Qed.
+
+Ltac ctxrR_shadow_update_st_tac_c :=
+  match goal with
+  | [H: context [{0;b∅;<[?a0 := ?c]> ?st}⟦?τ⟧ _],
+        H': ({0;b∅;?st}⟦?τ⟧) _ |- ?ret ] =>
+      (* idtac H' *)
+      (rewrite <- lc_rR_shadow_update_st with (a:=a0) (c:=c) in H'
+       ;eauto; refinement_solver3);
+      match ret with
+      | context [({_↦?v_x}) _] => eapply H with (v_x := v_x) in H'; eauto
+      | _ => apply H in H'
+      end
+  end.
+
+Lemma ctxrR_shadow_update_st_c: forall Γ st τ,
     closed_rty 0 (ctxdom Γ ∪ dom aset st) τ ->
     ok_dctx (dom aset st) Γ ->
     (forall (a: atom) c e, a ∉ (ctxdom Γ ∪ dom aset st) ->
-                        ({<[a:=c]> st}⟦τ⟧{Γ}) e <-> ({st}⟦τ⟧{Γ}) e
+                      ({<[a:=c]> st}⟦τ⟧{Γ}) e <-> ({st}⟦τ⟧{Γ}) e
     ).
 Proof.
   induction Γ; split; simpl; intros; mydestr; subst.
   - invclear H2. constructor; auto; intros.
-    rewrite <- rR_shadow_update_st; eauto; refinement_solver.
+    rewrite <- rR_shadow_update_st_c; eauto; refinement_solver.
   - invclear H2. constructor; auto; intros.
-    rewrite rR_shadow_update_st; eauto; refinement_solver.
-  - invclear H0; invclear H2; mydestr; try auto_ty_exfalso.
+    rewrite rR_shadow_update_st_c; eauto; refinement_solver.
+  - invclear H0; invclear H2; mydestr; try auto_ty_exfalso2.
     + constructor; auto. constructor; auto.
       intros.
-      ctxrR_shadow_update_st_tac.
+      ctxrR_shadow_update_st_tac_c.
       setoid_rewrite insert_commute in H0; try fast_set_solver.
       rewrite IHΓ in H0; auto; denotation_simp.
       refinement_solver.
     + constructor; auto. constructor; auto.
-      exists x. split. intros. rewrite <- rR_shadow_update_st; eauto. refinement_solver.
+      exists x. split. intros. rewrite <- rR_shadow_update_st_c; eauto. refinement_solver.
       intros; mydestr.
-      ctxrR_shadow_update_st_tac.
+      ctxrR_shadow_update_st_tac_c.
       assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver.
-      simpl in H1. destruct v_x; try auto_ty_exfalso.
+      simpl in H1. destruct v_x; try auto_ty_exfalso2.
       { rewrite subst_st_insert_commute in H3; try fast_set_solver.
         rewrite IHΓ in H3; auto; denotation_simp.
         refinement_solver. }
-      (* { denotation_simp; rewrite IHΓ in H3; auto; denotation_simp. refinement_solver. ok_dctx_solver_slow. } *)
-      (* { denotation_simp; rewrite IHΓ in H3; auto; denotation_simp. refinement_solver. ok_dctx_solver_slow. } *)
     + constructor; auto. apply ok_dctx_cons_arr; auto.
-      exists x. split. intros. rewrite <- rR_shadow_update_st; eauto. refinement_solver.
+      exists x. split. intros. rewrite <- rR_shadow_update_st_c; eauto. refinement_solver.
       intros; mydestr.
-      ctxrR_shadow_update_st_tac.
+      ctxrR_shadow_update_st_tac_c.
       assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver.
       simpl in H1. destruct v_x; try auto_ty_exfalso;
         denotation_simp; rewrite IHΓ in H3; auto; denotation_simp; refinement_solver.
-   - invclear H0; invclear H2; mydestr; try auto_ty_exfalso.
+  - invclear H0; invclear H2; mydestr; try auto_ty_exfalso2.
     + constructor; auto; denotation_simp. refinement_solver. ok_dctx_solver_slow.
       intros. specialize (H16 c_x).
       assert ({0;b∅; st}⟦{v:B|0|d|ϕ}⟧ c_x) by
-      (rewrite <- lc_rR_shadow_update_st with (a:=a0) (c:=c); eauto; refinement_solver).
+        (rewrite <- lc_rR_shadow_update_st_c with (a:=a0) (c:=c); eauto; refinement_solver).
       apply H16 in H2.
       setoid_rewrite insert_commute; refinement_solver.
       rewrite IHΓ; auto; denotation_simp; refinement_solver.
     + invclear H7; mydestr.
       constructor; auto. refinement_solver. ok_dctx_solver_slow.
-      exists x. split. rewrite rR_shadow_update_st; eauto; refinement_solver.
+      exists x. split. rewrite rR_shadow_update_st_c; eauto; refinement_solver.
       intros; mydestr.
-      rewrite lc_rR_shadow_update_st in H12; auto; try refinement_solver3.
+      rewrite lc_rR_shadow_update_st_c in H12; auto; try refinement_solver3.
       eapply H2 with (v_x := v_x) in H12; eauto.
       assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver.
-      simpl in H1. destruct v_x; try auto_ty_exfalso.
+      simpl in H1. destruct v_x; try auto_ty_exfalso2.
       { rewrite subst_st_insert_commute; denotation_simp.
         rewrite IHΓ; auto; denotation_simp; refinement_solver. }
     + invclear H7; mydestr.
       constructor; auto. refinement_solver. ok_dctx_solver_slow.
-      exists x. split. intros. rewrite rR_shadow_update_st; eauto; refinement_solver.
+      exists x. split. intros. rewrite rR_shadow_update_st_c; eauto; refinement_solver.
       intros; mydestr.
-      rewrite lc_rR_shadow_update_st in H12; auto; try refinement_solver.
+      rewrite lc_rR_shadow_update_st_c in H12; auto; try refinement_solver.
       eapply H2 with (v_x := v_x) in H12; eauto.
       assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver.
-      simpl in H1. destruct v_x; try auto_ty_exfalso;
+      simpl in H1. destruct v_x; try auto_ty_exfalso2;
         denotation_simp; rewrite IHΓ; auto; denotation_simp; refinement_solver.
+Qed.
+
+Lemma ctxrR_shadow_update_st: forall Γ st τ,
+    closed_rty 0 (ctxdom Γ ∪ dom aset st) τ ->
+    ok_dctx (dom aset st) Γ ->
+    (forall (a: atom) c e, a ∉ (ctxdom Γ ∪ dom aset st) -> closed_value c ->
+                      ({ {a↦c} st}⟦τ⟧{Γ}) e <-> ({st}⟦τ⟧{Γ}) e
+    ).
+Proof.
+  intros. apply state_insert_closed_value with (a:=a) (v:=c) (st:=st) in H2; eauto.
+  destruct H2; mydestr; subst; auto; try (rewrite H2; auto).
+  apply ctxrR_shadow_update_st_c; auto.
 Qed.
 
 (* Lemma denotation_lc_lete: forall Γ (e_x e: tm) τ (st: state), *)
@@ -669,7 +931,7 @@ Proof.
 Qed.
 
 Lemma let_store_typable: forall Γ u Tu z e T,
-         Γ ⊢t u ⋮t Tu -> (Γ ++ [(z, Tu)]) ⊢t e ⋮t T -> Γ ⊢t tlete u (z \t\ e) ⋮t T.
+    Γ ⊢t u ⋮t Tu -> (Γ ++ [(z, Tu)]) ⊢t e ⋮t T -> Γ ⊢t tlete u (z \t\ e) ⋮t T.
 Proof.
   intros. auto_exists_L; intros.
   rewrite subst_as_close_open_tm; eauto; try basic_typing_solver.
@@ -701,7 +963,7 @@ Lemma ctxrR_err_overbase_forall: forall Γ st τ x b n d ϕ,
     closed_rty 0 ({[x]} ∪ ctxdom Γ ∪ dom aset st) τ ->
     not_overbasety τ ->
     ¬ ({st}⟦τ⟧{(x, {v:b|n|d|ϕ}) :: Γ}) terr <->
-    (exists (c: constant), {st}⟦{v:b|n|d|ϕ}⟧ c /\ ¬ ({<[x:=c]> st}⟦τ⟧{Γ}) terr).
+      (exists (c: constant), {st}⟦{v:b|n|d|ϕ}⟧ c /\ ¬ ({<[x:=c]> st}⟦τ⟧{Γ}) terr).
 Proof.
   split; intros.
   - eapply ctxrR_err_overbase_forall_forward; eauto.
@@ -748,11 +1010,122 @@ Lemma ctxrR_err_underbase_forall: forall Γ st τ x b n d ϕ,
     closed_rty 0 ({[x]} ∪ ctxdom Γ ∪ dom aset st) τ ->
     not_overbasety τ ->
     ¬ ({st}⟦τ⟧{(x, [v:b|n|d|ϕ]) :: Γ}) terr <->
-    (forall e_x_hat, {st}⟦[v:b|n|d|ϕ]⟧ e_x_hat ->
-                (exists (c: constant), [] ⊢t c ⋮v b /\ e_x_hat ↪* c /\ ¬ ({<[x:=c]> st}⟦τ⟧{Γ}) terr)
-    ).
+      (forall e_x_hat, {st}⟦[v:b|n|d|ϕ]⟧ e_x_hat ->
+                  (exists (c: constant), [] ⊢t c ⋮v b /\ e_x_hat ↪* c /\ ¬ ({<[x:=c]> st}⟦τ⟧{Γ}) terr)
+      ).
 Proof.
   split; intros.
   - eapply ctxrR_err_underbase_forall_forward; eauto.
   - eapply ctxrR_err_underbase_forall_backward; eauto.
+Qed.
+
+Ltac reduction_solver2 :=
+  RD_simp; repeat (reduction_solver1 || refinement_solver5).
+
+Lemma rR_inhabitant_err_or_halt: forall τ,
+    valid_rty τ ->
+    (forall n bst st, (∀ e, ({n;bst;st}⟦τ⟧) e -> (exists (v: value), e ↪* v)) \/ (({n;bst;st}⟦τ⟧) terr)).
+Proof.
+  intros τ Hv. induction Hv; intros.
+  - left. intros. invclear H0; mydestr; subst. eexists; eauto.
+  - destruct (classic (({n0;bst;st}⟦[v:B|n|d|ϕ]⟧) terr)); auto. left; intros.
+    neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros.
+    apply H3 in H5; auto. exfalso_apply H2.
+  - destruct (classic (({n0;bst;st}⟦-:{v: B | n | d | ϕ}⤑ τ⟧) terr)); auto. left; intros.
+    neg_apply H1. invclear H2; mydestr. do 2 (split; auto). intros.
+    apply H4 in H6; auto. eapply termR_perserve_rR; eauto.
+    eapply mk_app_perserve_termR; eauto.
+    apply stuck_tm_termR_terr; auto.
+  - destruct (classic ( ({n0;bst;st}⟦(-:{v: B | n | d | ϕ}⤑ τ1) ⤑ τ2⟧) terr)); auto. left; intros.
+    neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros.
+    assert ([] ⊢t v_x ⋮v B ⤍ ⌊τ1⌋) by denotation_simp.
+    apply H3 in H4; auto.
+    eapply termR_perserve_rR; eauto.
+    eapply mk_app_perserve_termR; eauto.
+    apply stuck_tm_termR_terr; auto.
+  - destruct (classic ( {n;bst;st}⟦(τ11 ⤑ τ12) ⤑ τ2⟧ terr )); auto. left; intros.
+    neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros.
+    assert ([] ⊢t v_x ⋮v ⌊τ11 ⤑ τ12⌋) by denotation_simp.
+    apply H3 in H4; auto.
+    eapply termR_perserve_rR; eauto.
+    eapply mk_app_perserve_termR; eauto.
+    apply stuck_tm_termR_terr; auto.
+Qed.
+
+Lemma not_rR_inhabitant_err_implies_halt: forall τ n bst st,
+    valid_rty τ -> ~ ({n;bst;st}⟦τ⟧) terr -> ∀ e, ({n;bst;st}⟦τ⟧) e -> (exists (v: value), e ↪* v).
+Proof.
+  intros.
+  eapply rR_inhabitant_err_or_halt in H. destruct H; eauto.
+  exfalso_apply H.
+Qed.
+
+Lemma not_empty_ctxrR_inhabitant_err_implies_halt: forall τ st,
+    valid_rty τ -> ~ ({st}⟦τ⟧{ [] }) terr -> ∀ e, ({st}⟦τ⟧) e -> (exists (v: value), e ↪* v).
+Proof.
+  intros.
+  eapply rR_inhabitant_err_or_halt in H. destruct H; eauto.
+  exfalso_apply H0. RD_simp; auto.
+Qed.
+
+Lemma random_inhabitant_in_any_under: ∀ (τ: rty) (bst : bstate) n st,
+    not_overbasety τ ->
+    closed_rty n (dom _ st) τ ->
+    ({n;bst;st}⟦τ⟧) (random_inhabitant τ).
+Proof.
+  induction τ; intros; invclear H; mydestr.
+  - destruct B.
+    + do 2 (split; simpl; auto).
+      intros. destruct c; invclear H.
+      apply mk_nat_gen_reduce_to_all_nat.
+    + do 2 (split; simpl; auto).
+      intros. destruct c; invclear H.
+      apply mk_bool_gen_reduce_to_all_bool.
+  - denotation_simp. repeat split; refinement_solver4.
+    + basic_typing_solver6.
+    + intros.
+      apply termR_perserve_rR with (e:= (random_inhabitant τ)); refinement_solver4.
+      assert
+        ((random_inhabitant τ ^t^ c_x) <-<{ []; ⌊τ⌋} (mk_app (vlam B (random_inhabitant τ)) c_x)). apply mk_app_reduce_to_open'; auto; basic_typing_solver6.
+      reduction_simpl1.
+      apply IHτ; refinement_solver4.
+  - denotation_simp. repeat split; refinement_solver4.
+    + basic_typing_solver6.
+    + intros.
+      (* assert (closed_rty n (dom aset st) τ1) by refinement_solver4. *)
+      assert (closed_rty n (dom aset st) τ2) by refinement_solver4.
+      (* assert (not_overbasety τ1) by (invclear H0; invclear H3; simpl; auto). *)
+      assert (not_overbasety τ2) by (invclear H0; invclear H2; simpl; auto).
+      (* apply IHτ1 with (bst:=bst) in H1; auto. *)
+      apply IHτ2 with (bst:=bst) in H1; auto.
+      apply termR_perserve_rR with (e:= tlete v_x (random_inhabitant τ2)); refinement_solver4.
+      apply mk_app_reduce_to_let'; auto; refinement_solver4; basic_typing_solver6.
+      apply termR_perserve_rR with (e:= random_inhabitant τ2); refinement_solver4.
+      eapply let_value_in_lc_termR_drop; eauto; reduction_solver2.
+Qed.
+
+Global Hint Resolve terr_is_not_inhabitant_of_overbase: core.
+
+Lemma ctx_trans_terr_inhabitant: forall Γ st τ x τ_x,
+    not_overbasety τ ->
+    ok_dctx (dom aset st) ((x, τ_x) :: Γ) ->
+    ¬ ({st}⟦ τ ⟧{(x, τ_x) :: Γ}) terr -> ¬ ({st}⟦ τ ⟧{ Γ }) terr.
+Proof.
+  intros. neg_apply H1; RD_simp; denotation_simp1.
+  destruct (classic (not_overbasety τ_x)).
+  - constructor; refinement_solver6.
+    exists (random_inhabitant τ_x).
+    assert (({0;b∅;st}⟦τ_x⟧) (random_inhabitant τ_x)) by
+      (apply random_inhabitant_in_any_under; refinement_solver5).
+    split; auto. intros.
+    assert ([] ⊢t (random_inhabitant τ_x) ⋮t ⌊ τ_x ⌋); auto.
+    assert ([] ⊢t v_x ⋮v ⌊ τ_x ⌋); reduction_solver2.
+    assert (({st}⟦τ⟧{Γ}) (tlete e_x (x \t\ terr))).
+    apply termR_perserve_ctxrR with (e:= terr); refinement_solver6.
+    apply tyable_implies_terr_termR. reduction_solver2.
+    eapply ty_tlete_dummy; refinement_solver6.
+    setoid_rewrite ctxrR_shadow_update_st; auto; refinement_solver.
+  - invclear H0; auto_ty_exfalso3. constructor; refinement_solver6.
+    intros. reduction_simpl1.
+    setoid_rewrite ctxrR_shadow_update_st_c; auto; refinement_solver.
 Qed.

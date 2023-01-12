@@ -950,28 +950,28 @@ Ltac lc_solver3 :=
   end.
 
 Ltac reduction_simpl1 :=
-  repeat (simpl; msubst_simpl ||
+  repeat ((simpl; lc_simpl; msubst_simpl) ||
             match goal with
             | [H: (tvalue _) ↪* (tvalue _) |- _ ] =>
                 rewrite value_reduce_to_value_implies_same in H; mydestr; subst
             | [|- (tvalue _) ↪* (tvalue _)] =>
                 rewrite value_reduce_to_value_implies_same; split; eauto
             | [H: context [?e ^v^ _] |- _ ] =>
-               assert (lc e) as Htmp by (auto; lc_solver3);
-               rewrite (open_rec_lc_value _ e) in H; auto;
-               try clear Htmp
-           | [|- context [?e ^v^ _] ] =>
-               assert (lc e) as Htmp by (auto; lc_solver3);
-               rewrite (open_rec_lc_value _ e); auto;
-               try clear Htmp
-           | [H: context [?e ^t^ _] |- _ ] =>
-               assert (lc e) as Htmp by (auto; lc_solver3);
-               rewrite (open_rec_lc_tm _ e) in H; auto;
-               try clear Htmp
-           | [|- context [?e ^t^ _] ] =>
-               assert (lc e) as Htmp by (auto; lc_solver3);
-               rewrite (open_rec_lc_tm _ e); auto;
-               try clear Htmp
+                assert (lc e) as Htmp by (auto; lc_solver3);
+                rewrite (open_rec_lc_value _ e) in H; auto;
+                try clear Htmp
+            | [|- context [?e ^v^ _] ] =>
+                assert (lc e) as Htmp by (auto; lc_solver3);
+                rewrite (open_rec_lc_value _ e); auto;
+                try clear Htmp
+            | [H: context [?e ^t^ _] |- _ ] =>
+                assert (lc e) as Htmp by (auto; lc_solver3);
+                rewrite (open_rec_lc_tm _ e) in H; auto;
+                try clear Htmp
+            | [|- context [?e ^t^ _] ] =>
+                assert (lc e) as Htmp by (auto; lc_solver3);
+                rewrite (open_rec_lc_tm _ e); auto;
+                try clear Htmp
             end || auto_reduction_exfalso).
 
 Lemma mk_app_reduce_to_open:
@@ -1082,7 +1082,7 @@ Proof.
 Qed.
 
 Lemma stuck_tm_termR_terr: forall e B T,
-    (∀ e' : tm, ¬ e ↪* e') -> [] ⊢t e ⋮t B ⤍ T -> e <-<{ []; B ⤍ T} terr.
+    (∀ e' : value, ¬ e ↪* e') -> [] ⊢t e ⋮t B ⤍ T -> e <-<{ []; B ⤍ T} terr.
 Proof.
   intros. constructor; auto.
   unfold termRraw. intros. invclear H1. simpl in H2. exfalso. eapply H; eauto.
@@ -1097,6 +1097,25 @@ Proof.
     assert (lc (tm_msubst env0 e)) by reduction_solver1.
     rewrite lete_step_spec. split; reduction_solver1.
     eexists; split; reduction_solver1.
+Qed.
+
+Lemma termR_tlete_drop_halt_lhs: forall e_x Tx e T,
+    [] ⊢t e_x ⋮t Tx -> [] ⊢t e ⋮t T -> (∃ v : value, e_x ↪* v) ->
+    e <-<{ []; T} (tlete e_x e).
+Proof.
+  intros. constructor; auto; basic_typing_solver6.
+  unfold termRraw. intros. invclear H2. simpl in H3. simpl.
+  rewrite lete_step_spec. split; basic_typing_solver.
+  mydestr. eexists; split; eauto; reduction_solver1.
+Qed.
+
+Lemma termR_tlete_drop_halt_lhs': forall e_x Tx x e T,
+    [] ⊢t e_x ⋮t Tx -> [] ⊢t e ⋮t T -> (∃ v : value, e_x ↪* v) ->
+    e <-<{ []; T} (tlete e_x (x \t\ e)).
+Proof.
+  intros. rewrite close_fresh_rec_tm; basic_typing_solver6.
+  eapply termR_tlete_drop_halt_lhs; eauto.
+  apply basic_typing_contains_fv_tm in H0; simpl in H0. set_solver.
 Qed.
 
 
