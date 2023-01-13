@@ -230,20 +230,19 @@ Inductive ctxrR2: bstate -> state -> listctx rty -> rty -> rty -> Prop :=
 Notation " '{' st '}⟦' τ1 '⟧⊆⟦' τ2 '⟧{' Γ '}' " := (forall bst, ctxrR2 bst st Γ τ1 τ2) (at level 20, format "{ st }⟦ τ1 ⟧⊆⟦ τ2 ⟧{ Γ }", st constr, τ1 constr, τ2 constr, Γ constr).
 Notation " '⟦' τ1 '⟧⊆⟦' τ2 '⟧{' Γ '}' " := (forall bst, ctxrR2 bst ∅ Γ τ1 τ2) (at level 20, format "⟦ τ1 ⟧⊆⟦ τ2 ⟧{ Γ }", τ1 constr, τ2 constr, Γ constr).
 
-Inductive wf_ctx: listctx rty -> Prop :=
-| wf_ctx_nil: wf_ctx []
-| wf_ctx_cons_ubase: forall Γ x b n d ϕ,
-    wf_ctx Γ ->
-    ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr) ->
-    ok_dctx ∅ (Γ ++ [(x, [v: b | n | d | ϕ])]) ->
-    wf_ctx (Γ ++ [(x, [v: b | n | d | ϕ ])])
-| wf_ctx_cons: forall Γ x τ,
-    wf_ctx Γ ->
-    not_underbasety τ ->
-    ok_dctx ∅ (Γ ++ [(x, τ)]) ->
-    wf_ctx (Γ ++ [(x, τ)]).
-
-Definition wf (Γ: listctx rty) (τ: rty) :=
-  wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ.
-
-Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr).
+Inductive wf_ctxrR_not_terr: state -> listctx rty -> Prop :=
+| wf_ctxrR_nil_not_terr: forall st, wf_ctxrR_not_terr st []
+| ctxrR_cons_over_not_terr: forall st (x: atom) B n d ϕ Γ,
+    ok_dctx (dom _ st) ((x, {v: B | n | d | ϕ}) :: Γ) ->
+    (forall (c_x: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_x ->
+                        wf_ctxrR_not_terr (<[ x := c_x ]> st) Γ) ->
+    wf_ctxrR_not_terr st ((x, {v: B | n | d | ϕ}) :: Γ)
+| ctxrR_cons_under_not_terr: forall st (x: atom) τ_x Γ,
+    not_overbasety τ_x ->
+    ok_dctx (dom _ st) ((x, τ_x) :: Γ) ->
+    ¬ ({st}⟦ τ_x ⟧ terr) ->
+    (exists e_x_hat, {st}⟦ τ_x ⟧ e_x_hat /\
+                  (forall e_x, {st}⟦ τ_x ⟧ e_x ->
+                          (∀ (v_x: value), e_x_hat ↪* v_x ->
+                                           wf_ctxrR_not_terr ({ x ↦ v_x } st) Γ ))) ->
+     wf_ctxrR_not_terr st ((x, τ_x) :: Γ).

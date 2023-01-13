@@ -17,4 +17,5 @@ Refinement.v
 RefinementTac.v
 RefinementDenotation.v
 RefinementDenotationTac.v
+RefinementDenotationProp.v
 AuxTyping.v

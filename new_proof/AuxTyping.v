@@ -7,6 +7,7 @@ From CT Require Import SyntaxSugar.
 From CT Require Import Refinement.
 From CT Require Import RefinementDenotation.
 From CT Require Import RefinementDenotationTac.
+From CT Require Import RefinementDenotationProp.
 
 Import Atom.
 Import CoreLang.
@@ -20,66 +21,27 @@ Import SyntaxSugar.
 Import Refinement.
 Import RefinementDenotation.
 Import RefinementDenotationTac.
+Import RefinementDenotationProp.
 
-(* Well Formedness *)
+Lemma wf_ctxrR_implies_ok: forall Γ, wf_ctxrR ∅ Γ -> ok Γ.
+Proof.
+  induction Γ; intros; auto.
+  invclear H; refinement_solver7.
+Qed.
 
-(* Inductive wf_ctx: listctx rty -> Prop := *)
-(* | wf_ctx_nil: wf_ctx [] *)
-(* | wf_ctx_cons_ubase: forall Γ x b n d ϕ, *)
-(*     wf_ctx Γ -> *)
-(*     x ∉ ctxdom Γ -> *)
-(*     ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr) -> *)
-(*     wf_ctx (Γ ++ [(x, [v: b | n | d | ϕ ])]) *)
-(* | wf_ctx_cons: forall Γ x τ, *)
-(*     wf_ctx Γ -> *)
-(*     x ∉ ctxdom Γ -> *)
-(*     not_underbasety τ -> *)
-(*     wf_ctx (Γ ++ [(x, τ)]). *)
+Global Hint Resolve wf_ctxrR_implies_ok: core.
 
-(* Lemma err_exists_rR_excluded: forall b n d ϕ, *)
-(*     (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ [] } e /\ exists (v: value), e ↪* v) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ [] } terr). *)
-(* Proof. *)
-(*   split; intros; mydestr. *)
-(*   -  *)
+Definition wf (Γ: listctx rty) (τ: rty) :=
+  wf_ctxrR_not_terr ∅ Γ /\ closed_rty 0 (ctxdom Γ) τ /\ not_overbasety τ.
 
-(* Lemma err_exists_denotation_excluded: forall Γ b n d ϕ, *)
-(*     (∃ e, ⟦ [v: b | n | d | ϕ ] ⟧{ Γ } e /\ exists (v: value), e ↪* v) <-> ~ (⟦ [v: b | n | d | ϕ ] ⟧{ Γ } terr). *)
-(* Admitted. *)
+Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr).
 
-(* Lemma wf_ctx_implies_ok: forall Γ, wf_ctx Γ -> ok Γ. *)
-(* Admitted. *)
-
-(* Lemma wf_ctx_implies_valid: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> valid_rty τ. *)
-(* Admitted. *)
-
-(* Lemma wf_ctx_implies_lc_rty: forall Γ x τ,  wf_ctx Γ -> ctxfind Γ x = Some τ -> lc_rty τ. *)
-(* Admitted. *)
-
-(* Lemma wf_ctx_regular: *)
-(*   ∀ Γ, wf_ctx Γ -> ok Γ /\ (forall x τ, ctxfind Γ x = Some τ -> valid_rty τ) /\ (forall x τ, ctxfind Γ x = Some τ -> lc_rty τ). *)
-(* Admitted. *)
-
-(* Lemma wf_ctx_implies_mid_closed: forall Γ1 x τ Γ2, wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (rty_fv τ) ⊆ (ctxdom Γ1). *)
-(* Admitted. *)
-
-(* Lemma wf_ctx_implies_inhabitant_exists: forall Γ2 Γ1 x τ, *)
-(*     not_overbasety τ -> *)
-(*     wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e). *)
-(* Proof. *)
-(*   apply (rev_ind (fun Γ2 => *)
-(*                     forall Γ1 x τ, not_overbasety τ -> *)
-(*                               wf_ctx (Γ1 ++ [(x, τ)] ++ Γ2) -> (exists e, ⟦ τ ⟧{ Γ1 } e) *)
-(*         )); intros; denotation_simp. *)
-(*   - invclear H0; listctx_set_simpl. admit. admit. *)
-(*   - invclear H1; listctx_set_simpl. *)
-(*   induction Γ1; simpl; intros. *)
-(* Admitted. *)
-
-(* Definition wf (Γ: listctx rty) (τ: rty) := wf_ctx Γ /\ closed_rty 0 (ctxdom Γ) τ. *)
-
-(* Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr). *)
-
-(* Disjunction *)
+Lemma well_formed_regular: forall Γ τ,
+  Γ ⊢WF τ -> wf_ctxrR ∅ Γ /\ closed_rty 0 (ctxdom Γ) τ /\ not_overbasety τ.
+Proof.
+  intros. destruct H. setoid_rewrite wf_ctxrR_iff_wf_ctxrR_not_terr.
+  split; auto.
+Qed.
 
 Definition disjunction (Γ: listctx rty) (τ1 τ2 τ3: rty) := forall e, (⟦ τ1 ⟧{ Γ } e) /\ (⟦ τ2 ⟧{ Γ } e) <-> (⟦ τ3 ⟧{ Γ } e).
 
@@ -102,7 +64,13 @@ Inductive subtyping: listctx rty -> rty -> rty -> Prop :=
 
 Notation " Γ '⊢' τ1 '⪡' τ2 " := (subtyping Γ τ1 τ2) (at level 20, τ1 constr, τ2 constr, Γ constr).
 
-Definition subtyping_spec: forall Γ τ1 τ2, Γ ⊢WF τ2 -> Γ ⊢ τ1 ⪡ τ2 -> (forall e, ⟦ τ1 ⟧{ Γ } e -> ⟦ τ2 ⟧{ Γ } e).
+Lemma subtyping_implies_not_overbasety:
+  forall Γ τ1 τ2, Γ ⊢ τ1 ⪡ τ2 -> not_overbasety τ1 <-> not_overbasety τ2.
+Proof.
+  intros Γ τ1 τ2 H; induction H; split; intros; auto.
+Qed.
+
+Definition subtyping_spec: forall Γ τ1 τ2, wf_ctxrR ∅ Γ -> Γ ⊢ τ1 ⪡ τ2 -> (forall e, ⟦ τ1 ⟧{ Γ } e -> ⟦ τ2 ⟧{ Γ } e).
 Admitted.
 
 Reserved Notation "Γ '⊢' τ '⋮t' T" (at level 20).
@@ -121,7 +89,7 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
     Γ ⊢WF τ ->
     Γ ⊢ v1 ⋮v [v: fst_ty_of_op op | 0 | d1 | ϕ1 ] ->
     Γ ⊢ v2 ⋮v [v: snd_ty_of_op op | 0 | d2 | ϕ2 ] ->
-    (forall x, x ∉ L -> (Γ ++ [(x, ((mk_op_ret op) ^r^ v1) ^r^ v2)]) ⊢ e ⋮t τ) ->
+    (forall x, x ∉ L -> (Γ ++ [(x, ((mk_op_ret op) ^r^ v1) ^r^ v2)]) ⊢ (e ^t^ x) ⋮t τ) ->
     Γ ⊢ (tletbiop op v1 v2 e) ⋮t τ
 | UT_LetAppIndepend: forall Γ (v1 v2: value) e τ τ2 τ_x (L: aset),
     Γ ⊢WF τ -> Γ ⊢ v1 ⋮v (τ2 ⤑ τ_x) -> Γ ⊢ v2 ⋮v τ2 -> (forall x, x ∉ L -> (Γ ++ [(x, τ_x)]) ⊢ (e ^t^ x) ⋮t τ) ->
@@ -158,20 +126,6 @@ where
 Scheme value_under_type_check_rec := Induction for value_under_type_check Sort Prop
     with term_under_type_check_rec := Induction for term_under_type_check Sort Prop.
 
-Lemma rRctx_pre_weakening: forall Γ2 Γ1 τ,
-    not_overbasety τ ->
-    (Γ1 ++ Γ2) ⊢WF τ -> (forall e, ⟦τ⟧{Γ1} e -> ⟦τ⟧{Γ1 ++ Γ2} e).
-Proof.
-  apply (rev_ind (fun Γ2 => forall Γ1 τ,
-                      not_overbasety τ ->
-                      (Γ1 ++ Γ2) ⊢WF τ -> (forall e, ⟦τ⟧{Γ1} e -> ⟦τ⟧{Γ1 ++ Γ2} e)));
-    intros; denotation_simp; auto.
-  - invclear H1. invclear H3; listctx_set_simpl. admit. admit.
-Admitted.
-
-Lemma rRctx_weakening_empty: forall Γ τ, Γ ⊢WF τ -> (forall e, ⟦τ⟧ e -> ⟦τ⟧{Γ} e).
-Admitted.
-
 (* Lemma rRctx_backward_over: forall Γ z b n d ϕ (e: tm) τ, *)
 (*     ⟦ τ ⟧{ Γ ++ [(z, {v: b | n | d | ϕ})] } e <-> *)
 (*     (forall (u: value), ⟦ {v: b | n | d | ϕ} ⟧{ Γ } u -> ⟦ { z := u }r τ ⟧{ Γ } ({ z := u }t e)). *)
@@ -186,22 +140,76 @@ Admitted.
 (*                         )). *)
 (* Admitted. *)
 
+Ltac soundness_simp :=
+  match goal with
+  | [H: _ ⊢WF _ |- _ ] => apply well_formed_regular in H; mydestr
+  end.
+
+Lemma mk_eq_constant_is_not_overbasety: forall c, not_overbasety (mk_eq_constant c).
+Proof.
+  intros. destruct c; simpl; auto.
+Qed.
+
+Global Hint Resolve mk_eq_constant_is_not_overbasety: core.
+
+Lemma mk_eq_var_is_not_overbasety: forall b x, not_overbasety (mk_eq_var b x).
+Proof.
+  intros. destruct b; simpl; auto.
+Qed.
+
+Global Hint Resolve mk_eq_var_is_not_overbasety: core.
+
+Lemma is_arr_implies_not_overbasety: forall τ, is_arr τ -> not_overbasety τ.
+Proof.
+  intros. destruct τ; simpl; auto; invclear H; auto.
+Qed.
+
+Global Hint Resolve is_arr_implies_not_overbasety: core.
+
+(* Theorem judge_implies_not_overbasety: *)
+(*   forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> not_overbasety τ. *)
+(* Proof. *)
+(*   apply (term_under_type_check_rec *)
+(*            (fun Γ v τ _ => not_overbasety τ) *)
+(*            (fun Γ e τ _ => not_overbasety τ)); intros Γ; intros; mydestr; simpl; auto; *)
+(*     try match goal with *)
+(*     | [H: _ ⊢ ?τ1 ⪡ ?τ2 |- not_overbasety ?τ2] => *)
+(*         apply subtyping_implies_not_overbasety in H; rewrite <- H; auto *)
+(*     | [H: _ ⊢ ?τ1 ⪡ ?τ2 |- not_overbasety ?τ1] => *)
+(*         apply subtyping_implies_not_overbasety in H; rewrite H; auto *)
+(*     end. *)
+(*   - admit. *)
+(*   - auto_pose_fv x; repeat specialize_with x; auto. *)
+(*   - auto_pose_fv x; repeat specialize_with x; auto. *)
+(*   - auto_pose_fv x; repeat specialize_with x; auto. *)
+(*   - auto_pose_fv x; repeat specialize_with x; auto. *)
+(* Admitted. *)
+
+    (* rewrite rR_shadow_update_st in H11. admit. refinement_solver. *)
+    (* setoid_rewrite close_open_var_tm in H11. admit. refinement_solver. *)
+
+
+
+
 Theorem soundness: forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> ⟦ τ ⟧{ Γ } e.
 Proof.
+  (* intros. assert (not_overbasety τ) by (eapply judge_implies_not_overbasety; eauto). *)
+  (* generalize dependent τ. generalize dependent e. generalize dependent Γ. *)
   apply (term_under_type_check_rec
            (fun Γ v τ _ => ⟦ τ ⟧{ Γ } v)
-           (fun Γ e τ _ => ⟦ τ ⟧{ Γ } e)); intros Γ; intros; mydestr.
+           (fun Γ e τ _ => ⟦ τ ⟧{ Γ } e)); intros Γ; intros; mydestr; try soundness_simp.
   (* constant *)
-  - apply rRctx_weakening_empty; auto. admit.
+  - apply rRctx_pre_weakening_empty; auto. admit.
   (* var base *)
   - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit.
-    intros. apply rRctx_weakening_empty. admit. admit. admit.
+    rewrite app_assoc. apply rRctx_pre_weakening; refinement_solver.
+    admit.
   - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit. admit. admit.
+    rewrite app_assoc. apply rRctx_pre_weakening; refinement_solver.
+    admit.
   (* var arr *)
   - apply ctxfind_some_spec in e; auto; mydestr; subst.
-    rewrite app_assoc. apply rRctx_pre_weakening; auto. admit. admit. admit. admit.
+    rewrite app_assoc. apply rRctx_pre_weakening; refinement_solver. admit.
   (* lam *)
   - auto_pose_fv x. repeat specialize_with x. admit.
   - auto_pose_fv x. repeat specialize_with x. admit.
@@ -212,10 +220,9 @@ Proof.
   (* err *)
   - admit.
   (* sub *)
-  - repeat match goal with
-    | [H: ⟦ ?τ ⟧{ [] } ?e |- ⟦ ?τ ⟧{ ?Γ } ?e ] => invclear H; apply rRctx_weakening_empty; auto
-    | [H: _ ⊢ _ ⪡ _ |- _ ?e ] => apply subtyping_spec with (e := e) in H
-    end. admit. admit.
+  - apply subtyping_spec with (e := e) in s; RD_simp; auto.
+    + apply rRctx_pre_weakening_empty; auto.
+    + constructor.
   (* eq *)
   - eapply subtyping_spec; eauto.
   (* merge *)
@@ -223,8 +230,7 @@ Proof.
     | [H: _ ⊢ _ ⩔ _ ⩵ _ |- _ ] => unfold disjunction in H; erewrite <- H; split; auto
     end.
   (* lete *)
-  - auto_pose_fv x. repeat specialize_with x.
-    admit.
+  - auto_pose_fv x. repeat specialize_with x. admit.
   (* letop *)
   - auto_pose_fv x. repeat specialize_with x. admit.
   - auto_pose_fv x. repeat specialize_with x. admit.

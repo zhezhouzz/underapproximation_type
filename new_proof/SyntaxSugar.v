@@ -314,3 +314,103 @@ Proof.
 Qed.
 
 Global Hint Resolve mk_app_body: core.
+
+Lemma mk_term_meet_nat_typable: forall e1 e2,
+    [] ⊢t e1 ⋮t TNat -> [] ⊢t e2 ⋮t TNat -> [] ⊢t (mk_term_meet_nat e1 e2) ⋮t TNat.
+Proof.
+  unfold mk_term_meet_nat; intros.
+  auto_exists_L; simpl; intros; lc_simpl.
+  assert ([(x, TBase TNat)] ⊢t e2 ⋮t TNat). basic_typing_solver.
+  auto_exists_L; simpl; intros; lc_simpl.
+  assert ([(x, TBase TNat); (x0, TBase TNat)] ⊢t x0 ⋮v TNat) by basic_typing_vfavr_solver.
+  assert ([(x, TBase TNat); (x0, TBase TNat)] ⊢t x ⋮v TNat) by basic_typing_vfavr_solver.
+  auto_exists_L; simpl; intros; lc_simpl.
+  econstructor; constructor; try listctx_set_solver.
+  simpl. repeat var_dec_solver.
+  constructor; try listctx_set_solver.
+  simpl. repeat var_dec_solver.
+Qed.
+
+Lemma mk_term_meet_bool_typable: forall e1 e2,
+    [] ⊢t e1 ⋮t TBool -> [] ⊢t e2 ⋮t TBool -> [] ⊢t (mk_term_meet_bool e1 e2) ⋮t TBool.
+Proof.
+  unfold mk_term_meet_bool; intros.
+  auto_exists_L; simpl; intros; lc_simpl.
+  assert ([(x, TBase TBool)] ⊢t e2 ⋮t TBool). basic_typing_solver.
+  auto_exists_L; simpl; intros; lc_simpl.
+  assert ([(x, TBase TBool); (x0, TBase TBool)] ⊢t x0 ⋮v TBool) by basic_typing_vfavr_solver.
+  assert ([(x, TBase TBool); (x0, TBase TBool)] ⊢t x ⋮v TBool) by basic_typing_vfavr_solver.
+  repeat (econstructor; basic_typing_solver).
+Qed.
+
+Lemma tmeet_typable: forall (T: base_ty) e1 e2,
+    [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> [] ⊢t (mk_term_meet T e1 e2) ⋮t T.
+Proof.
+  destruct T; simpl; intros.
+  - apply mk_term_meet_nat_typable; auto.
+  - apply mk_term_meet_bool_typable; auto.
+Qed.
+
+Lemma mk_term_meet_bool_step: forall e1 e2,
+    [] ⊢t e1 ⋮t TBool -> [] ⊢t e2 ⋮t TBool ->
+    (forall (v: value), e1 ↪* v /\ e2 ↪* v <-> (e1 ⊗bool e2) ↪* v).
+Proof.
+  unfold mk_term_meet_bool; split; intros; mydestr; repeat split; step_solver1.
+  - assert ([] ⊢t v ⋮v TBool). eapply multi_preservation_value in H; eauto.
+    apply empty_basic_typing_bool_value_exists in H3.
+    apply multistep_trans with (v ⊗bool e2). { apply multistep_lete; auto; step_solver1. }
+    unfold mk_term_meet_bool.
+    assert (lc v). intros; destruct H3; subst; simpl; lc_solver1.
+    assert (forall x, lc (v ^v^ x)). intros; destruct H3; subst; simpl; lc_solver1.
+    apply multistep_trans with
+      (tlete e2 (tmatchb (vbvar 0) (tmatchb v true terr) (tmatchb v terr false))).
+    { econstructor.
+      instantiate (1:= (tlete e2 (tmatchb (vbvar 0) (tmatchb (vbvar 1) true terr) (tmatchb (vbvar 1) terr false)))  ^t^ v).
+      step_solver1. lc_simpl; auto. apply multistep_refl. lc_solver1. basic_typing_solver.
+    }
+    apply multistep_trans with (tlete v (tmatchb (vbvar 0) (tmatchb v true terr) (tmatchb v terr false))).
+    { apply multistep_lete; auto; step_solver1. }
+    econstructor. instantiate (1:=(tmatchb (vbvar 0) (tmatchb v true terr) (tmatchb v terr false)) ^t^ v).
+    { step_solver1. } lc_simpl.
+    destruct H3; subst; simpl; econstructor; step_solver1.
+  - repeat
+    match goal with
+    | [H: tlete _ _ ↪* _ |- _] => rewrite lete_step_spec in H; mydestr
+    | [H: ( _ ^t^ _ ) ↪* _ |- _] => simpl in H; rewrite open_rec_lc_tm in H; step_solver1; try basic_typing_solver2
+    | [H: _ ⊢t ?e ⋮t _, H': ?e ↪* _  |- _] =>
+        eapply multi_preservation_value in H; eauto; apply empty_basic_typing_nat_value_exists in H; destruct H; subst
+    end.
+    assert ([] ⊢t x ⋮v TBool) by basic_typing_solver.
+    assert ([] ⊢t x0 ⋮v TBool) by basic_typing_solver.
+    apply empty_basic_typing_bool_value_exists in H6.
+    apply empty_basic_typing_bool_value_exists in H7.
+    destruct H6; destruct H7; subst; simpl in H5.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+  - repeat
+    match goal with
+    | [H: tlete _ _ ↪* _ |- _] => rewrite lete_step_spec in H; mydestr
+    | [H: ( _ ^t^ _ ) ↪* _ |- _] => simpl in H; rewrite open_rec_lc_tm in H; step_solver1; try basic_typing_solver2
+    | [H: _ ⊢t ?e ⋮t _, H': ?e ↪* _  |- _] =>
+        eapply multi_preservation_value in H; eauto; apply empty_basic_typing_nat_value_exists in H; destruct H; subst
+    end.
+    assert ([] ⊢t x ⋮v TBool) by basic_typing_solver.
+    assert ([] ⊢t x0 ⋮v TBool) by basic_typing_solver.
+    apply empty_basic_typing_bool_value_exists in H6.
+    apply empty_basic_typing_bool_value_exists in H7.
+    destruct H6; destruct H7; subst; simpl in H5.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+    invclear H5. invclear H6. invclear H7. invclear H5. invclear H6; auto. invclear H5; auto.
+Qed.
+
+Lemma reduction_tmeet_iff_both: forall (T: base_ty) e1 e2,
+    [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> (forall (v: value), (mk_term_meet T e1 e2) ↪* v <-> e1 ↪* v /\ e2 ↪* v).
+Proof.
+  destruct T; intros.
+  - rewrite mk_term_meet_nat_step; auto.
+  - rewrite mk_term_meet_bool_step; auto.
+Qed.

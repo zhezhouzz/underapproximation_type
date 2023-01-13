@@ -1129,3 +1129,49 @@ Proof.
     intros. reduction_simpl1.
     setoid_rewrite ctxrR_shadow_update_st_c; auto; refinement_solver.
 Qed.
+
+(* term meet *)
+
+Lemma rR_tmeet_when_both: forall n bst st b n1 d ϕ e1 e2,
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e1 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e2 ->
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) (e1 ⊗{ b } e2).
+Proof.
+  intros. invclear H; mydestr. constructor; auto. apply tmeet_typable; refinement_solver.
+  constructor; auto.
+  intros. rewrite reduction_tmeet_iff_both; refinement_solver.
+Qed.
+
+Lemma rR_tmeet3_when_all: forall n bst st b n1 d ϕ e1 e2 e3,
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ]  ⟧) e1 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ]  ⟧) e2 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ]  ⟧) e3 ->
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ]  ⟧) ((e1 ⊗{ b } e2) ⊗{ b } e3).
+Proof.
+  intros. apply rR_tmeet_when_both; auto. apply rR_tmeet_when_both; auto.
+Qed.
+
+Lemma rR_tmeet4_when_all: forall n bst st b n1 d ϕ e1 e2 e3 e4,
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e1 ->
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e2 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e3 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e4 ->
+    ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) (((e1 ⊗{ b } e2) ⊗{ b } e3) ⊗{ b } e4).
+Proof.
+  intros. apply rR_tmeet_when_both; auto. apply rR_tmeet3_when_all; auto.
+Qed.
+
+Lemma reduction_tmeet3_iff_all: forall (T: base_ty) e1 e2 e3,
+    [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> [] ⊢t e3 ⋮t T ->
+    (forall (v: value), ((e1 ⊗{ T } e2) ⊗{ T } e3) ↪* v <-> e1 ↪* v /\ e2 ↪* v /\ e3 ↪* v).
+Proof.
+  intros. rewrite reduction_tmeet_iff_both; refinement_solver.
+  rewrite reduction_tmeet_iff_both; refinement_solver.
+  apply tmeet_typable; refinement_solver.
+Qed.
+
+Lemma reduction_tmeet4_iff_all: forall (T: base_ty) e1 e2 e3 e4,
+    [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> [] ⊢t e3 ⋮t T -> [] ⊢t e4 ⋮t T ->
+    (forall (v: value),
+        (((e1 ⊗{ T } e2) ⊗{ T } e3) ⊗{ T } e4) ↪* v <-> e1 ↪* v /\ e2 ↪* v /\ e3 ↪* v /\ e4 ↪* v).
+Proof.
+  intros. rewrite reduction_tmeet_iff_both; refinement_solver.
+  rewrite reduction_tmeet3_iff_all; refinement_solver.
+  apply tmeet_typable; refinement_solver.
+  apply tmeet_typable; refinement_solver.
+Qed.

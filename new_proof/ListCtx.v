@@ -302,7 +302,14 @@ Ltac listctx_set_simpl3 :=
   | [H: _ ++ [_] = _ :: _ ++ [_] |- _ ] => rewrite app_comm_cons in H; listctx_set_simpl2
   end || listctx_set_simpl2.
 
-Ltac listctx_set_simpl := listctx_set_simpl3.
+Ltac listctx_set_simpl4 :=
+  match goal with
+    | [H: _ ++ [_] = _ ++ _ ++ [_] |- _ ] =>
+        rewrite app_assoc in H;
+        apply app_inj_tail in H; mydestr; subst; listctx_set_simpl3
+    end || listctx_set_simpl3.
+
+Ltac listctx_set_simpl := listctx_set_simpl4.
 
 Ltac listctx_set_solver1 :=
   repeat (listctx_set_simpl;

@@ -680,7 +680,35 @@ Ltac basic_typing_solver6 :=
              | [H: _ ⊢t (tvalue ?v) ⋮t _ |- _ ⊢t ?v ⋮v _ ] => invclear H; eauto
              end)).
 
-Ltac basic_typing_solver := basic_typing_solver6.
+Lemma cons_basic_typing_drop_last_tm: forall x Tx Γ1 Γ2 e T,
+    ok (((x, Tx) :: Γ1) ++ Γ2) ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮t T ->
+    ((x, Tx) :: Γ1 ++ Γ2) ⊢t e ⋮t T.
+Proof.
+  intros. rewrite app_comm_cons.
+  apply basic_typing_weaken_tm_pre; auto.
+Qed.
+
+Lemma cons_basic_typing_drop_last_value: forall x Tx Γ1 Γ2 e T,
+    ok (((x, Tx) :: Γ1) ++ Γ2) ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮v T ->
+    ((x, Tx) :: Γ1 ++ Γ2) ⊢t e ⋮v T.
+Proof.
+  intros. rewrite app_comm_cons.
+  apply basic_typing_weaken_value_pre; auto.
+Qed.
+
+Ltac basic_typing_solver7 :=
+  match goal with
+  | [H: _ ⊢t ?e ⋮t _ |- _ ∉ fv_tm ?e] =>
+      apply basic_typing_contains_fv_tm in H; simpl in H
+  | [H: ((?x, ?Tx) :: ?Γ1) ⊢t ?e ⋮t ?T |- ((?x, ?Tx) :: ?Γ1 ++ _) ⊢t ?e ⋮t ?T ] =>
+      eapply cons_basic_typing_drop_last_tm; eauto
+  | [H: ((?x, ?Tx) :: ?Γ1) ⊢t ?e ⋮v ?T |- ((?x, ?Tx) :: ?Γ1 ++ _) ⊢t ?e ⋮v ?T ] =>
+      eapply cons_basic_typing_drop_last_value; eauto
+  end || basic_typing_solver6.
+
+Ltac basic_typing_solver := basic_typing_solver7.
 
 Ltac lc_simpl :=
   simpl;

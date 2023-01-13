@@ -441,4 +441,17 @@ Ltac ctx_erase_simp4:=
            | [|- context [⌊({_:=_}r) _⌋] ] => setoid_rewrite subst_perserve_erase
            end; auto) || ctx_erase_simp3).
 
-Ltac ctx_erase_simp:= ctx_erase_simp4.
+Ltac ctx_erase_simp5 :=
+        repeat (match goal with
+             | [H: ok_dctx _ _ |- ok _] => apply ok_dctx_regular1 in H; mydestr
+             | [H: ok ?a |- ok ?b] =>
+                 match type of b with
+                 | (list (atom * ty)) =>
+                     match type of a with
+                     | (list (atom * rty)) =>
+                         rewrite ctx_erase_perserve_ok in H; simpl in H
+                     end
+                 end
+             end); ctx_erase_simp4.
+
+Ltac ctx_erase_simp:= ctx_erase_simp5.
