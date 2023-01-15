@@ -39,12 +39,12 @@ Qed.
 
 Lemma closed_rty_n_overbase: forall (n1 n2: nat) d1 d2 B ϕ, closed_rty n1 d1 {v:B|n2|d2|ϕ} -> n2 <= n1.
 Proof.
-  intros. invclear H; mydestr. invclear H0. invclear H; auto.
+  intros. invclear H; mydestr. invclear H0. invclear H1; auto.
 Qed.
 
 Lemma closed_rty_n_underbase: forall (n1 n2: nat) d1 d2 B ϕ, closed_rty n1 d1 [v:B|n2|d2|ϕ] -> n2 <= n1.
 Proof.
-  intros. invclear H; mydestr. invclear H0. invclear H; auto.
+  intros. invclear H; mydestr. invclear H0. invclear H1; auto.
 Qed.
 
 Lemma closed_rty_0_overbase: forall (n2: nat) d1 d2 B ϕ, closed_rty 0 d1 {v:B|n2|d2|ϕ} -> n2 = 0.
@@ -72,13 +72,13 @@ Lemma rR_bst_bound_: forall τ (e: tm) st n (bst1 bst2: bstate), bst_eq n bst1 b
 Proof.
   induction τ; intros; auto; invclear H0; mydestr; subst.
   - constructor; auto. constructor; auto. exists x. repeat split; auto.
-    invclear H0; mydestr. invclear H0. invclear H4. invclear H6. eapply H4; eauto.
+    invclear H0; mydestr. invclear H4. invclear H7. invclear H5. eapply H4; eauto.
     rewrite bst_eq_symmetry in H. eapply bst_eq_trans; eauto.
   - constructor; auto. constructor; auto. intros. apply H2; auto.
-    invclear H0; mydestr. invclear H0. invclear H5. invclear H7. eapply H5; eauto. eapply bst_eq_trans; eauto.
+    invclear H0; mydestr. invclear H5. invclear H8. invclear H6. eapply H5; eauto. eapply bst_eq_trans; eauto.
   - constructor; auto. constructor; auto. intros.
     apply IHτ with (bst1 := (<b[↦c_x]> bst1)). apply bst_eq_push; auto. apply H2; auto.
-    invclear H0; mydestr. invclear H5. invclear H10. eapply H7; eauto. invclear H0. eapply bst_eq_trans; eauto.
+    invclear H0; mydestr. invclear H5. invclear H10. eapply H5; eauto. invclear H6. eapply bst_eq_trans; eauto.
   - constructor; auto. constructor; auto. intros. eapply IHτ2; eauto. apply H2; auto.
     eapply IHτ1; eauto. rewrite bst_eq_symmetry; auto.
 Qed.
@@ -116,20 +116,32 @@ Lemma rR_regular3:
   forall τ e, ⟦ τ ⟧ e -> (closed_rty 0 ∅ τ) /\ [] ⊢t e ⋮t ⌊ τ ⌋.
 Proof.
   intros. eapply rR_regular2 in H. mydestr; split; auto.
+  closed_rty_solver.
 Qed.
 
 Inductive ctxrR: state -> listctx rty -> rty -> tm -> Prop :=
 | ctxrR_nil: forall st τ e, { st }⟦ τ ⟧ e -> ctxrR st [] τ e
 | ctxrR_cons_over: forall st (x: atom) B n d ϕ Γ τ (e: tm),
-    closed_rty 0 ({[x]} ∪ ctxdom Γ ∪ (dom _ st)) τ ->
+    closed_rty 0 ({[x]} ∪ ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
     ok_dctx (dom _ st) ((x, {v: B | n | d | ϕ}) :: Γ) ->
     ((x, TBase B) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
      (forall (c_x: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_x ->
                          ctxrR (<[ x := c_x ]> st) Γ τ ({x := c_x}t e)) ->
      ctxrR st ((x, {v: B | n | d | ϕ}) :: Γ) τ e
-| ctxrR_cons_under: forall st (x: atom) τ_x τ Γ e,
+| ctxrR_cons_under_base: forall st (x: atom) τ_x τ Γ e,
     not_overbasety τ_x ->
-    closed_rty 0 ({[x]} ∪ ctxdom Γ ∪ (dom _ st)) τ ->
+    ~ is_arr τ_x ->
+    closed_rty 0 ({[x]} ∪ ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
+    ok_dctx (dom _ st) ((x, τ_x) :: Γ) ->
+    ((x, ⌊τ_x⌋ ) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
+     (exists e_x_hat, {st}⟦ τ_x ⟧ e_x_hat /\
+                   (forall e_x, {st}⟦ τ_x ⟧ e_x ->
+                           (∀ (v_x: value), e_x_hat ↪* v_x ->
+                                            ctxrR ({ x ↦ v_x } st) Γ τ (tlete e_x ({ 0 <t~ x} e))))) ->
+     ctxrR st ((x, τ_x) :: Γ) τ e
+| ctxrR_cons_under_arr: forall st (x: atom) τ_x τ Γ e,
+    is_arr τ_x ->
+    closed_rty 0 (ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
     ok_dctx (dom _ st) ((x, τ_x) :: Γ) ->
     ((x, ⌊τ_x⌋ ) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
      (exists e_x_hat, {st}⟦ τ_x ⟧ e_x_hat /\
@@ -143,33 +155,19 @@ Notation " '⟦' τ '⟧{' Γ '}' " := (ctxrR ∅ Γ τ) (at level 20, format "�
 
 Lemma ctxrR_regular0:
   forall Γ τ st e, { st }⟦ τ ⟧{ Γ } e ->
-              closed_rty 0 (ctxdom Γ ∪ (dom _ st)) τ /\ ok_dctx (dom _ st) Γ.
+              closed_rty 0 (ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ /\ ok_dctx (dom _ st) Γ.
 Proof.
-  induction Γ; simpl; intros; invclear H; simpl; auto.
-  - apply rR_regular2 in H0; mydestr.
-    constructor; simpl; auto.
+  induction Γ; simpl; intros; invclear H; simpl; auto; dec_solver2.
+  - apply rR_regular2 in H0; mydestr. constructor; simpl; auto.
     + closed_rty_solver.
     + constructor.
 Qed.
-
-(* Lemma ctxrR_wf_regular: *)
-(*   forall Γ τ d, ctxrR_wf d Γ τ -> (ok_dctx d Γ) /\ cl_dctx d Γ /\ closed_rty 0 (ctxdom Γ ∪ d) τ. *)
-(* Proof. *)
-(*   induction Γ; simpl; intros; invclear H; simpl. *)
-(*   - split. repeat constructor; auto; fast_set_solver. *)
-(*     split. constructor. *)
-(*     closed_rty_solver. *)
-(*   - mydestr. *)
-(*     assert (ctxrR_wf ({[a]} ∪ d) Γ τ) by (split; try closed_rty_solver; invclear H1; auto). *)
-(*     apply IHΓ in H. mydestr; listctx_set_simpl. invclear H1. *)
-(*     split; auto. split; auto. constructor; auto. *)
-(* Qed. *)
 
 Lemma ctxrR_regular1:
   forall Γ τ st e, { st }⟦ τ ⟧{ Γ } e ->
               (ok_dctx (dom _ st) Γ) /\
                 ctx_closed_rty (dom _ st) Γ /\
-                closed_rty 0 (ctxdom Γ ∪ (dom _ st)) τ.
+                closed_rty 0 (ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ.
 Proof.
   intros. apply ctxrR_regular0 in H. mydestr.
   do 2 (split; auto). apply ok_dctx_regular2 in H0; mydestr; auto.
@@ -187,7 +185,7 @@ Lemma ctxrR_regular:
               ⌊ Γ ⌋* ⊢t e ⋮t ⌊ τ ⌋ /\
                 (ok_dctx (dom _ st) Γ) /\
                 ctx_closed_rty (dom _ st) Γ /\
-                closed_rty 0 (ctxdom Γ ∪ (dom _ st)) τ.
+                closed_rty 0 (ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ.
 Proof.
   intros. split.
   - eapply ctxrR_regular2; eauto.
@@ -245,4 +243,4 @@ Inductive wf_ctxrR_not_terr: state -> listctx rty -> Prop :=
                   (forall e_x, {st}⟦ τ_x ⟧ e_x ->
                           (∀ (v_x: value), e_x_hat ↪* v_x ->
                                            wf_ctxrR_not_terr ({ x ↦ v_x } st) Γ ))) ->
-     wf_ctxrR_not_terr st ((x, τ_x) :: Γ).
+    wf_ctxrR_not_terr st ((x, τ_x) :: Γ).

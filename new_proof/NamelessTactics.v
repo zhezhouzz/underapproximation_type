@@ -322,3 +322,10 @@ Ltac neg_simpl :=
 Ltac neg_apply H := pbc; apply H; clear H; neg_simpl.
 
 Ltac exfalso_apply H := exfalso; auto; eapply H; eauto.
+
+Lemma forall_iff_not_exists1 {A: Type}: forall P: A -> Prop, ~ (exists x, P x) <-> forall x, ~ P x.
+Proof.
+  split; intros.
+  - destruct (classic (P x)); auto. exfalso. apply H. exists x; auto.
+  - intro Hf. mydestr. eapply H; eauto.
+Qed.

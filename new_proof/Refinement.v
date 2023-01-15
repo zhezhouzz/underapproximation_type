@@ -32,17 +32,11 @@ Definition bstate_insert (k: nat) (c: constant) (bst: bstate) := fun i => if dec
 
 Definition bstate_push (c: constant) (bst: bstate) : bstate := fun i => match i with 0 => c | S i => bst i end.
 
-(* Definition bstate_find (bst: bstate) (i: nat) : option constant := *)
-(*   match bst with *)
-(*   | b{ n }[ m ] => if decide (i < n) then Some (m i) else None *)
-(*   end. *)
-
 Definition bstate_emp: bstate := fun _ => 0.
 
 Notation "b∅" := bstate_emp (format "b∅").
 Notation " '<b[' k ':=' c ']>' " := (bstate_insert k c) (at level 5, right associativity, format "<b[ k := c ]>", c constr).
 Notation " '<b[↦' c ']>' " := (bstate_push c) (at level 5, right associativity, format "<b[↦ c ]>", c constr).
-(* Notation " m 'b!!' i " := (m i) (at level 80, m constr, i constr). *)
 
 Definition ty_of_state (st: state) : amap base_ty := ty_of_const <$> st.
 
@@ -164,13 +158,6 @@ Notation " '{' x ':={' d '}' v '}' " := (state_subst d x v) (at level 20, format
 
 Definition refinement_subst (x1: atom) (v2: value) (d: aset) (ϕ: refinement) : refinement :=
   (fun bst st v => ϕ bst (state_subst d x1 v2 st) v).
-  (* if decide (x1 ∈ d) then *)
-  (*   (fun bst st v => ϕ bst (state_insert_value x1 v2 st) v) *)
-  (* else *)
-  (*   ϕ. *)
-    (* (fun bst st v => ϕ bst (delete x1 st) v). *)
-  (* fun bst st v => ϕ bst (state_insert_value x1 v2 st) v. *)
-  (* fun bst st v => ϕ bst (state_subst x1 v2 st) v. *)
 
 Definition refinement_set_subst (x1: atom) (s: value) (d: aset) : aset :=
   if decide (x1 ∈ d) then
@@ -191,18 +178,9 @@ Fixpoint rty_subst (x: atom) (s: value) (τ: rty) : rty :=
   match τ with
   | {v: B | n | d | ϕ } =>
       {v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ }
-      (* if decide (x ∈ d) *)
-      (* then {v: B | n | d | refinement_subst x s ϕ } *)
-      (* else {v: B | n | d | ϕ } *)
   | [v: B | n | d | ϕ ] => [v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ ]
-      (* if decide (x ∈ d) *)
-      (* then [v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ ] *)
-      (* else [v: B | n | d | ϕ ] *)
   | -:{v: B | n | d | ϕ } ⤑ τ =>
       -:{v: B | n | refinement_set_subst x s d | refinement_subst x s d ϕ } ⤑ (rty_subst x s τ)
-      (* if decide (x ∈ d) *)
-      (* then -:{v: B | n | refinement_set_subst x s d | refinement_subst x s ϕ } ⤑ (rty_subst x s τ) *)
-      (* else -:{v: B | n | d | ϕ } ⤑ (rty_subst x s τ) *)
   | τ1 ⤑ τ2 => (rty_subst x s τ1) ⤑ (rty_subst x s τ2)
   end.
 
@@ -271,6 +249,15 @@ Definition is_arr rty: Prop :=
   | _ => True
   end.
 
+Global Instance is_arr_dec r : Decision (is_arr r).
+Proof.
+  destruct r; simpl.
+  - right; auto.
+  - right; auto.
+  - left; auto.
+  - left; auto.
+Defined.
+
 Lemma not_is_arr: forall τ, ~ is_arr τ -> (exists b n d ϕ, τ = [v: b | n | d | ϕ ]) \/ (exists b n d ϕ, τ = {v: b | n | d | ϕ }).
 Proof.
   intros.
@@ -312,13 +299,16 @@ Definition lc_rty τ := lc_rty_idx 0 τ.
 
 Definition rty_body τ := lc_rty_idx 1 τ.
 
-(* Definition bstdom (bst: bstate) := *)
-(*   match bst with *)
-(*   | bstate_constr b _ => b *)
-(*   end. *)
+Inductive closed_rty (b: nat) (d: aset) (τ: rty): Prop :=
+| closed_rty_: valid_rty τ -> lc_rty_idx b τ -> (rty_fv τ) ⊆ d -> closed_rty b d τ.
 
-Definition closed_rty (b: nat) (d: aset) (τ: rty) :=
-  valid_rty τ /\ lc_rty_idx b τ /\ (rty_fv τ) ⊆ d.
+Fixpoint remove_arr_rty (Γ: listctx rty) :=
+  match Γ with
+  | [] => []
+  | (x, τ) :: Γ => if decide (is_arr τ) then remove_arr_rty Γ else (x, τ) :: remove_arr_rty Γ
+  end.
+
+Notation "'⦑' x '⦒'" := (remove_arr_rty x) (at level 5, format "⦑ x ⦒", x constr).
 
 Inductive ok_dctx: aset -> listctx rty -> Prop :=
 | ok_dctx_nil: forall (d: aset), ok_dctx d []
@@ -331,22 +321,22 @@ Inductive ok_dctx: aset -> listctx rty -> Prop :=
     closed_rty 0 d τ -> x ∉ d -> x ∉ ctxdom Γ -> ok_dctx  d Γ ->
     ok_dctx d ((x, τ) :: Γ).
 
-Lemma ok_dctx_regular1: forall d Γ, ok_dctx d Γ -> ok Γ /\ (ctxdom Γ ∩ d ≡ ∅).
+Ltac dec_solver1 :=
+  repeat (simpl; (match goal with
+                  | [H: ~ ?P |- context [decide ?P] ] => rewrite (decide_False _ _ H)
+                  | [H: ?P |- context [decide ?P] ] => rewrite (decide_True _ _ H)
+                  end || var_dec_solver2)).
+
+Lemma ok_dctx_regular: forall d Γ, ok_dctx d Γ -> ok Γ /\ (ctxdom Γ ∩ d ≡ ∅).
 Proof.
   intros. induction H; mydestr.
   - split; auto. fast_set_solver.
-  - split. rewrite ok_pre_destruct. split; auto. simpl. set_solver.
-  - split. rewrite ok_pre_destruct. split; auto. simpl. set_solver.
+  - split. rewrite ok_pre_destruct. split; auto. set_solver.
+  - split. rewrite ok_pre_destruct. split; auto. set_solver.
 Qed.
 
-(* Inductive cl_dctx: aset -> listctx rty -> Prop := *)
-(* | cl_dctx_nil: forall d, cl_dctx d [] *)
-(* | cl_dctx_cons: forall d (x: atom) τ Γ, *)
-(*     ok_dctx d ((x, τ) :: Γ) -> *)
-(*     cl_dctx ({[x]} ∪ d) Γ -> closed_rty 0 d τ -> cl_dctx d ((x, τ) :: Γ). *)
-
 Definition ctx_closed_rty (d: aset) (Γ: listctx rty) :=
-  forall Γ1 (x: atom) (τ: rty) Γ2, Γ = Γ1 ++ [(x, τ)] ++ Γ2 -> closed_rty 0 (ctxdom Γ1 ∪ d) τ.
+  forall Γ1 (x: atom) (τ: rty) Γ2, Γ = Γ1 ++ [(x, τ)] ++ Γ2 -> closed_rty 0 (ctxdom ⦑ Γ1 ⦒  ∪ d) τ.
 
 (* Erase *)
 

@@ -304,10 +304,10 @@ Ltac listctx_set_simpl3 :=
 
 Ltac listctx_set_simpl4 :=
   match goal with
-    | [H: _ ++ [_] = _ ++ _ ++ [_] |- _ ] =>
-        rewrite app_assoc in H;
-        apply app_inj_tail in H; mydestr; subst; listctx_set_simpl3
-    end || listctx_set_simpl3.
+  | [H: _ ++ [_] = _ ++ _ ++ [_] |- _ ] =>
+      rewrite app_assoc in H;
+      apply app_inj_tail in H; mydestr; subst; listctx_set_simpl3
+  end || listctx_set_simpl3.
 
 Ltac listctx_set_simpl := listctx_set_simpl4.
 
@@ -524,3 +524,23 @@ Ltac listctx_set_solver5 :=
   end || listctx_set_solver4.
 
 Ltac listctx_set_solver := listctx_set_solver5.
+
+Lemma ok_find_same {A: Type}: forall (a: atom) (τ1 τ2: A) Γ1 Γ2 Γ1' Γ2',
+    ok (Γ1 ++ ((a, τ1) :: Γ2)) -> (Γ1 ++ ((a, τ1) :: Γ2)) = (Γ1' ++ (a, τ2) :: Γ2') ->
+    Γ1 = Γ1' /\ τ1 = τ2 /\ Γ2 = Γ2'.
+Proof.
+  intros a τ1 τ2.
+  induction Γ1; intros; listctx_set_simpl2.
+  apply IHΓ1 in H0; auto. mydestr; subst.
+  repeat split; auto.
+Qed.
+
+Lemma ok_find_neq_head {A: Type}: forall (x a: atom) (τ_x τ_a: A) Γ1' Γ2 Γ2',
+    x <> a ->
+    ok ((x, τ_x) :: Γ2) -> ((x, τ_x) :: Γ2) = (Γ1' ++ (a, τ_a) :: Γ2') ->
+    (exists Γ1'', Γ1' = (x, τ_x) :: Γ1'' /\ Γ2 = (Γ1'' ++ (a, τ_a) :: Γ2')).
+Proof.
+  intros x a τ_x τ_a Γ1'.
+  induction Γ1'; intros; listctx_set_simpl2.
+  exists Γ1'. split; auto.
+Qed.

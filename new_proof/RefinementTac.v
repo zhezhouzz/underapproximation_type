@@ -40,15 +40,7 @@ Ltac my_simplify_map_eq1 :=
           setoid_rewrite (dom_insert_simp a c_x st) in H
       | [ |- context [ dom aset (<[?a:=?c_x]> ?st) ]] =>
           setoid_rewrite (dom_insert_simp a c_x st)
-      end || simplify_map_eq || fast_set_solver).
-
-(* Ltac my_simplify_map_eq2 := *)
-(*   repeat ( *)
-(*       match goal with *)
-(*       | [H: context [dom aset (<[?a:=?c]> ?st)] |- _ ] => *)
-(*           assert (dom aset (<[a:=c]> st) = {[a]} ∪ dom aset st) as Htmp by my_simplify_map_eq1; *)
-(*           rewrite Htmp in H; try clear Htmp *)
-(*       end || simplify_map_eq1). *)
+      end || (simplify_map_eq; fast_set_solver)).
 
 Ltac my_simplify_map_eq2 :=
   repeat (match goal with
@@ -99,8 +91,7 @@ Ltac my_simplify_map_eq := my_simplify_map_eq3.
 
 Lemma closed_rty_trans: forall n d1 d2 τ, d1 ⊆ d2 -> closed_rty n d1 τ -> closed_rty n d2 τ.
 Proof.
-  intros. destruct H0; mydestr.
-  repeat split; auto. fast_set_solver.
+  intros. invclear H0. constructor; auto. fast_set_solver.
 Qed.
 
 Lemma lc_rty_idx_under_0_is_0: forall b n d ϕ, lc_rty_idx 0 [v:b|n|d|ϕ] -> n = 0.
@@ -113,23 +104,14 @@ Proof.
   intros. invclear H. lia.
 Qed.
 
-Lemma forall_iff_not_exists1 {A: Type}: forall P: A -> Prop, ~ (exists x, P x) <-> forall x, ~ P x.
-Proof.
-  split; intros.
-  - destruct (classic (P x)); auto. exfalso. apply H. exists x; auto.
-  - intro Hf. mydestr. eapply H; eauto.
-Qed.
-
 Lemma inv_neg_not_overbasety: forall r, ¬ not_overbasety r -> (exists b n d ϕ, r = {v:b|n|d|ϕ}).
 Proof.
-  intros.
-  destruct (classic (∃ (b : base_ty) (n : nat) (d : aset) (ϕ : refinement), r = {v:b|n|d|ϕ})); auto; exfalso.
-  apply H. rewrite forall_iff_not_exists1 in H0.
-  destruct r; simpl; auto.
-  - eapply H0. repeat eexists.
+  intros. neg_apply H. destruct r; simpl; auto.
+  eapply H0; eauto.
 Qed.
 
 Ltac refinement_simp1 :=
+  listctx_set_simpl;
   repeat match goal with
     | [H: context [ rty_fv (-:{v: _ | _ | _ | _}⤑ _) ] |- _ ] => simpl in H
     | [H: context [ rty_fv (_ ⤑ _) ] |- _ ] => simpl in H
@@ -148,7 +130,7 @@ Lemma closed_rty_cap: forall τ (d1 d2 d3: aset) n,
     d1 ∩ d2 ⊆ d3 -> closed_rty n d1 τ -> closed_rty n d2 τ -> closed_rty n d3 τ.
 Proof.
   induction τ; intros; invclear H0; invclear H1; mydestr; subst;
-    do 2 (constructor; auto); fast_set_solver.
+  constructor; auto; fast_set_solver.
 Qed.
 
 Lemma ok_dctx_single_implies_closed_rty: forall d x τ, ok_dctx d [(x, τ)] -> closed_rty 0 d τ.
@@ -199,33 +181,6 @@ Ltac closed_rty_solver :=
     | [|- rty_fv ?x ⊆ _ ] => refinement_simp1; my_set_solver; auto
     end.
 
-Lemma empty_eq_app_exfalso {A: Type}: forall Γ1 (x: atom) (t: A) Γ2, ~ ([] = Γ1 ++ [(x, t)] ++ Γ2).
-Proof.
-  intros. intro H.
-  symmetry in H. apply app_eq_nil in H. mydestr.
-  apply app_eq_nil in H0. mydestr. inversion H0.
-Qed.
-
-Lemma ok_find_same {A: Type}: forall (a: atom) (τ1 τ2: A) Γ1 Γ2 Γ1' Γ2',
-    ok (Γ1 ++ ((a, τ1) :: Γ2)) -> (Γ1 ++ ((a, τ1) :: Γ2)) = (Γ1' ++ (a, τ2) :: Γ2') ->
-    Γ1 = Γ1' /\ τ1 = τ2 /\ Γ2 = Γ2'.
-Proof.
-  intros a τ1 τ2.
-  induction Γ1; intros; listctx_set_simpl2.
-  apply IHΓ1 in H0; auto. mydestr; subst.
-  repeat split; auto.
-Qed.
-
-Lemma ok_find_neq_head {A: Type}: forall (x a: atom) (τ_x τ_a: A) Γ1' Γ2 Γ2',
-    x <> a ->
-    ok ((x, τ_x) :: Γ2) -> ((x, τ_x) :: Γ2) = (Γ1' ++ (a, τ_a) :: Γ2') ->
-    (exists Γ1'', Γ1' = (x, τ_x) :: Γ1'' /\ Γ2 = (Γ1'' ++ (a, τ_a) :: Γ2')).
-Proof.
-  intros x a τ_x τ_a Γ1'.
-  induction Γ1'; intros; listctx_set_simpl2.
-  exists Γ1'. split; auto.
-Qed.
-
 Lemma ok_dctx_trans: forall Γ d1 d2,
     d1 ⊆ d2 -> ctxdom Γ ∩ d2 ≡ ∅ -> ok_dctx d1 Γ -> ok_dctx d2 Γ.
 Proof.
@@ -254,31 +209,63 @@ Proof.
     apply (IHΓ d1 d2); auto. my_set_solver.
 Qed.
 
+Ltac dec_solver2 :=
+  repeat (simpl; (match goal with
+                  | [H: ~ ?P |- context [decide ?P] ] => rewrite (decide_False _ _ H)
+                  | [H: ?P |- context [decide ?P] ] => rewrite (decide_True _ _ H)
+                  | [H: ~ ?P, H': context [decide ?P] |- _ ] => rewrite (decide_False _ _ H) in H'
+                  | [H: ?P, H': context [decide ?P] |- _ ] => rewrite (decide_True _ _ H) in H'
+                  end || (auto; var_dec_solver2))).
+
+Lemma ctx_dom_rm_subseteq_ctx_dom: forall (Γ: listctx rty), ctxdom ⦑Γ⦒ ⊆ ctxdom Γ.
+Proof.
+  induction Γ; intros; mydestr; simpl; auto.
+  dec_solver2; set_solver.
+Qed.
+
+Global Hint Resolve ctx_dom_rm_subseteq_ctx_dom: core.
+
+Lemma notin_ctx_dom_implies_notin_ctx_dom_rm: forall x (Γ: listctx rty), x ∉ ctxdom Γ -> x ∉ ctxdom ⦑Γ⦒.
+Proof.
+  intros. pose (ctx_dom_rm_subseteq_ctx_dom Γ). set_solver.
+Qed.
+
+Global Hint Resolve notin_ctx_dom_implies_notin_ctx_dom_rm: core.
+
+Lemma ok_ctx_implies_rm_ok_ctx: forall (Γ: listctx rty), ok Γ -> ok ⦑Γ⦒.
+Proof.
+  induction Γ; intros; mydestr; auto.
+  rewrite ok_pre_destruct in H; mydestr.
+  dec_solver2. rewrite ok_pre_destruct. split; auto.
+Qed.
+
+Global Hint Resolve ok_ctx_implies_rm_ok_ctx: core.
+
 Lemma ok_dctx_implies_ctx_closed_rty:
   forall Γ d, ok_dctx d Γ -> ctx_closed_rty d Γ.
 Proof.
   induction Γ; intros. intros Γ1 x τ_x Γ2 Hin. inversion Hin. auto_exfalso.
   invclear H.
-  - assert (ok Γ) by (apply ok_dctx_regular1 in H7; mydestr; auto).
+  - assert (ok Γ) by (apply ok_dctx_regular in H7; mydestr; auto).
+    apply IHΓ in H7. clear IHΓ. intros Γ1 a τ_a Γ2 Hin.
+    destruct (atom_dec x a); subst; list_simplifier; dec_solver2.
+    + rewrite <- (app_nil_l ((a, τ) :: Γ )) in Hin.
+      apply ok_find_same in Hin; mydestr; subst; simpl. closed_rty_solver.
+      listctx_set_solver.
+    + apply (closed_rty_trans _ (ctxdom ⦑Γ1⦒ ∪ d)); try fast_set_solver;
+      apply ok_find_neq_head in Hin; auto; mydestr; subst. dec_solver2.
+      apply (closed_rty_trans _ (ctxdom ⦑x0⦒ ∪ ({[x]} ∪ d))); try fast_set_solver.
+      eapply H7. list_simplifier; eauto.
+      listctx_set_solver.
+  - assert (ok Γ) by (apply ok_dctx_regular in H7; mydestr; auto).
     apply IHΓ in H7. clear IHΓ. intros Γ1 a τ_a Γ2 Hin.
     destruct (atom_dec x a); subst; list_simplifier.
     + rewrite <- (app_nil_l ((a, τ) :: Γ )) in Hin.
       apply ok_find_same in Hin; mydestr; subst. closed_rty_solver.
       listctx_set_solver.
-    + apply (closed_rty_trans _ (ctxdom Γ1 ∪ d)); try fast_set_solver;
+    + apply (closed_rty_trans _ (ctxdom ⦑Γ1⦒ ∪ d)); try fast_set_solver.
       apply ok_find_neq_head in Hin; auto; mydestr; subst.
-      apply (closed_rty_trans _ (ctxdom x0 ∪ ({[x]} ∪ d))); try fast_set_solver.
-      eapply H7. list_simplifier; reflexivity.
-      listctx_set_solver.
-  - assert (ok Γ) by (apply ok_dctx_regular1 in H7; mydestr; auto).
-    apply IHΓ in H7. clear IHΓ. intros Γ1 a τ_a Γ2 Hin.
-    destruct (atom_dec x a); subst; list_simplifier.
-    + rewrite <- (app_nil_l ((a, τ) :: Γ )) in Hin.
-      apply ok_find_same in Hin; mydestr; subst. closed_rty_solver.
-      listctx_set_solver.
-    + apply (closed_rty_trans _ (ctxdom Γ1 ∪ d)); try fast_set_solver.
-      apply ok_find_neq_head in Hin; auto; mydestr; subst.
-      apply (closed_rty_trans _ (ctxdom x0 ∪ d)); try fast_set_solver.
+      apply (closed_rty_trans _ (ctxdom ⦑x0⦒ ∪ d)); try fast_set_solver. dec_solver2.
       eapply H7. list_simplifier; reflexivity.
       listctx_set_solver.
 Qed.
@@ -288,7 +275,7 @@ Lemma ok_dctx_regular2: forall d Γ,
 Proof.
   intros. split.
   - apply ok_dctx_implies_ctx_closed_rty; auto.
-  - apply ok_dctx_regular1; auto.
+  - apply ok_dctx_regular; auto.
 Qed.
 
 Lemma ok_dctx_shift: forall d a r Γ,
@@ -298,6 +285,24 @@ Proof.
   assert (({[a]} ∪ ctxdom Γ) ∩ d ≡ ∅). { apply ok_dctx_regular2 in H; mydestr. fast_set_solver. }
   invclear H; auto. apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver.
 Qed.
+
+(* Lemma ok_dctx_shift_is_arr: forall d a r Γ, *)
+(*     is_arr r -> ok_dctx d ((a, r) :: Γ) -> ok_dctx ({[a]} ∪ d) Γ. *)
+(* Proof. *)
+(*   intros. *)
+(*   invclear H0; auto. *)
+(*   assert (ctxdom Γ ∩ d ≡ ∅). { apply ok_dctx_regular2 in H9; mydestr; auto. } *)
+(*   apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver. *)
+(* Qed. *)
+
+(* Lemma ok_dctx_shift_not_is_arr: forall d a r Γ, *)
+(*     ~ is_arr r -> ok_dctx d ((a, r) :: Γ) -> ok_dctx ({[a]} ∪ d) Γ. *)
+(* Proof. *)
+(*   intros. *)
+(*   invclear H0; auto. *)
+(*   assert (ctxdom Γ ∩ d ≡ ∅). { apply ok_dctx_regular2 in H9; mydestr; auto. } *)
+(*   apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver. *)
+(* Qed. *)
 
 Ltac ok_dctx_solver1 :=
   match goal with
@@ -320,7 +325,7 @@ Fixpoint ctxdom_base (Γ: listctx rty) : aset :=
 
 Lemma ok_dctx_post_destruct: forall Γ d x τ,
     ok_dctx d (Γ ++ [(x, τ)]) <->
-      ok_dctx d Γ /\ x ∉ d /\ x ∉ ctxdom Γ /\ closed_rty 0 (ctxdom_base Γ ∪ d) τ.
+      ok_dctx d Γ /\ x ∉ d /\ x ∉ ctxdom Γ /\ closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ d) τ.
 Proof.
   induction Γ; simpl; split; intros; mydestr.
   - invclear H; do 3 (constructor; auto); closed_rty_solver.
@@ -443,7 +448,7 @@ Ltac ctx_erase_simp4:=
 
 Ltac ctx_erase_simp5 :=
         repeat (match goal with
-             | [H: ok_dctx _ _ |- ok _] => apply ok_dctx_regular1 in H; mydestr
+             | [H: ok_dctx _ _ |- ok _] => apply ok_dctx_regular in H; mydestr
              | [H: ok ?a |- ok ?b] =>
                  match type of b with
                  | (list (atom * ty)) =>
