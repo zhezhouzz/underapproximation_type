@@ -145,7 +145,7 @@ Inductive ctxrR: state -> listctx rty -> rty -> tm -> Prop :=
     ok_dctx (dom _ st) ((x, τ_x) :: Γ) ->
     ((x, ⌊τ_x⌋ ) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
      (exists e_x_hat, {st}⟦ τ_x ⟧ e_x_hat /\
-                   (forall e_x, {st}⟦ τ_x ⟧ e_x ->
+                   (forall (e_x: value), {st}⟦ τ_x ⟧ e_x ->
                            (∀ (v_x: value), e_x_hat ↪* v_x ->
                                             ctxrR ({ x ↦ v_x } st) Γ τ (tlete e_x ({ 0 <t~ x} e))))) ->
      ctxrR st ((x, τ_x) :: Γ) τ e.

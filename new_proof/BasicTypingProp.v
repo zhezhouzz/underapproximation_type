@@ -274,8 +274,8 @@ Ltac basic_typing_solver2 :=
   try match goal with
     | [H: ?Γ ⊢t ?e ⋮v ?T |- _ ⊢t (tvalue ?e) ⋮t _ ] => constructor; auto
     | [H: ty_of_op _ =  _ ⤍ _ ⤍ ?T |- ?Γ ⊢t (vconst _) ⋮v ?T ] => eapply eval_op_preservation; eauto
-    | [H: [] ⊢t ?e ⋮t ?T |- _ ⊢t ?e ⋮t ?T ] => apply basic_typing_weaken_tm_empty; eauto
-    | [H: [] ⊢t ?e ⋮v ?T |- _ ⊢t ?e ⋮v ?T ] => apply basic_typing_weaken_value_empty; eauto
+    | [H: [] ⊢t ?e ⋮t _ |- _ ⊢t ?e ⋮t _ ] => apply basic_typing_weaken_tm_empty; eauto
+    | [H: [] ⊢t ?e ⋮v _ |- _ ⊢t ?e ⋮v _ ] => apply basic_typing_weaken_value_empty; eauto
     | [H: ?Γ ⊢t ?e ⋮t ?T |- (?Γ ++ _) ⊢t ?e ⋮t ?T ] =>
         apply basic_typing_weaken_tm_pre; auto; basic_typing_solver2
     | [H: ?Γ ⊢t ?e1 ⋮t _, H': ?Γ ⊢t ?e2 ⋮t ?T |- ?Γ ⊢t tlete ?e1 ?e2 ⋮t ?T ] =>
@@ -708,7 +708,27 @@ Ltac basic_typing_solver7 :=
       eapply cons_basic_typing_drop_last_value; eauto
   end || basic_typing_solver6.
 
-Ltac basic_typing_solver := basic_typing_solver7.
+Lemma basic_type_first_not_equal_hd_tm
+     : ∀ (Γ : list (atom * ty)) (x y : atom) (a b : ty) e T, ((x, a) :: Γ ++ [(y, b)]) ⊢t e ⋮t T → x ≠ y.
+Proof.
+  intros. assert (ok ((x, a) :: Γ ++ [(y, b)])) by basic_typing_solver2.
+  eapply ok_first_not_equal_hd; eauto.
+Qed.
+
+Lemma basic_type_first_not_equal_hd_value
+     : ∀ (Γ : list (atom * ty)) (x y : atom) (a b : ty) e T, ((x, a) :: Γ ++ [(y, b)]) ⊢t e ⋮v T → x ≠ y.
+Proof.
+  intros. assert (ok ((x, a) :: Γ ++ [(y, b)])) by basic_typing_solver2.
+  eapply ok_first_not_equal_hd; eauto.
+Qed.
+
+Ltac basic_typing_solver8 :=
+  match goal with
+  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮t _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_tm in H; auto
+  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮v _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_value in H; auto
+  end || basic_typing_solver7.
+
+Ltac basic_typing_solver := basic_typing_solver8.
 
 Ltac lc_simpl :=
   simpl;

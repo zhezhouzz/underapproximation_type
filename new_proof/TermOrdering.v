@@ -1160,90 +1160,6 @@ Qed.
 
 Lemma termR_tlete_commute_tlete: forall Γ e1 T1 e2 T2 e T x1 x2,
     x1 <> x2 ->
-    [] ⊢t e1 ⋮t T1 -> ((x1, T1) :: Γ) ⊢t e2 ⋮t T2 -> ((x1, T1) :: Γ ++ [(x2, T2)]) ⊢t e ⋮t T ->
-    (tlete (tlete e1 (x1 \t\ e2)) (x2 \t\ tlete e1 (x1 \t\ e)))
-      <-<{ Γ;T} (tlete e1 (x1 \t\ tlete e2 (x2 \t\ e))).
-Proof.
-  intros.
-  assert (Γ ⊢t (tlete e1 (x1 \t\ tlete e2 (x2 \t\ e))) ⋮t T) as Hsecond.
-  { eapply let_store_typable; eauto; basic_typing_solver.
-    apply basic_typing_weaken_tm_empty; eauto; basic_typing_solver.
-    rewrite basic_has_type_swap2_tm; auto.
-    eapply let_store_typable; eauto. }
-  constructor; auto.
-  - apply let_store_typable with (Tu:= T2); eauto; basic_typing_solver.
-    apply let_store_typable with (Tu:= T1); eauto; basic_typing_solver.
-    rewrite basic_has_type_swap2_tm; auto.
-    apply let_store_typable with (Tu:= T1); auto. apply basic_typing_weaken_tm_pre; auto; basic_typing_solver.
-    rewrite basic_has_type_head_to_tail_tm in H2; listctx_set_simpl.
-  - assert (closed_tm e1) as Hclosede1 by basic_typing_solver.
-    (* assert (closed_tm e2) as Hclosede2 by basic_typing_solver. *)
-    assert (forall x, x ∉ fv_tm e1) as He1. intros; basic_typing_solver; set_solver.
-    (* assert (forall x, x ∉ fv_tm e2) as He2. intros; basic_typing_solver; set_solver. *)
-    unfold termRraw. intros Γv v Hi HH.
-    assert (lc (tm_msubst Γv (tlete e1 (x1 \t\ tlete e2 (x2 \t\ e))))) as Hss by
-      (eapply instantiation_implies_msubst_lc; eauto; basic_typing_solver).
-    reduction_simpl1.
-    rewrite lete_step_spec in HH; mydestr. rewrite lete_step_spec in H4; mydestr.
-
-    rewrite tm_msubst_closed in H6; auto.
-
-    assert ([] ⊢t x0 ⋮v T1) by basic_typing_solver.
-    assert (closed_value x0) as Hx0closed  by basic_typing_solver.
-    erewrite tm_msubst_then_open_closed in H7; eauto.
-    rewrite subst_as_close_open_tm in H7; basic_typing_solver.
-
-    simpl in H5. rewrite close_fresh_rec_tm in H5; auto.
-    assert (Γ ⊢t ({x1 := x0 }t e2) ⋮t T2) as He2T2 by basic_typing_solver.
-    assert ([] ⊢t (tm_msubst Γv ({x1 := x0 }t e2)) ⋮t T2) as He2T2' by (eapply instantiation_msubst_perserve_ty; eauto).
-    assert ([] ⊢t x ⋮v T2) as HxT2 by basic_typing_solver.
-    assert (closed_value x) as Hxclosed by basic_typing_solver.
-    erewrite tm_msubst_then_open_closed in H5; eauto. simpl in H5.
-    rewrite open_rec_lc_tm in H5; basic_typing_solver. rewrite subst_as_close_open_tm_ in H5.
-    msubst_simpl.
-
-    rewrite lete_step_spec in H5; mydestr.
-    assert ([] ⊢t (tm_msubst Γv e1) ⋮t T1) as He1T1 by
-        (eapply instantiation_msubst_perserve_ty; eauto; basic_typing_solver).
-    assert ([] ⊢t x3 ⋮v T1) by basic_typing_solver.
-    assert (closed_value x3) by basic_typing_solver.
-    erewrite tm_msubst_then_open_closed in H10; eauto.
-    rewrite <- subst_open_tm_closed in H10; basic_typing_solver.
-    rewrite subst_as_close_open_tm in H10; basic_typing_solver.
-
-    rewrite lete_step_spec.
-    assert (body (tlete (tm_msubst Γv (x1 \t\ e2)) (tm_msubst Γv ({1 <t~ x1} (x2 \t\ e))))) as Hsss.
-    { rewrite lete_lc_body in Hss; mydestr. simpl in H14. msubst_simpl. auto. }
-    split; auto. exists x0; split; eauto. admit.
-    simpl. rewrite lete_step_spec. split. admit.
-
-
-    rewrite open_rec_lc_tm; basic_typing_solver.
-    rewrite lete_step_spec. split.
-    { erewrite tm_msubst_then_open_closed; eauto.
-      rewrite subst_as_close_open_tm_.
-      eapply msubst_preserves_body_tm; eauto.
-      rewrite <- subst_close_tm. apply body_lc_after_close_tm. apply subst_lc_tm; auto; basic_typing_solver.
-      set_solver. set_solver.
-      rewrite body_tm_open_1_same; auto. apply body_lc_after_close_tm. basic_typing_solver.
-    }
-    eexists; split; eauto.
-    erewrite tm_msubst_then_open_closed; eauto.
-    rewrite subst_as_close_open_tm_.
-    erewrite tm_msubst_then_open_closed; eauto.
-    rewrite <- subst_open_tm_closed; basic_typing_solver.
-    rewrite subst_as_close_open_tm; basic_typing_solver.
-    rewrite subst_commute_tm; auto; set_solver.
-    rewrite body_tm_open_1_same; auto. apply body_lc_after_close_tm. basic_typing_solver.
-    rewrite body_tm_open_1_same; auto. apply body_lc_after_close_tm. basic_typing_solver.
-Qed.
-
-    rewrite tm_msubst_closed in H7; auto. rewrite open_rec_lc_tm in H7; auto; basic_typing_solver.
-    rewrite tm_msubst_closed; auto. rewrite tm_msubst_closed; auto.
-
-
-Lemma termR_tlete_commute_tlete: forall Γ e1 T1 e2 T2 e T x1 x2,
-    x1 <> x2 ->
     [] ⊢t e1 ⋮t T1 -> [] ⊢t e2 ⋮t T2 -> ((x1, T1) :: Γ ++ [(x2, T2)]) ⊢t e ⋮t T ->
     (tlete (tlete e1 (x1 \t\ e2)) (x2 \t\ tlete e1 (x1 \t\ e)))
       <-<{ Γ;T} (tlete e1 (x1 \t\ tlete e2 (x2 \t\ e))).
@@ -1251,15 +1167,12 @@ Proof.
   intros.
   assert (Γ ⊢t (tlete e1 (x1 \t\ tlete e2 (x2 \t\ e))) ⋮t T) as Hsecond.
   { eapply let_store_typable; eauto; basic_typing_solver.
-    apply basic_typing_weaken_tm_empty; eauto; basic_typing_solver.
-    eapply let_store_typable; eauto. apply basic_typing_weaken_tm_pre; eauto. basic_typing_solver.
-    apply basic_typing_weaken_tm_empty; eauto; basic_typing_solver.
+    eapply let_store_typable; eauto. apply basic_typing_weaken_tm_pre; eauto; basic_typing_solver.
     rewrite <- app_assoc. rewrite basic_has_type_swap_tm; auto. }
   constructor; auto.
   - apply let_store_typable with (Tu:= T2); eauto; basic_typing_solver.
     apply let_store_typable with (Tu:= T1); eauto; basic_typing_solver.
-    eapply let_store_typable; eauto. apply basic_typing_weaken_tm_pre; eauto; basic_typing_solver.
-    apply basic_typing_weaken_tm_empty; eauto. basic_typing_solver.
+    eapply let_store_typable; eauto; basic_typing_solver.
     rewrite basic_has_type_head_to_tail_tm in H2; listctx_set_simpl.
   - assert (closed_tm e1) as Hclosede1 by basic_typing_solver.
     assert (closed_tm e2) as Hclosede2 by basic_typing_solver.

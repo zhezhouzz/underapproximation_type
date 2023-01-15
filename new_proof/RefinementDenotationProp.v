@@ -69,82 +69,6 @@ Qed.
 
 Global Hint Constructors ok_dctx: core.
 
-(* refine *)
-
-(* Ltac refinement_solver7 := *)
-(*   listctx_set_simpl4; *)
-(*   match goal with *)
-(*   | [H: {_;_;_}⟦_⟧ ?e |- _ ∉ fv_tm ?e] => *)
-(*       apply rR_regular1 in H; mydestr; basic_typing_solver *)
-(*   end || refinement_solver6. *)
-
-(* Lemma reduction_tmeet_iff_both: forall (T: base_ty) e1 e2, *)
-(*     [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> (forall (v: value), (mk_term_meet T e1 e2) ↪* v <-> e1 ↪* v /\ e2 ↪* v). *)
-(* Admitted. *)
-
-(* Lemma tmeet_typable: forall (T: base_ty) e1 e2, *)
-(*     [] ⊢t e1 ⋮t T -> [] ⊢t e2 ⋮t T -> [] ⊢t (mk_term_meet T e1 e2) ⋮t T. *)
-(* Admitted. *)
-
-(* Lemma wf_implies_ctxrR_drop_last: forall Γ st x τ_x e_x e τ, *)
-(*     not_overbasety τ -> not_overbasety τ_x -> *)
-(*     closed_rty 0 (ctxdom Γ ∪ dom _ st) τ -> *)
-(*     wf_ctxrR st (Γ ++ [(x, τ_x)]) -> *)
-(*     x ∉ stale τ -> *)
-(*     {st}⟦τ_x⟧{Γ} e_x -> *)
-(*     {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e -> *)
-(*     {st}⟦τ⟧{Γ} (tlete e_x (x \t\ e)). *)
-(* Proof. *)
-(*   induction Γ; intros; mydestr; RD_simp; denotation_simp. *)
-(*   - invclear H2; invclear H5; auto_ty_exfalso. mydestr. *)
-(*     apply H12 in H2; mydestr. *)
-(*     eapply H4 in H6; eauto. RD_simp. *)
-(*     rewrite rR_shadow_update_st in H13; auto. *)
-(*     refinement_solver. *)
-(*   - invclear H2; invclear H4; invclear H5; auto_ty_exfalso; mydestr; ctx_erase_simp. *)
-(*     + invclear H9; auto_ty_exfalso. constructor; auto. eapply let_store_typable; eauto. *)
-(*       intros. *)
-(*       assert (wf_ctxrR (<[a:=c_x]> st) (Γ ++ [(x, τ_x)])) by auto. *)
-(*       assert (({<[a:=c_x]> st}⟦τ_x⟧{Γ}) ({a := c_x }t e_x)) by auto. *)
-(*       apply H22 in H2. *)
-(*       (* assert (({a := c_x }t (e ^t^ x)) = ({a := c_x }t e) ^t^ x) as Htmp. admit. *) *)
-(*       (* rewrite Htmp in H2. clear Htmp. *) *)
-(*       eapply IHΓ in H2; eauto. simpl. *)
-(*       rewrite subst_close_tm in H2; auto; refinement_solver7. refinement_solver. *)
-(*     + constructor; auto. eapply let_store_typable; eauto. *)
-(*       destruct (classic (is_arr r)). *)
-(*       { exists (random_inhabitant r). *)
-(*         assert ({0;b∅;st}⟦r⟧ (random_inhabitant r)) by *)
-(*           (apply random_inhabitant_in_any_under; refinement_solver7). *)
-(*         split; auto. intros e_x_final. intros. *)
-(*         apply H4 in H21. *)
-(*       } *)
-(*       exists ((x0 ⊗{  ⌊r⌋ } x1) ⊗{ ⌊r⌋ } x2). *)
-(*       split. apply rR_tmeet3_when_all; auto. *)
-(*       intros. rewrite reduction_tmeet3_iff_all in H20; refinement_solver7; mydestr. *)
-(*       assert (wf_ctxrR (({a↦v_x}) st) (Γ ++ [(x, τ_x)])) as Hwf by eauto. *)
-(*       assert ({({a↦v_x}) st}⟦τ_x⟧{Γ} (tlete e_x0 (a \t\ e_x))) as Hex by eauto. *)
-(*       assert (({({a↦v_x}) st}⟦τ⟧{Γ ++ [(x, τ_x)] }) (tlete e_x0 (a \t\ e))) as He by eauto. *)
-(*       assert ([] ⊢t v_x ⋮v ⌊r⌋). refinement_solver7. *)
-(*       assert (closed_value v_x) as Hclosedv. basic_typing_solver. *)
-(*       apply state_insert_closed_value with (a:=a) (st:=st) in Hclosedv. *)
-(*       destruct Hclosedv; mydestr; subst. *)
-(*       { eapply IHΓ in He; eauto. admit. *)
-(*         assert (dom aset (({a↦x3}) st) ≡ {[a]} ∪ dom aset st) *)
-(*         by (eapply insert_constant_in_st; refinement_solver7). *)
-(*         refinement_solver7. *)
-(*       } *)
-(*       { rename H25 into Hzz. *)
-(*         rewrite Hzz in He. rewrite Hzz. rewrite Hzz in Hex. rewrite Hzz in Hwf. *)
-(*         ctx_erase_simp. *)
-(*         assert (ok ((a, ⌊r⌋) :: ⌊Γ⌋* ++ ⌊[(x, τ_x)]⌋) as Hok by basic_typing_solver. *)
-(*         assert (a <> x). listctx_set_solver. *)
-(*         eapply IHΓ in He; eauto. admit. *)
-(*         apply closed_rty_cap with *)
-(*           (d1:= (ctxdom Γ ∪ ({[x]} ∪ ∅) ∪ dom aset st)) *)
-(*           (d2:= ({[a]} ∪ ctxdom Γ ∪ dom aset st)); eauto; refinement_solver7. } *)
-(* Admitted. *)
-
 Lemma rRctx_pre_weakening_empty: forall Γ st τ,
     not_overbasety τ ->
     wf_ctxrR st Γ ->
@@ -207,6 +131,35 @@ Proof.
     + rewrite H7; auto.
 Qed.
 
+Lemma is_arr_simpl_rewrite_value: forall r a st (P: state -> tm -> Prop),
+    is_arr r ->
+    closed_rty 0 (dom aset st) r ->
+    (∀ e_wf : tm, ({0;b∅;st}⟦r⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
+    (∃ e_x_hat : tm, ({0;b∅;st}⟦r⟧) e_x_hat
+                     ∧ (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x → ∀ v_x : value, e_x_hat ↪* v_x → P ({a↦v_x} st) e_x)) <->
+      (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x → P st e_x).
+Proof.
+  split; intros.
+  - mydestr. assert (∃ v_x : value, x ↪* v_x); auto. mydestr.
+    eapply H4 in H3; eauto.
+    assert ([] ⊢t x0 ⋮v ⌊r⌋). refinement_solver7.
+    assert (closed_value x0) as Hclosedv. basic_typing_solver.
+    apply state_insert_closed_value with (a:=a) (st:=st) in Hclosedv.
+    destruct Hclosedv; mydestr; subst.
+    + invclear H6. destruct r; destruct x1; inversion H; invclear H9.
+    + rewrite <- H7; auto.
+  - exists (random_inhabitant r).
+    assert ({0;b∅;st}⟦r⟧ (random_inhabitant r)).
+    apply random_inhabitant_in_any_under; refinement_solver7.
+    split; auto. intros.
+    assert ([] ⊢t v_x ⋮v ⌊r⌋) by refinement_solver7.
+    assert (closed_value v_x) as Hclosedv. basic_typing_solver.
+    apply state_insert_closed_value with (a:=a) (st:=st) in Hclosedv.
+    destruct Hclosedv; mydestr; subst.
+    + invclear H6. destruct r; destruct x; inversion H; invclear H9.
+    + rewrite H7; auto.
+Qed.
+
 Lemma is_arr_simpl_rewrite_wf_ctxrR: forall r a st Γ,
     is_arr r ->
     closed_rty 0 (dom aset st) r ->
@@ -234,6 +187,52 @@ Proof.
   eapply is_arr_simpl_rewrite with (P:= fun st e_x => ({st}⟦τ⟧{Γ}) (tlete e_x e)) in H1; eauto.
 Qed.
 
+Lemma is_arr_simpl_rewrite_wf_ctxrR_value: forall r a st Γ,
+    is_arr r ->
+    closed_rty 0 (dom aset st) r ->
+    (∀ e_wf : tm, ({0;b∅;st}⟦r⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
+    (∃ e_x_hat : tm, ({0;b∅;st}⟦r⟧) e_x_hat
+                     ∧ (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x → ∀ v_x : value, e_x_hat ↪* v_x →
+                                                                        wf_ctxrR ({a↦v_x} st) Γ)) <->
+      (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x → wf_ctxrR st Γ).
+Proof.
+  intros.
+  eapply is_arr_simpl_rewrite_value with (P:= fun st _ => wf_ctxrR st Γ) in H1; eauto.
+Qed.
+
+Lemma is_arr_simpl_rewrite_ctxrR_value: forall r a st τ Γ e,
+    is_arr r ->
+    closed_rty 0 (dom aset st) r ->
+    (∀ e_wf : tm, ({0;b∅;st}⟦r⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
+    (∃ e_x_hat : tm, ({0;b∅;st}⟦r⟧) e_x_hat
+                     ∧ (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x →
+                                    ∀ v_x : value, e_x_hat ↪* v_x →
+                                                   ({({a↦v_x}) st}⟦τ⟧{Γ}) (tlete e_x e))) <->
+      (∀ e_x : value, ({0;b∅;st}⟦r⟧) e_x → ({st}⟦τ⟧{Γ}) (tlete e_x e)).
+Proof.
+  intros.
+  eapply is_arr_simpl_rewrite_value with (P:= fun st e_x => ({st}⟦τ⟧{Γ}) (tlete e_x e)) in H1; eauto.
+Qed.
+
+Ltac auto_meet_exists HE :=
+  match goal with
+  | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
+        H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2,
+          H3: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x3 |- ∃ e, {0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧ e /\ _ ] =>
+      exists ((x1 ⊗{ b } x2) ⊗{ b } x3) ; assert ( {0;b∅;st}⟦[v:b|n|d|ϕ]⟧ ((x1 ⊗{ b } x2) ⊗{ b } x3)) as HE by (eapply rR_tmeet3_when_all; auto); split; auto; intros
+  | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
+        H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2 |- ∃ e, {0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧ e /\ _ ] =>
+      exists (x1 ⊗{ b } x2); assert ( {0;b∅;st}⟦[v:b|n|d|ϕ]⟧ (x1 ⊗{ b } x2)) as HE by (eapply rR_tmeet_when_both; eauto); split; auto; intros
+  end.
+
+Ltac auto_meet_reduce :=
+  match goal with
+  | [H: ((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ↪* ?v |- _ ] =>
+      rewrite reduction_tmeet3_iff_all in H; refinement_solver7; mydestr; eauto
+  | [H: (?x1 ⊗{ ?b} ?x2) ↪* ?v |- _ ] =>
+      rewrite reduction_tmeet_iff_both in H; refinement_solver7; mydestr; eauto
+  end.
+
 Ltac is_arr_simp :=
   repeat match goal with
     | [H: ∃ e_x_hat, ({0;b∅;?st}⟦?r⟧) e_x_hat /\
@@ -245,15 +244,17 @@ Ltac is_arr_simp :=
     | [|- ∃ e_x_hat, ({0;b∅;?st}⟦?r⟧) e_x_hat /\
                       (∀ e_x, ({0;b∅;?st}⟦?r⟧) e_x -> ∀ v_x, e_x_hat ↪* (tvalue v_x) -> {({?a↦v_x}) ?st}⟦_⟧{_} _)] =>
         rewrite is_arr_simpl_rewrite_ctxrR; auto; refinement_solver7
-    end.
 
-Ltac auto_ty_exfalso4 :=
-  auto_ty_exfalso3;
-  match goal with
-  | [H: is_arr [v:_|_|_|_] |- _ ] =>invclear H
-  | [H: is_arr {v:_|_|_|_} |- _ ] =>invclear H
-  | [H: {v:_|_|_|_} = [v:_|_|_|_]|- _] => invclear H
-  end.
+    | [H: ∃ e_x_hat, ({0;b∅;?st}⟦?r⟧) e_x_hat /\
+                       (∀ e_x, ({0;b∅;?st}⟦?r⟧) (tvalue e_x) -> ∀ v_x, e_x_hat ↪* (tvalue v_x) -> wf_ctxrR _ _) |- _] =>
+        rewrite is_arr_simpl_rewrite_wf_ctxrR_value in H; auto; refinement_solver7
+    | [H: ∃ e_x_hat, ({0;b∅;?st}⟦?r⟧) e_x_hat /\
+                       (∀ e_x, ({0;b∅;?st}⟦?r⟧) (tvalue e_x) -> ∀ v_x, e_x_hat ↪* (tvalue v_x) -> {({?a↦v_x}) ?st}⟦_⟧{_} _) |- _] =>
+        rewrite is_arr_simpl_rewrite_ctxrR_value in H; auto; refinement_solver7
+    | [|- ∃ e_x_hat, ({0;b∅;?st}⟦?r⟧) e_x_hat /\
+                      (∀ e_x, ({0;b∅;?st}⟦?r⟧) (tvalue e_x) -> ∀ v_x, e_x_hat ↪* (tvalue v_x) -> {({?a↦v_x}) ?st}⟦_⟧{_} _)] =>
+        rewrite is_arr_simpl_rewrite_ctxrR_value; auto; refinement_solver7
+    end.
 
 Lemma rRctx_pre_weakening: forall Γ1 Γ2 st τ,
     not_overbasety τ ->
@@ -262,47 +263,162 @@ Lemma rRctx_pre_weakening: forall Γ1 Γ2 st τ,
 Proof.
   induction Γ1; intros; RD_simp; denotation_simp.
   - apply rRctx_pre_weakening_empty; auto.
-  - invclear H1; invclear H0; try auto_ty_exfalso4.
+  - invclear H1; invclear H0; try auto_ty_exfalso2.
     + constructor; refinement_solver. basic_typing_solver7. ctx_erase_simp5.
-    + denotation_simp. invclear H9; auto_ty_exfalso.
+    + denotation_simp. invclear H9; try auto_ty_exfalso4.
       constructor; auto. refinement_solver. ctx_erase_simp5. basic_typing_solver7. ctx_erase_simp5.
-      exists (x0 ⊗{ x1 } x). split. eapply rR_tmeet_when_both; auto. intros.
-      rewrite reduction_tmeet_iff_both in H6; refinement_solver7; mydestr; eauto.
+      auto_meet_exists Hmeet2. auto_meet_reduce.
     + invclear H9; try auto_ty_exfalso4. apply ctxrR_cons_under_arr; auto.
       denotation_simp. refinement_solver.
-      ctx_erase_simp. basic_typing_solver7. refinement_solver.
+      ctx_erase_simp. basic_typing_solver7. refinement_solver7.
       is_arr_simp.
 Qed.
 
-Check ok_first_not_equal_hd.
+(* Ltac auto_under_specialize He := *)
+(*   repeat match goal with *)
+(*     | [H: forall e_x, _ e_x -> _ |- _ ] => specialize (H _ He) *)
+(*     | [H: forall c_x, _ (tvalue (vconst c_x)) -> _ |- _ ] => specialize (H _ He) *)
+(*     end. *)
 
-Lemma basic_type_first_not_equal_hd_tm
-     : ∀ (Γ : list (atom * ty)) (x y : atom) (a b : ty) e T, ((x, a) :: Γ ++ [(y, b)]) ⊢t e ⋮t T → x ≠ y.
-Proof.
-  intros. assert (ok ((x, a) :: Γ ++ [(y, b)])) by basic_typing_solver2.
-  eapply ok_first_not_equal_hd; eauto.
-Qed.
+Ltac auto_under_specialize e :=
+  repeat match goal with
+    | [He: ?P e, H: forall e_x, ?P e_x -> _ |- _ ] => specialize (H _ He)
+    | [He: ?P (tvalue e), H: forall e_x, _ (tvalue e_x) -> _ |- _ ] => specialize (H _ He)
+    | [He: ?P (tvalue (vconst e)), H: forall c_x, _ (tvalue (vconst c_x)) -> _ |- _ ] => specialize (H _ He)
+    end.
 
-Lemma basic_type_first_not_equal_hd_value
-     : ∀ (Γ : list (atom * ty)) (x y : atom) (a b : ty) e T, ((x, a) :: Γ ++ [(y, b)]) ⊢t e ⋮v T → x ≠ y.
-Proof.
-  intros. assert (ok ((x, a) :: Γ ++ [(y, b)])) by basic_typing_solver2.
-  eapply ok_first_not_equal_hd; eauto.
-Qed.
+Ltac auto_under_reduction_specialize :=
+  repeat match goal with
+      | [H: forall v, ?e ↪* (tvalue _) → _, H': ?e ↪* (tvalue _) |- _ ] => specialize (H  _ H')
+      end.
 
-Ltac basic_typing_solver8 :=
-  match goal with
-  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮t _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_tm in H; auto
-  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮v _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_value in H; auto
-  end || basic_typing_solver7.
+Ltac auto_under e :=
+  auto_under_specialize e; mydestr; auto_under_reduction_specialize.
 
-Lemma wf_implies_ctxrR_tlete: forall Γ st x b n d ϕ e_x e τ,
-    not_overbasety τ -> not_overbasety τ_x ->
+Lemma wf_implies_ctxrR_drop_last: forall Γ st x τ_x e τ,
     wf_ctxrR st (Γ ++ [(x, τ_x)]) ->
-    {st}⟦mk_eq_var ty⟧{Γ ++ [(x, τ_x)] } e_x ->
+    closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ dom aset st) τ ->
+    x ∉ rty_fv τ -> x ∉ fv_tm e -> not_overbasety τ_x ->
     {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e ->
-    {st}⟦τ⟧{Γ ++ [(x, τ_x)] } (tlete e_x e).
+    {st}⟦τ⟧{Γ} e.
 Proof.
+  induction Γ; intros.
+  - invclear H; invclear H4; try auto_ty_exfalso2.
+    + auto_ty_exfalso5. auto_under x0. RD_simp.
+      rewrite rR_shadow_update_st in H9; auto. admit. refinement_solver.
+    + is_arr_simp. RD_simp.
+      assert ({0;b∅;st}⟦τ_x⟧ (random_inhabitant τ_x)) as Hrandom.
+      { apply random_inhabitant_in_any_under; refinement_solver7. }
+      auto_under Hrandom.
+      admit.
+  - mydestr. invclear H; invclear H4; try auto_ty_exfalso2.
+    + constructor; auto. admit. admit. intros. auto_under c_x.
+      apply IHΓ in H18; auto. denotation_simp. refinement_solver. admit.
+    + auto_ty_exfalso5. constructor; auto. admit. admit.
+      auto_meet_exists Hmeet2. auto_meet_reduce. auto_under e_x.
+      apply IHΓ in H4; auto. admit. admit.
+Admitted.
+
+(*     wf_ctxrR st (Γ ++ [(x, τ_x)]) -> *)
+(*     closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ dom aset st) τ -> *)
+(*     x ∉ rty_fv τ -> x ∉ fv_tm e -> not_overbasety τ_x -> not_overbasety τ -> *)
+(*     {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e -> *)
+(*     {st}⟦τ⟧{Γ} e. *)
+
+Definition ctxrR_appliable (st: state) (Γ : listctx rty) (e_x: tm) (τ_x: rty) :=
+  (forall x τ e, wf_ctxrR st (Γ ++ [(x, τ_x)]) ->
+            {st}⟦τ_x⟧{Γ} e_x ->
+            {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e -> {st}⟦τ⟧{Γ ++ [(x, τ_x)] } (tlete e_x (x \t\ e))).
+
+Lemma wf_implies_ctxrR_tlete: forall Γ st (e_x: value) b n d ϕ,
+    ctxrR_appliable st Γ e_x [v:b|n|d|ϕ].
+Proof.
+  unfold ctxrR_appliable; induction Γ; intros; mydestr; RD_simp; denotation_simp.
+  - invclear H; invclear H1; try auto_ty_exfalso; auto. invclear H1.
+    constructor; auto. admit.
+    auto_meet_exists Hmeet3. auto_meet_reduce. auto_under e_x0. RD_simp. simpl. admit.
+  - invclear H; invclear H0; invclear H1; try auto_ty_exfalso2; auto.
+    + constructor; auto. admit. intros. auto_under c_x.
+      eapply IHΓ in H18; eauto. fold value_subst in H18. simpl. admit.
+    + auto_ty_exfalso5. constructor; auto. admit.
+      auto_meet_exists Hmeet3. auto_meet_reduce. auto_under e_x0.
+      eapply IHΓ in H0; eauto.
+Admitted.
+
+Lemma wf_implies_ctxrR_tlete_arr: forall Γ st (e_x: value) τ,
+    is_arr τ -> ctxrR_appliable st Γ e_x τ.
+Proof.
+  unfold ctxrR_appliable; induction Γ; intros; mydestr; RD_simp; denotation_simp.
+  - invclear H0; invclear H2; try auto_ty_exfalso; auto.
+    apply ctxrR_cons_under_arr; auto. admit.
+    is_arr_simp. intros. auto_under e_x0. RD_simp. admit.
+  - invclear H0; invclear H1; invclear H2; try auto_ty_exfalso2; auto.
+    + constructor; auto. admit. intros. auto_under c_x.
+      eapply IHΓ in H19; eauto. fold value_subst in H19.
+      admit.
+    + auto_ty_exfalso5. constructor; auto. admit.
+      auto_meet_exists Hmeet3. auto_meet_reduce. auto_under e_x0.
+      apply IHΓ with (e_x:=vlam x1 (mk_app (tlete e_x0 (a \t\ e_x)) 0)) in H1; eauto. admit. admit. admit.
+    + auto_ty_exfalso.
+    + auto_ty_exfalso.
+    + apply ctxrR_cons_under_arr; auto. admit.
+      is_arr_simp. intros. auto_under e_x0.
+      apply IHΓ with (e_x:=e_x) in H21; eauto.
+      admit. admit. admit.
+Admitted.
+
+Definition ctxrR_appliable (st: state) (Γ : listctx rty) (e_x: tm) (τ_x: rty) :=
+  (forall x τ e, wf_ctxrR st (Γ ++ [(x, τ_x)]) ->
+            {st}⟦τ_x⟧{Γ} e_x ->
+            {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e -> {st}⟦τ⟧{Γ ++ [(x, τ_x)] } (tlete e_x (x \t\ e))).
+
+Lemma wf_implies_ctxrR_tlete: forall Γ st (e_x: value) τ,
+    is_arr τ -> wf_ctxrR st Γ -> ctxrR_appliable st Γ e_x τ.
+Proof.
+  unfold ctxrR_appliable; induction Γ; intros; mydestr; RD_simp; denotation_simp.
+  - invclear H1; invclear H3; try auto_ty_exfalso; auto.
+    apply ctxrR_cons_under_arr; auto. admit.
+    is_arr_simp. intros. auto_under e_x0. RD_simp. admit.
+  - invclear H1; invclear H2; invclear H3; try auto_ty_exfalso2; auto.
+    + constructor; auto. admit. intros. auto_under c_x.
+      eapply IHΓ in H20; eauto. fold value_subst in H20.
+      admit. admit.
+    + auto_ty_exfalso5. constructor; auto. admit.
+      auto_meet_exists Hmeet3. auto_meet_reduce. auto_under e_x0.
+      apply IHΓ with (e_x:=e_x) in H2; eauto. admit. admit. admit.
+    + auto_ty_exfalso.
+    + auto_ty_exfalso.
+    + apply ctxrR_cons_under_arr; auto. admit.
+      is_arr_simp. intros. auto_under e_x0.
+      apply IHΓ with (e_x:=e_x) in H21; eauto.
+      admit. admit. admit.
+Admitted.
+
+(* Lemma wf_implies_ctxrR_drop_last: forall Γ st x τ_x e τ, *)
+(*     wf_ctxrR st (Γ ++ [(x, τ_x)]) -> *)
+(*     closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ dom aset st) τ -> *)
+(*     x ∉ rty_fv τ -> x ∉ fv_tm e -> not_overbasety τ_x -> not_overbasety τ -> *)
+(*     {st}⟦τ⟧{Γ ++ [(x, τ_x)] } e -> *)
+(*     {st}⟦τ⟧{Γ} e. *)
+(* Proof. *)
+(*   induction Γ; intros. *)
+(*   - invclear H; invclear H5; try auto_ty_exfalso. *)
+(*     + specialize (H12 _ H). mydestr. specialize (H5 _ H _ H6). RD_simp. *)
+(*       rewrite rR_shadow_update_st in H8; auto. admit. refinement_solver. *)
+(*     + is_arr_simp. *)
+(*       assert ({0;b∅;st}⟦τ_x⟧ (random_inhabitant τ_x)) as Hrandom. *)
+(*       { apply random_inhabitant_in_any_under; refinement_solver7. } *)
+(*       admit. *)
+(*   - mydestr. invclear H; invclear H5; try auto_ty_exfalso2. *)
+(*     + constructor; auto. admit. admit. intros. *)
+(*       specialize (H11 _ H). specialize (H19 _ H). *)
+(*       apply IHΓ in H19; auto. denotation_simp. refinement_solver. admit. *)
+(*     + auto_ty_exfalso5. constructor; auto. admit. admit. *)
+(*       auto_meet_exists Hmeet2. auto_meet_reduce. *)
+(*       specialize (H8 _ H6 _ H10). specialize (H5 _ H6 _ H13). *)
+(*       apply IHΓ  *)in H5; auto. admit. admit.
+Admitted.
+
 
 Lemma wf_implies_ctxrR_tlete: forall Γ st x τ_x e_x e τ,
     not_overbasety τ -> not_overbasety τ_x ->

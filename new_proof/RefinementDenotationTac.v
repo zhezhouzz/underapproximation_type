@@ -654,7 +654,7 @@ Qed.
 Ltac auto_ty_exfalso3 :=
   match goal with
   | [H: not_overbasety ?τ_x, H': ¬ is_arr ?τ_x |- _ ] =>
-      apply auto_ty_base in H; auto; mydestr; subst; try clear H; try clear H'
+      apply auto_ty_base in H; auto; mydestr; subst; try clear H'
   end || auto_ty_exfalso2.
 
 Lemma is_arr_is_not_constant: forall r (x:constant), is_arr r -> ~ ([] ⊢t x ⋮v ⌊r⌋).
@@ -668,6 +668,11 @@ Ltac auto_ty_exfalso4 :=
   match goal with
   | [H: ?P, H': ~ ?P |- _ ] => apply H' in H; invclear H
   | [H: is_arr [v:_|_|_|_] |- _ ] =>invclear H
+  | [H: is_arr {v:_|_|_|_} |- _ ] =>invclear H
+  | [H: {v:_|_|_|_} = [v:_|_|_|_] |- _] => invclear H
+  | [H: [v:_|_|_|_] = {v:_|_|_|_} |- _] => invclear H
+  | [H: {v:_|_|_|_} = {v:_|_|_|_} |- _] => invclear H
+  | [H: [v:_|_|_|_] = [v:_|_|_|_] |- _] => invclear H
   | [H: is_arr ?r, H': [] ⊢t (vconst _) ⋮v ⌊ ?r ⌋ |- _ ] => eapply is_arr_is_not_constant in H; apply H in H'; invclear H'
   end || auto_ty_exfalso3.
 
@@ -943,7 +948,6 @@ Proof.
   invclear Hf; try invclear H6.
   apply termR_perserve_ctxrR with (e:= (tlete x0 (x \t\ terr))); auto; refinement_solver2.
   eapply tyable_implies_terr_termR_terr; refinement_solver2.
-  apply basic_typing_weaken_value_empty; eauto. refinement_solver2.
   (* assert (({<[x:=x0]> st}⟦τ⟧{Γ}) terr); auto. constructor. *)
   apply termR_perserve_ctxrR with (e:= terr); auto; refinement_solver2.
   apply tyable_implies_terr_termR.
@@ -1126,7 +1130,8 @@ Proof.
     denotation_simp3.
     apply termR_perserve_ctxrR with (e:= terr); refinement_solver6.
     apply tyable_implies_terr_termR. reduction_solver2.
-    eapply ty_tlete_dummy; refinement_solver6.
+    assert (ok ⌊Γ⌋* ) by refinement_solver.
+    eapply ty_tlete_dummy; refinement_solver6. basic_typing_solver.
   - invclear H0; auto_ty_exfalso3. constructor; refinement_solver6.
     intros. reduction_simpl1.
     setoid_rewrite ctxrR_shadow_update_st_c; auto; refinement_solver.
