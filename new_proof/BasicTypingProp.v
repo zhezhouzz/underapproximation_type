@@ -726,6 +726,8 @@ Ltac basic_typing_solver8 :=
   match goal with
   | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮t _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_tm in H; auto
   | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮v _ |- ?x ≠ ?y] => apply basic_type_first_not_equal_hd_value in H; auto
+  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮t _ |- ?y ≠ ?x] => apply basic_type_first_not_equal_hd_tm in H; auto
+  | [H: ((?x, _) :: _ ++ [(?y, _)]) ⊢t _ ⋮v _ |- ?y ≠ ?x] => apply basic_type_first_not_equal_hd_value in H; auto
   end || basic_typing_solver7.
 
 Ltac basic_typing_solver := basic_typing_solver8.

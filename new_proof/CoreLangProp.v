@@ -939,6 +939,50 @@ Qed.
 
 Global Hint Resolve body_tletapp_0: core.
 
+Lemma open_subst_same_tm: forall x y e k, x # e -> {x := y }t ({k ~t> x} e) = {k ~t> y} e.
+Proof.
+  intros x y. apply (tm_mutual_rec
+                   (fun (e: value) => forall k,
+                      x # e -> {x := y }v ({k ~v> x} e) = {k ~v> y} e)
+                   (fun (e: tm) => forall k,
+                      x # e -> {x := y }t ({k ~t> x} e) = {k ~t> y} e)
+                ); simpl; intros; auto.
+  - repeat var_dec_solver.
+  - repeat var_dec_solver.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+Qed.
+
+Lemma open_subst_same_value: forall x y e k, x # e -> {x := y }v ({k ~v> x} e) = {k ~v> y} e.
+Proof.
+  intros x y. apply (value_mutual_rec
+                   (fun (e: value) => forall k,
+                      x # e -> {x := y }v ({k ~v> x} e) = {k ~v> y} e)
+                   (fun (e: tm) => forall k,
+                      x # e -> {x := y }t ({k ~t> x} e) = {k ~t> y} e)
+                ); simpl; intros; auto.
+  - repeat var_dec_solver.
+  - repeat var_dec_solver.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+  - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
+    rewrite H1; auto; try fast_set_solver.
+Qed.
+
 (* Inductive lc_n: nat -> tm -> Prop := *)
 (* | lc_n_const: forall (c: constant) n, lc_n n c *)
 (* | lc_n_vbvar: forall (m: nat) n, m < n -> lc_n n (vbvar m) *)

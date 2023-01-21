@@ -329,3 +329,12 @@ Proof.
   - destruct (classic (P x)); auto. exfalso. apply H. exists x; auto.
   - intro Hf. mydestr. eapply H; eauto.
 Qed.
+
+From Coq Require Import Logic.FunctionalExtensionality.
+From Coq Require Import Logic.PropExtensionality.
+
+Lemma prop_ex3 {A B C: Type}: forall (P Q: A -> B -> C -> Prop), (forall a b c, P a b c <-> Q a b c) -> P = Q.
+Proof.
+  do 3 (intros; apply functional_extensionality).
+  intros. apply propositional_extensionality. auto.
+Qed.

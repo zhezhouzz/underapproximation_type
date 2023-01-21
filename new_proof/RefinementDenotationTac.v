@@ -238,6 +238,10 @@ Ltac refinement_solver0 :=
           | [H: ({_;_;_}⟦?τ⟧) _ |- _ ⊢t _ ⋮t _ ] =>
               apply rR_regular1 in H; mydestr; eauto; try basic_typing_solver
           | [ |- closed_rty _ _ _ ] => closed_rty_solver
+          (* | [H: closed_rty _ _ (-:{v: _ | _ | _ | _}⤑ _) |- closed_rty _ _ _] => *)
+          (*     invclear H; mydestr *)
+          (* | [H: closed_rty _ _ (_ ⤑ _) |- closed_rty _ _ _] => *)
+          (*     invclear H; mydestr *)
           | [H: ok_dctx _ _ |- ok _ ] => ok_dctx_solver
           | [ |- ok ((_, _) :: _)] => rewrite ok_pre_destruct; split; ctx_erase_simp
           | [H: closed_rty _ _ ?τ |- _ ∉ rty_fv ?τ ] => invclear H; mydestr; try fast_set_solver
@@ -427,11 +431,13 @@ Ltac refinement_solver5 :=
        invclear H; mydestr; refinement_solver4
    | [H: closed_rty _ _ (_ ⤑ _) |- closed_rty _ _ _] =>
        invclear H; mydestr; refinement_solver4
+   (* | [H: closed_rty _ _ (_ ⤑ ?t) |- closed_rty _ _ ?t] => *)
+   (*     invclear H; mydestr; refinement_solver4 *)
    | [H: ({_;_;_}⟦ ?τ ⟧) _ |- valid_rty ?τ] => apply rR_regular1 in H; mydestr; refinement_solver4
    | [H: ({_;_;_}⟦?τ⟧) _ |- _ ∉ rty_fv ?τ ] => apply rR_regular1 in H; mydestr; refinement_solver4
    | [H: ({_}⟦?τ⟧{ _ }) _ |- closed_rty _ _ ?τ] =>
        apply ctxrR_regular in H; mydestr; refinement_solver4
-   end) || refinement_solver4.
+   end || refinement_solver4).
 
 Lemma tyable_implies_closed_value: forall v_x T, [] ⊢t v_x ⋮v T -> closed_value v_x.
 Proof.
@@ -734,7 +740,8 @@ Proof.
       apply H2 in H5; auto. rewrite IHτ in H5; mydestr; auto.
   - split; auto; ctx_erase_simp4. split; auto.
     + denotation_simp.
-    + intros. rewrite IHτ; auto. split; refinement_solver. apply H3; auto.
+    + intros. rewrite IHτ; auto. split; refinement_solver.
+      apply H3; auto.
       unfold refinement_subst. unfold state_subst. unfold state_subst in H3. amap_dec_solver.
       invclear H2. invclear H4.
       rewrite wf_r_implies_state_dummy_insert in H5; eauto. refinement_solver3.

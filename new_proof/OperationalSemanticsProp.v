@@ -111,6 +111,25 @@ Proof.
   - apply lete_reduction_spec_backward.
 Qed.
 
+Lemma letbiop_reduction_spec_aux: forall op (v1 v2 : value) e e',
+    tletbiop op v1 v2 e ↪ e' -> (exists (n1 n2: nat), v1 = n1 /\ v2 = n2).
+Proof.
+  intros.
+  invclear H. destruct op; invclear H6; eexists; eauto.
+Qed.
+
+Lemma letbiop_reduction_spec: forall n op (v1 v2 : value) (v : value) e,
+    tletbiop op v1 v2 e ↪{S n} v <->
+      (exists (c1 c2: nat) (c: constant), v1 = c1 /\ v2 = c2 /\ body e /\ eval_op op c1 c2 c /\ e ^t^ c ↪{n} v).
+Proof.
+  split; intros.
+  - invclear H.
+    assert ((exists (n1 n2: nat), v1 = n1 /\ v2 = n2)) as Htmp by (eapply letbiop_reduction_spec_aux; eauto).
+    mydestr; subst. invclear H1.
+    exists x, x0, c3. repeat split; auto.
+  - mydestr; subst. econstructor; eauto. econstructor; eauto; lc_solver.
+Qed.
+
 Lemma letapp_reduction_spec_aux: forall (v1 v2 : value) e e',
     tletapp v1 v2 e ↪ e' -> (exists T e1, v1 = vlam T e1) \/ (exists T (v1': value), v1 = vfix T v1').
 Proof.
@@ -176,6 +195,17 @@ Proof.
     destruct_hyp_disj; mydestr; subst; econstructor; eauto.
     + econstructor; eauto. step_length_regular_solver1.
     + econstructor; eauto. step_length_regular_solver1.
+Qed.
+
+Lemma letbiop_step_spec: forall op (v1 v2 : value) (v : value) e,
+    tletbiop op v1 v2 e ↪* v <->
+      (exists (c1 c2: nat) (c: constant), v1 = c1 /\ v2 = c2 /\ body e /\ eval_op op c1 c2 c /\ e ^t^ c ↪* v).
+Proof.
+  split; intros.
+  - invclear H.
+    assert ((exists (n1 n2: nat), v1 = n1 /\ v2 = n2)) as Htmp by (eapply letbiop_reduction_spec_aux; eauto).
+    mydestr; subst. invclear H0. exists x, x0, c3. repeat split; auto.
+  - mydestr; subst. econstructor; eauto. econstructor; eauto.
 Qed.
 
 Lemma terr_reduction_exfalso1: forall (v: value), ~ terr ↪* v.
