@@ -80,7 +80,7 @@ Definition refinement_open (k: nat) (s: value) (ϕ: refinement) : refinement :=
   fun bst st v => ϕ (match s with
                   | vfvar x =>
                       match st !! x with
-                      | None => bst
+                      | None => <b[ k := false ]> bst (* this case should never happen *)
                       | Some c => <b[ k := c ]> bst
                       end
                   | vconst c => <b[ k := c ]> bst
@@ -122,7 +122,7 @@ Definition state_insert_value: atom -> value -> state -> state :=
   fun x1 v2 st => match v2 with
                | vfvar x2 =>
                    match st !! x2 with
-                   | None => st
+                   | None => st (* this case should never happen *)
                    | Some c2 => <[x1 := c2]> st
                    end
                | vconst c2 => (<[x1 := c2]> st)

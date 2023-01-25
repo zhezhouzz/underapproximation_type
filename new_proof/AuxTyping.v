@@ -9,6 +9,7 @@ From CT Require Import RefinementDenotation.
 From CT Require Import RefinementDenotationTac.
 From CT Require Import RefinementDenotationProp.
 From CT Require Import RDInv.
+From CT Require Import RDInv2.
 
 Import Atom.
 Import CoreLang.
@@ -26,6 +27,7 @@ Import RefinementDenotation.
 Import RefinementDenotationTac.
 Import RefinementDenotationProp.
 Import RDInv.
+Import RDInv2.
 
 Definition wf (Γ: listctx rty) (τ: rty) :=
   wf_ctxrR_not_terr ∅ Γ /\ closed_rty 0 (ctxdom ⦑Γ⦒ ) τ /\ not_overbasety τ.
@@ -97,8 +99,10 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
     Γ ⊢ (tletapp v1 v2 e) ⋮t τ
 (* the value should only be constant or variables *)
 | UT_LetAppDepend: forall Γ (v1 v2: value) e τ b d ϕ τ_x (L: aset),
-    Γ ⊢WF τ -> Γ ⊢ v1 ⋮v (-:{v: b | 0 | d | ϕ}⤑ τ_x) -> Γ ⊢ v2 ⋮v [v: b | 0 | d | ϕ] ->
-    (forall x, x ∉ L -> (Γ ++ [(x, τ_x ^r^ v2)]) ⊢ (e ^t^ x) ⋮t τ ) ->
+    Γ ⊢WF τ ->
+    Γ ⊢ v1 ⋮v (-:{v: b | 0 | d | ϕ}⤑ τ_x) -> Γ ⊢ v2 ⋮v [v: b | 0 | d | ϕ] ->
+    (forall x, x ∉ L -> (Γ ++ [(x, [v: b | 0 | d | ϕ])]) ⊢WF τ_x /\
+                    (Γ ++ [(x, τ_x ^r^ v2)]) ⊢ (e ^t^ x) ⋮t τ ) ->
     Γ ⊢ (tletapp v1 v2 e) ⋮t τ
 | UT_Matchb_true: forall Γ (v: value) e1 e2 τ,
     Γ ⊢WF τ -> Γ ⊢ v ⋮v (mk_eq_constant true) -> Γ ⊢ e1 ⋮t τ -> ⌊ Γ ⌋* ⊢t e2 ⋮t ⌊ τ ⌋ -> Γ ⊢ (tmatchb v e1 e2) ⋮t τ
@@ -175,38 +179,6 @@ Proof.
            (fun Γ e τ _ => Γ ⊢WF τ)); intros Γ; intros; mydestr; auto.
 Qed.
 
-Lemma inv_rRctx_tletbiop_all: forall Γ st (τ: rty) x op n1 d1 ϕ1 n2 d2 ϕ2 (v1 v2: value) e,
-    x ∉ fv_tm e -> x ∉ rty_fv τ -> not_overbasety τ ->
-    wf_ctxrR st (Γ ++ [(x, {1 ~r> v2} (mk_op_ret op ^r^ v1))]) ->
-    (⅋{st}⟦[v:fst_ty_of_op op|n1|d1|ϕ1]⟧{Γ}) v1 ->
-    (⅋{st}⟦[v:fst_ty_of_op op|n2|d2|ϕ2]⟧{Γ}) v2 ->
-    (⅋{st}⟦τ⟧{Γ ++ [(x, {1 ~r> v2} (mk_op_ret op ^r^ v1))] }) (e ^t^ x) ->
-    ⅋{st}⟦τ⟧{Γ ++ [(x, {1 ~r> v2} (mk_op_ret op ^r^ v1))] } (tletbiop op v1 v2 e).
-Proof.
-  induction Γ; intros; RD_simp2.
-  - mydestr. inv_rd_simpl1. constructor; auto.
-    + denotation_simp. assert ([] ⊢t tletbiop op v1 v2 e ⋮t ⌊τ⌋). eapply tletbiop_typable; refinement_solver.
-      basic_typing_solver.
-    + exists (eval_op_under_bound_tm op v1 v2). split. apply rR_eval_op_under_bound_tm.
-      intros. assert (x1 ↪* v_x) as Hz by (eapply rR_eval_op_under_bound_tm_min; eauto).
-      auto_under v_x. RD_simp2. simpl.
-      rewrite subst_fresh_tm; auto. rewrite open_subst_same_tm in H10; auto.
-      eapply termR_perserve_rR; refinement_solver.
-      eapply letapp_eval_op_under_bound_tm_termR; eauto; refinement_solver.
-  - constructor; auto. denotation_simp. apply tletbiop_typable_ctx_dummy_cons; auto.
-    intros. auto_under c_x. simpl. eapply IHΓ; eauto.
-    + rewrite fv_of_subst_tm_closed; refinement_solver.
-    + rewrite <- subst_open_var_tm; auto. denotation_simp. basic_typing_solver.
-  - constructor; auto. denotation_simp. apply tletbiop_typable_ctx_dummy_cons; auto.
-    mydestr. auto_meet_exists Hmeet. auto_meet_reduce. auto_under v_x. eapply IHΓ; eauto; fold tm_subst.
-    + rewrite fv_of_subst_tm_closed; refinement_solver.
-    + rewrite <- subst_open_var_tm; auto. denotation_simp. basic_typing_solver. op_solver1.
-  - constructor; auto. denotation_simp. apply tletbiop_typable_ctx_dummy_cons; auto.
-    intros. auto_under v_x. eapply IHΓ; eauto; fold tm_subst.
-    + rewrite fv_of_subst_tm_closed; refinement_solver.
-    + rewrite <- subst_open_var_tm; auto. denotation_simp. basic_typing_solver. refinement_solver.
-Qed.
-
 Theorem soundness: forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> ⅋{∅}⟦ τ ⟧{ Γ } e.
 Proof.
   apply (term_under_type_check_rec
@@ -268,17 +240,11 @@ Proof.
     apply inv_implies_ctxrR_drop_last with (x:=x) (τ_x:= ({1 ~r> v2} (mk_op_ret op ^r^ v1))); eauto; try fast_set_solver.
     + apply rty_judgement_implies_wf in t. soundness_simp; auto.
     + refinement_solver.
-    + assert (exists n1: nat, v1 = n1). eapply fst_ty_of_op_implies_nat; eauto.
-
-      Check inv_rRctx_tletbiop. eapply inv_rRctx_tletbiop.
-  - inv_rd_simpl1. assert (x ∉ ctxdom ⦑Γ⦒); ctx_erase_simp. set_solver.
-  - assert (x ∉ fv_tm e_x). inv_rd_solver1.
-    assert (x ∉ fv_tm (x \t\ e)) by apply close_rm_fv_tm.
-    set_solver.
-
+    + eapply inv_rRctx_tletbiop; eauto; try fast_set_solver.
+      apply rty_judgement_implies_wf in t. soundness_simp; auto.
+  - auto_pose_fv x. repeat specialize_with x. admit.
+  - auto_pose_fv x. repeat specialize_with x. mydestr.
     admit.
-  - auto_pose_fv x. repeat specialize_with x. admit.
-  - auto_pose_fv x. repeat specialize_with x. admit.
   (* matchb true *)
   - admit. (* easy *)
   - admit. (* easy *)

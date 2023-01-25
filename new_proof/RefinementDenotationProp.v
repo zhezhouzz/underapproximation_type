@@ -56,6 +56,12 @@ Ltac auto_meet_exists HE :=
   match goal with
   | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
         H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2,
+          H3: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x3,
+            H4: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x4 |- ∃ e, {0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧ e /\ _ ] =>
+      exists (((x1 ⊗{ b } x2) ⊗{ b } x3) ⊗{ b } x4) ;
+      assert ( {0;b∅;st}⟦[v:b|n|d|ϕ]⟧ (((x1 ⊗{ b } x2) ⊗{ b } x3) ⊗{ b } x4)) as HE by (eapply rR_tmeet4_when_all; auto); split; auto; intros
+  | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
+        H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2,
           H3: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x3 |- ∃ e, {0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧ e /\ _ ] =>
       exists ((x1 ⊗{ b } x2) ⊗{ b } x3) ; assert ( {0;b∅;st}⟦[v:b|n|d|ϕ]⟧ ((x1 ⊗{ b } x2) ⊗{ b } x3)) as HE by (eapply rR_tmeet3_when_all; auto); split; auto; intros
   | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
@@ -70,6 +76,8 @@ Ltac auto_meet_exists HE :=
 
 Ltac auto_meet_reduce :=
   match goal with
+  | [H: (((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ⊗{ ?b } ?x4)↪* ?v |- _ ] =>
+      rewrite reduction_tmeet4_iff_all in H; refinement_solver7; mydestr; eauto
   | [H: ((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ↪* ?v |- _ ] =>
       rewrite reduction_tmeet3_iff_all in H; refinement_solver7; mydestr; eauto
   | [H: (?x1 ⊗{ ?b} ?x2) ↪* ?v |- _ ] =>
