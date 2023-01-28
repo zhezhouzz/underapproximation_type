@@ -4,7 +4,7 @@ From Coq Require Import Classical.
 From CT Require Import CoreLang.
 From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
-From CT Require Import ErrOperationalSemanticsProp.
+(* From CT Require Import ErrOperationalSemanticsProp. *)
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
 
@@ -14,8 +14,8 @@ Import Tactics.
 Import NamelessTactics.
 Import OperationalSemantics.
 Import OperationalSemanticsProp.
-Import ErrOperationalSemantics.
-Import ErrOperationalSemanticsProp.
+(* Import ErrOperationalSemantics. *)
+(* Import ErrOperationalSemanticsProp. *)
 Import BasicTyping.
 Import ListCtx.
 Import SyntaxSugar.
@@ -314,7 +314,7 @@ Proof.
       apply ctxfind_app_exclude in o. my_set_solver.
   - (* auto_exists_L; simpl; intros. repeat specialize_with f. *)
     msubst_preserves_typing_tac.
-    specialize (H Γt (Γt' ++ [(f, Tx ⤍ T)]) Γv).
+    specialize (H Γt (Γt' ++ [(f, TBase Tx)]) Γv).
     rewrite msubst_vlam in H.
     rewrite msubst_open_tm; try instantiation_regular_solver. apply H; auto.
     rewrite app_assoc; auto.
@@ -344,7 +344,7 @@ Proof.
       apply ctxfind_app_exclude in o. my_set_solver.
   - (* auto_exists_L; simpl; intros. repeat specialize_with f. *)
     msubst_preserves_typing_tac.
-    specialize (H Γt (Γt' ++ [(f, Tx ⤍ T)]) Γv).
+    specialize (H Γt (Γt' ++ [(f, TBase Tx)]) Γv).
     rewrite msubst_vlam in H.
     rewrite msubst_open_tm; try instantiation_regular_solver. apply H; auto.
     rewrite app_assoc; auto.
@@ -1233,3 +1233,325 @@ Ltac termR_solver :=
           | [H: ?e <-<{ ?a ++ ?b; ?T} ?e' |- ?e <-<{ ?b ++ ?a; ?T} ?e'] => rewrite termR_swap; eauto
           | [H: ?e <-<{ (?x, ?t) :: ?b; ?T} ?e' |- ?e <-<{ ?b ++ [(?x, ?t)]; ?T} ?e'] => rewrite termR_swap; eauto
           end || termR_solver1).
+
+Ltac lc_simpl4 :=
+  match goal with
+  | [H: context [{?x := ?v }t ({_ ~t> (vfvar ?x)} ?e)] |- _ ] =>
+      assert (x ∉ stale e) as Htmp by fast_set_solver;
+      rewrite open_subst_same_tm in H; auto; try clear Htmp
+  | [|- context [{?x := ?v }t ({_ ~t> (vfvar ?x)} ?e)]] =>
+      assert (x ∉ stale e) as Htmp by fast_set_solver;
+      rewrite open_subst_same_tm; auto; try clear Htmp
+  | [H: context [{?x := ?v }v ({_ ~v> (vfvar ?x)} ?e)] |- _ ] =>
+      assert (x ∉ stale e) as Htmp by fast_set_solver;
+      rewrite open_subst_same_value in H; auto; try clear Htmp
+  | [|- context [{?x := ?v }v ({_ ~v> (vfvar ?x)} ?e)]] =>
+      assert (x ∉ stale e) as Htmp by fast_set_solver;
+      rewrite open_subst_same_value; auto; try clear Htmp
+  end.
+
+Lemma tletapp_typable
+     : ∀ Γ (v1 v2 : value) (e : tm) (x : atom) (T1 T2 T: ty),
+         x ∉ fv_tm e -> Γ ⊢t v1 ⋮v (T2 ⤍ T1) -> Γ ⊢t v2 ⋮v T2
+         → (Γ ++ [(x, T1)]) ⊢t e ^t^ x ⋮t T -> Γ ⊢t tletapp v1 v2 e ⋮t T.
+Proof.
+  intros. auto_exists_L; intros.
+  apply basic_has_type_renaming with (x0:=x0) in H2; auto.
+  lc_simpl4. fast_set_solver. basic_typing_solver.
+Qed.
+
+Ltac instantiation_simp :=
+   repeat match goal with
+    | [H: instantiation [] _ |- _ ] => invclear H
+    | [H: context [tm_msubst [] _ ] |- _ ] => simpl in H
+    | [|- context [tm_msubst [] _ ] ] => simpl
+    end.
+
+Lemma tm_open_then_msubst_k: forall Γ env,
+    instantiation Γ env ->
+    (forall e k v, tm_msubst env ({k ~t> v} e) = ({k ~t> (value_msubst env v)} (tm_msubst env e))).
+Proof.
+  intros Γ env Hi; induction Hi; simpl; intros; auto.
+  rewrite subst_open_tm; basic_typing_solver6.
+Qed.
+
+Lemma mk_app_v_v_reduce_to_letapp:
+  ∀ (Γ : listctx ty) (Tx T2 : ty) (v1 v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t v1 ⋮v (Tx ⤍ T2) ->
+    (mk_app v1 v2) <-<{ Γ; T2} (tletapp v1 v2 (vbvar 0)).
+Proof.
+  intros. constructor.
+  - eapply mk_app_typable; eauto.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - unfold termRraw. intros Γv. intros. unfold mk_app in H2. reduction_simpl1.
+    rewrite lete_step_spec in H2; simpl; mydestr. simpl in H4. reduction_simpl1.
+    rewrite lete_step_spec in H4; simpl; mydestr. simpl in H6. reduction_simpl1.
+Qed.
+
+Lemma mk_app_v_v_reduce_to_letapp':
+  ∀ (Γ : listctx ty) (Tx T2 : ty) (v1 v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t v1 ⋮v (Tx ⤍ T2) ->
+    (tletapp v1 v2 (vbvar 0)) <-<{ Γ; T2} (mk_app v1 v2).
+Proof.
+  intros. constructor.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - eapply mk_app_typable; eauto.
+  - unfold termRraw. intros Γv. intros. unfold mk_app. reduction_simpl1.
+    rewrite lete_step_spec. split; auto. apply mk_app_body. reduction_solver1.
+    exists (value_msubst Γv v1). split; eauto. reduction_solver1.
+    simpl. reduction_simpl1.
+    rewrite lete_step_spec. split; auto. reduction_solver1. reduction_simpl1.
+    exists (value_msubst Γv v2). split; eauto. reduction_solver1. reduction_simpl1.
+Qed.
+
+Lemma lete_0_reduce_to_self_aux: ∀ (Γ : listctx ty) e,
+    termRraw Γ e (tlete e (vbvar 0)).
+Proof.
+  intros. unfold termRraw. intros Γv. intros. reduction_simpl1.
+  rewrite lete_step_spec. split; auto. eexists; split; eauto. reduction_solver1.
+Qed.
+
+Lemma lete_0_reduce_to_self_aux': ∀ (Γ : listctx ty) e,
+    termRraw Γ (tlete e (vbvar 0)) e.
+Proof.
+  intros. unfold termRraw. intros Γv. intros. reduction_simpl1.
+  rewrite lete_step_spec in H0; mydestr. simpl in H2. reduction_simpl1; auto.
+Qed.
+
+Lemma lete_0_reduce_to_self: ∀ (Γ : listctx ty) (T : ty) e,
+    Γ ⊢t e ⋮t T -> e <-<{ Γ; T} (tlete e (vbvar 0)).
+Proof.
+  intros. constructor; auto.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - unfold termRraw. intros Γv. intros. reduction_simpl1.
+     rewrite lete_step_spec. split; auto. eexists; split; eauto. reduction_solver1.
+Qed.
+
+Lemma lete_0_reduce_to_self': ∀ (Γ : listctx ty) (T : ty) e,
+    Γ ⊢t e ⋮t T -> (tlete e (vbvar 0)) <-<{ Γ; T} e.
+Proof.
+  intros. constructor; auto.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - unfold termRraw. intros Γv. intros. reduction_simpl1.
+    rewrite lete_step_spec in H1; mydestr. simpl in H3. reduction_simpl1; auto.
+Qed.
+
+Lemma vfix_implies_open_tyable:
+  ∀ (Γ : context) e1 (v2: value) (Tx T : ty),
+    Γ ⊢t vfix (Tx ⤍ T) (vlam Tx e1) ⋮v Tx ⤍ T →
+    Γ ⊢t v2 ⋮v Tx ->
+    Γ ⊢t vlam (Tx ⤍ T) ({1 ~t> v2} e1) ⋮v (Tx ⤍ T) ⤍ T.
+Proof.
+  intros. invclear H. auto_pose_fv f.
+  assert ((Γ ++ [(f, TBase Tx0)]) ⊢t (vlam (Tx0 ⤍ T) e1) ^t^ f ⋮t (Tx0 ⤍ T) ⤍ T) by fast_set_solver.
+  apply basic_typing_subst_tm_pre with (u:=v2) in H1; eauto.
+  simpl in H1. simpl. lc_simpl4. invclear H1; auto.
+Qed.
+
+Lemma letapp_fix_reduce_to_open:
+  ∀ (Γ : listctx ty) (Tx T2 : ty) e1 (v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vfix (Tx ⤍ T2) (vlam Tx e1)) ⋮v (Tx ⤍ T2) ->
+    (tletapp (vfix (Tx ⤍ T2) (vlam Tx e1)) v2 (vbvar 0)) <-<{ Γ; T2}
+      (({1 ~t> v2} e1) ^t^ (vfix (Tx ⤍ T2) (vlam Tx e1))).
+Proof.
+  intros. constructor.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - eapply vlam_implies_open_tyable with (v2:= vfix (Tx ⤍ T2) (vlam Tx e1)); eauto.
+    eapply vfix_implies_open_tyable; eauto.
+  - unfold termRraw. intros Γv. intros. unfold mk_app in H2. msubst_simpl.
+    rewrite letapp_step_spec in H2; mydestr. destruct H5; mydestr; subst; invclear H5. simpl in H6.
+    rewrite letapp_step_spec in H6; mydestr. destruct H8; mydestr; subst; invclear H8. simpl in H9.
+    eapply lete_0_reduce_to_self_aux'; eauto. msubst_simpl.
+    setoid_rewrite tm_open_then_msubst_k; eauto.
+    setoid_rewrite tm_open_then_msubst_k; eauto. msubst_simpl. auto.
+Qed.
+
+Lemma letapp_fix_reduce_to_open':
+  ∀ (Γ : listctx ty) (Tx T2 : ty) e1 (v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vfix (Tx ⤍ T2) (vlam Tx e1)) ⋮v (Tx ⤍ T2) ->
+    (({1 ~t> v2} e1) ^t^ (vfix (Tx ⤍ T2) (vlam Tx e1))) <-<{ Γ; T2} (tletapp (vfix (Tx ⤍ T2) (vlam Tx e1)) v2 (vbvar 0)).
+Proof.
+  intros. constructor.
+  - eapply vlam_implies_open_tyable with (v2:= vfix (Tx ⤍ T2) (vlam Tx e1)); eauto.
+    apply vfix_implies_open_tyable; auto.
+  - auto_exists_L; simpl; intros. basic_typing_vfavr_solver.
+  - unfold termRraw. intros Γv. intros. msubst_simpl.
+    assert (lc (vfix (Tx ⤍ T2) (vlam Tx e1))) as Hfixlc by basic_typing_solver.
+    assert (lc (value_msubst Γv (vfix (Tx ⤍ T2) (vlam Tx e1)))) as Hfixlc'.
+    { eapply instantiation_implies_value_msubst_lc; eauto. }
+    rewrite letapp_step_spec. repeat split; auto. msubst_simpl; auto.
+    reduction_solver1.
+    right. do 3 eexists; split; eauto. simpl.
+    rewrite letapp_step_spec. repeat split; auto.
+    { eapply vfix_implies_open_tyable with (T:=T2) (e1:=e1) (v2:=v2) in H0; eauto.
+      assert (lc (vlam (Tx ⤍ T2) ({1 ~t> v2} e1))). basic_typing_solver.
+      eapply instantiation_implies_value_msubst_lc in H3; eauto. msubst_simpl.
+      setoid_rewrite tm_open_then_msubst_k in H3; eauto. }
+    reduction_solver1.
+    left. do 2 eexists; split; eauto. simpl.
+    eapply lete_0_reduce_to_self_aux in H2; eauto. msubst_simpl.
+    setoid_rewrite tm_open_then_msubst_k in H2; eauto.
+    setoid_rewrite tm_open_then_msubst_k in H2; eauto. msubst_simpl. auto.
+Qed.
+
+Lemma termR_trans_better:
+  ∀ (Γ : context) (T : ty) (e1 e2 e3 : tm),
+    e1 <-<{ Γ; T} e2 → e2 <-<{ Γ; T} e3 → e1 <-<{ Γ; T} e3.
+Proof.
+  intros. eapply termR_trans; eauto.
+  - invclear H; auto.
+  - invclear H; auto.
+  - invclear H0; auto.
+Qed.
+
+Lemma mk_app_reduce_to_open_fix:
+  ∀ (Γ : listctx ty) (Tx T2 : ty) e1 (v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vfix (Tx ⤍ T2) (vlam Tx e1)) ⋮v (Tx ⤍ T2) ->
+    (mk_app (vfix (Tx ⤍ T2) (vlam Tx e1)) v2) <-<{ Γ; T2}
+      (({1 ~t> v2} e1) ^t^ (vfix (Tx ⤍ T2) (vlam Tx e1))).
+Proof.
+  intros. apply termR_trans_better with (e2:= tletapp (vfix (Tx ⤍ T2) (vlam Tx e1)) v2 (vbvar 0)).
+  - eapply mk_app_v_v_reduce_to_letapp; eauto.
+  - eapply letapp_fix_reduce_to_open; eauto.
+Qed.
+
+Lemma mk_app_reduce_to_open_fix':
+  ∀ (Γ : listctx ty) (Tx T2 : ty) e1 (v2 : value),
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vfix (Tx ⤍ T2) (vlam Tx e1)) ⋮v (Tx ⤍ T2) ->
+     (({1 ~t> v2} e1) ^t^ (vfix (Tx ⤍ T2) (vlam Tx e1))) <-<{ Γ; T2} (mk_app (vfix (Tx ⤍ T2) (vlam Tx e1)) v2).
+Proof.
+  intros. apply termR_trans_better with (e2:= tletapp (vfix (Tx ⤍ T2) (vlam Tx e1)) v2 (vbvar 0)).
+  - eapply letapp_fix_reduce_to_open'; eauto.
+  - eapply mk_app_v_v_reduce_to_letapp'; eauto.
+Qed.
+
+Lemma termR_tletapp_fix: forall Γ e1 (v2: value) e b x1 T,
+    Γ ⊢t v2 ⋮v b -> Γ ⊢t vfix (b ⤍ x1) (vlam b e1) ⋮v b ⤍ x1 ->
+    (exists (L: aset), ∀ y : atom, y ∉ L → (Γ ++ [(y, x1)]) ⊢t e ^t^ y ⋮t T) ->
+  (tlete (({1 ~t> v2} e1) ^t^ (vfix (b ⤍ x1) (vlam b e1))) e) <-<{ Γ; T} (tletapp (vfix (b ⤍ x1) (vlam b e1)) v2 e).
+Proof.
+  intros. constructor; auto.
+  - mydestr. econstructor; eauto.
+    eapply vlam_implies_open_tyable; eauto.
+    apply vfix_implies_open_tyable; auto.
+  - mydestr. auto_pose_fv x'. eapply tletapp_typable with (x:=x'); eauto; fast_set_solver.
+  - unfold termRraw. intros Γv; intros. reduction_simpl1.
+    rewrite letapp_step_spec. repeat split; auto.
+    + assert (lc (value_msubst Γv (vfix (b ⤍ x1) (vlam b e1)))).
+      eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver.
+      msubst_simpl; auto.
+    + reduction_solver1.
+    + apply multi_step_regular in H3; mydestr. lc_solver.
+    + setoid_rewrite tm_open_then_msubst_k in H3; eauto.
+      setoid_rewrite tm_open_then_msubst_k in H3; eauto.
+      right. do 3 eexists; split; eauto.
+      rewrite letapp_step_spec. repeat split; auto.
+      { apply vfix_implies_open_tyable with (v2:=v2) in H0; auto.
+        assert (lc (value_msubst Γv (vlam (b ⤍ x1) ({1 ~t> v2} e1)))).
+        eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver.
+        simpl. msubst_simpl; auto. simpl. erewrite tm_open_then_msubst_k in H4; eauto. }
+      { assert (lc (vfix (b ⤍ x1) (vlam b e1))) by basic_typing_solver.
+        eapply instantiation_implies_value_msubst_lc in H4; eauto. msubst_simpl; auto. }
+      { mydestr. assert (body e). auto_exists_L. intros a; intros. specialize_with a.
+        basic_typing_solver.
+        eapply msubst_preserves_body_tm; eauto.
+      }
+      left. do 2 eexists; split; eauto. msubst_simpl; auto.
+Qed.
+
+Lemma termR_tletapp_lam: forall Γ e1 (v2: value) e Tx Ty T,
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vlam Tx e1) ⋮v Tx ⤍ Ty ->
+    (exists (L: aset), ∀ y : atom, y ∉ L → (Γ ++ [(y, Ty)]) ⊢t e ^t^ y ⋮t T) ->
+    (tlete (e1 ^t^ v2) e) <-<{Γ; T} (tletapp (vlam Tx e1) v2 e).
+Proof.
+  intros. constructor; auto.
+  - mydestr. econstructor; eauto. invclear H0.
+    auto_pose_fv x'.
+    assert ((Γ ++ [(x', Tx)]) ⊢t e1 ^t^ x' ⋮t Ty). apply H4; fast_set_solver.
+    apply basic_typing_subst_tm_pre with (u:=v2) in H2; auto. lc_simpl4.
+  - mydestr. auto_pose_fv x'. eapply tletapp_typable with (x:=x'); eauto; fast_set_solver.
+  - unfold termRraw. intros Γv; intros. reduction_simpl1.
+    rewrite letapp_step_spec. repeat split; auto.
+    + assert (lc (value_msubst Γv (vlam Tx e1))).
+      eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver.
+      msubst_simpl; auto.
+    + reduction_solver1.
+    + apply multi_step_regular in H3; mydestr. lc_solver.
+    + left. do 2 eexists; split; eauto.
+      setoid_rewrite tm_open_then_msubst_k in H3; eauto.
+Qed.
+
+Lemma termR_tletapp_lam_y: forall Γ e1 y (v2: value) e Tx Ty T,
+    Γ ⊢t v2 ⋮v Tx -> Γ ⊢t (vlam Tx e1) ⋮v Tx ⤍ Ty -> y # e ->
+    (Γ ++ [(y, Ty)]) ⊢t e ^t^ y ⋮t T ->
+    (tlete (e1 ^t^ v2) e) <-<{Γ; T} (tletapp (vlam Tx e1) v2 e).
+Proof.
+  intros. constructor; auto.
+  - econstructor; eauto. instantiate (1:=Ty). basic_typing_solver.
+    auto_exists_L_intros.
+    apply basic_has_type_renaming with (x0:=x) in H2; try listctx_set_solver.
+    lc_simpl4. basic_typing_solver.
+  - eapply tletapp_typable with (x:=y); eauto; fast_set_solver.
+  - unfold termRraw. intros Γv; intros. reduction_simpl1.
+    rewrite letapp_step_spec. repeat split; auto.
+    + assert (lc (value_msubst Γv (vlam Tx e1))).
+      eapply instantiation_implies_value_msubst_lc; eauto. basic_typing_solver.
+      msubst_simpl; auto.
+    + reduction_solver1.
+    + apply multi_step_regular in H4; mydestr. lc_solver.
+    + left. do 2 eexists; split; eauto.
+      setoid_rewrite tm_open_then_msubst_k in H4; eauto.
+Qed.
+
+Lemma mk_app_open: forall e v,
+    lc e -> (mk_app e (vbvar 1) ^t^ v) = mk_app e v.
+Proof.
+  intros. simpl. unfold mk_app. lc_simpl.
+Qed.
+
+Lemma termR_elete_better
+  : ∀ (γ : listctx ty) (Tx T : ty) (e_x e_x' e e' : tm) (x : atom),
+    x ∉ stale e ∪ stale e' ->
+    e_x <-<{ γ; Tx} e_x'
+    → (e ^t^ x) <-<{ γ ++ [(x, Tx)]; T}(e' ^t^ x)
+    → (tlete e_x e) <-<{ γ; T} (tlete e_x' e').
+Proof.
+  intros.
+  eapply termR_elete in H1; eauto.
+  rewrite close_open_var_tm in H1; try fast_set_solver.
+  rewrite close_open_var_tm in H1; try fast_set_solver.
+Qed.
+
+Lemma termR_elete_lhs
+  : ∀ (γ : listctx ty) (Tx T : ty) (e_x e_x' e : tm) (x : atom),
+    x ∉ stale e ->
+    e_x <-<{ γ; Tx} e_x' -> (γ ++ [(x, Tx)]) ⊢t (e ^t^ x) ⋮t T
+    → (tlete e_x e) <-<{ γ; T} (tlete e_x' e).
+Proof.
+  intros. eapply termR_elete_better; eauto. fast_set_solver.
+Qed.
+
+Lemma termRraw_weakening: forall Γ e e',
+    closed_tm e -> closed_tm e' -> termRraw [] e e' -> termRraw Γ e e'.
+Proof.
+  unfold termRraw. intros. rewrite tm_msubst_closed; auto.
+  rewrite tm_msubst_closed in H3; auto.
+  assert (instantiation [] []) as Hz; auto.
+  eapply H1 in Hz; eauto.
+Qed.
+
+Lemma termR_weakening: forall Γ T e e',
+    ok Γ -> e <-<{ []; T} e' -> e <-<{ Γ; T} e'.
+Proof.
+  intros. invclear H0. constructor; basic_typing_solver.
+  eapply termRraw_weakening; auto; basic_typing_solver.
+Qed.
+
+Lemma termR_value_tm: forall T e (v: value),
+    [] ⊢t e ⋮t T -> e ↪* v -> v <-<{ []; T} e.
+Proof.
+  intros. constructor; auto.
+  - eapply multi_preservation; eauto.
+  - unfold termRraw. intros Γv; intros. invclear H1.
+    simpl in H2. simpl. eapply multistep_trans; eauto.
+Qed.

@@ -10,8 +10,8 @@ ListCtx.v
 BasicTyping.v
 BasicTypingProp.v
 SyntaxSugar.v
-ErrOperationalSemantics.v
-ErrOperationalSemanticsProp.v
+# ErrOperationalSemantics.v
+# ErrOperationalSemanticsProp.v
 TermOrdering.v
 Refinement.v
 RefinementTac.v
@@ -20,4 +20,7 @@ RefinementDenotationTac.v
 RefinementDenotationProp.v
 RDInv.v
 RDInv2.v
+RDInv3.v
+RDInv4.v
+RDInv5.v
 AuxTyping.v

@@ -27,9 +27,12 @@ Fixpoint rR (n: nat) (bst: bstate) (st: state) (τ: rty) (e: tm) : Prop :=
     | {v: B | _ | _ | ϕ} => exists (c: constant), [] ⊢t c ⋮v B /\ ϕ bst st c /\ e = c
     | [v: B | _ | _ | ϕ] => forall (c: constant), [] ⊢t c ⋮v B -> ϕ bst st c -> e ↪* c
     | -:{v: B | _ | d | ϕ } ⤑ τ =>
-        forall (c_x: constant),
-          [] ⊢t c_x ⋮v B -> ϕ bst st c_x -> rR (S n) (<b[↦ c_x ]> bst) st τ (mk_app e c_x)
-    | τ1 ⤑ τ2 => forall (v_x: value), rR n bst st τ1 v_x -> rR n bst st τ2 (mk_app e v_x)
+        exists (v: value), e ↪* v /\
+                        forall (c_x: constant),
+                          [] ⊢t c_x ⋮v B -> ϕ bst st c_x -> rR (S n) (<b[↦ c_x ]> bst) st τ (mk_app v c_x)
+    | τ1 ⤑ τ2 =>
+        exists (v: value), e ↪* v /\
+                        (forall (v_x: value), rR n bst st τ1 v_x -> rR n bst st τ2 (mk_app v v_x))
     end.
 
 Lemma bst_eq_trans: forall n n' (bst1 bst2: bstate), n' <= n -> bst_eq n bst1 bst2 -> bst_eq n' bst1 bst2.
@@ -76,10 +79,13 @@ Proof.
     rewrite bst_eq_symmetry in H. eapply bst_eq_trans; eauto.
   - constructor; auto. constructor; auto. intros. apply H2; auto.
     invclear H0; mydestr. invclear H5. invclear H8. invclear H6. eapply H5; eauto. eapply bst_eq_trans; eauto.
-  - constructor; auto. constructor; auto. intros.
-    apply IHτ with (bst1 := (<b[↦c_x]> bst1)). apply bst_eq_push; auto. apply H2; auto.
-    invclear H0; mydestr. invclear H5. invclear H10. eapply H5; eauto. invclear H6. eapply bst_eq_trans; eauto.
-  - constructor; auto. constructor; auto. intros. eapply IHτ2; eauto. apply H2; auto.
+  - constructor; auto. constructor; auto.
+    eexists; split; eauto.
+    intros.
+    apply IHτ with (bst1 := (<b[↦c_x]> bst1)). apply bst_eq_push; auto. apply H3; auto.
+    invclear H0; mydestr. invclear H6. invclear H11. eapply H6; eauto. invclear H7. eapply bst_eq_trans; eauto.
+  - constructor; auto. constructor; auto. eexists; split; eauto. intros.
+    eapply IHτ2; eauto. apply H3; auto.
     eapply IHτ1; eauto. rewrite bst_eq_symmetry; auto.
 Qed.
 

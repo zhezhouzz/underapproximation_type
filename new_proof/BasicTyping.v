@@ -91,7 +91,7 @@ with value_has_type : context -> value -> ty -> Prop :=
     (forall (x: atom), x ∉ L -> (Γ ++ [(x, Tx)]) ⊢t e ^t^ x ⋮t T) ->
     Γ ⊢t vlam Tx e ⋮v Tx ⤍ T
 | T_Fix : forall Γ (Tx: base_ty) T e (L: aset),
-    (forall (f: atom), f ∉ L -> (Γ ++ [(f, Tx ⤍ T)]) ⊢t (vlam Tx e) ^v^ f ⋮v (Tx ⤍ T)) ->
+    (forall (f: atom), f ∉ L -> (Γ ++ [(f, TBase Tx)]) ⊢t (vlam (Tx ⤍ T) e) ^v^ f ⋮v ((Tx ⤍ T) ⤍ T)) ->
     Γ ⊢t vfix (Tx ⤍ T) (vlam Tx e) ⋮v Tx ⤍ T
 where "Γ '⊢t' t '⋮t' T" := (tm_has_type Γ t T) and "Γ '⊢t' t '⋮v' T" := (value_has_type Γ t T).
 
@@ -173,6 +173,7 @@ Proof.
              destruct H; repeat destruct_hyp_conj
          end; lc_solver; listctx_set_solver);
   try (econstructor; auto; instantiate_atom_listctx).
+  invclear H1. econstructor; eauto.
 Qed.
 
 Lemma basic_typing_regular_tm: forall Γ e t, Γ ⊢t e ⋮t t -> ok Γ /\ lc e.
@@ -187,6 +188,7 @@ Proof.
              destruct H; repeat destruct_hyp_conj
          end; lc_solver; listctx_set_solver);
     try (econstructor; auto; instantiate_atom_listctx).
+  invclear H1. econstructor; eauto.
 Qed.
 
 Ltac basic_typing_regular_simp :=

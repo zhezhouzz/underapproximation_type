@@ -306,10 +306,11 @@ Proof.
   - inversion H; subst; clear H. econstructor. instantiate (1:= Tx).
     + perservation_aux a Ha Tx.
     + instantiate_atom_listctx; auto_apply; listctx_set_solver.
-  - inversion H; subst; clear H. auto_pose_fv a. eapply T_LetApp; eauto.
-    + rewrite <- (subst_intro_value _ a);
-        try (eapply basic_typing_subst_value_pre; try (apply H6; basic_typing_solver2); basic_typing_solver2);
-        basic_typing_solver2.
+  - inversion H; subst; clear H. auto_pose_fv a.
+    eapply T_LetApp; eauto. specialize_with a.
+    assert (Γ ⊢t {a:=v2}v (vlam (Tx1 ⤍ Tx) e1 ^v^ a) ⋮v (Tx1 ⤍ Tx) ⤍ Tx).
+    eapply basic_typing_subst_value_pre; eauto.
+    rewrite open_subst_same_value in H4; auto. set_solver.
 Qed.
 
 (* multi preservation *)
@@ -517,7 +518,7 @@ Proof.
    { apply H; listctx_set_solver5. }
    listctx_set_solver5.
  - auto_exists_L; intros.
-   assert ((Γ2 ++ Γ1 ++ (Γ3 ++ [(f, Tx ⤍ T)])) ⊢t vlam Tx e ^v^ f ⋮v Tx ⤍ T).
+   assert ((Γ2 ++ Γ1 ++ (Γ3 ++ [(f, TBase Tx)])) ⊢t vlam (Tx ⤍ T) e ^v^ f ⋮v (Tx ⤍ T) ⤍ T).
    { apply H; listctx_set_solver5. }
    listctx_set_solver5.
  - constructor. listctx_set_solver5.
@@ -560,7 +561,7 @@ Proof.
    { apply H; listctx_set_solver5. }
    listctx_set_solver5.
  - auto_exists_L; intros.
-   assert ((Γ2 ++ Γ1 ++ (Γ3 ++ [(f, Tx ⤍ T)])) ⊢t vlam Tx e ^v^ f ⋮v Tx ⤍ T).
+   assert ((Γ2 ++ Γ1 ++ (Γ3 ++ [(f, TBase Tx)])) ⊢t vlam (Tx ⤍ T) e ^v^ f ⋮v (Tx ⤍ T) ⤍ T).
    { apply H; listctx_set_solver5. }
    listctx_set_solver5.
  - constructor. listctx_set_solver5.

@@ -488,17 +488,17 @@ Proof.
   intros. apply open_close_var_value_aux. apply open_rec_lc_value; auto.
 Qed.
 
-Lemma close_var_lc_tm': forall (x: atom) (t: tm),
-    lc t -> forall k, body ({k ~t> x} t).
-Proof.
+(* Lemma close_var_lc_tm': forall (x: atom) (t: tm), *)
+(*     lc t -> forall k, body ({k ~t> x} t). *)
+(* Proof. *)
 
-Admitted.
+(* Admitted. *)
 
-Lemma close_var_lc_tm: forall (x: atom) (t: tm) (k: nat),
-    lc t ->
-    (exists (L: aset), forall (x': atom), x' ∉ L -> lc ({k ~t> x'} ({k <t~ x} t))).
-Proof.
-Admitted.
+(* Lemma close_var_lc_tm: forall (x: atom) (t: tm) (k: nat), *)
+(*     lc t -> *)
+(*     (exists (L: aset), forall (x': atom), x' ∉ L -> lc ({k ~t> x'} ({k <t~ x} t))). *)
+(* Proof. *)
+(* Admitted. *)
 
 (* The third class of lemmas *)
 
@@ -981,6 +981,23 @@ Proof.
     rewrite H1; auto; try fast_set_solver.
   - rewrite H; auto; try fast_set_solver. rewrite H0; auto; try fast_set_solver.
     rewrite H1; auto; try fast_set_solver.
+Qed.
+
+Lemma body_vlam_eq: forall e T1 T2,
+    body (vlam T1 e) <-> body (vlam T2 e).
+Proof.
+  apply (tm_mutual_rec
+                   (fun (e: value) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
+                   (fun (e: tm) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
+                ); split; simpl; intros; auto;
+    repeat match goal with
+    | [H: body (tvalue (vlam _ _)) |- _ ] => invclear H
+    | [|- body (tvalue (vlam _ _))] => auto_exists_L; intros a; intros; specialize_with a
+    | [H: context [(tvalue (vlam _ _)) ^t^ _] |- _ ] => simpl in H
+    | [|- context [(tvalue (vlam _ _)) ^t^ _] ] => simpl
+    | [H: lc (tvalue (vlam _ _)) |- _ ] => rewrite lc_abs_iff_body in H; auto
+    | [|- lc (tvalue (vlam _ _))] => rewrite lc_abs_iff_body; auto
+    end.
 Qed.
 
 (* Inductive lc_n: nat -> tm -> Prop := *)

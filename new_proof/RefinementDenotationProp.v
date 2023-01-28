@@ -54,6 +54,15 @@ Inductive wf_ctxrR: state -> listctx rty -> Prop :=
 
 Ltac auto_meet_exists HE :=
   match goal with
+     | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
+           H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2,
+             H3: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x3,
+               H4: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x4,
+                 H5: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x5
+        |- ∃ e, {0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧ e /\ _ ] =>
+         exists ((((x1 ⊗{ b } x2) ⊗{ b } x3) ⊗{ b } x4) ⊗{ b } x5)
+         ; assert ( {0;b∅;st}⟦[v:b|n|d|ϕ]⟧ ((((x1 ⊗{ b } x2) ⊗{ b } x3) ⊗{ b } x4) ⊗{ b } x5))
+           as HE by (eapply rR_tmeet5_when_all; auto); split; auto; intros
   | [H1: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x1,
         H2: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x2,
           H3: ({0;b∅;?st}⟦[v:?b|?n|?d|?ϕ]⟧) ?x3,
@@ -76,6 +85,8 @@ Ltac auto_meet_exists HE :=
 
 Ltac auto_meet_reduce :=
   match goal with
+  | [H: ((((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ⊗{ ?b } ?x4) ⊗{ ?b } ?x5) ↪* ?v |- _ ] =>
+      rewrite reduction_tmeet5_iff_all in H; refinement_solver7; mydestr; eauto
   | [H: (((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ⊗{ ?b } ?x4)↪* ?v |- _ ] =>
       rewrite reduction_tmeet4_iff_all in H; refinement_solver7; mydestr; eauto
   | [H: ((?x1 ⊗{ ?b } ?x2) ⊗{ ?b } ?x3) ↪* ?v |- _ ] =>
@@ -865,28 +876,32 @@ Proof.
       apply closed_rty_implies_weak_bound_in_refinement_under in H0.
       eapply H0 in H. rewrite <- H; eauto.
   - invclear H1; mydestr. simpl in H2. simpl in H1. inv_rd_simpl0. do 2 (split; auto).
+    eexists; split; eauto.
     intros. apply IHτ with (c:=c) (bst:= (<b[↦c_x]> bst)); eauto.
     + rewrite bstate_insert_push. apply bst_eq_push; auto.
     + rewrite closed_rty_destruct_oarr in H0; mydestr. split; auto.
-      apply H3; auto.
+      apply H4; auto.
       apply closed_rty_implies_weak_bound_in_refinement_over in H0.
-      eapply H0 in H. rewrite <- H in H5; eauto.
+      eapply H0 in H. rewrite <- H in H6; eauto.
   - invclear H0; mydestr. inv_rd_simpl0. do 3 (split; auto).
     apply closed_rty_open_trans with (c:=c) in H0; auto.
+    eexists; split; eauto.
     intros. rewrite closed_rty_destruct_oarr in H0; mydestr.
     assert (ϕ bst' st c_x) as Hz.
     { apply closed_rty_implies_weak_bound_in_refinement_over in H0.
       eapply H0 in H. rewrite <- H; eauto. }
-    apply H2 in Hz; auto. rewrite <- IHτ in Hz; mydestr; eauto.
+    apply H3 in Hz; auto. rewrite <- IHτ in Hz; mydestr; eauto.
     rewrite bstate_insert_push. apply bst_eq_push; auto.
   - invclear H1; mydestr. simpl in H2. inv_rd_simpl0. do 2 (split; auto).
+    eexists; split; eauto.
     intros. rewrite closed_rty_destruct_arrarr in H0; mydestr.
-    eapply IHτ2; eauto. split; auto. apply H3. rewrite <- IHτ1 in H4; mydestr; eauto.
+    eapply IHτ2; eauto. split; auto. apply H4. rewrite <- IHτ1 in H5; mydestr; eauto.
   - invclear H0; mydestr. simpl in H1. inv_rd_simpl0. do 3 (split; auto).
     apply closed_rty_open_trans with (c:=c) in H0; auto.
+    eexists; split; eauto.
     intros. rewrite closed_rty_destruct_arrarr in H0; mydestr.
     assert (({S m;bst';st}⟦τ1⟧) v_x) as Hz by (rewrite <- IHτ1; eauto).
-    apply H2 in Hz. rewrite <- IHτ2 in Hz; mydestr; eauto.
+    apply H3 in Hz. rewrite <- IHτ2 in Hz; mydestr; eauto.
 Qed.
 
 Lemma rR_open_trans_empty: forall τ st (c: constant) e,

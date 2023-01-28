@@ -160,7 +160,8 @@ Lemma letapp_reduction_spec: forall n (v1 v2 : value) (v : value) e,
     tletapp v1 v2 e ↪{n} v <->
       exists n', n = S n' /\ lc v1 /\ lc v2 /\ body e /\
               ((exists T e1,  v1 = vlam T e1 /\ (tlete (e1 ^t^ v2) e) ↪{n'} v) \/
-                 (exists T (v1': value), v1 = vfix T v1' /\ (tletapp (v1' ^v^ (vfix T v1')) v2 e) ↪{n'} v)).
+                 (exists T Tx (e1: tm), v1 = vfix T (vlam Tx e1) /\
+                                        (tletapp ((vlam T e1) ^v^ v2) (vfix T (vlam Tx e1)) e) ↪{n'} v)).
 Proof.
   split; intros.
   - destruct n. inversion H.
@@ -171,7 +172,8 @@ Proof.
   - repeat destruct_hyp_conj; subst.
     destruct H3; repeat destruct_hyp_conj; subst.
     + econstructor; eauto. econstructor; eauto; lc_solver.
-    + econstructor; eauto. econstructor; eauto; lc_solver.
+    + econstructor; eauto. econstructor; eauto. rewrite body_vlam_eq.
+      instantiate (1:=x1). lc_solver.
 Qed.
 
 Lemma multistep_lete: forall e_x e_x' e, body e -> e_x ↪* e_x' -> (tlete e_x e) ↪* (tlete e_x' e).
@@ -200,7 +202,8 @@ Lemma letapp_step_spec: forall (v1 v2: value) e (v: value),
     tletapp v1 v2 e ↪* v <->
        lc v1 /\ lc v2 /\ body e /\
          ((exists T e1, v1 = vlam T e1 /\ (tlete (e1 ^t^ v2) e) ↪* v) \/
-                 (exists T (v1': value), v1 = vfix T v1' /\ (tletapp (v1' ^v^ (vfix T v1')) v2 e) ↪* v)).
+                 (exists T Tx (e1: tm), v1 = vfix T (vlam Tx e1) /\
+                                        (tletapp ((vlam T e1) ^v^ v2) (vfix T (vlam Tx e1)) e) ↪* v)).
 Proof.
   split; intros.
   - repeat split; step_length_regular_solver1.
@@ -211,7 +214,7 @@ Proof.
   - mydestr.
     destruct_hyp_disj; mydestr; subst; econstructor; eauto.
     + econstructor; eauto. step_length_regular_solver1.
-    + econstructor; eauto. step_length_regular_solver1.
+    + econstructor; eauto. rewrite body_vlam_eq. instantiate (1:=x0). step_length_regular_solver1.
 Qed.
 
 Lemma letbiop_step_spec: forall op (v1 v2 : value) (v : value) e,

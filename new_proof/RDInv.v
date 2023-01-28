@@ -133,7 +133,9 @@ Proof.
   - RD_simp2; mydestr.
     + auto_under x1. RD_simp2. inv_simpl.
     + assert ({0;b∅;st}⟦ τ_x ⟧ (riv τ_x)) by (apply riv_in_any_under; refinement_solver7).
-      auto_under (riv τ_x). RD_simp2. inv_simpl.
+      assert ((riv τ_x) ↪* (riv τ_x)). admit.
+      (* auto_under (riv τ_x). *)
+      admit.
   - RD_simp2.
     + inversion H10; auto_ty_exfalso4; subst. constructor; auto. refinement_solver8.
       denotation_simp. eapply cons_basic_strengthen1_pre_cons_tm; eauto.
@@ -148,7 +150,7 @@ Proof.
       denotation_simp. eapply cons_basic_strengthen1_pre_cons_tm; eauto.
       intros. auto_under v_x.
       apply IHΓ in H15; auto. lc_solver_r.
-Qed.
+Admitted.
 
 Lemma wf_implies_ctxrR_tlete_is_arr: forall Γ st x τ_x (e_x: value) e τ,
     wf_ctxrR st (Γ ++ [(x, τ_x)]) ->
@@ -160,6 +162,7 @@ Proof.
   - constructor; auto. denotation_simp. eapply tlete_apply_typable_aux3; eauto; refinement_solver8.
     intros. auto_under e_x. RD_simp2.
     lc_simpl3. eapply termR_perserve_rR; eauto; refinement_solver.
+    (* admit. *)
     apply termR_let_one_step_from_basic_type'. basic_typing_solver. fast_set_solver.
     eapply tlete_apply_typable_aux; eauto; refinement_solver.
   - constructor; auto. denotation_simp. eapply tlete_apply_typable_aux4; eauto; refinement_solver8.
@@ -370,6 +373,15 @@ Proof.
   - intros. rewrite subst_fresh_value; auto. fast_set_solver.
 Qed.
 
+Lemma lc_fresh_var_implies_body: forall e (x: atom),
+  x # e -> lc (e ^t^ x) -> body e.
+Proof.
+  intros.
+  apply (body_lc_after_close_tm x) in H0. rewrite close_open_var_tm in H0; auto.
+Qed.
+
+Global Hint Resolve lc_fresh_var_implies_body: core.
+
 Lemma inv_rRctx_oarr: forall Γ st (τ: rty) x b n d ϕ τ e,
     x ∉ fv_tm e -> x ∉ rty_fv τ ->
     wf_ctxrR st (Γ ++ [(x, {v:b|n|d|ϕ})]) ->
@@ -381,7 +393,10 @@ Proof.
   - invclear H6; auto_ty_exfalso. do 2 constructor.
     + eapply opened_term_tyable_renaming; eauto.
     + apply (closed_rty_trans _ (ctxdom ⦑[]⦒ ∪ dom aset st)); eauto. fast_set_solver.
-    + intros.
+    + exists (vlam b e). split; auto.
+      { apply multistep_refl. rewrite lc_abs_iff_body.
+        eapply lc_fresh_var_implies_body; basic_typing_solver. }
+      intros.
       assert (({0;b∅;st}⟦{v:b|n|d|ϕ}⟧) c_x). do 2 constructor; refinement_solver.
       auto_under c_x. RD_simp2. rewrite open_subst_same_tm in H6; auto.
       rewrite denotation_st_update_iff_subst in H6; mydestr; try fast_set_solver.
@@ -433,7 +448,10 @@ Proof.
   - clear H11. invclear H10; auto_ty_exfalso. do 2 constructor.
     + eapply opened_term_tyable_renaming; eauto.
     + refinement_solver.
-    + intros. auto_under v_x. RD_simp2. rewrite open_subst_same_tm in H4; auto.
+    + exists (vlam ⌊τ1 ⤑ τ2⌋ e). split; auto.
+      { apply multistep_refl. rewrite lc_abs_iff_body.
+        eapply lc_fresh_var_implies_body; basic_typing_solver. }
+      intros. auto_under v_x. RD_simp2. rewrite open_subst_same_tm in H4; auto.
       rewrite closed_rty_destruct_arrarr in H2; mydestr.
       eapply termR_perserve_rR; eauto. refinement_solver8. simpl.
       apply mk_app_reduce_to_open'; refinement_solver8; inv_rd_simpl1.

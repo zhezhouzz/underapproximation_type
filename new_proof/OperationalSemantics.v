@@ -33,10 +33,10 @@ Inductive step : tm -> tm -> Prop :=
 | ST_LetAppLam: forall T (v_x: value) e1 e,
     body e1 -> body e -> lc v_x ->
     (tletapp (vlam T e1) v_x e) ↪ tlete (e1 ^t^ v_x) e
-| ST_LetAppFix: forall T_f (v_x: value) (v1: value) e,
-    body v1 -> lc v_x -> body e ->
-    tletapp (vfix T_f v1) v_x e ↪
-            tletapp (v1 ^v^ (vfix T_f v1)) v_x e
+| ST_LetAppFix: forall T_f (v_x: value) Tx (e1: tm) e,
+    body (vlam T_f e1) -> lc v_x -> body e ->
+    tletapp (vfix T_f (vlam Tx e1)) v_x e ↪
+            tletapp ((vlam T_f e1) ^v^ v_x) (vfix T_f (vlam Tx e1)) e
 | ST_Matchb_true: forall e1 e2,
     lc e1 -> lc e2 ->
     (tmatchb true e1 e2) ↪ e1
@@ -60,7 +60,10 @@ Proof.
   - rewrite letapp_lc_body; split; auto. rewrite lc_abs_iff_body; auto.
   - rewrite lete_lc_body; split; auto. apply open_lc_tm; auto.
   - rewrite letapp_lc_body; split; auto. rewrite lc_fix_iff_body; auto.
-  - rewrite letapp_lc_body; split; auto. apply open_lc_value; auto. rewrite lc_fix_iff_body; auto.
+    rewrite body_vlam_eq; eauto.
+  - rewrite letapp_lc_body; split; auto.
+    + eapply open_lc_value; eauto.
+    + split; auto. rewrite body_vlam_eq in H. rewrite lc_fix_iff_body; eauto.
 Qed.
 
 Lemma step_regular1: forall e1 e2, e1 ↪ e2 -> lc e1.
