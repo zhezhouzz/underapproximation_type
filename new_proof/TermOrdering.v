@@ -4,7 +4,6 @@ From Coq Require Import Classical.
 From CT Require Import CoreLang.
 From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
-(* From CT Require Import ErrOperationalSemanticsProp. *)
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
 
@@ -14,8 +13,6 @@ Import Tactics.
 Import NamelessTactics.
 Import OperationalSemantics.
 Import OperationalSemanticsProp.
-(* Import ErrOperationalSemantics. *)
-(* Import ErrOperationalSemanticsProp. *)
 Import BasicTyping.
 Import ListCtx.
 Import SyntaxSugar.
@@ -1126,38 +1123,6 @@ Proof.
   apply basic_has_type_renaming; try basic_typing_solver.
 Qed.
 
-Lemma subst_open_tm_closed:
-  ∀ (v : tm) (x : atom) (u w : value) (k : nat),
-    closed_value u ->
-    lc w → {x := w }t ({k ~t> u} v) = {k ~t> u} ({x := w }t v).
-Proof.
-  intros. rewrite subst_open_tm; auto.
-  rewrite (subst_fresh_value); eauto. set_solver.
-Qed.
-
-Lemma subst_open_value_closed:
-  ∀ (v : value) (x : atom) (u w : value) (k : nat),
-    closed_value u ->
-    lc w → {x := w }v ({k ~v> u} v) = {k ~v> u} ({x := w }v v).
-Proof.
-  intros. rewrite subst_open_value; auto.
-  rewrite (subst_fresh_value); eauto. set_solver.
-Qed.
-
-Lemma body_lc_after_close_tm: forall (x: atom) e, lc e -> body ({0 <t~ x} e).
-Proof.
-  intros. unfold body. auto_exists_L. intros.
-  rewrite subst_as_close_open_tm; auto.
-  apply subst_lc_tm; auto.
-Qed.
-
-Lemma body_lc_after_close_value: forall (x: atom) (e: value), lc e -> body ({0 <v~ x} e).
-Proof.
-  intros. unfold body. auto_exists_L. intros. simpl.
-  rewrite subst_as_close_open_value; auto.
-  apply subst_lc_value; auto.
-Qed.
-
 Lemma termR_tlete_commute_tlete: forall Γ e1 T1 e2 T2 e T x1 x2,
     x1 <> x2 ->
     [] ⊢t e1 ⋮t T1 -> [] ⊢t e2 ⋮t T2 -> ((x1, T1) :: Γ ++ [(x2, T2)]) ⊢t e ⋮t T ->
@@ -1554,4 +1519,76 @@ Proof.
   - eapply multi_preservation; eauto.
   - unfold termRraw. intros Γv; intros. invclear H1.
     simpl in H2. simpl. eapply multistep_trans; eauto.
+Qed.
+
+
+Definition eval_op_under_bound_tm (op: biop) (a: nat) (b: nat): tm :=
+  match op with
+  | op_plus => a + b
+  | op_eq => (Nat.eqb a b)
+  | op_lt => (Nat.ltb a b)
+  | op_rannat => nat-gen
+  end.
+
+Definition eval_op_under_bound_tm_all (op: biop) (a: value) (b: value): tm :=
+  tletbiop op_eq a b (vbvar 0).
+
+Lemma eval_op_under_bound_tm_reduction_sepc: forall (op: biop) (a: nat) (b: nat) (c: constant),
+    eval_op op a b c ->
+    eval_op_under_bound_tm op a b ↪* c.
+Proof.
+  destruct op; simpl; intros; invclear H; auto.
+Qed.
+
+Global Hint Resolve eval_op_under_bound_tm_reduction_sepc: core.
+
+Lemma eval_op_under_bound_tm_reduction_sepc': forall (op: biop) (a: nat) (b: nat) (c: constant),
+    eval_op_under_bound_tm op a b ↪* c ->
+    eval_op op a b c.
+Proof.
+  destruct op; simpl; intros.
+  - rewrite value_reduce_to_value_implies_same in H; mydestr; subst.
+    invclear H. constructor.
+  - rewrite value_reduce_to_value_implies_same in H; mydestr; subst.
+    invclear H. constructor.
+  - rewrite value_reduce_to_value_implies_same in H; mydestr; subst.
+    invclear H. constructor.
+  - assert ([] ⊢t nat-gen ⋮t TNat); auto.
+    assert ([] ⊢t c ⋮t TNat). eapply multi_preservation; eauto.
+    invclear H1. invclear H4. destruct c; invclear H3. constructor.
+Qed.
+
+Global Hint Resolve eval_op_under_bound_tm_reduction_sepc': core.
+
+Lemma eval_op_under_bound_tm_tyable: forall (op: biop) (a: nat) (b: nat),
+    [] ⊢t eval_op_under_bound_tm op a b ⋮t ret_ty_of_op op.
+Proof.
+  destruct op; simpl; intros; eauto.
+  - do 2 constructor; auto.
+  - do 2 constructor; auto.
+  - do 2 constructor; auto.
+Qed.
+
+Global Hint Resolve eval_op_under_bound_tm_tyable: core.
+
+Lemma termR_tmatchb_true: forall Γ T e1 e2,
+  Γ ⊢t e1 ⋮t T -> Γ ⊢t e2 ⋮t T ->
+  e1 <-<{ Γ; T} (tmatchb true e1 e2).
+Proof.
+  intros. constructor; auto.
+  - repeat constructor; auto. basic_typing_solver.
+  - unfold termRraw. intros Γv; intros. assert (closed_value true) by auto.
+    reduction_simpl1. rewrite value_msubst_closed; auto.
+    eapply multistep_step; eauto. constructor; auto; reduction_solver1.
+Qed.
+
+Lemma termR_tmatchb_false: forall Γ T e1 e2,
+  Γ ⊢t e1 ⋮t T -> Γ ⊢t e2 ⋮t T ->
+  e2 <-<{ Γ; T} (tmatchb false e1 e2).
+Proof.
+  intros. constructor; auto.
+  - repeat constructor; auto. basic_typing_solver.
+  - unfold termRraw. intros Γv; intros. assert (closed_value false) by auto.
+    reduction_simpl1. rewrite value_msubst_closed; auto.
+    eapply multistep_step; eauto. constructor; auto; reduction_solver1.
 Qed.

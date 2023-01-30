@@ -54,6 +54,13 @@ Definition mk_term_meet (T: base_ty) e1 e2 :=
 
 Notation " e1 '⊗{' T '}' e2 " := (mk_term_meet T e1 e2) (at level 90, right associativity).
 
+Fixpoint ty_inhabitant (t: ty): value :=
+  match t with
+  | TBase TNat => (vconst 1)
+  | TBase TBool => (vconst true)
+  | T1 ⤍ T2 => vlam T1 (ty_inhabitant T2)
+  end.
+
 (* lc property *)
 
 Lemma body_vbvar_zero: body (vbvar 0).
@@ -138,6 +145,24 @@ Proof.
   intros. unfold mk_non_deter_choice.
   lc_solver. apply mk_bool_gen_lc.
 Qed.
+
+Lemma closed_ty_inhabitant: forall T, fv_value (ty_inhabitant T) ≡ ∅.
+Proof.
+  induction T; simpl; intros; auto.
+  - destruct b; constructor; auto.
+Qed.
+
+Global Hint Resolve closed_ty_inhabitant: core.
+
+Lemma lc_ty_inhabitant: forall T, lc (ty_inhabitant T).
+Proof.
+  induction T; simpl; intros; auto.
+  - destruct b; constructor; auto.
+  - apply lc_vlam with (L := ∅). intros.
+    rewrite open_rec_lc_tm; auto.
+Qed.
+
+Global Hint Resolve lc_ty_inhabitant: core.
 
 (* step property *)
 
@@ -269,7 +294,90 @@ Proof.
     end.
     simpl in H5. rewrite <- meet_nat_condition_spec in H5. mydestr; subst. split; auto.
 Qed.
+
 (* basic typing *)
+
+Lemma ty_inhabitant_typable: forall Γ T, ok Γ -> Γ ⊢t (ty_inhabitant T) ⋮v T.
+Proof.
+  induction T; simpl; intros; auto.
+  - destruct b; constructor; auto.
+  - auto_exists_L; intros. rewrite open_rec_lc_tm; auto.
+    apply basic_typing_weaken_tm_pre; auto.
+Qed.
+
+Global Hint Resolve ty_inhabitant_typable: core.
+
+Lemma cons_basic_strengthen_tm: forall x Tx Γ1 Γ2 e T,
+    x ∉ fv_tm e ->
+    (Γ1 ++ (x, Tx) :: Γ2) ⊢t e ⋮t T ->
+    (Γ1 ++ Γ2) ⊢t e ⋮t T.
+Proof.
+  intros. apply basic_typing_subst_tm with (u:= ty_inhabitant Tx) in H0; auto.
+  - rewrite subst_fresh_tm in H0; auto.
+  - apply ty_inhabitant_typable. basic_typing_solver.
+Qed.
+
+Lemma cons_basic_strengthen_value: forall x Tx Γ1 Γ2 e T,
+    x ∉ fv_value e ->
+    (Γ1 ++ (x, Tx) :: Γ2) ⊢t e ⋮v T ->
+    (Γ1 ++ Γ2) ⊢t e ⋮v T.
+Proof.
+  intros. apply basic_typing_subst_value with (u:= ty_inhabitant Tx) in H0; auto.
+  - rewrite subst_fresh_value in H0; auto.
+  - apply ty_inhabitant_typable. basic_typing_solver.
+Qed.
+
+Lemma cons_basic_strengthen2_tm: forall Γ2 Γ1 e T,
+    ctxdom Γ2 ∩ fv_tm e ≡ ∅ ->
+    (Γ1 ++ Γ2) ⊢t e ⋮t T ->
+    Γ1 ⊢t e ⋮t T.
+Proof.
+  induction Γ2; simpl; intros; auto; mydestr.
+  - listctx_set_simpl.
+  - apply cons_basic_strengthen_tm in H0; auto. apply IHΓ2; auto. set_solver. set_solver.
+Qed.
+
+Lemma cons_basic_strengthen2_value: forall Γ2 Γ1 e T,
+    ctxdom Γ2 ∩ fv_value e ≡ ∅ ->
+    (Γ1 ++ Γ2) ⊢t e ⋮v T ->
+    Γ1 ⊢t e ⋮v T.
+Proof.
+  induction Γ2; simpl; intros; auto; mydestr.
+  - listctx_set_simpl.
+  - apply cons_basic_strengthen_value in H0; auto. apply IHΓ2; auto. set_solver. set_solver.
+Qed.
+
+Lemma cons_basic_strengthen_pre_cons_tm: forall x Tx Γ1 Γ2 e T,
+    ctxdom Γ2 ∩ fv_tm e ≡ ∅ ->
+    ((x, Tx) :: Γ1 ++ Γ2) ⊢t e ⋮t T ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮t T.
+Proof.
+  intros. rewrite app_comm_cons in H0. apply cons_basic_strengthen2_tm in H0; auto.
+Qed.
+
+Lemma cons_basic_strengthen_pre_cons_value: forall x Tx Γ1 Γ2 e T,
+    ctxdom Γ2 ∩ fv_value e ≡ ∅ ->
+    ((x, Tx) :: Γ1 ++ Γ2) ⊢t e ⋮v T ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮v T.
+Proof.
+  intros. rewrite app_comm_cons in H0. apply cons_basic_strengthen2_value in H0; auto.
+Qed.
+
+Lemma cons_basic_strengthen1_pre_cons_tm: forall x Tx y Ty Γ1 e T,
+    y ∉ fv_tm e ->
+    ((x, Tx) :: Γ1 ++ [(y, Ty)]) ⊢t e ⋮t T ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮t T.
+Proof.
+  intros. eapply cons_basic_strengthen_pre_cons_tm; eauto. set_solver.
+Qed.
+
+Lemma cons_basic_strengthen1_pre_cons_value: forall x Tx y Ty Γ1 e T,
+    y ∉ fv_value e ->
+    ((x, Tx) :: Γ1 ++ [(y, Ty)]) ⊢t e ⋮v T ->
+    ((x, Tx) :: Γ1) ⊢t e ⋮v T.
+Proof.
+  intros. eapply cons_basic_strengthen_pre_cons_value; eauto. set_solver.
+Qed.
 
 Lemma mk_app_typable: forall e1 e2 Γ T1 T2,
     Γ ⊢t e1 ⋮t T1 ⤍ T2 -> Γ ⊢t e2 ⋮t T1 -> Γ ⊢t (mk_app e1 e2) ⋮t T2.

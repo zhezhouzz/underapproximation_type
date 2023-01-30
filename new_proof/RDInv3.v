@@ -31,6 +31,8 @@ Import RefinementTac.
 Import RefinementDenotation.
 Import RefinementDenotationTac.
 Import RefinementDenotationProp.
+Import WFDenotation.
+Import WFDenotationTac.
 Import NamelessTactics.
 Import TermOrdering.
 Import RDInv.
@@ -45,161 +47,8 @@ Global Hint Resolve ctxrR_tlete_drop_halt_lhs: core.
 Global Hint Resolve rR_implies_reduction_no_free: core.
 Global Hint Resolve is_arr_implies_not_overbasety: core.
 Global Hint Resolve under_not_overbasety: core.
-
-Lemma rR_arrow_value_lam_exists_oarr:
-  ∀ (v : value) b n d ϕ τ m bst st,
-    {m;bst;st}⟦-:{v: b | n | d | ϕ}⤑ τ⟧ v ->
-    (∃ e : tm, v = vlam b e) ∨ (∃ e : tm, v = vfix (b ⤍ ⌊ τ ⌋) (vlam b e)).
-Proof.
-  intros.
-  apply empty_basic_typing_arrow_value_lam_exists. refinement_solver.
-Qed.
-
-Lemma rR_arrow_value_lam_exists_arrarr:
-  ∀ (v : value) τ_x τ m bst st,
-    {m;bst;st}⟦τ_x ⤑ τ⟧ v ->
-    (∃ e : tm, v = vlam ⌊ τ_x ⌋ e) ∨ (∃ e : tm, v = vfix (⌊ τ_x ⌋ ⤍ ⌊ τ ⌋) (vlam ⌊ τ_x ⌋ e)).
-Proof.
-  intros.
-  apply empty_basic_typing_arrow_value_lam_exists. refinement_solver.
-Qed.
-
-Lemma is_arr_open_trans: forall τ_x k (v2: value),
-  is_arr τ_x -> is_arr ({k ~r> v2} τ_x).
-Proof.
-  intros. destruct τ_x; auto.
-Qed.
-
 Global Hint Resolve is_arr_open_trans: core.
 
-Ltac wf_regular_solver :=
-  match goal with
-  | [H: wf_ctxrR ?st ?Γ |- ok_dctx _ ?Γ] => apply wf_ctxrR_regular1 in H; auto
-  end.
-
-Ltac inv_rd_simpl3 :=
-  repeat match goal with
-    | [H: context [⌊[v:_|_|_|_]⌋] |- _ ] => simpl in H
-    | [H: context [⌊{v:_|_|_|_}⌋] |- _ ] => simpl in H
-    | [H: context [⌊-:{v: _|_|_|_}⤑ _⌋] |- _ ] => simpl in H
-    | [H: context [⌊ _ ⤑ _⌋] |- _ ] => simpl in H
-    | [H: context [ ⌊ (_, _) :: _ ⌋* ] |- _ ] => simpl in H
-    | [|- context [⌊[v:_|_|_|_]⌋] ] => simpl
-    | [|- context [⌊{v:_|_|_|_}⌋] ] => simpl
-    | [|- context [⌊-:{v: _|_|_|_}⤑ _⌋] ] => simpl
-    | [|- context [⌊ _ ⤑ _⌋] ] => simpl
-    | [|- context [ ⌊ (_, _) :: _ ⌋* ] ] => simpl
-    end.
-
-Ltac auto_ty_exfalso5 :=
-  match goal with
-  | [H: is_arr ?τ_x, H': {v:_|_|_|_} = {?k ~r> ?v2} ?τ_x |- _ ] =>
-      assert (is_arr ({k ~r> v2} τ_x)) as Htmp by auto;
-      rewrite <- H' in Htmp; auto_ty_exfalso2
-  | [H: is_arr ?τ_x, H': [v:_|_|_|_] = {?k ~r> ?v2} ?τ_x |- _ ] =>
-      assert (is_arr ({k ~r> v2} τ_x)) as Htmp by auto;
-      rewrite <- H' in Htmp; auto_ty_exfalso2
-  end.
-
-Lemma rR_open_trans_empty': forall τ st (c: constant) e,
-    {1;<b[↦c]> b∅;st}⟦τ⟧ e -> ({0;b∅;st}⟦τ ^r^ c⟧) e.
-Proof.
-  intros. rewrite <- rR_open_trans' in H; mydestr; eauto.
-  unfold bst_eq. intros. assert (i = 0). lia. subst. simpl. unfold bstate_insert. dec_solver2.
-Qed.
-
-Lemma rR_base_implies_constant: forall m bst st b1 n1 d1 ϕ1 (c2: value),
-  ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧) c2 -> (exists c: constant, c2 = c).
-Proof.
-  intros. apply rR_regular1 in H. mydestr. invclear H0. invclear H3; eauto. invclear H1.
-Qed.
-
-Global Hint Resolve rR_base_implies_constant: core.
-
-Lemma wf_implies_base_phi_sat: forall m bst st b1 n1 d1 ϕ1 (c2: constant),
-  (∀ e_wf : tm, ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
-  ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧) c2 -> ϕ1 bst st c2 /\ [] ⊢t c2 ⋮v b1.
-Proof.
-  intros. invclear H0; mydestr.
-  destruct (classic (exists c: constant, ϕ1 bst st c /\ [] ⊢t c ⋮v b1)).
-  - mydestr. assert (c2 ↪* x); auto. reduction_simpl1; subst. invclear H5; auto.
-  - neg_simpl. assert ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧ terr).
-    do 2 constructor; auto. intros. apply H3 in H5. exfalso. apply H5; auto.
-    apply H in H4. mydestr. auto_reduction_exfalso1.
-Qed.
-
-Ltac reduction_simpl0 :=
-  repeat match goal with
-  | [H: tvalue _ ↪* tvalue _ |- _ ] =>
-      rewrite value_reduce_to_value_implies_same in H; mydestr; subst
-  end.
-
-Lemma rR_letapp_overbase_underbase:
-  forall st τ_x (v1: value) (c2: constant) b1 n1 d1 ϕ1 b2 n2 d2 ϕ2,
-  τ_x = [v:b2|n2|d2|ϕ2] ->
-  (∀ e_wf : tm, ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
-  ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) c2 ->
-  ({0;b∅;st}⟦-:{v:b1|n1|d1|ϕ1}⤑ τ_x⟧) v1 ->
-  (exists e1, ({0;b∅;st}⟦ τ_x ^r^ c2 ⟧) e1 /\ e1 <-<{ []; b2} (mk_app v1 c2)).
-Proof.
-  intros; subst.
-  assert (ϕ1 b∅ st c2 /\ [] ⊢t c2 ⋮v b1) as (Hz & HzT). eapply wf_implies_base_phi_sat; eauto.
-  destruct (rR_arrow_value_lam_exists_oarr _ _ _ _ _ _ _ _ _ H2); mydestr; subst.
-  - rename x into e1. exists (e1 ^t^ c2). split.
-    + invclear H2; invclear H1; mydestr. reduction_simpl0.
-      apply H6 in Hz; auto.
-      apply rR_open_trans_empty' in Hz; auto.
-      eapply termR_perserve_rR; eauto. refinement_solver. simpl.
-      apply mk_app_reduce_to_open; auto. basic_typing_solver.
-    + apply mk_app_reduce_to_open'; auto. refinement_solver.
-  - rename x into e1. exists (({1 ~t> c2} e1) ^t^ (vfix (b1 ⤍ b2) (vlam b1 e1))). split.
-    + invclear H2; invclear H1; mydestr. reduction_simpl0. apply H6 in Hz; auto.
-      apply rR_open_trans_empty' in Hz; auto.
-      eapply termR_perserve_rR; eauto. refinement_solver. simpl.
-      apply mk_app_reduce_to_open_fix; auto. refinement_solver.
-    + apply mk_app_reduce_to_open_fix'; auto. refinement_solver.
-Qed.
-
-Lemma rR_letapp_overbase_lam:
-  forall st τ_x e1 (c2: constant) b1 n1 d1 ϕ1,
-  (∀ e_wf : tm, ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
-  ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) c2 ->
-  ({0;b∅;st}⟦-:{v:b1|n1|d1|ϕ1}⤑ τ_x⟧) (vlam b1 e1) ->
-  ({0;b∅;st}⟦ τ_x ^r^ c2 ⟧) (e1 ^t^ c2).
-Proof.
-  intros; subst.
-  assert (ϕ1 b∅ st c2 /\ [] ⊢t c2 ⋮v b1) as (Hz & HzT). eapply wf_implies_base_phi_sat; eauto.
-  invclear H0; invclear H1; mydestr. reduction_simpl0. apply H6 in Hz; auto.
-  apply rR_open_trans_empty' in Hz; auto.
-  eapply termR_perserve_rR; eauto. refinement_solver. refinement_solver.
-  apply mk_app_reduce_to_open; auto.
-  inv_rd_simpl3. inv_rd_simpl1.
-Qed.
-
-Lemma rR_letapp_overbase_fix:
-  forall st τ_x e1 (c2: constant) b1 n1 d1 ϕ1,
-  (∀ e_wf : tm, ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
-  ({0;b∅;st}⟦[v:b1|n1|d1|ϕ1]⟧) c2 ->
-  ({0;b∅;st}⟦-:{v:b1|n1|d1|ϕ1}⤑ τ_x⟧) (vfix (b1 ⤍ ⌊ τ_x ⌋ ) (vlam b1 e1)) ->
-  ({0;b∅;st}⟦ τ_x ^r^ c2 ⟧) (({1 ~t> c2} e1) ^t^ (vfix (b1 ⤍ ⌊ τ_x ⌋) (vlam b1 e1))).
-Proof.
-  intros; subst.
-  assert (ϕ1 b∅ st c2 /\ [] ⊢t c2 ⋮v b1) as (Hz & HzT). eapply wf_implies_base_phi_sat; eauto.
-  invclear H0; invclear H1; mydestr. reduction_simpl0. apply H6 in Hz; auto.
-  apply rR_open_trans_empty' in Hz; auto.
-  eapply termR_perserve_rR; eauto. refinement_solver. refinement_solver.
-  inv_rd_simpl1.
-  apply mk_app_reduce_to_open_fix; auto.
-Qed.
-
-Lemma wf_implies_base_phi_sat_v: forall m bst st b1 n1 d1 ϕ1 (v2: value),
-  (∀ e_wf : tm, ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) ->
-  ({m;bst;st}⟦[v:b1|n1|d1|ϕ1]⟧) v2 ->
-  (exists c2: constant, v2 = c2 /\ ϕ1 bst st c2 /\ [] ⊢t c2 ⋮v b1).
-Proof.
-  intros. assert (exists c2: constant, v2 = c2) by eauto. mydestr; subst.
-  eapply wf_implies_base_phi_sat in H0; eauto.
-Qed.
 
 Lemma wf_implies_ctxrR_tlete_ubase_better_drop
      : ∀ (Γ : list (atom * rty)) (st : state) (x : atom) (b : base_ty)
@@ -388,12 +237,12 @@ Qed.
 (*   - eapply termR_tm_to_value'; auto. *)
 (* Qed. *)
 
-Definition arg_ty (τ: rty): ty :=
-  match τ with
-  | -:{v: b | n | d | ϕ}⤑ τ_x => b
-  | τ1 ⤑ τ_x => ⌊ τ1 ⌋
-  | _ => ⌊ τ ⌋
-  end.
+(* Definition arg_ty (τ: rty): ty := *)
+(*   match τ with *)
+(*   | -:{v: b | n | d | ϕ}⤑ τ_x => b *)
+(*   | τ1 ⤑ τ_x => ⌊ τ1 ⌋ *)
+(*   | _ => ⌊ τ ⌋ *)
+(*   end. *)
 
 (* Lemma rR_is_arr_refine: forall m bst st τ_x e, *)
 (*     is_arr τ_x -> *)
@@ -413,18 +262,6 @@ Definition arg_ty (τ: rty): ty :=
 (*     eapply termR_perserve_rR; eauto; refinement_solver. *)
 (*     apply termR_tm_to_value_mk_app; auto. refinement_solver. *)
 (* Qed. *)
-
-Lemma rR_arr_halt: forall m bst st τ e,
-    is_arr τ -> {m;bst;st}⟦τ⟧ e -> (exists (v: value), {m;bst;st}⟦τ⟧ v /\ e ↪* v).
-Proof.
-  intros. destruct τ; try auto_ty_exfalso.
-  - simpl in H0; mydestr. exists x; split; auto.
-    constructor; auto. reduction_solver1. split; auto.
-    eexists; split; eauto. reduction_solver1.
-  - simpl in H0; mydestr. exists x; split; auto.
-    constructor; auto. reduction_solver1. split; auto.
-    eexists; split; eauto. reduction_solver1.
-Qed.
 
 Lemma rR_letapp_base': forall τ_x τ st x (v1 v2: value) (e: tm) b n d ϕ,
     x ∉ fv_tm e ∪ rty_fv τ ->

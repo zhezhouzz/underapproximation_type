@@ -1000,6 +1000,77 @@ Proof.
     end.
 Qed.
 
+Lemma close_rm_fv_tm: forall x e k, x ∉ fv_tm ({k <t~ x} e).
+Proof.
+  intros x e.
+  apply (tm_mutual_rec
+           (fun (e: value) => forall k, x ∉ fv_value ({k <v~ x} e))
+           (fun (e: tm) => forall k, x ∉ fv_tm ({k <t~ x} e))
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma close_rm_fv_value: forall x e k, x ∉ fv_value ({k <v~ x} e).
+Proof.
+  intros x e.
+  apply (value_mutual_rec
+           (fun (e: value) => forall k, x ∉ fv_value ({k <v~ x} e))
+           (fun (e: tm) => forall k, x ∉ fv_tm ({k <t~ x} e))
+        ); simpl; intros; auto; repeat var_dec_solver; set_solver.
+Qed.
+
+Lemma close_then_subst_same_tm: forall x v_x e,
+  ({x := v_x }t (x \t\ e)) = (x \t\ e).
+Proof.
+  intros. rewrite subst_fresh_tm; auto. apply close_rm_fv_tm.
+Qed.
+
+Lemma close_then_subst_same_value: forall x v_x e,
+  ({x := v_x }v (x \v\ e)) = (x \v\ e).
+Proof.
+  intros. rewrite subst_fresh_value; auto. apply close_rm_fv_value.
+Qed.
+
+Lemma subst_open_tm_closed:
+  ∀ (v : tm) (x : atom) (u w : value) (k : nat),
+    closed_value u ->
+    lc w → {x := w }t ({k ~t> u} v) = {k ~t> u} ({x := w }t v).
+Proof.
+  intros. rewrite subst_open_tm; auto.
+  rewrite (subst_fresh_value); eauto. set_solver.
+Qed.
+
+Lemma subst_open_value_closed:
+  ∀ (v : value) (x : atom) (u w : value) (k : nat),
+    closed_value u ->
+    lc w → {x := w }v ({k ~v> u} v) = {k ~v> u} ({x := w }v v).
+Proof.
+  intros. rewrite subst_open_value; auto.
+  rewrite (subst_fresh_value); eauto. set_solver.
+Qed.
+
+Lemma body_lc_after_close_tm: forall (x: atom) e, lc e -> body ({0 <t~ x} e).
+Proof.
+  intros. unfold body. auto_exists_L. intros.
+  rewrite subst_as_close_open_tm; auto.
+  apply subst_lc_tm; auto.
+Qed.
+
+Lemma body_lc_after_close_value: forall (x: atom) (e: value), lc e -> body ({0 <v~ x} e).
+Proof.
+  intros. unfold body. auto_exists_L. intros. simpl.
+  rewrite subst_as_close_open_value; auto.
+  apply subst_lc_value; auto.
+Qed.
+
+Lemma lc_fresh_var_implies_body: forall e (x: atom),
+  x # e -> lc (e ^t^ x) -> body e.
+Proof.
+  intros.
+  apply (body_lc_after_close_tm x) in H0. rewrite close_open_var_tm in H0; auto.
+Qed.
+
+Global Hint Resolve lc_fresh_var_implies_body: core.
+
 (* Inductive lc_n: nat -> tm -> Prop := *)
 (* | lc_n_const: forall (c: constant) n, lc_n n c *)
 (* | lc_n_vbvar: forall (m: nat) n, m < n -> lc_n n (vbvar m) *)

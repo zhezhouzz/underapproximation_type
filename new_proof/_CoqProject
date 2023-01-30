@@ -18,9 +18,12 @@ RefinementTac.v
 RefinementDenotation.v
 RefinementDenotationTac.v
 RefinementDenotationProp.v
+WFDenotation.v
+WFDenotationTac.v
 RDInv.v
 RDInv2.v
 RDInv3.v
-RDInv4.v
 RDInv5.v
+CtxDenotation.v
+CtxDenotationTac.v
 AuxTyping.v

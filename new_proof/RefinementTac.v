@@ -460,3 +460,9 @@ Ltac ctx_erase_simp5 :=
              end); ctx_erase_simp4.
 
 Ltac ctx_erase_simp:= ctx_erase_simp5.
+
+Lemma state_subst_implies_r_susbt_eq: forall k (a: atom) ϕ bst st (c_x: constant) v,
+    refinement_open k a ϕ bst (<[a:=c_x]> st) v <-> refinement_open k c_x ϕ bst (<[a:=c_x]> st) v.
+Proof.
+  unfold refinement_open; split; intros; my_simplify_map_eq3.
+Qed.

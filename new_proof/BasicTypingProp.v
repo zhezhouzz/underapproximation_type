@@ -753,3 +753,47 @@ Ltac lc_simpl :=
         assert (x # e) as Htmp by (auto; (lc_solver || fast_set_solver || basic_typing_solver))
         ;rewrite close_fresh_rec_tm; auto; try clear Htmp
     end.
+
+Lemma tlete_apply_typable_aux: forall Γ (x: atom) e_x e Tx T,
+    Γ ⊢t e_x ⋮t Tx -> (Γ ++ [(x, Tx)]) ⊢t e ⋮t T -> Γ ⊢t tlete e_x (x \t\ e) ⋮t T.
+Proof.
+  intros. auto_exists_L; intros. rewrite subst_as_close_open_tm; basic_typing_solver.
+  apply basic_has_type_renaming; auto.
+  fast_set_solver. basic_typing_solver.
+Qed.
+
+Lemma tlete_apply_typable_aux2: forall Γ (x: atom) e_x e Tx T,
+    Γ ⊢t e_x ⋮t Tx -> (Γ ++ [(x, Tx)]) ⊢t e ⋮t T -> (Γ ++ [(x, Tx)]) ⊢t tlete e_x (x \t\ e) ⋮t T.
+Proof.
+  intros. assert (ok (Γ ++ [(x, Tx)])) by basic_typing_solver.
+  eapply tlete_apply_typable_aux in H0; eauto. basic_typing_solver.
+Qed.
+
+Lemma tlete_apply_typable_aux3: forall (x: atom) e_x e Tx T,
+    [] ⊢t e_x ⋮t Tx -> [(x, Tx)] ⊢t e ⋮t T -> [(x, Tx)] ⊢t tlete e_x (x \t\ e) ⋮t T.
+Proof.
+  intros. assert (([] ++ [(x, Tx)]) ⊢t tlete e_x (x \t\ e) ⋮t T).
+  eapply tlete_apply_typable_aux2; auto. listctx_set_simpl.
+Qed.
+
+Lemma tlete_apply_typable_aux4: forall a Ta Γ (x: atom) e_x e Tx T,
+    ((a, Ta):: Γ) ⊢t e_x ⋮t Tx -> ((a, Ta) :: Γ ++ [(x, Tx)]) ⊢t e ⋮t T ->
+    ((a, Ta):: Γ ++ [(x, Tx)]) ⊢t tlete e_x (x \t\ e) ⋮t T.
+Proof.
+  intros. rewrite app_comm_cons in H0. rewrite app_comm_cons.
+  eapply tlete_apply_typable_aux2; auto.
+Qed.
+
+Lemma tyable_implies_fresh_tm: forall Γ e T x,
+    Γ ⊢t e ⋮t T -> x ∉ (ctxdom Γ) -> x ∉ fv_tm e.
+Proof.
+  intros.
+  apply basic_typing_contains_fv_tm in H. set_solver.
+Qed.
+
+Lemma tyable_implies_fresh_value: forall Γ e T x,
+    Γ ⊢t e ⋮v T -> x ∉ (ctxdom Γ) -> x ∉ fv_value e.
+Proof.
+  intros.
+  apply basic_typing_contains_fv_value in H. set_solver.
+Qed.
