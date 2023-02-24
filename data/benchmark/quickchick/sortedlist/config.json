@@ -4,7 +4,8 @@
     "all_mps": [
         "rng",
         "mem",
-        "ord"
+        "ord",
+        "<="
     ],
     "measure": "rng",
     "prim_path": {

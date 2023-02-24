@@ -128,11 +128,12 @@ let parsing_type_decls =
 let under_type_check =
   Command.basic ~summary:"under_type_check"
     Command.Let_syntax.(
-      let%map_open config_file = anon ("config file" %: regular_file)
+      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      and config_file = anon ("config file" %: regular_file)
       and source_file = anon ("source file" %: regular_file)
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
-        let () = Config.load config_file in
+        let () = Config.load meta_config_file config_file in
         let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
@@ -142,35 +143,33 @@ let under_type_check =
           Sugar.clock (fun () ->
               Typecheck.Undercheck.struc_check code notations libs refinements)
         in
-        let () =
+        let str =
           match Ast.StrucNA.stat code with
           | [ (name, num_branches, num_localvars) ] -> (
               let num_query = Typecheck.Undersub.(!subtyping_check_counter) in
               let str =
-                Printf.sprintf "%s\n $%i$ & $%i$ & " name num_branches
+                Printf.sprintf "%s & $%i$ & $%i$ & " name num_branches
                   num_localvars
               in
               match refinements with
               | [ (_, (_, ty)) ] ->
-                  let num_mps, _ = Ast.UT.stat ty in
-                  let () =
-                    Printf.printf
-                      "& %s$%i$ & $%i$ & $(%i, %i)$ & $%0.2f(%0.2f)$\n" str
-                      num_mps num_query
-                      Typecheck.Undersub.(!max_uqvs_num)
-                      Typecheck.Undersub.(!max_eqvs_num)
-                      runtime
-                      (runtime /. float_of_int num_query)
-                  in
-                  ()
-              | _ -> ())
-          | _ -> ()
+                  let num_mps = List.length @@ Config.get_mps () in
+                  (* let num_mps, _ = Ast.UT.stat ty in *)
+                  Printf.sprintf
+                    "& %s$%i$ & $%i$ & $(%i, %i)$ & $%0.2f(%0.2f)$\n" str
+                    num_mps num_query
+                    Typecheck.Undersub.(!max_uqvs_num)
+                    Typecheck.Undersub.(!max_eqvs_num)
+                    runtime
+                    (runtime /. float_of_int num_query)
+              | _ -> "")
+          | _ -> ""
         in
         let () =
           match results with
           | [ res ] ->
-              let oc = Out_channel.create ".result" in
-              Printf.fprintf oc "%b\n" res;
+              let oc = Out_channel.create @@ Config.get_resfile () in
+              Printf.fprintf oc "%b %s\n" res str;
               Out_channel.close oc
           | _ -> ()
         in

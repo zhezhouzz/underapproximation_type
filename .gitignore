@@ -2,3 +2,4 @@
 _build/
 *.out
 .result
+*.pyc

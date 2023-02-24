@@ -112,7 +112,15 @@ let get_mps prop =
   let m = aux [] prop in
   List.slow_rm_dup typed_eq m
 
-let count_mps prop = List.length @@ get_mps prop
+let count_mps prop =
+  let mps = get_mps prop in
+  let () =
+    Printf.printf "count_mps: %s\n"
+      (List.split_by "; "
+         (fun { x; ty } -> Printf.sprintf "%s: %s" x @@ Ty.layout ty)
+         mps)
+  in
+  List.length mps
 
 let var_space_ prop =
   let rec aux_lit s = function

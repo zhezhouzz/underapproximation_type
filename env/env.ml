@@ -15,6 +15,8 @@ type prim_path = {
 
 type config = {
   mode : mode;
+  logfile : string;
+  resfile : string;
   all_mps : string list;
   prim_path : prim_path;
   measure : string;

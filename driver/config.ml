@@ -2,16 +2,19 @@ open Json
 open Yojson.Basic.Util
 open Env
 
-let load fname =
+let load meta_fname fname =
+  let metaj = load_json meta_fname in
   let j = load_json fname in
   let mode =
-    match j |> member "mode" |> to_string with
+    match metaj |> member "mode" |> to_string with
     | "debug" ->
         let logfile = j |> member "logfile" |> to_string in
         Debug logfile
     | "release" -> Release
     | _ -> failwith "config: unknown mode"
   in
+  let resfile = metaj |> member "resfile" |> to_string in
+  let logfile = metaj |> member "logfile" |> to_string in
   let p = j |> member "prim_path" in
   let prim_path =
     {
@@ -59,18 +62,28 @@ let load fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { mode; all_mps; prim_path; measure }
+  config := Some { mode; logfile; resfile; all_mps; prim_path; measure }
+
+let get_resfile () =
+  match !config with
+  | None -> failwith "get_resfile"
+  | Some config -> config.resfile
+
+let get_mps () =
+  match !config with
+  | None -> failwith "uninited prim path"
+  | Some config -> config.all_mps
 
 let get_prim_path () =
   match !config with
   | None -> failwith "uninited prim path"
   | Some config -> config.prim_path
 
-let load_default () = load "config/config.json"
+let load_default () = load "meta-config.json" "config/config.json"
 
 let%test_unit "load_default" =
   let () = Printf.printf "%s\n" (Sys.getcwd ()) in
-  let () = load "../../../config/config.json" in
+  let () = load "../../../meta-config.json" "../../../config/config.json" in
   match !config with
   | None -> failwith "empty config"
   | Some config -> (

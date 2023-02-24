@@ -4,7 +4,8 @@
     "all_mps": [
         "len",
         "heap",
-        "hd"
+        "hd",
+        "<="
     ],
     "measure": "len",
     "prim_path": {

@@ -1,0 +1,95 @@
+{
+  "benchmark_dir": "data/benchmark",
+  "benchmarks_info": [
+    {
+      "benchmark_source": "quickchick",
+      "benchmarks": [
+        {
+          "name": "RedBlackTree",
+          "path": "rbtree",
+          "is_rec": true
+        },
+        {
+          "name": "SizedList",
+          "path": "sizedlist",
+          "is_rec": true
+        },
+        {
+          "name": "SizedTree",
+          "path": "sizedtree",
+          "is_rec": true
+        },
+        {
+          "name": "SortedList",
+          "path": "sortedlist",
+          "is_rec": true
+        }
+      ]
+    },
+    {
+      "benchmark_source": "quickcheck",
+      "benchmarks": [
+        {
+          "name": "SizedHeap",
+          "path": "heap",
+          "is_rec": true
+        },
+        {
+          "name": "SizedSet",
+          "path": "set",
+          "is_rec": true
+        }
+      ]
+    },
+    {
+      "benchmark_source": "elrond",
+      "benchmarks": [
+        {
+          "name": "UniqueList",
+          "path": "uniquel",
+          "is_rec": true
+        },
+        {
+          "name": "BatchedQueue",
+          "path": "batchedq",
+          "is_rec": false
+        },
+        {
+          "name": "BankersQueue",
+          "path": "bankersq",
+          "is_rec": false
+        },
+        {
+          "name": "Stream",
+          "path": "stream",
+          "is_rec": false
+        },
+        {
+          "name": "LeftistHeap",
+          "path": "leftisthp",
+          "is_rec": true
+        },
+        {
+          "name": "UnbalanceSet",
+          "path": "unbset",
+          "is_rec": true
+        }
+      ]
+    },
+    {
+      "benchmark_source": "leonidas",
+      "benchmarks": [
+        {
+          "name": "CompleteTree",
+          "path": "completetree",
+          "is_rec": true
+        },
+        {
+          "name": "SizedBST",
+          "path": "sizedbst",
+          "is_rec": true
+        }
+      ]
+    }
+  ]
+}
