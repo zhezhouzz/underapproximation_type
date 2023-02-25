@@ -70,23 +70,44 @@ let prop_of_ocamlexpr e =
   let _ = Autov.Prop.assume_tope_uprop __FILE__ __LINE__ prop in
   prop
 
-(* let mode_of_ocamlexpr e = *)
-(*   match (Expr.expr_of_ocamlexpr e).x with *)
-(*   | T.Var "under" -> Under *)
-(*   | T.Var "tuple" -> Tuple *)
-(*   | _ -> failwith "mode_of_ocamlexpr" *)
+type rty_mode = RtyModeUnder | RtyModeOver
+type base_rty = BaseRtyUnder of t | BaseRtyOver of ot
 
-let ot_undertype_of_ocamlexpr expr =
+let get_mode expr =
+  match expr.pexp_attributes with
+  | [ x ] when String.equal x.attr_name.txt "over" -> RtyModeOver
+  | [ x ] when String.equal x.attr_name.txt "under" -> RtyModeUnder
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
+let baserty_of_ocamlexpr expr =
   match expr.pexp_desc with
-  | Pexp_constraint (e, ct) ->
+  | Pexp_constraint (e, ct) -> (
       let basename, normalty =
         match Type.core_type_to_notated_t ct with
         | Some basename, normalty -> (basename, normalty)
         | _ -> _failatwith __FILE__ __LINE__ ""
       in
+      let mode = get_mode expr in
+      (* let _ = *)
+      (*   Printf.printf "len(%s) = %i\n" (Pprintast.string_of_expression expr) *)
+      (*   @@ List.length expr.pexp_attributes *)
+      (* in *)
       let prop = prop_of_ocamlexpr e in
-      { basename; normalty; prop }
+      match mode with
+      | RtyModeOver -> BaseRtyOver { basename; normalty; prop }
+      | RtyModeUnder -> BaseRtyUnder (UnderTy_base { basename; normalty; prop })
+      )
   | _ -> _failatwith __FILE__ __LINE__ ""
+
+let to_under_rty = function
+  | BaseRtyUnder x -> x
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
+let to_over_rty = function
+  | BaseRtyUnder x -> x
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
+let ot_undertype_of_ocamlexpr expr = to_over_rty @@ baserty_of_ocamlexpr expr
 
 let _check_eq_nt file line t1 t2 =
   try _check_equality file line Ast.NT.eq t1 t2
@@ -97,48 +118,36 @@ let _check_eq_nt file line t1 t2 =
 let undertype_of_ocamlexpr expr =
   let rec aux expr =
     match expr.pexp_desc with
-    | Pexp_tuple es -> L.UnderTy_tuple (List.map aux es)
+    | Pexp_tuple es ->
+        BaseRtyUnder
+          (L.UnderTy_tuple (List.map (fun x -> to_under_rty @@ aux x) es))
     | Pexp_let (_, [ vb ], body) -> (
         let id = Pat.patten_to_typed_ids vb.pvb_pat in
         let argname =
           match id with [ id ] -> id | _ -> failwith "undertype_of_ocamlexpr"
         in
-        match argname.ty with
-        | Some (Some "over", argnty) ->
-            let argty = ot_undertype_of_ocamlexpr vb.pvb_expr in
-            let _ = _check_eq_nt __FILE__ __LINE__ argnty argty.normalty in
-            L.UnderTy_over_arrow
-              { argname = argname.x; argty; retty = aux body }
-        | Some (Some "under", argnty) ->
-            let argty = aux vb.pvb_expr in
-            let _ = _check_eq_nt __FILE__ __LINE__ argnty (erase argty) in
+        match aux vb.pvb_expr with
+        | BaseRtyOver argty ->
+            BaseRtyUnder
+              (L.UnderTy_over_arrow
+                 {
+                   argname = argname.x;
+                   argty;
+                   retty = to_under_rty @@ aux body;
+                 })
+        | BaseRtyUnder argty ->
             let _ =
-              try
-                _check_equality __FILE__ __LINE__ String.equal "dummy" argname.x
+              try _check_equality __FILE__ __LINE__ String.equal "_" argname.x
               with e ->
                 Printf.printf
-                  "\n\
-                   The unused varaible should use name 'dummy', instead of %s\n\n"
+                  "\nThe unused varaible should use name '_', instead of %s\n\n"
                   argname.x;
                 raise e
             in
-            L.UnderTy_under_arrow { argty; retty = aux body }
-        | _ ->
-            _failatwith __FILE__ __LINE__
-              (match argname.ty with
-              | None -> "none"
-              | Some ty ->
-                  spf "%s: %s"
-                    (match fst ty with None -> "none" | Some s -> s)
-                    (Type.layout @@ snd ty)))
-    | Pexp_constraint (e, ct) ->
-        let basename, normalty =
-          match Type.core_type_to_notated_t ct with
-          | Some basename, normalty -> (basename, normalty)
-          | _ -> _failatwith __FILE__ __LINE__ ""
-        in
-        let prop = prop_of_ocamlexpr e in
-        L.(UnderTy_base { basename; normalty; prop })
+            BaseRtyUnder
+              (L.UnderTy_under_arrow { argty; retty = to_under_rty @@ aux body })
+        )
+    | Pexp_constraint _ -> baserty_of_ocamlexpr expr
     | _ ->
         _failatwith __FILE__ __LINE__
           (spf "wrong refinement type: %s"
@@ -155,7 +164,7 @@ let undertype_of_ocamlexpr expr =
     (*       (x, ty) *)
     (*   | _ -> _failatwith __FILE__ __LINE__ "" *)
   in
-  let uty = aux expr in
+  let uty = to_under_rty @@ aux expr in
   (* let () = Printf.printf "TEST:%s\n" @@ pretty_layout uty in *)
   uty
 

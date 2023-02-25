@@ -1,17 +1,18 @@
 let[@library] int_range =
-  let (a : [%over: int]) = (true : [%v: int]) in
-  let (b : [%over: int]) = (1 + a < v : [%v: int]) in
-  (a < v && v < b : [%v: int])
+  let a = (true : [%v: int]) [@over] in
+  let b = (1 + a < v : [%v: int]) [@over] in
+  (a < v && v < b : [%v: int]) [@under]
 
 let[@library] bool_gen =
-  let (dummy : [%over: unit]) = (true : [%v: unit]) in
-  (true : [%v: bool])
+  let _ = (true : [%v: unit]) [@over] in
+  (true : [%v: bool]) [@under]
 
 let unbset_gen =
-  let (d : [%over: int]) = (0 <= v : [%v: int]) in
-  let (s : [%over: int]) = (d <= v : [%v: int]) in
-  let (lo : [%over: int]) = (true : [%v: int]) in
-  let (hi : [%over: int]) = (v == lo + d : [%v: int]) in
+  let d = (0 <= v : [%v: int]) [@over] in
+  let s = (d <= v : [%v: int]) [@over] in
+  let lo = (true : [%v: int]) [@over] in
+  let hi = (v == lo + d : [%v: int]) [@over] in
   (fun (u : [%forall: int]) ->
      implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
     : [%v: int unbset])
+    [@under]

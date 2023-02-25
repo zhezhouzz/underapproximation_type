@@ -1,13 +1,14 @@
 let[@library] int_gen =
-  let (dummy : [%over: unit]) = (true : [%v: unit]) in
-  (true : [%v: int])
+  let _ = (true : [%v: unit]) [@over] in
+  (true : [%v: int]) [@under]
 
 let[@library] bool_gen =
-  let (dummy : [%over: unit]) = (true : [%v: unit]) in
-  (true : [%v: bool])
+  let _ = (true : [%v: unit]) [@over] in
+  (true : [%v: bool]) [@under]
 
 let heap_gen =
-  let (s : [%over: int]) = (0 <= v : [%v: int]) in
-  let (max : [%over: int]) = (true : [%v: int]) in
+  let s = (0 <= v : [%v: int]) [@over] in
+  let max = (true : [%v: int]) [@over] in
   (heap v && len v s && fun (u : [%forall: int]) -> implies (hd v u) (u <= max)
     : [%v: int heap])
+    [@under]

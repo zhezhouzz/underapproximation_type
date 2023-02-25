@@ -51,6 +51,7 @@ let rec pattern_to_slang pattern =
             | _ -> failwith "pat die")
       in
       L.make_untyped res
+  | Ppat_any -> L.make_untyped @@ L.Var "_"
   | _ ->
       Pprintast.pattern Format.std_formatter pattern;
       failwith "wrong pattern name, maybe untyped"

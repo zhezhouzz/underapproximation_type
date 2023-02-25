@@ -5,6 +5,7 @@ type mode = Debug of string | Release [@@deriving sexp]
 type prim_path = {
   normalp : string;
   overp : string;
+  under_basicp : string;
   underp : string;
   rev_underp : string;
   type_decls : string;

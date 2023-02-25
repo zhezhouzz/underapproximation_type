@@ -39,42 +39,7 @@ let load_normal_refinements refine_file =
     Struc.func_decl_of_ocamlstruct
       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
   in
-  (* let () = *)
-  (*   Printf.printf "[Loading normal type]:\n%s\n\n" *)
-  (*     (Struc.layout_normals refinements) *)
-  (* in *)
   refinements
-
-(* let load_over_refinments refine_file = *)
-(*   let refinements = *)
-(*     Struc.refinement_of_ocamlstruct OT.overtype_of_ocamlexpr *)
-(*       (Ocaml_parser.Frontend.parse ~sourcefile:refine_file) *)
-(*   in *)
-(*   let refinements = *)
-(*     List.map *)
-(*       ~f:(fun ((a, name), ty) -> (a, (name, Overtycheck.infer ty))) *)
-(*       refinements *)
-(*   in *)
-(*   let notations, _, refinements = *)
-(*     List.fold_left *)
-(*       ~f:(fun (a, b, c) x -> *)
-(*         match x with *)
-(*         | Frontend.Structure.Inv _, _ -> _failatwith __FILE__ __LINE__ "die" *)
-(*         | Frontend.Structure.NoExt, x -> (a, b, c @ [ x ]) *)
-(*         | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c) *)
-(*         | Frontend.Structure.NotationExt str, _ -> *)
-(*             _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str) *)
-(*       ~init:([], [], []) refinements *)
-(*   in *)
-(*   let () = *)
-(*     Printf.printf "[Loading notations type]:\n%s" *)
-(*       (Struc.layout_refinements OT.pretty_layout notations) *)
-(*   in *)
-(*   (\* let () = *\) *)
-(*   (\*   Printf.printf "[Loading refinement type]:\n%s" *\) *)
-(*   (\*     (Struc.layout_refinements OT.pretty_layout refinements) *\) *)
-(*   (\* in *\) *)
-(*   refinements *)
 
 let load_under_refinments refine_file =
   let refinements =

@@ -2,5 +2,6 @@
     "mode": "debug",
     "logfile": ".log",
     "resfile": ".result",
-    "benchmark_table_file": "config/benchmark.json"
+    "benchmark_table_file": "config/benchmark.json",
+    "under_basicp": "data/benchmark/under_basic.ml"
 }

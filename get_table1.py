@@ -81,6 +81,8 @@ if __name__ == '__main__':
     data = []
     for name in names:
         source, path, is_rec = get_info_from_name (benchmark_table, name)
+        if os.path.exists(resfile):
+            os.remove(resfile)
         run_bench.run(path)
         res = parse_stat ()
         # print(res)

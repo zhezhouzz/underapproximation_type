@@ -20,6 +20,8 @@ module F (Type : Type.T) = struct
     List.exists (fun (name', _) -> String.equal name name') ctx
 
   let add_to_right ctx (name, ty) =
+    (* if String.equal name "_" then ctx *)
+    (* else *)
     if exists ctx name then
       _failatwith __FILE__ __LINE__ (spf "name %s exists in ctx" name)
     else ctx @ [ (name, ty) ]

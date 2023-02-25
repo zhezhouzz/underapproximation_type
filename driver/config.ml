@@ -2,6 +2,14 @@ open Json
 open Yojson.Basic.Util
 open Env
 
+let __concat_without_overlap msg eq l1 l2 =
+  List.fold_left
+    (fun res x ->
+      if List.exists (fun y -> eq x y) res then
+        failwith (Printf.sprintf "__concat_without_overlap: %s" msg)
+      else x :: res)
+    l1 l2
+
 let load meta_fname fname =
   let metaj = load_json meta_fname in
   let j = load_json fname in
@@ -20,6 +28,7 @@ let load meta_fname fname =
     {
       normalp = p |> member "normalp" |> to_string;
       overp = p |> member "overp" |> to_string;
+      under_basicp = metaj |> member "under_basicp" |> to_string;
       underp = p |> member "underp" |> to_string;
       rev_underp = p |> member "rev_underp" |> to_string;
       type_decls = p |> member "type_decls" |> to_string;
@@ -30,10 +39,21 @@ let load meta_fname fname =
   let open Abstraction in
   let all_mps = j |> member "all_mps" |> to_list |> List.map to_string in
   let measure = j |> member "measure" |> to_string in
+  let under_basicr =
+    match Inputstage.load_under_refinments prim_path.under_basicp with
+    | [], underr, [] -> underr
+    | _, _, _ -> failwith "wrong under prim"
+  in
   let underr =
     match Inputstage.load_under_refinments prim_path.underp with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
+  in
+  let underr =
+    under_basicr @ underr
+    (* __concat_without_overlap "basic underp is overlapped with underp" *)
+    (*   (fun (x, _) (y, _) -> String.equal x y) *)
+    (*   under_basicr underr *)
   in
   let rev_underr =
     match Inputstage.load_under_refinments prim_path.rev_underp with
