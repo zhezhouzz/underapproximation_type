@@ -1,12 +1,16 @@
 let neg_relu =
-  let x = (v : int) true in
-  (v : int) (v == 0)
+  let x = (true : [%v: int]) in
+  (v == 0 : [%v: int])
 
 let neg_relu =
-  let x = (v : int) (v > 0) in
-  (v : int) (v > 0)
+  let x = (true : [%v: int]) in
+  (v >= 0 : [%v: int])
+
+let neg_relu =
+  let x = (v > 0 : [%v: int]) in
+  (v > 0 : [%v: int])
 
 (* Should fail *)
 (* let neg_relu = *)
-(*   let x = (v : int) (v > 0) in *)
-(*   (v : int) (v >= 0) *)
+(*   let x = (v > 0 : [%v: int]) in *)
+(*   (v >= 0 : [%v: int]) *)

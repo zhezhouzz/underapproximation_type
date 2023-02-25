@@ -18,7 +18,8 @@ let undertype_of_ocamlexpr expr =
         (id :: ids, prop)
     | _ -> ([], Autov.prop_of_ocamlexpr expr)
   in
-  of_raw @@ aux expr
+  let res = of_raw @@ aux expr in
+  res
 
 let pretty_layout lemma =
   (* let to_strings = List.map (fun x -> x.Languages.SMTtyped.x) in *)

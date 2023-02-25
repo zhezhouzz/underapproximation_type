@@ -41,10 +41,9 @@ let hide_depedent_var ctx name ty =
       OT.forall_quantify_variable_in_ty name argty ty
   | _ -> _failatwith __FILE__ __LINE__ "not a well founded ctx, naming error"
 
-let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
-  let ty =
-    try Typectx.get_ty ctx id.x with _ -> Prim.get_primitive_over_ty id.x
-  in
+let rec id_type_infer (ctx : Typectx.ctx) (id : NL.id NL.typed) : NL.id OL.typed
+    =
+  let ty = Typectx.get_ty ctx id.x in
   let ty =
     OT.(
       match ty with
@@ -55,13 +54,13 @@ let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : NL.id OL.typed =
   in
   erase_check_mk_id __FILE__ __LINE__ id ty
 
-and id_type_check (ctx : Typectx.t) (id : NL.id NL.typed) (ty : OT.t) :
+and id_type_check (ctx : Typectx.ctx) (id : NL.id NL.typed) (ty : OT.t) :
     NL.id OL.typed =
   let id = id_type_infer ctx id in
   let () = Oversub.subtyping_check ctx id.OL.ty ty in
   id
 
-and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
+and lit_type_infer (ctx : Typectx.ctx) (lit : NL.smt_lit NL.typed) :
     OL.smt_lit OL.typed =
   let open NL in
   match lit.x with
@@ -89,34 +88,35 @@ and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
       let id = id_type_infer ctx { ty = lit.ty; x = id } in
       OL.{ ty = id.ty; x = Var id.x }
 
-and value_type_infer (ctx : Typectx.t) (a : NL.value NL.typed) :
+and value_type_infer (ctx : Typectx.ctx) (a : NL.value NL.typed) :
     OL.value OL.typed =
   let aty = a.ty in
   match a.x with
+  | NL.Exn -> failwith "Source Code Exception"
   | NL.Lit lit ->
       let lit = lit_type_infer ctx { ty = aty; x = lit } in
       OL.{ ty = lit.ty; x = Lit lit.x }
-  | NL.Lam (_, _) ->
+  | NL.Lam (_, _, _) ->
       (* NOTE: Can we infer a type of the lambda function without the argment type? *)
       _failatwith __FILE__ __LINE__ "cannot infer under arrow type"
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
-and value_type_check (ctx : Typectx.t) (a : NL.value NL.typed) (ty : OT.t) :
+and value_type_check (ctx : Typectx.ctx) (a : NL.value NL.typed) (ty : OT.t) :
     OL.value OL.typed =
   match (a.x, ty) with
   | NL.Lit _, _ ->
       let x = value_type_infer ctx a in
       let () = Oversub.subtyping_check ctx x.ty ty in
       x
-  | NL.Lam (id, body), OT.(OverTy_arrow { argname; argty; retty }) ->
+  | NL.Lam (id, rankfunc, body), OT.(OverTy_arrow { argname; argty; retty }) ->
       let () = erase_check __FILE__ __LINE__ (argty, id.ty) in
       let retty = OT.subst_id retty argname id.x in
-      let ctx' = Typectx.add_to_right ctx (argty, id.x) in
+      let ctx' = Typectx.add_to_right ctx (id.x, argty) in
       let body = term_type_check ctx' body retty in
-      { ty; x = Lam ({ ty = argty; x = id.x }, body) }
+      { ty; x = Lam ({ ty = argty; x = id.x }, rankfunc, body) }
   | NL.Fix (f, body), ty ->
       let () = erase_check __FILE__ __LINE__ (ty, f.ty) in
-      let ctx' = Typectx.add_to_right ctx (ty, f.x) in
+      let ctx' = Typectx.add_to_right ctx (f.x, ty) in
       let body = value_type_check ctx' body ty in
       { ty; x = Fix ({ ty; x = f.x }, body) }
   | _, _ -> _failatwith __FILE__ __LINE__ ""
@@ -127,7 +127,7 @@ and handle_lettu ctx (tu, args, body) self =
   let tuty = OT.OverTy_tuple (List.map (fun x -> x.ty) args) in
   let tu = erase_check_mk_id __FILE__ __LINE__ tu tuty in
   let tu = { x = tu.x; ty = tuty } in
-  let ctx' = Typectx.add_to_right ctx (tu.ty, tu.x) in
+  let ctx' = Typectx.add_to_right ctx (tu.x, tu.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
@@ -150,7 +150,7 @@ and handle_letdetu ctx (tu, args, body) self =
   let ctx' =
     List.fold_left
       (fun ctx' id ->
-        let ctx' = Typectx.add_to_right ctx' (id.ty, id.x) in
+        let ctx' = Typectx.add_to_right ctx' (id.x, id.ty) in
         ctx')
       ctx args
   in
@@ -171,7 +171,7 @@ and handle_letapp ctx (ret, fty, args, body) self =
     List.fold_left
       (fun ctx (arg, (ty, id)) ->
         let () = Oversub.subtyping_check ctx arg.ty ty in
-        let ctx' = Typectx.add_to_right ctx (ty, id) in
+        let ctx' = Typectx.add_to_right ctx (id, ty) in
         ctx')
       ctx
     @@ List.combine args argsty
@@ -185,7 +185,7 @@ and handle_letapp ctx (ret, fty, args, body) self =
       x = ret.x;
     }
   in
-  let ctx' = Typectx.add_to_right ctx (ret.ty, ret.x) in
+  let ctx' = Typectx.add_to_right ctx (ret.x, ret.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   (OT.forall_quantify_variable_in_ty ret.x ret.ty body.ty, (ret, args, body))
@@ -194,7 +194,7 @@ and handle_letval ctx (lhs, rhs, body) self =
   let open OL in
   let rhs = value_type_infer ctx rhs in
   let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let ctx' = Typectx.add_to_right ctx (lhs.ty, lhs.x) in
+  let ctx' = Typectx.add_to_right ctx (lhs.x, lhs.ty) in
   let body = self ctx' body in
   (* TODO: sanity check before hide depedent vars *)
   {
@@ -202,8 +202,8 @@ and handle_letval ctx (lhs, rhs, body) self =
     x = LetVal { lhs; rhs; body };
   }
 
-and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
-    =
+and term_type_infer (ctx : Typectx.ctx) (a : NL.term NL.typed) :
+    OL.term OL.typed =
   let open NL in
   match a.x with
   | V v ->
@@ -214,11 +214,11 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
   | LetDeTu { tu; args; body } ->
       handle_letdetu ctx (tu, args, body) term_type_infer
   | LetOp { ret; op; args; body } ->
-      (* let argsty = List.map (fun x -> x.ty) args in *)
+      let argsty = List.map (fun x -> snd x.ty) args in
       let opty =
         Prim.get_primitive_over_ty
           (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
-          (Op.op_to_string op)
+          (Op.op_to_string op, NT.construct_arrow_tp (argsty, snd ret.ty))
       in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) term_type_infer
@@ -230,14 +230,21 @@ and term_type_infer (ctx : Typectx.t) (a : NL.term NL.typed) : OL.term OL.typed
         handle_letapp ctx (ret, f.ty, args, body) term_type_infer
       in
       { ty; x = LetApp { ret; f; args; body } }
+  | LetDtConstructor { ret; f; args; body } ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_over_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, fty, args, body) term_type_infer
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
   | LetVal { lhs; rhs; body } ->
       handle_letval ctx (lhs, rhs, body) term_type_infer
   | Ite _ -> _failatwith __FILE__ __LINE__ "should not infer ite"
   | Match _ -> _failatwith __FILE__ __LINE__ "should not infer match"
 
-and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
+and term_type_check (ctx : Typectx.ctx) (x : NL.term NL.typed) (ty : OT.t) :
     OL.term OL.typed =
-  let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in
+  (* let () = Printf.printf "%s\n" (layout_judge ctx (x, ty)) in *)
   let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
   let self ctx e = term_type_check ctx e ty in
   let open NL in
@@ -248,11 +255,11 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
   | LetTu { tu; args; body }, _ -> handle_lettu ctx (tu, args, body) self
   | LetDeTu { tu; args; body }, _ -> handle_letdetu ctx (tu, args, body) self
   | LetOp { ret; op; args; body }, _ ->
-      (* let argsty = List.map (fun x -> x.ty) args in *)
+      let argsty = List.map (fun x -> snd x.ty) args in
       let opty =
         Prim.get_primitive_over_ty
           (* (Op.PrimOp (op, NT.construct_arrow_tp (argsty, ret.ty))) *)
-          (Op.op_to_string op)
+          (Op.op_to_string op, NT.construct_arrow_tp (argsty, snd ret.ty))
       in
       let ty, (ret, args, body) =
         handle_letapp ctx (ret, opty, args, body) self
@@ -264,6 +271,13 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
         handle_letapp ctx (ret, f.ty, args, body) self
       in
       { ty; x = LetApp { ret; f; args; body } }
+  | LetDtConstructor { ret; f; args; body }, _ ->
+      let fnty = recover_dt_constructor_ty (ret, args) in
+      let fty = Prim.get_primitive_over_ty (f, snd fnty) in
+      let ty, (ret, args, body) =
+        handle_letapp ctx (ret, fty, args, body) self
+      in
+      { ty; x = LetDtConstructor { ret; f; args; body } }
   | LetVal { lhs; rhs; body }, _ -> handle_letval ctx (lhs, rhs, body) self
   | Ite { cond; e_t; e_f }, _ ->
       let cond = id_type_infer ctx cond in
@@ -273,11 +287,11 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
       in
       let true_branch_ctx =
         Typectx.add_to_right ctx
-          (OT.base_type_add_conjunction true_branch_prop cond.ty, cond.x)
+          (cond.x, OT.base_type_add_conjunction true_branch_prop cond.ty)
       in
       let false_branch_ctx =
         Typectx.add_to_right ctx
-          (OT.base_type_add_conjunction false_branch_prop cond.ty, cond.x)
+          (cond.x, OT.base_type_add_conjunction false_branch_prop cond.ty)
       in
       let e_t = term_type_check true_branch_ctx e_t ty in
       let e_f = term_type_check false_branch_ctx e_f ty in
@@ -289,7 +303,7 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
         let constructor_ty =
           Prim.get_primitive_over_ty
             (* Op.(PrimOp (Dt constructor.x, constructor.ty)) *)
-            constructor.x
+            (constructor.x, snd constructor.ty)
         in
         let constructor = OL.{ ty = constructor_ty; x = constructor.x } in
         let constructor_ty = OT.arrow_args_rename args constructor_ty in
@@ -301,8 +315,9 @@ and term_type_check (ctx : Typectx.t) (x : NL.term NL.typed) (ty : OT.t) :
             | _ -> _failatwith __FILE__ __LINE__ "bad constructor type")
         in
         let ctx' =
-          Typectx.add_to_rights ctx @@ args
-          @ [ (OT.base_type_add_conjunction retty_prop matched.ty, matched.x) ]
+          Typectx.add_to_rights ctx
+          @@ List.map (fun (a, b) -> (b, a)) args
+          @ [ (matched.x, OT.base_type_add_conjunction retty_prop matched.ty) ]
         in
         let exp = term_type_check ctx' exp ty in
         OL.{ constructor; args = List.map snd args; exp }

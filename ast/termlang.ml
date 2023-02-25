@@ -6,17 +6,19 @@ module T = struct
   type id = string [@@deriving sexp]
   type 'a opttyped = { ty : ty option; x : 'a } [@@deriving sexp]
   type if_rec = bool [@@deriving sexp]
+  type rankfunc = (string * Autov.Prop.lit) option [@@deriving sexp]
 
   type term =
     | Const of Value.t
     | Var of id
     | Tu of term opttyped list
-    | Lam of ty * id * term opttyped
+    | Lam of ty * id * rankfunc * term opttyped
     | App of term opttyped * term opttyped list
     | Op of Op.T.op * term opttyped list
     | Let of if_rec * (ty * id) list * term opttyped * term opttyped
     | Ite of term opttyped * term opttyped * term opttyped
     | Match of term opttyped * case list
+    | Exn
 
   and case = { constructor : id opttyped; args : id list; exp : term opttyped }
   [@@deriving sexp]
@@ -48,9 +50,9 @@ module T = struct
     let rec aux { x; _ } =
       let x =
         match x with
-        | Const _ | Var _ -> x
+        | Const _ | Var _ | Exn -> x
         | Tu es -> Tu (List.map aux es)
-        | Lam (ty, id, e) -> Lam (ty, id, aux e)
+        | Lam (ty, id, rankfunc, e) -> Lam (ty, id, rankfunc, aux e)
         | App (e, es) -> App (aux e, List.map aux es)
         | Op (op, es) -> Op (op, List.map aux es)
         | Let (if_rec, lhs, rhs, body) -> Let (if_rec, lhs, aux rhs, aux body)

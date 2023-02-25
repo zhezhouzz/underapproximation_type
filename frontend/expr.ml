@@ -34,6 +34,7 @@ and typed_expr_to_ocamlexpr_desc expr =
 and expr_to_ocamlexpr_desc expr =
   let aux expr =
     match expr with
+    | L.Exn -> Pexp_ident (mk_idloc [ "Exn" ])
     | L.Tu es -> Pexp_tuple (List.map expr_to_ocamlexpr es)
     | L.Var var -> Pexp_ident (mk_idloc [ var ])
     | L.Const v -> (Value.value_to_expr v).pexp_desc
@@ -90,7 +91,22 @@ and expr_to_ocamlexpr_desc expr =
             cs
         in
         Pexp_match (case_target, cases)
-    | L.Lam (ty, x, body) ->
+    | L.Lam (ty, x, rankfunc, body) ->
+        let ext =
+          match rankfunc with
+          | None -> []
+          | Some (name, lit) ->
+              [
+                {
+                  attr_name = Location.mknoloc "rankfunc";
+                  attr_payload =
+                    PPat
+                      ( Pat.dest_to_pat (Ppat_var (Location.mknoloc name)),
+                        Some (Autov.lit_to_ocamlexpr lit) );
+                  attr_loc = Location.none;
+                };
+              ]
+        in
         let flag = Asttypes.Nolabel in
         (* let body = *)
         (*   let e = expr_to_ocamlexpr body in *)
@@ -102,7 +118,10 @@ and expr_to_ocamlexpr_desc expr =
         Pexp_fun
           ( flag,
             None,
-            Pat.slang_to_pattern L.{ ty = Some ty; x = Var x },
+            {
+              (Pat.slang_to_pattern L.{ ty = Some ty; x = Var x }) with
+              ppat_attributes = ext;
+            },
             expr_to_ocamlexpr body )
     (* | L.Lam (x :: t, body) -> *)
     (*     let flag = Asttypes.Nolabel in *)
@@ -150,15 +169,23 @@ let expr_of_ocamlexpr expr =
         (* let () = *)
         (*   Printf.printf "check op: %s\n" (Pprintast.string_of_expression expr) *)
         (* in *)
-        let c = id_to_var c in
-        match args with
-        | None -> handle_app c []
-        | Some args -> (
-            let args = aux args in
-            match args.x with
-            | L.Var _ -> handle_app c [ args ]
-            | L.Tu es -> handle_app c es
-            | _ -> failwith "die"))
+        let c = handle_id c in
+        (* let () = Printf.printf "Pat: %s\n" c in *)
+        match c with
+        | "Exn" -> L.{ ty = Some (None, Ty_unknown); x = Exn }
+        | "true" -> L.{ ty = Some (None, Ty_bool); x = Const (Value.V.B true) }
+        | "false" ->
+            L.{ ty = Some (None, Ty_bool); x = Const (Value.V.B false) }
+        | _ -> (
+            let c = L.(make_untyped @@ Var c) in
+            match args with
+            | None -> handle_app c []
+            | Some args -> (
+                let args = aux args in
+                match args.x with
+                | L.Var _ -> handle_app c [ args ]
+                | L.Tu es -> handle_app c es
+                | _ -> failwith "die")))
     | Pexp_constant _ -> L.(make_untyped @@ Const (Value.expr_to_value expr))
     | Pexp_let (flag, vbs, e) ->
         List.fold_right
@@ -232,6 +259,20 @@ let expr_of_ocamlexpr expr =
         in
         L.(make_untyped @@ Match (aux case_target, cs))
     | Pexp_fun (_, _, arg, expr) ->
+        let () = Printf.printf "has ext: %s\n" (Pat.layout_ arg) in
+        let rank_func =
+          match arg.ppat_attributes with
+          | [] -> None
+          | [ x ] when String.equal x.attr_name.txt "rankfunc" -> (
+              match x.attr_payload with
+              | PPat (pat, Some expr) -> (
+                  match (pat.ppat_desc, expr.pexp_desc) with
+                  | Ppat_var name, _ ->
+                      Some (name.txt, Autov.lit_of_ocamlexpr expr)
+                  | _ -> failwith "unknown extension")
+              | _ -> failwith "unknown extension")
+          | _ -> failwith "unknown extension"
+        in
         let arg = Pat.pattern_to_slang arg in
         let ty =
           match arg.L.ty with
@@ -244,7 +285,7 @@ let expr_of_ocamlexpr expr =
           | L.Var x -> x
           | _ -> failwith "Syntax error: lambda function wrong argument"
         in
-        L.(make_untyped @@ Lam (ty, x, aux expr))
+        L.(make_untyped @@ Lam (ty, x, rank_func, aux expr))
         (* un-curry *)
     | _ ->
         raise
@@ -259,8 +300,8 @@ let expr_of_ocamlexpr expr =
     in
     match prim with
     | Some (Op.T.PrimOp op, _) -> L.(make_untyped @@ Op (op, args))
-    | Some (Op.T.DtConstructor f, ty) | Some (Op.T.External f, ty) ->
-        L.(make_untyped @@ App ({ x = Var f; ty = Some (None, ty) }, args))
+    | Some (Op.T.DtConstructor f, _) | Some (Op.T.External f, _) ->
+        L.(make_untyped @@ App ({ x = Var f; ty = None }, args))
     | None -> L.(make_untyped @@ App (func, args))
   in
   aux expr

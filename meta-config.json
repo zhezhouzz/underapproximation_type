@@ -1,0 +1,6 @@
+{
+    "mode": "debug",
+    "logfile": ".log",
+    "resfile": ".result",
+    "benchmark_table_file": "config/benchmark.json"
+}

@@ -1,157 +1,19 @@
 open Languages
 module P = Autov.Prop
-module Typectx = UnderTypectx
+module Typectx = MustMayTypectx
 open Zzdatatype.Datatype
 open Sugar
 open Ntyped
 open Abstraction
+open Underctx
 
 let with_lemma_to_query lemmas x =
   let pre, a, b = Lemma.query_with_lemma_to_prop @@ Lemma.with_lemma lemmas x in
   (* let () = Lemma.print_with_lemma (pre, b) in *)
+  (* let () = failwith "end" in *)
   (pre, a, b)
 
-let _assume_basety file line (x, ty) =
-  let open UT in
-  match ty with
-  | UnderTy_base { basename; prop; normalty } ->
-      let prop = P.subst_id prop basename x in
-      ({ ty = normalty; x }, prop)
-  | _ ->
-      let () =
-        Printf.printf " %s: %s\n" x (Frontend.Underty.pretty_layout ty)
-      in
-      _failatwith file line "should not happen"
-
 let typed_to_smttyped = Languages.Ntyped.to_smttyped
-
-type mode = InIn | InNotin | NotinIn | NotinNotin
-
-let core ctx nu ((eqvs1, uprop1), prop2) =
-  let open P in
-  let check_in x p = List.exists (String.equal x) @@ Autov.prop_fv p in
-  let rec aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) =
-    match Typectx.destrct_right ctx with
-    | None ->
-        let _ =
-          Printf.printf "%s, %s\n"
-            (List.split_by_comma (fun x -> x.x) eqvs2)
-            (Autov.pretty_layout_prop uprop2)
-        in
-        let eqvs1' = List.map (fun x -> Ntyped.map Rename.unique x) eqvs1 in
-        let uprop1' = P.rename_prop uprop1 (List.combine eqvs1 eqvs1') in
-        let uprop1' = P.peval uprop1' in
-        let uprop2 = P.peval uprop2 in
-        (* let _ = failwith "end" in *)
-        (nu :: eqvs2, eqvs1', uprop2, uprop1')
-    | Some (ctx, (x, xty)) ->
-        let xty = UT.conjunct_list xty in
-        let eqvs1, uprop1 =
-          let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-          conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1)
-        in
-        let eqvs2, uprop2 =
-          if check_in x uprop2 then
-            let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in
-            conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs2, uprop2)
-          else (eqvs2, uprop2)
-        in
-        (* let update (eqvs, uprop) = *)
-        (*   if check_in x uprop then *)
-        (*     let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-        (*     conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs, uprop) *)
-        (*   else (eqvs, uprop) *)
-        (* in *)
-        (* aux ctx (update (eqvs1, uprop1), update (eqvs2, uprop2)) *)
-        aux ctx ((eqvs1, uprop1), (eqvs2, uprop2))
-    (* let in1, in2 = (check_in x uprop1, check_in x uprop2) in *)
-    (* match (in1, in2) with *)
-    (* | false, false -> aux ctx ((eqvs1, uprop1), (eqvs2, uprop2)) *)
-    (* | true, false -> *)
-    (*     let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (*     let eqvs1, prop1 = *)
-    (*       conjunct_base_to_tope_uprop_ ([ x ], xprop) (eqvs1, uprop1) *)
-    (*     in *)
-    (*     aux ctx ((eqvs1, prop1), (eqvs2, uprop2)) *)
-    (* | _, true -> *)
-    (*     let x, _ = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (*     aux ctx ((eqvs1 [ x ], uprop1), (eqvs2 @ [ x ], uprop2)) *)
-    (* let x, xprop = _assume_basety __FILE__ __LINE__ (x, xty) in *)
-    (* aux ctx ((x :: uqvs, xprop :: upre), (eqvs1, uprop1), (uqvs2, prop2)) *)
-  in
-  let eqvs2, uprop2 = assume_tope_uprop __FILE__ __LINE__ prop2 in
-  let _ = Printf.printf "%s\n" (Autov.pretty_layout_prop prop2) in
-  let _ = Printf.printf "%s\n" (Autov.pretty_layout_prop uprop2) in
-  aux ctx ((eqvs1, uprop1), (eqvs2, uprop2))
-
-let context_convert (ctx : Typectx.t) (nu, prop1, prop2) =
-  (* let () = Pp.printf "%s\n" (Autov.pretty_layout_prop prop1) in *)
-  let eq1, prop1 = P.assume_tope_uprop __FILE__ __LINE__ prop1 in
-  (* let uq2, prop2 = P.assume_tope_uprop __FILE__ __LINE__ prop2 in *)
-  let final_uqvs, final_eqvs, final_pre, final_post =
-    core ctx nu ((eq1, prop1), prop2)
-  in
-  let () =
-    Typectx.pretty_print_q
-      (List.map (fun x -> x.x) final_uqvs)
-      (List.map (fun x -> x.x) final_eqvs)
-      final_pre final_post
-  in
-  let pres, uqvs, q =
-    with_lemma_to_query (Prim.lemmas_to_pres ())
-      (final_uqvs, final_eqvs, final_pre, final_post)
-  in
-  match
-    List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)
-  with
-  | [] -> (pres, q)
-  | fv ->
-      let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
-      let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
-      let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
-      _failatwith __FILE__ __LINE__
-        (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
-
-let to_query (nu, prop1, prop2) =
-  (* let () = *)
-  (*   Typectx.pretty_print_q *)
-  (*     (List.map (fun x -> x.x) [ nu ]) *)
-  (*     (List.map (fun x -> x.x) []) *)
-  (*     prop2 prop1 *)
-  (* in *)
-  let eq2, final_pre = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
-  (* let _ = *)
-  (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
-  (*     (Autov.pretty_layout_prop uprop2) *)
-  (*     (Autov.pretty_layout_prop @@ P.topu_to_prop *)
-  (*     @@ P.lift_uprop __FILE__ __LINE__ uprop2) *)
-  (* in *)
-  (* let uq2, final_pre = P.lift_uprop __FILE__ __LINE__ uprop2 in *)
-  (* let uq2, final_pre = P.lift_merge_uprop __FILE__ __LINE__ uprop2 in *)
-  let final_eqvs, final_post =
-    P.assume_tope_uprop_fresh_name __FILE__ __LINE__ prop1
-  in
-  (* let _ = *)
-  (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
-  (*     (Autov.pretty_layout_prop prop1) *)
-  (*     (Autov.pretty_layout_prop final_post) *)
-  (* in *)
-  (* let () = failwith "zz" in *)
-  let final_uqvs = nu :: eq2 in
-  let pres, uqvs, q =
-    with_lemma_to_query (Prim.lemmas_to_pres ())
-      (final_uqvs, final_eqvs, final_pre, final_post)
-  in
-  match
-    List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)
-  with
-  | [] -> (pres, q)
-  | fv ->
-      let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
-      let () = Printf.printf "prop1: %s\n" @@ Autov.pretty_layout_prop prop1 in
-      let () = Printf.printf "prop2: %s\n" @@ Autov.pretty_layout_prop prop2 in
-      _failatwith __FILE__ __LINE__
-        (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
 let check file line pres q =
   match Autov.check pres q with
@@ -161,44 +23,259 @@ let check file line pres q =
       Autov._failwithmodel file line "Subtyping check: rejected by the verifier"
         m
 
-let subtyping_check file line (ctx : Typectx.t) (inferred_ty : UT.t)
+let do_check file line (final_uqvs, final_eqvs, final_pre, final_post) =
+  (* HACK: we do not really check unit *)
+  if
+    List.length
+      (List.filter (fun x -> match x.ty with Ty_unit -> true | _ -> false)
+      @@ final_uqvs @ final_eqvs)
+    != 0
+  then ()
+  else
+    let () =
+      let hol_q =
+        P.(
+          topu_to_prop
+            ( final_uqvs,
+              tope_to_prop (final_eqvs, Implies (final_pre, final_post)) ))
+      in
+      match P.fv hol_q with
+      | [] -> ()
+      | fvs ->
+          (* let () = Printf.printf "Q: %s\n" (Autov.pretty_layout_prop hol_q) in *)
+          _failatwith __FILE__ __LINE__ @@ StrList.to_string fvs
+    in
+    let pres, uqvs, q =
+      with_lemma_to_query (Prim.lemmas_to_pres ())
+        (final_uqvs, final_eqvs, final_pre, final_post)
+    in
+    match
+      List.substract String.equal (Autov.prop_fv q)
+        (List.map (fun x -> x.x) uqvs)
+    with
+    | [] -> check file line pres q
+    | fv ->
+        let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
+        _failatwith __FILE__ __LINE__
+          (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
+
+(* let counter = ref 0 *)
+
+let do_solve_pres pres =
+  let rec aux = function
+    | (id, ot) :: pres ->
+        let ot_uqvs, ot_pre = aux pres in
+        (* if List.exists (String.equal id) (P.fv ot_pre @ P.fv target) then *)
+        if NT.is_basic_tp ot.UT.normalty then
+          let x = { x = id; ty = ot.UT.normalty } in
+          let prop = P.subst_id ot.prop ot.basename x.x in
+          (x :: ot_uqvs, P.And [ prop; ot_pre ])
+        else _failatwith __FILE__ __LINE__ ""
+        (* else (ot_uqvs, ot_pre) *)
+    | [] -> ([], P.mk_true)
+  in
+  let ot_uqvs, ot_pre = aux pres in
+  (ot_uqvs, P.peval ot_pre)
+
+let max_uqvs_num = ref 0
+let max_eqvs_num = ref 0
+
+let record_max_qvs_num a b =
+  let num = List.length b in
+  if !a < num then a := num else ()
+
+let solve_pres file line pres (t1, t2) =
+  let name1, nt1, prop1 = UT.assume_base __FILE__ __LINE__ t1 in
+  let name2, nt2, prop2 = UT.assume_base __FILE__ __LINE__ t2 in
+  let nt = _check_equality __FILE__ __LINE__ NT.eq nt1 nt2 in
+  let typeself, prop1, prop2 =
+    if String.equal name1 name2 then (name1, prop1, prop2)
+    else (name1, P.peval prop1, P.subst_id prop2 name2 name1)
+  in
+  let ot_uqvs, ot_pre = do_solve_pres pres in
+  let prop1 = P.peval prop1 in
+  let prop2 = P.peval prop2 in
+  let nu = { ty = nt; x = typeself } in
+  let () =
+    Typectx.pretty_print_q
+      (List.map (fun x -> x.x) ot_uqvs @ [ nu.x ])
+      []
+      (And [ ot_pre; prop2 ])
+      prop1
+  in
+  let eq2, pre2 = P.assume_tope_uprop __FILE__ __LINE__ prop2 in
+  let final_eqvs, final_post =
+    P.assume_tope_uprop_fresh_name __FILE__ __LINE__ prop1
+  in
+  let final_pre = P.And [ ot_pre; pre2 ] in
+  let final_uqvs = ot_uqvs @ (nu :: eq2) in
+  let () = record_max_qvs_num max_uqvs_num final_uqvs in
+  let () = record_max_qvs_num max_eqvs_num final_eqvs in
+  do_check file line (final_uqvs, final_eqvs, final_pre, final_post)
+
+let check_in name t = List.exists (String.equal name) @@ UT.fv t
+
+let check_under_ctx file line ctx (t1, t2) =
+  let force_add (id, uty) t1 =
+    if UT.is_base_type uty then UT.retty_add_ex_uprop_always_add (id, uty) t1
+    else t1
+  in
+  let rec aux pres ctx (t1, t2) =
+    match Typectx.destrct_right ctx with
+    | None -> (pres, (t1, t2))
+    | Some (ctx, (id, MMT.Ot oty)) -> aux ([ (id, oty) ] @ pres) ctx (t1, t2)
+    | Some (ctx, (id, MMT.Consumed (UtCopy id')))
+    | Some (ctx, (id, MMT.Ut (UtCopy id'))) ->
+        let t1 = UT.subst_id t1 id id'.x in
+        let t2 = UT.subst_id t2 id id'.x in
+        aux pres ctx (t1, t2)
+    | Some (ctx, (id, MMT.Consumed (UtNormal uty)))
+    | Some (ctx, (id, MMT.Ut (UtNormal uty))) ->
+        let t1 = force_add (id, uty) t1 in
+        let t2 = force_add (id, uty) t2 in
+        (* let t2 = match UT.fv t2 with [] -> t2 | _ -> force_add (id, uty) t2 in *)
+        aux pres ctx (t1, t2)
+    (* (match (check_in id t1, check_in id t2) with *)
+    (* | false, false -> *)
+    (*     (\* let () = *\) *)
+    (*     (\*   Printf.printf "Add (%s, %s) -> %s\n" id (UT.pretty_layout uty) *\) *)
+    (*     (\*     (UT.pretty_layout t1) *\) *)
+    (*     (\* in *\) *)
+    (*     let t1 = *)
+    (*       if UT.is_base_type uty then *)
+    (*         UT.retty_add_ex_uprop_always_add (id, uty) t1 *)
+    (*       else t1 *)
+    (*     in *)
+    (*     aux pres ctx (t1, t2) *)
+    (* | _, _ -> *)
+    (*     let t1 = UT.retty_add_ex_uprop_drop_independent (id, uty) t1 in *)
+    (*     let t2 = UT.retty_add_ex_uprop_drop_independent (id, uty) t2 in *)
+    (*     aux pres ctx (t1, t2)) *)
+  in
+  let pres, (t1, t2) = aux [] ctx (t1, t2) in
+  solve_pres file line pres (t1, t2)
+
+let subtyping_check_ot_ file line ctx t1 t2 =
+  let () = Pp.printf "@{<bold>OVERCHECK@}\n" in
+  let () = Typectx.pretty_print_subtyping ctx (MMT.Ot t1, MMT.Ot t2) in
+  let () = Pp.printf "@{<bold>OVERCHECK Converted@}\n" in
+  let t1' = UT.ot_to_ut t1 in
+  let t2' = UT.ot_to_ut t2 in
+  let () =
+    Typectx.pretty_print_subtyping ctx
+      (MMT.Ut (MMT.UtNormal t2'), MMT.Ut (MMT.UtNormal t1'))
+  in
+  check_under_ctx file line ctx (t2', t1')
+
+(* let subtyping_check_ot_ file line ctx t1 t2 = *)
+(*   let rec aux pres ctx (t1, t2) = *)
+(*     match Typectx.destrct_right ctx with *)
+(*     | None -> (pres, (t1, t2)) *)
+(*     | Some (ctx, (_, MMT.Consumed _)) -> aux pres ctx (t1, t2) *)
+(*     | Some (ctx, (id, MMT.Ot oty)) -> aux ([ (id, oty) ] @ pres) ctx (t1, t2) *)
+(*     | Some (ctx, (_, MMT.Ut _)) -> aux pres ctx (t1, t2) *)
+(*   in *)
+(*   let pres, (t1, t2) = aux [] ctx (t1, t2) in *)
+(*   let () = *)
+(*     let () = Pp.printf "@{<bold>OVERCHECK@}\n" in *)
+(*     let psudo_ctx = List.map (fun (id, ty) -> (id, MMT.Ot ty)) pres in *)
+(*     let () = Typectx.pretty_print_subtyping psudo_ctx (MMT.Ot t1, MMT.Ot t2) in *)
+(*     () *)
+(*   in *)
+(*   solve_pres file line pres (UT.ot_to_ut t2, UT.ot_to_ut t1) *)
+
+let subtyping_check_ file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
     (target_ty : UT.t) =
   let open UT in
-  let () = Typectx.pretty_print_subtyping ctx (inferred_ty, target_ty) in
+  (* let () = if !counter == 1 then failwith "end" else counter := !counter + 1 in *)
+  let () =
+    Typectx.pretty_print_subtyping ctx
+      (MMT.(Ut (UtNormal inferred_ty)), MMT.(Ut (UtNormal target_ty)))
+  in
   let rec aux ctx (t1, t2) =
     match (t1, t2) with
-    | ( UnderTy_base { basename = name1; prop = prop1; normalty = nt1 },
-        UnderTy_base { basename = name2; prop = prop2; normalty = nt2 } ) ->
-        let nt = _check_equality __FILE__ __LINE__ NT.eq nt1 nt2 in
-        let typeself, prop1, prop2 =
-          if String.equal name1 name2 then (name1, prop1, prop2)
-          else (name1, prop1, P.subst_id prop2 name2 name1)
-        in
-        let nu = { ty = nt; x = typeself } in
-        let prop1' = Typectx.close_prop ctx prop1 in
-        (* let _ = *)
-        (*   Pp.printf "@{<bold>LIFT:@}\n%s --->\n%s\n" *)
-        (*     (Autov.pretty_layout_prop prop1') *)
-        (*     (Autov.pretty_layout_prop @@ P.topu_to_prop *)
-        (*     @@ P.lift_uprop __FILE__ __LINE__ prop1') *)
-        (* in *)
-        (* let () = failwith "zz" in *)
-        let prop2' = Typectx.close_prop_drop_independt ctx prop2 in
-        let pres, q = to_query (nu, prop1', prop2') in
-        (* let _ = failwith "end" in *)
-        (* let pres, q = context_convert ctx (nu, prop1, prop2) in *)
-        check file line pres q
+    | UnderTy_base _, UnderTy_base _ -> check_under_ctx file line ctx (t1, t2)
     | UnderTy_tuple ts1, UnderTy_tuple ts2 ->
-        List.iter (aux ctx) @@ List.combine ts1 ts2
-    | ( UnderTy_arrow { argname = x1; argty = t11; retty = t12 },
-        UnderTy_arrow { argname = x2; argty = t21; retty = t22 } ) ->
-        let t22 = subst_id t22 x2 x1 in
-        (* let () = *)
-        (*   if UT.is_fv_in x2 t22 then aux ctx (t11, t21) else aux ctx (t21, t11) *)
-        (* in *)
-        let () = aux ctx (t21, t11) in
-        let () = aux ctx (t12, t22) in
-        ()
+        List.iter (check_under_ctx file line ctx)
+        @@ _safe_combine __FILE__ __LINE__ ts1 ts2
+    | ( UnderTy_under_arrow { argty = t11; retty = t12 },
+        UnderTy_under_arrow { argty = t21; retty = t22 } ) ->
+        aux ctx (t21, t11);
+        aux ctx (t12, t22)
+    | ( UnderTy_over_arrow { argname = x1; argty = t11; retty = t12 },
+        UnderTy_over_arrow { argname = x2; argty = t21; retty = t22 } ) ->
+        let () = subtyping_check_ot_ file line ctx t21 t11 in
+        let x' = Rename.unique x2 in
+        let t12 = subst_id t12 x1 x' in
+        let t22 = subst_id t22 x2 x' in
+        let ctx = Typectx.ot_add_to_right ctx (x', t21) in
+        aux ctx (t12, t22)
     | _, _ -> _failatwith __FILE__ __LINE__ "die: under subtype"
   in
   aux ctx (inferred_ty, target_ty)
+
+let subtyping_check_counter = ref 0
+let subtyping_check_counter_set0 () = subtyping_check_counter := 0
+
+let subtyping_check_counter_plus1 () =
+  subtyping_check_counter := !subtyping_check_counter + 1
+
+let subtyping_check file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
+    (target_ty : UT.t) =
+  let () = subtyping_check_counter_plus1 () in
+  try subtyping_check_ file line ctx inferred_ty target_ty with
+  | Autov.FailWithModel (msg, m) ->
+      let () = Pp.printf "@{<orange>Under Type Check failed:@}%s\n" msg in
+      raise (FailwithCex (msg, m))
+  | Autov.SMTTIMEOUT ->
+      let () = Pp.printf "@{<orange>Under Type Check failed:@}%s\n" "timeout" in
+      raise (FailTimeout (__FILE__, __LINE__))
+  | e -> raise e
+
+let subtyping_check_ot file line (ctx : Typectx.ctx) (inferred_ty : UT.ot)
+    (target_ty : UT.ot) =
+  try subtyping_check_ot_ file line ctx inferred_ty target_ty with
+  | Autov.FailWithModel (msg, m) ->
+      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" msg in
+      raise (FailwithCex (msg, m))
+  | Autov.SMTTIMEOUT ->
+      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "timeout" in
+      raise (FailTimeout (__FILE__, __LINE__))
+  | e -> raise e
+
+let type_err_to_false f =
+  try
+    let _ = f () in
+    true
+  with
+  | FailwithCex _ | FailUnderAgainstOver _ | FailOverAgainstUnder _
+  | FailTimeout _ ->
+      false
+  | FailTypeConsumedonsumed _ ->
+      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "consumed" in
+      false
+  | e -> raise e
+
+let subtyping_check_bool file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
+    (target_ty : UT.t) =
+  type_err_to_false (fun () ->
+      subtyping_check file line ctx inferred_ty target_ty)
+
+let ot_subtyping_check_bool file line (ctx : Typectx.ctx) (inferred_ty : UT.ot)
+    (target_ty : UT.ot) =
+  type_err_to_false (fun () ->
+      subtyping_check_ot file line ctx inferred_ty target_ty)
+
+let mmt_check file line ctx t1 t2 =
+  let open MMT in
+  match (t1, t2) with
+  | Consumed _, _ -> _err_consumed file line "??"
+  | _, Consumed _ -> _err_consumed file line "??"
+  | Ut (UtNormal t1), Ut (UtNormal t2) -> subtyping_check file line ctx t1 t2
+  | Ut _, Ut _ -> _failatwith __FILE__ __LINE__ "never happen"
+  | Ut _, Ot _ -> raise (FailUnderAgainstOver (file, line))
+  | Ot _, Ut _ -> raise (FailOverAgainstUnder (file, line))
+  | Ot t1, Ot t2 -> subtyping_check_ot file line ctx t1 t2
+
+let mmt_check_bool file line ctx t1 t2 =
+  type_err_to_false (fun () -> mmt_check file line ctx t1 t2)

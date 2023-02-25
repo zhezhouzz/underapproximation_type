@@ -2,19 +2,26 @@
 (library
  (name typecheck)
  (wrapped true)
- (libraries utils languages core translate abstraction)
+ (libraries utils languages core translate abstraction env)
  (modules
    ; under/
    litcheck
    checkaux
+   param
    ; ./
    opcheck
    termcheck
    oversub
    undersub
-   overcheck
+   ; overcheck
    undercheck
    undertycheck
-   overtycheck
-   well_found
+   ; overtycheck
+   ; dependentcheck
+   ; inv_check
+   underctx
+   ; persistence_check
+   ; reachability_check
+   dt_eq
+   ; well_found
  ))

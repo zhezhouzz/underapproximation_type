@@ -1,5 +1,5 @@
 let foo =
-  let x = (v : int) true in
-  let y = (v : int) (v < x) in
-  let z = (v : int) (v > 0) in
-  (v : int list) (fun (u : [%forall: int]) -> not (mem v u))
+  let x = (true : [%v: int]) in
+  let y = (v < x : [%v: int]) in
+  let z = (v > 0 : [%v: int]) in
+  (fun (u : [%forall: int]) -> not (mem v u) : [%v: int list])

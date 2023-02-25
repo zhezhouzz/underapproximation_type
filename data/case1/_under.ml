@@ -1,36 +1,36 @@
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v == x + 1)
+  let x = (v > 0 : [%v: int]) in
+  (v == x + 1 : [%v: int])
 
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v > 1)
+  let x = (v > 0 : [%v: int]) in
+  (v > 1 : [%v: int])
 
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v == 2)
+  let x = (v > 0 : [%v: int]) in
+  (v == 2 : [%v: int])
 
 let foo =
-  let x = (v : int) true in
-  (v : int) (v == 2)
+  let x = (true : [%v: int]) in
+  (v == 2 : [%v: int])
 
 let foo =
-  let x = (v : int) true in
-  (v : int) false
+  let x = (true : [%v: int]) in
+  (false : [%v: int])
 
 let foo =
-  let x = (v : int) true in
-  (v : int) true
+  let x = (true : [%v: int]) in
+  (true : [%v: int])
 
 let foo =
-  let x = (v : int) false in
-  (v : int) false
+  let x = (false : [%v: int]) in
+  (false : [%v: int])
 
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v == 2 || v == 3)
+  let x = (v > 0 : [%v: int]) in
+  (v == 2 || v == 3 : [%v: int])
 
 (* Should fail *)
 let foo =
-  let x = (v : int) false in
-  (v : int) true
+  let x = (false : [%v: int]) in
+  (true : [%v: int])

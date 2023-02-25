@@ -1,0 +1,20 @@
+-Q . CT
+Maps.v
+CoreLang.v
+NormalTypeSystem.v
+Ax.v
+LinearContext.v
+RfTypeDef.v
+NoDup.v
+TermMeet.v
+TypeClosed.v
+Denotation.v
+WellFormed.v
+CtxErase.v
+DenotationAux.v
+TypeDisj.v
+DenotationSpecs.v
+WellFormedSpecs.v
+Subtyping.v
+TypingRules.v
+Soundness.v

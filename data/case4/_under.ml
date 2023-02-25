@@ -1,3 +1,7 @@
+let[@library] ret_two_value =
+  let x = (v > 0 : [%v: int]) in
+  (v == 1 || v == 2 : [%v: int])
+
 let foo =
-  let x = (v : int) (v > 0) in
-  (v : int) (v == 3)
+  let x = (v >= 0 : [%v: int]) in
+  (v == 3 : [%v: int])

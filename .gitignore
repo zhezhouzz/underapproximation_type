@@ -1,2 +1,5 @@
+.log
 _build/
 *.out
+.result
+*.pyc

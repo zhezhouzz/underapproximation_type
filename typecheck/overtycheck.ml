@@ -37,10 +37,10 @@ let infer_prop ctx t =
     | Iff (e1, e2) -> Iff (aux ctx e1, aux ctx e2)
     | MethodPred (mp, args) -> MethodPred (mp, List.map (infer_lit ctx) args)
     | Forall (u, e) ->
-        let ctx = add_to_right ctx (u.ty, u.x) in
+        let ctx = add_to_right ctx (u.x, u.ty) in
         Forall (u, aux ctx e)
     | Exists (u, e) ->
-        let ctx = add_to_right ctx (u.ty, u.x) in
+        let ctx = add_to_right ctx (u.x, u.ty) in
         Exists (u, aux ctx e)
   in
   aux ctx t
@@ -49,11 +49,11 @@ let infer t =
   let open OT in
   let rec aux ctx = function
     | OverTy_base { basename; normalty; prop } ->
-        let ctx = add_to_right ctx (normalty, basename) in
+        let ctx = add_to_right ctx (basename, normalty) in
         OverTy_base { basename; normalty; prop = infer_prop ctx prop }
     | OverTy_arrow { argname; argty; retty } ->
         let argty = aux ctx argty in
-        let ctx = add_to_right ctx (erase argty, argname) in
+        let ctx = add_to_right ctx (argname, erase argty) in
         OverTy_arrow { argname; argty; retty = aux ctx retty }
     | OverTy_tuple ts -> OverTy_tuple (List.map (aux ctx) ts)
   in
