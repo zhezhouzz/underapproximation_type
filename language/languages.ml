@@ -152,6 +152,7 @@ module Lemma = struct
 
   let with_lemma lemmas (uqvs, eqvs, vc_head, vc_body) =
     let () =
+      Env.show_debug_stat @@ fun _ ->
       Pp.printf "@{<bold>raw:@} vc_head(%i); vc_body(%i)\n" (P.size vc_head)
         (P.size vc_body)
     in
@@ -166,12 +167,15 @@ module Lemma = struct
         { vc_u_basics; vc_u_dts; vc_e_basics; vc_head; vc_e_dts; vc_body }
     in
     let () =
+      Env.show_debug_stat @@ fun _ ->
       Pp.printf "@{<bold>add_lemma:@} vc_head(%i); vc_body(%i)\n"
         (P.size x.vcl_head) (P.size x.vcl_body)
     in
     let x = without_e_dt x in
-    let () = Pp.printf "@{<bold>without_dt:@} %i\n" (P.size x.vclw_body) in
-    (* let () = failwith "zz" in *)
+    let () =
+      Env.show_debug_stat @@ fun _ ->
+      Pp.printf "@{<bold>without_dt:@} %i\n" (P.size x.vclw_body)
+    in
     x
 end
 

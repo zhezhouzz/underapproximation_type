@@ -26,28 +26,7 @@ let of_ocamltypedec { ptype_name; ptype_params; ptype_kind; ptype_manifest; _ }
   match (ptype_params, ptype_kind, ptype_manifest) with
   | params, Ptype_variant cds, None ->
       let type_params =
-        List.map
-          (fun (ct, (_, _)) ->
-            (* let a = *)
-            (*   Asttypes.( *)
-            (*     match a with *)
-            (*     | Covariant -> "Covariant" *)
-            (*     | Contravariant -> "Contravariant" *)
-            (*     | NoVariance -> "NoVariance") *)
-            (* in *)
-            (* let b = *)
-            (*   Asttypes.( *)
-            (*     match b with *)
-            (*     | Injective -> "Injective" *)
-            (*     | NoInjectivity -> "NoInjectivity") *)
-            (* in *)
-            (* let () = *)
-            (*   Printf.printf "parsing: %s %s %s %i %b\n" a b (Type.layout_ ct) *)
-            (*     (List.length ct.ptyp_attributes) *)
-            (*     (match ct.ptyp_desc with Ptyp_var "a" -> true | _ -> false) *)
-            (* in *)
-            Type.core_type_to_t ct)
-          params
+        List.map (fun (ct, (_, _)) -> Type.core_type_to_t ct) params
       in
       {
         type_name = ptype_name.txt;

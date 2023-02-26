@@ -1,3 +1,4 @@
+module MetaEnv = Env
 open Ocaml_parser
 open Parsetree
 module L = Ast.UT
@@ -35,18 +36,22 @@ let pretty_print_with_lemma
       vcl_e_dts;
       vcl_body;
     } =
-  let () = Pp.printf "@{<bold>With Lemmas:@}\n" in
-  List.iter
-    (fun p -> Pp.printf "@{<bold>lemmas:@} %s\n" @@ Autov.pretty_layout_prop p)
-    vcl_lemmas;
-  Quantified.print_qt (vcl_u_basics @ vcl_u_dts) vcl_e_basics;
-  Pp.printf "\n@{<cyan>%s@} @{<bold>=>@}\n" (Autov.pretty_layout_prop vcl_head);
-  Quantified.print_qt [] vcl_e_dts;
-  Pp.printf "@{<magenta>%s@}\n" (Autov.pretty_layout_prop vcl_body)
+  MetaEnv.show_debug_queries (fun _ ->
+      let () = Pp.printf "@{<bold>With Lemmas:@}\n" in
+      List.iter
+        (fun p ->
+          Pp.printf "@{<bold>lemmas:@} %s\n" @@ Autov.pretty_layout_prop p)
+        vcl_lemmas;
+      Quantified.print_qt (vcl_u_basics @ vcl_u_dts) vcl_e_basics;
+      Pp.printf "\n@{<cyan>%s@} @{<bold>=>@}\n"
+        (Autov.pretty_layout_prop vcl_head);
+      Quantified.print_qt [] vcl_e_dts;
+      Pp.printf "@{<magenta>%s@}\n" (Autov.pretty_layout_prop vcl_body))
 
 let print_with_lemma (pres, prop) =
-  List.iter
-    (fun pre ->
-      Pp.printf "@{<bold>lemma: @} %s\n" @@ Autov.pretty_layout_prop pre)
-    pres;
-  Pp.printf "@{<bold>VC: @} %s\n" @@ Autov.pretty_layout_prop prop
+  MetaEnv.show_debug_queries (fun _ ->
+      List.iter
+        (fun pre ->
+          Pp.printf "@{<bold>lemma: @} %s\n" @@ Autov.pretty_layout_prop pre)
+        pres;
+      Pp.printf "@{<bold>VC: @} %s\n" @@ Autov.pretty_layout_prop prop)

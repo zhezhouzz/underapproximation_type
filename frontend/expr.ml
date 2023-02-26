@@ -1,3 +1,4 @@
+module MetaEnv = Env
 open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
@@ -136,7 +137,8 @@ and expr_to_ocamlexpr_desc expr =
 let handle_case_v1 case =
   match case.pc_guard with
   | None ->
-      Printf.printf "%s\n" @@ Pprintast.string_of_expression case.pc_rhs;
+      ( MetaEnv.show_debug_info @@ fun _ ->
+        Printf.printf "%s\n" @@ Pprintast.string_of_expression case.pc_rhs );
       failwith "handle_case"
   | Some guard -> (guard, case.pc_rhs)
 
@@ -259,7 +261,7 @@ let expr_of_ocamlexpr expr =
         in
         L.(make_untyped @@ Match (aux case_target, cs))
     | Pexp_fun (_, _, arg, expr) ->
-        let () = Printf.printf "has ext: %s\n" (Pat.layout_ arg) in
+        (* let () = Printf.printf "has ext: %s\n" (Pat.layout_ arg) in *)
         let rank_func =
           match arg.ppat_attributes with
           | [] -> None

@@ -133,7 +133,8 @@ let under_type_check =
       and source_file = anon ("source file" %: regular_file)
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
-        let () = Config.load meta_config_file config_file in
+        let () = Env.load_meta meta_config_file in
+        let () = Config.load config_file in
         let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
@@ -168,7 +169,7 @@ let under_type_check =
         let () =
           match results with
           | [ res ] ->
-              let oc = Out_channel.create @@ Config.get_resfile () in
+              let oc = Out_channel.create @@ Env.get_resfile () in
               Printf.fprintf oc "%b %s\n" res str;
               Out_channel.close oc
           | _ -> ()

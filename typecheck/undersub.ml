@@ -55,7 +55,10 @@ let do_check file line (final_uqvs, final_eqvs, final_pre, final_post) =
     with
     | [] -> check file line pres q
     | fv ->
-        let () = Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q in
+        let () =
+          Env.show_debug_info @@ fun _ ->
+          Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q
+        in
         _failatwith __FILE__ __LINE__
           (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
@@ -156,9 +159,14 @@ let check_under_ctx file line ctx (t1, t2) =
   solve_pres file line pres (t1, t2)
 
 let subtyping_check_ot_ file line ctx t1 t2 =
-  let () = Pp.printf "@{<bold>OVERCHECK@}\n" in
+  let () =
+    Env.show_debug_typing @@ fun _ -> Pp.printf "@{<bold>OVERCHECK@}\n"
+  in
   let () = Typectx.pretty_print_subtyping ctx (MMT.Ot t1, MMT.Ot t2) in
-  let () = Pp.printf "@{<bold>OVERCHECK Converted@}\n" in
+  let () =
+    Env.show_debug_typing @@ fun _ ->
+    Pp.printf "@{<bold>OVERCHECK Converted@}\n"
+  in
   let t1' = UT.ot_to_ut t1 in
   let t2' = UT.ot_to_ut t2 in
   let () =
@@ -225,10 +233,16 @@ let subtyping_check file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
   let () = subtyping_check_counter_plus1 () in
   try subtyping_check_ file line ctx inferred_ty target_ty with
   | Autov.FailWithModel (msg, m) ->
-      let () = Pp.printf "@{<orange>Under Type Check failed:@}%s\n" msg in
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<orange>Under Type Check failed:@}%s\n" msg
+      in
       raise (FailwithCex (msg, m))
   | Autov.SMTTIMEOUT ->
-      let () = Pp.printf "@{<orange>Under Type Check failed:@}%s\n" "timeout" in
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<orange>Under Type Check failed:@}%s\n" "timeout"
+      in
       raise (FailTimeout (__FILE__, __LINE__))
   | e -> raise e
 
@@ -236,10 +250,16 @@ let subtyping_check_ot file line (ctx : Typectx.ctx) (inferred_ty : UT.ot)
     (target_ty : UT.ot) =
   try subtyping_check_ot_ file line ctx inferred_ty target_ty with
   | Autov.FailWithModel (msg, m) ->
-      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" msg in
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<orange>Over Type Check failed:@}%s\n" msg
+      in
       raise (FailwithCex (msg, m))
   | Autov.SMTTIMEOUT ->
-      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "timeout" in
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "timeout"
+      in
       raise (FailTimeout (__FILE__, __LINE__))
   | e -> raise e
 
@@ -252,7 +272,10 @@ let type_err_to_false f =
   | FailTimeout _ ->
       false
   | FailTypeConsumedonsumed _ ->
-      let () = Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "consumed" in
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<orange>Over Type Check failed:@}%s\n" "consumed"
+      in
       false
   | e -> raise e
 

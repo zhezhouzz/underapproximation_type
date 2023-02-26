@@ -41,7 +41,6 @@ let parse_ linebuf =
       raise @@ failwith (layout_position @@ Lexing.lexeme_end_p linebuf)
 
 let parse filename =
-  (* let _ = Printf.printf "parsing: %s\n" filename in *)
   let oc = open_in filename in
   let linebuf = Lexing.from_channel oc in
   let res = parse_ linebuf in

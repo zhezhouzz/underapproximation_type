@@ -7,6 +7,7 @@ open Languages
 
 let check (t1, t2) =
   let () =
+    Env.show_debug_typing @@ fun _ ->
     Pp.printf "@{<green>%s@}\n<:\n@{<yellow>%s@}\n" (UT.pretty_layout t1)
       (UT.pretty_layout t2)
   in
@@ -57,7 +58,10 @@ let struc_check libs (name1, name2) =
     | None -> r1
     | Some (name, _) ->
         let r1 = UT.reduce_inv_type_by_name r1 name in
-        let () = Pp.printf "@{<bold>Close ghost arrow: %s@}\n" name in
+        let () =
+          Env.show_debug_typing @@ fun _ ->
+          Pp.printf "@{<bold>Close ghost arrow: %s@}\n" name
+        in
         r1
   in
   let r1 = handle name1 in
@@ -65,12 +69,14 @@ let struc_check libs (name1, name2) =
   try
     let _ = check (r1, r2) in
     let _ =
+      Env.show_debug_typing @@ fun _ ->
       Pp.printf
         "@{<bold>@{<yellow>Subtype Check %s <: %s, subtype check succeeded@}@}\n"
         name1 name2
     in
     ()
   with Autov.FailWithModel _ ->
+    Env.show_debug_typing @@ fun _ ->
     Pp.printf
       "@{<bold>@{<red>Subtype Check %s <: %s, subtype check failed@}@}\n" name1
       name2
