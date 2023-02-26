@@ -1,7 +1,7 @@
-let[@library] int_range =
+let[@library] int_range_inc =
   let a = (true : [%v: int]) [@over] in
-  let b = (1 + a < v : [%v: int]) [@over] in
-  (a < v && v < b : [%v: int]) [@under]
+  let b = (a <= v : [%v: int]) [@over] in
+  (a <= v && v <= b : [%v: int]) [@under]
 
 let[@library] list_gen =
   let a = (true : [%v: int]) [@over] in

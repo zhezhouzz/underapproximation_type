@@ -11,25 +11,30 @@ let load_ssa libs source_file =
         ~init:empty libs)
   in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let msize = Env.get_max_printing_size () in
   let () =
+    Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "\n[Load ocaml program]:\n%s\n\n"
-    @@ short_str 300
+    @@ short_str msize
     @@ Ocaml_parser.Pprintast.string_of_structure code
   in
   let code = Struc.prog_of_ocamlstruct code in
   let () =
+    Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "[Before type check]:\n%s\n\n"
-    @@ short_str 300 @@ Struc.layout code
+    @@ short_str msize @@ Struc.layout code
   in
   let code = Termcheck.struc_check ctx code in
   let () =
+    Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "[Typed program]:\n%s\n\n"
-    @@ short_str 300 @@ Struc.layout code
+    @@ short_str msize @@ Struc.layout code
   in
   let code = Trans.struc_term_to_nan code in
   let () =
+    Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "[Typed A-normal from]:\n%s\n\n"
-    @@ short_str 300 (StrucNA.layout code)
+    @@ short_str msize (StrucNA.layout code)
   in
   (* let () = _failatwith __FILE__ __LINE__ "end" in *)
   code
@@ -106,6 +111,7 @@ let load_type_decls refine_file =
   let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
   let type_decls = Struc.type_decl_of_ocamlstruct x in
   let () =
+    Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "[Loading type decls]:\n%s\n" (Typedec.layout type_decls)
   in
   type_decls

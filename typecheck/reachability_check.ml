@@ -53,6 +53,7 @@ let do_reach_check ctx t =
   | Autov.FailWithModel (_, _) -> false
   | Autov.SMTTIMEOUT ->
       let () =
+        Env.show_debug_typing @@ fun _ ->
         Pp.printf "@{<orange>Reachability_check failed:@}%s\n" "timeout"
       in
       false
@@ -60,9 +61,10 @@ let do_reach_check ctx t =
 
 let reachability_check ctx ty =
   let () =
-    Pp.printf "@{<bold>reachability_check@}\n";
-    Typectx.pretty_print ctx;
-    Pp.printf "|> %s\n" (UT.pretty_layout ty)
+    Env.show_debug_typing (fun _ ->
+        Pp.printf "@{<bold>reachability_check@}\n";
+        Typectx.pretty_print ctx;
+        Pp.printf "|> %s\n" (UT.pretty_layout ty))
   in
   let res =
     match UT.assume_base_destruct_opt ty with
@@ -70,6 +72,7 @@ let reachability_check ctx ty =
     | _ -> true
   in
   let () =
+    Env.show_debug_typing @@ fun _ ->
     Pp.printf "@{<bold>reachability_check@} %s: %b\n" (UT.pretty_layout ty) res
   in
   (* let () = failwith "end" in *)

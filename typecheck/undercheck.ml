@@ -240,7 +240,10 @@ and handle_letapp_aux (uctx : uctx)
     | (x, xty) :: args, UnderTy_under_arrow { retty; argty } ->
         if subtyping_check_bool __FILE__ __LINE__ uctx xty argty then
           let ctx' = Typectx.ut_force_add_to_right uctx.ctx (x, xty) in
-          let () = Pp.printf "@{<bold>Consume variable %s@}\n" x in
+          let () =
+            Env.show_debug_info @@ fun _ ->
+            Pp.printf "@{<bold>Consume variable %s@}\n" x
+          in
           let uctx = { uctx with ctx = Typectx.consume ctx' x } in
           let () = Typectx.pretty_print uctx.ctx in
           aux uctx (args, retty)
@@ -260,6 +263,7 @@ and handle_letapp (uctx : uctx)
   | Some retty ->
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
       let () =
+        Env.show_debug_info @@ fun _ ->
         Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
           (UT.pretty_layout ret.ty)
       in
@@ -362,6 +366,7 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
         | [ retty ] ->
             let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
             let () =
+              Env.show_debug_info @@ fun _ ->
               Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
                 (UT.pretty_layout ret.ty)
             in
@@ -370,6 +375,7 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
             let () =
               List.iter
                 (fun fty ->
+                  Env.show_debug_info @@ fun _ ->
                   Pp.printf "@{<bold>ALLOWED: %s:@} ==> %s\n" f.x
                     (UT.pretty_layout fty))
                 tys
@@ -420,6 +426,7 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) : unit =
       | [ retty ] ->
           let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
           let () =
+            Env.show_debug_info @@ fun _ ->
             Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
               (UT.pretty_layout ret.ty)
           in
@@ -475,19 +482,17 @@ let struc_check l notations libs r =
   List.mapi
     (fun id (_, (name', ty)) ->
       let id = id + 1 in
-      let () = Pp.printf "@{<bold>Task %i:@}\n" id in
+      let () =
+        Env.show_debug_typing @@ fun _ -> Pp.printf "@{<bold>Task %i:@}\n" id
+      in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None ->
           _failatwith __FILE__ __LINE__
             (spf "The source code of given refinement type '%s' is missing."
                name')
       | Some { body; _ } ->
-          (* let _ = *)
-          (*   Dependentcheck.dependent_check *)
-          (*     (List.map fst notations @ List.map fst libs) *)
-          (*     body *)
-          (* in *)
           let () =
+            Env.show_debug_typing @@ fun _ ->
             Pp.printf "@{<bold>check against with:@} %s\n" (UT.pretty_layout ty)
           in
           let ctx = Typectx.empty in
@@ -497,9 +502,12 @@ let struc_check l notations libs r =
           in
           let () =
             if res then
+              Env.show_debug_typing @@ fun _ ->
               Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
                 id
-            else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
+            else
+              Env.show_debug_typing @@ fun _ ->
+              Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
           in
           res)
     r

@@ -80,6 +80,7 @@ let find_lits_with_vars uqvs prop =
   m
 
 let layout_res m =
+  Env.show_debug_info @@ fun _ ->
   StrMap.iter
     (fun k s ->
       Printf.printf "mp: %s\n" k;

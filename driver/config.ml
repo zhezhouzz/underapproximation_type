@@ -10,25 +10,14 @@ let __concat_without_overlap msg eq l1 l2 =
       else x :: res)
     l1 l2
 
-let load meta_fname fname =
-  let metaj = load_json meta_fname in
+let load fname =
   let j = load_json fname in
-  let mode =
-    match metaj |> member "mode" |> to_string with
-    | "debug" ->
-        let logfile = j |> member "logfile" |> to_string in
-        Debug logfile
-    | "release" -> Release
-    | _ -> failwith "config: unknown mode"
-  in
-  let resfile = metaj |> member "resfile" |> to_string in
-  let logfile = metaj |> member "logfile" |> to_string in
   let p = j |> member "prim_path" in
   let prim_path =
     {
       normalp = p |> member "normalp" |> to_string;
       overp = p |> member "overp" |> to_string;
-      under_basicp = metaj |> member "under_basicp" |> to_string;
+      under_basicp = p |> member "under_basicp" |> to_string;
       underp = p |> member "underp" |> to_string;
       rev_underp = p |> member "rev_underp" |> to_string;
       type_decls = p |> member "type_decls" |> to_string;
@@ -82,12 +71,7 @@ let load meta_fname fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { mode; logfile; resfile; all_mps; prim_path; measure }
-
-let get_resfile () =
-  match !config with
-  | None -> failwith "get_resfile"
-  | Some config -> config.resfile
+  config := Some { all_mps; prim_path; measure }
 
 let get_mps () =
   match !config with
@@ -99,16 +83,19 @@ let get_prim_path () =
   | None -> failwith "uninited prim path"
   | Some config -> config.prim_path
 
-let load_default () = load "meta-config.json" "config/config.json"
+let load_default () =
+  let () = load_meta "../../../meta-config.json" in
+  load "../../../config/config.json"
 
 let%test_unit "load_default" =
   let () = Printf.printf "%s\n" (Sys.getcwd ()) in
-  let () = load "../../../meta-config.json" "../../../config/config.json" in
-  match !config with
+  let () = load_meta "../../../meta-config.json" in
+  let () = load "../../../config/config.json" in
+  match !meta_config with
   | None -> failwith "empty config"
-  | Some config -> (
-      match config.mode with
-      | Debug ".log" -> ()
+  | Some meta_config -> (
+      match meta_config.mode with
+      | Debug _ -> ()
       | m ->
           failwith
           @@ Printf.sprintf "wrong mode: %s"

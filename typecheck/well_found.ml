@@ -9,6 +9,7 @@ open UT
 
 let reduction t =
   let () =
+    Env.show_debug_tying @@ fun _ ->
     Pp.printf "@{<bold>Well Founded Check:@} %s\n" (UT.pretty_layout t)
   in
   let rec aux pres t =
@@ -34,8 +35,12 @@ let reduction t =
             | None -> t
             | Some _ ->
                 let t' = UnderTy_base { basename; normalty; prop = prop' } in
-                let () = Pp.printf "@{<bold>Well Founded Reduction... @}\n" in
                 let () =
+                  Env.show_debug_tying @@ fun _ ->
+                  Pp.printf "@{<bold>Well Founded Reduction... @}\n"
+                in
+                let () =
+                  Env.show_debug_tying @@ fun _ ->
                   Pp.printf "%s @{<bold>=>@} %s\n" (UT.pretty_layout t)
                     (UT.pretty_layout t')
                 in
@@ -45,6 +50,7 @@ let reduction t =
         UnderTy_poly_arrow { argname; argnty; retty = aux pres retty }
     | UnderTy_arrow { argname; argty; retty } ->
         let () =
+          Env.show_debug_tying @@ fun _ ->
           Pp.printf "@{<bold>Well Founded Check:@} %s\n"
             (UT.pretty_layout argty)
         in

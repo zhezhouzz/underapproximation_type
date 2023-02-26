@@ -76,6 +76,12 @@ def show_data(data):
     print(tabulate(lines, headers, tablefmt='orgtbl', numalign="left"))
 
 if __name__ == '__main__':
+    if_verbose = None
+    try:
+        if sys.argv[1] == "verbose":
+            if_verbose = True
+    except:
+        if_verbose = False
     benchmark_table, resfile = init ()
     # print(benchmark_table)
     data = []
@@ -83,7 +89,7 @@ if __name__ == '__main__':
         source, path, is_rec = get_info_from_name (benchmark_table, name)
         if os.path.exists(resfile):
             os.remove(resfile)
-        run_bench.run(path)
+        run_bench.run(path, if_verbose)
         res = parse_stat ()
         # print(res)
         if res[0] == "false":

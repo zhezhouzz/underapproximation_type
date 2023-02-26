@@ -1,3 +1,4 @@
+module MetaEnv = Env
 open Ocaml_parser
 open Parsetree
 open Zzdatatype.Datatype
@@ -112,7 +113,8 @@ let ot_undertype_of_ocamlexpr expr = to_over_rty @@ baserty_of_ocamlexpr expr
 let _check_eq_nt file line t1 t2 =
   try _check_equality file line Ast.NT.eq t1 t2
   with e ->
-    Printf.printf "Type %s != %s\n" (Type.layout t1) (Type.layout t2);
+    ( MetaEnv.show_debug_info @@ fun _ ->
+      Printf.printf "Type %s != %s\n" (Type.layout t1) (Type.layout t2) );
     raise e
 
 let undertype_of_ocamlexpr expr =
@@ -139,9 +141,11 @@ let undertype_of_ocamlexpr expr =
             let _ =
               try _check_equality __FILE__ __LINE__ String.equal "_" argname.x
               with e ->
-                Printf.printf
-                  "\nThe unused varaible should use name '_', instead of %s\n\n"
-                  argname.x;
+                ( MetaEnv.show_debug_info @@ fun _ ->
+                  Printf.printf
+                    "\n\
+                     The unused varaible should use name '_', instead of %s\n\n"
+                    argname.x );
                 raise e
             in
             BaseRtyUnder

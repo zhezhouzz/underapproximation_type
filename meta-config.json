@@ -1,7 +1,15 @@
 {
-    "mode": "debug",
-    "logfile": ".log",
-    "resfile": ".result",
-    "benchmark_table_file": "config/benchmark.json",
-    "under_basicp": "data/benchmark/under_basic.ml"
+  "mode": "debug",
+  "max_printing_size": 300,
+  "debug_info": {
+    "show_preprocess": false,
+    "show_typing": false,
+    "show_queries": false,
+    "show_solving": false,
+    "show_stat": false,
+    "show_info": false
+  },
+  "logfile": ".log",
+  "resfile": ".result",
+  "benchmark_table_file": "config/benchmark.json"
 }
