@@ -30,11 +30,24 @@ ocolor                      1.3.0       Print with style in your terminal using 
 ## Example
 
 ```
-# dune exec bin/main.exe -- test over-type-check data/customstk/concat.ml data/customstk/_over_1.ml
+# dune exec -- bin/main.exe test under-type-check meta-config.json data/benchmark/quickchick/sizedlist/config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
 ```
-where `data/customstk/concat.ml` is the target program, and `data/customstk/_over_1.ml` is the (overapproximate) refinement type.
+where
+    - the file `meta-config.json` and `data/benchmark/quickchick/sizedlist/config.json` contain the configurations.
+    - the file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
+    - the file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
 
-The built-in refinement types (e.g., types of data type constructors) will be load during the initialization. This path is setted by the `prim_path:overp` field in the config file `config/config.json`.
+## Benchmarks
+
+```
+# python3 get_table1.py
+```
+
+when add the `verbose` flag, the script will print commands of each benchmark.
+
+```
+# python3 get_table1.py verbose
+```
 
 ## Lines of Code
 
