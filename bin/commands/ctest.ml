@@ -82,21 +82,25 @@ let parse_to_anormal =
 (*         in *)
 (*         ()) *)
 
-let parsing_under_refinements =
+let print_coverage_types =
   Command.basic ~summary:"parsing_under_refinements"
     Command.Let_syntax.(
-      let%map_open refine_file = anon ("source file" %: regular_file) in
+      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      and refine_file = anon ("source file" %: regular_file) in
       fun () ->
-        let () = Config.load_default () in
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
-        let refinements =
-          List.map ~f:(fun ((_, a), b) -> (a, b))
-          @@ Structure.refinement_of_ocamlstruct Underty.undertype_of_ocamlexpr
-               x
+        let () = Env.load_meta meta_config_file in
+        let notations, libs, refinements =
+          Inputstage.load_under_refinments refine_file
         in
         let () =
-          Printf.printf "%s"
-            (Structure.layout_refinements Underty.pretty_layout refinements)
+          Pp.printf "@{<bold>Library Function Types:@}\n%s"
+            Languages.(Struc.layout_refinements UT.pretty_layout libs)
+        in
+        let () =
+          Pp.printf "@{<bold>Types to Check:@}\n%s"
+            Languages.(
+              Struc.layout_refinements UT.pretty_layout
+              @@ List.map ~f:snd refinements)
         in
         ())
 
@@ -278,7 +282,7 @@ let test =
       ("parse-to-typed-term", parse_to_typed_term);
       ("parse-structure", parsing_structure);
       (* ("parse-over-refinements", parsing_over_refinements); *)
-      ("parse-under-refinements", parsing_under_refinements);
+      ("print-coverage-types", print_coverage_types);
       ("parsing-type-decls", parsing_type_decls);
       (* ("over-type-check", over_type_check); *)
       ("under-type-check", under_type_check);

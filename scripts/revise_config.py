@@ -1,6 +1,7 @@
 import re
 import sys
 import json
+import run_bench
 
 import iter_benchs
 
@@ -28,9 +29,10 @@ if __name__ == '__main__':
     benchmark_table, resfile = iter_benchs.init ()
     for name in iter_benchs.names:
         source, path, is_rec = iter_benchs.get_info_from_name (benchmark_table, name)
-        config_path = "{}/{}".format(path, "config.json")
-        with open(config_path, "r") as f:
-            j = json.load(f)
-            print("{}: {} => {} => {}".format(config_path, j['method_predicates'], j['measure'], j["underp"]))
-            modify_refine(path, j['method_predicates'])
+        run_bench.show_refine(path, False)
+        # config_path = "{}/{}".format(path, "config.json")
+        # with open(config_path, "r") as f:
+            # j = json.load(f)
+            # print("{}: {} => {} => {}".format(config_path, j['method_predicates'], j['measure'], j["underp"]))
+            # modify_refine(path, j['method_predicates'])
         # modify_file(config_path)

@@ -47,11 +47,11 @@ let client_of_ocamlstruct_one structure =
         | _ -> failwith "die"
       in
       let body = Expr.expr_of_ocamlexpr value_binding.pvb_expr in
-      S.{ name; if_rec = Expr.get_if_rec flag; body }
+      Some S.{ name; if_rec = Expr.get_if_rec flag; body }
   | _ -> raise @@ failwith "translate not a function value"
 
 let client_of_ocamlstruct structures =
-  List.map client_of_ocamlstruct_one structures
+  List.filter_map client_of_ocamlstruct_one structures
 
 open Zzdatatype.Datatype
 open Sugar
@@ -105,11 +105,12 @@ let refinement_of_ocamlstruct_one t_of_ocamlexpr structure =
       in
       (* let () = Printf.printf "name:<%b>%s\n" a name in *)
       let refinement = t_of_ocamlexpr value_binding.pvb_expr in
-      ((a, name), refinement)
+      Some ((a, name), refinement)
+  | Pstr_primitive _ -> None
   | _ -> raise @@ failwith "translate not a function value"
 
 let refinement_of_ocamlstruct t_of_ocamlexpr structures =
-  List.map (refinement_of_ocamlstruct_one t_of_ocamlexpr) structures
+  List.filter_map (refinement_of_ocamlstruct_one t_of_ocamlexpr) structures
 
 let layout_one_refinement f (name, r) = spf "⊢ %s : %s\n" name @@ f r
 

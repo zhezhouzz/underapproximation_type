@@ -34,6 +34,11 @@ def run(dir_str, verbose):
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
 
+def show_refine(dir_str, verbose):
+    cmd = cmd_prefix + ["print-coverage-types", meta_config_file,
+                        "{}/{}".format(dir_str, "_under.ml")]
+    invoc_cmd(verbose, cmd, None)
+
 if __name__ == '__main__':
     try:
         if sys.argv[2] == "verbose":
