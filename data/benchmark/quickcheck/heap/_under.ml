@@ -1,3 +1,5 @@
+external method_predicates : t = "len" "heap" "hd" "<="
+
 let[@library] int_gen =
   let _ = (true : [%v: unit]) [@over] in
   (true : [%v: int]) [@under]

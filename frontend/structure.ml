@@ -21,6 +21,23 @@ let type_decl_of_ocamlstruct_one structure =
 let type_decl_of_ocamlstruct structures =
   List.map type_decl_of_ocamlstruct_one structures
 
+let mps_of_ocamlstruct_one structure =
+  (* let () = *)
+  (*   Printf.printf "mps_of_ocamlstruct_one: %s" *)
+  (*   @@ Pprintast.string_of_structure [ structure ] *)
+  (* in *)
+  match structure.pstr_desc with
+  | Pstr_primitive { pval_name; pval_prim; _ } ->
+      if not (String.equal pval_name.txt "method_predicates") then
+        failwith "\"external method_predicates : t = ...\" is expected"
+      else
+        (* let () = *)
+        (*   Printf.printf "mps_of_ocamlstruct_one: %s\n" *)
+        (*     (Zzdatatype.Datatype.StrList.to_string pval_prim) *)
+        (* in *)
+        pval_prim
+  | _ -> raise @@ failwith "translate not a function value"
+
 let client_of_ocamlstruct_one structure =
   match structure.pstr_desc with
   | Pstr_value (flag, [ value_binding ]) ->

@@ -6,25 +6,25 @@ import json
 meta_config_file = "meta-config.json"
 
 # names = ["RedBlackTree"]
-# names = ["SizedList"]
+names = ["SizedList"]
 # names = ["UniqueList"]
 # names = ["CompleteTree"]
 
-names = [
-    "SizedList",
-    "SortedList",
-    "UniqueList",
-    "SizedTree",
-    "CompleteTree",
-    "RedBlackTree",
-    "SizedBST",
-    "BatchedQueue",
-    "BankersQueue",
-    "Stream",
-    "SizedHeap",
-    "LeftistHeap",
-    "SizedSet",
-    "UnbalanceSet"]
+# names = [
+#     "SizedList",
+#     "SortedList",
+#     "UniqueList",
+#     "SizedTree",
+#     "CompleteTree",
+#     "RedBlackTree",
+#     "SizedBST",
+#     "BatchedQueue",
+#     "BankersQueue",
+#     "Stream",
+#     "SizedHeap",
+#     "LeftistHeap",
+#     "SizedSet",
+#     "UnbalanceSet"]
 
 def get_info_from_name(tab, name):
     source = None

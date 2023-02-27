@@ -1,5 +1,3 @@
-open Json
-open Yojson.Basic.Util
 open Env
 
 let __concat_without_overlap msg eq l1 l2 =
@@ -10,13 +8,20 @@ let __concat_without_overlap msg eq l1 l2 =
       else x :: res)
     l1 l2
 
-let load fname =
-  let j = load_json fname in
+let known_measures = [ "len"; "rng"; "numblack" ]
+
+let get_measure l =
+  match
+    List.filter (fun x -> List.exists (String.equal x) known_measures) l
+  with
+  | [ x ] -> x
+  | [] -> "len"
+  | _ -> failwith "multiple measurement"
+
+let load source_file =
   let prim_path = Env.get_prim_path () in
-  let all_mps =
-    j |> member "method_predicates" |> to_list |> List.map to_string
-  in
-  let measure = j |> member "measure" |> to_string in
+  let all_mps = Inputstage.load_user_defined_mps source_file in
+  let measure = get_measure all_mps in
   let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
   let open Abstraction in
   let under_basicr =

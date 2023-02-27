@@ -1,3 +1,5 @@
+external method_predicates : t = "rng" "mem" "sorted" "<="
+
 let[@library] int_range =
   let a = (true : [%v: int]) [@over] in
   let b = (1 + a < v : [%v: int]) [@over] in

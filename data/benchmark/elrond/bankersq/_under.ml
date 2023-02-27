@@ -1,3 +1,5 @@
+external method_predicates : t = "len"
+
 let[@library] int_range_inc =
   let a = (true : [%v: int]) [@over] in
   let b = (a <= v : [%v: int]) [@over] in

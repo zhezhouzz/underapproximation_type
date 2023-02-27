@@ -29,7 +29,7 @@ def invoc_cmd(verbose, cmd, output_file):
 
 def run(dir_str, verbose):
     cmd = cmd_prefix + ["test", "under-type-check", meta_config_file,
-                        "{}/{}".format(dir_str, "config.json"),
+                        # "{}/{}".format(dir_str, "config.json"),
                         "{}/{}".format(dir_str, "prog.ml"),
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
