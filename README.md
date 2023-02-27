@@ -1,4 +1,4 @@
-# underapproximation_type
+# Poirot: Underapproximate Style Refinement Type Checker
 
 ## Dependency
 
@@ -30,12 +30,12 @@ ocolor                      1.3.0       Print with style in your terminal using 
 ## Example
 
 ```
-# dune exec -- bin/main.exe test under-type-check meta-config.json data/benchmark/quickchick/sizedlist/config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+# dune exec -- bin/main.exe test under-type-check meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
 ```
 where
-    - the file `meta-config.json` and `data/benchmark/quickchick/sizedlist/config.json` contain the configurations.
-    - the file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
-    - the file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
+- the file `meta-config.json` contain the configurations of Poirot.
+- the file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
+- the file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
 
 ## Benchmarks
 
