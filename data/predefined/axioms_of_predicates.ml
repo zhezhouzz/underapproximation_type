@@ -45,6 +45,54 @@ let il15 (l : [%forall: int list]) (u : [%forall: int]) (w : [%forall: int]) =
 
 let il16 (l : [%forall: int list]) (u : [%exists: int]) = rng l u
 
+(* int list (unique list) *)
+
+let iul1 (l : [%forall: int ulist]) (u : [%forall: int]) =
+  implies (len l 0) (not (mem l u))
+
+let iul2 (l : [%forall: int ulist]) (u : [%forall: int]) =
+  implies (hd l u) (mem l u)
+
+let iul3 (l : [%forall: int ulist]) (u : [%exists: int]) =
+  implies (not (len l 0)) (mem l u)
+
+let iul4 (l : [%forall: int ulist]) (u : [%exists: int]) =
+  implies (not (len l 0)) (hd l u)
+
+let iul5 (l : [%forall: int ulist]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (hd l u && hd l w) (u == w)
+
+let iul6 (l : [%forall: int ulist]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (ord l u w || ord l w u) (mem l u && mem l w)
+
+let iul7 (l : [%forall: int ulist]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (mem l u && mem l w && not (u == w)) (ord l u w || ord l w u)
+
+let iul8 (l : [%forall: int ulist]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let iul9 (l : [%forall: int ulist]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let iul10 (l : [%forall: int ulist]) (u : [%exists: int]) = len l u
+
+let iul11 (l : [%forall: int ulist]) (u : [%forall: int]) =
+  implies (rng l 0) (not (mem l u))
+
+let iul12 (l : [%forall: int ulist]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (mem l u)
+
+let iul13 (l : [%forall: int ulist]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (hd l u)
+
+let iul14 (l : [%forall: int ulist]) (u : [%forall: int]) =
+  implies (rng l u) (u >= 0)
+
+let iul15 (l : [%forall: int ulist]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (rng l u && rng l w) (u == w)
+
+let iul16 (l : [%forall: int ulist]) (u : [%exists: int]) = rng l u
+
 (* int tree *)
 
 let it1 (l : [%forall: int tree]) (u : [%forall: int]) =
@@ -90,6 +138,52 @@ let it15 (l : [%forall: int tree]) (u : [%forall: int]) (w : [%forall: int]) =
 
 let it16 (l : [%forall: int tree]) (u : [%exists: int]) = rng l u
 let it17 (l : [%forall: int tree]) = implies (rng l 0) (sorted l)
+
+(* int tree (complete) *)
+
+let ict1 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (len l 0) (not (mem l u))
+
+let ict2 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (hd l u) (mem l u)
+
+let ict3 (l : [%forall: int ctree]) (u : [%exists: int]) =
+  implies (not (len l 0)) (mem l u)
+
+let ict4 (l : [%forall: int ctree]) (u : [%exists: int]) =
+  implies (not (len l 0)) (hd l u)
+
+let ict5 (l : [%forall: int ctree]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (hd l u && hd l w) (u == w)
+
+let ict6 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (len l 0) (sorted l)
+
+let ict8 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (len l u) (u >= 0)
+
+let ict9 (l : [%forall: int ctree]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (len l u && len l w) (u == w)
+
+let ict10 (l : [%forall: int ctree]) (u : [%exists: int]) = len l u
+
+let ict11 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (rng l 0) (not (mem l u))
+
+let ict12 (l : [%forall: int ctree]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (mem l u)
+
+let ict13 (l : [%forall: int ctree]) (u : [%exists: int]) =
+  implies (not (rng l 0)) (hd l u)
+
+let ict14 (l : [%forall: int ctree]) (u : [%forall: int]) =
+  implies (rng l u) (u >= 0)
+
+let ict15 (l : [%forall: int ctree]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies (rng l u && rng l w) (u == w)
+
+let ict16 (l : [%forall: int ctree]) (u : [%exists: int]) = rng l u
+let ict17 (l : [%forall: int ctree]) = implies (rng l 0) (sorted l)
 
 (* rbtree *)
 

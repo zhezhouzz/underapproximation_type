@@ -12,6 +12,8 @@ type 'a batchedq = Batchedq of 'a list * 'a list
 type 'a lazyty = Lazyty of 'a
 type 'a stream = Streamnil | Streamlazycons of 'a * 'a stream lazyty
 type 'a bankersq = Bankersq of int * 'a stream * int * 'a stream
+type 'a ulist = Unil | Ucons of 'a * 'a ulist
+type 'a ctree = Cleaf | Cnode of 'a * 'a ctree * 'a ctree
 
 type 'a leftisthp =
   | Lhpleaf

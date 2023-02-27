@@ -7,6 +7,8 @@ meta_config_file = "meta-config.json"
 
 # names = ["RedBlackTree"]
 # names = ["SizedList"]
+# names = ["UniqueList"]
+# names = ["CompleteTree"]
 
 names = [
     "SizedList",

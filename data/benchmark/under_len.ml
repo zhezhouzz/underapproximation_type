@@ -8,6 +8,21 @@ let[@library] cons =
     : [%v: int list])
     [@under]
 
+let[@library] unil = (len v 0 : [%v: int ulist]) [@under]
+
+let[@library] ucons =
+  let h = (true : [%v: int]) [@over] in
+  let s = (v >= 0 : [%v: int]) [@over] in
+  let _ =
+    (len v s && fun (u : [%forall: int]) -> implies (mem v u) (u == h)
+      : [%v: int ulist])
+      [@under]
+  in
+  (fun (u : [%forall: int]) ->
+     implies (u == s + 1) (len v u) && implies (mem v u) (u == h)
+    : [%v: int ulist])
+    [@under]
+
 let[@library] batchedq =
   let s1 = (v >= 0 : [%v: int]) [@over] in
   let _ = (len v s1 : [%v: int list]) [@under] in
@@ -31,26 +46,47 @@ let[@library] node =
     : [%v: int tree])
     [@under]
 
+(* complete tree *)
+let[@library] cleaf = (len v 0 && complete v : [%v: int ctree]) [@under]
+
+let[@library] cnode =
+  let _ = (true : [%v: int]) [@over] in
+  let sizel = (v >= 0 : [%v: int]) [@over] in
+  let _ =
+    (fun (u : [%forall: int]) -> len v sizel && complete v
+      : [%v: int ctree])
+      [@under]
+  in
+  let sizer = (v == sizel : [%v: int]) [@over] in
+  let _ =
+    (fun (u : [%forall: int]) -> len v sizer && complete v
+      : [%v: int ctree])
+      [@under]
+  in
+  (fun (u : [%forall: int]) -> complete v && implies (u == sizel + 1) (len v u)
+    : [%v: int ctree])
+    [@under]
+
 (* color black *)
-let[@library] rbtleaf = (len v 0 : [%v: int rbtree]) [@under]
+let[@library] rbtleaf = (numblack v 0 && noredred v : [%v: int rbtree]) [@under]
 
 let[@library] rbtnode =
   let c = (not v : [%v: bool]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (len v sizel && implies (sizel == 0) (hdcolor v true)
+    (numblack v sizel && noredred v && implies (sizel == 0) (hdcolor v true)
       : [%v: int rbtree])
       [@under]
   in
   let _ = (true : [%v: int]) [@under] in
   let sizer = (v == sizel : [%v: int]) [@over] in
   let _ =
-    (len v sizer && implies (sizer == 0) (hdcolor v true)
+    (numblack v sizer && noredred v && implies (sizer == 0) (hdcolor v true)
       : [%v: int rbtree])
       [@under]
   in
   (fun (u : [%forall: int]) ->
-     hdcolor v false && implies (u == sizel + 1) (len v u)
+     hdcolor v false && implies (u == sizel + 1) (numblack v u && noredred v)
     : [%v: int rbtree])
     [@under]
 
@@ -58,11 +94,19 @@ let[@library] rbtnode =
 let[@library] rbtnode =
   let c = (v : [%v: bool]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
-  let _ = (len v sizel && hdcolor v false : [%v: int rbtree]) [@under] in
+  let _ =
+    (numblack v sizel && noredred v && hdcolor v false
+      : [%v: int rbtree])
+      [@under]
+  in
   let _ = (true : [%v: int]) [@under] in
   let sizer = (v == sizel : [%v: int]) [@over] in
-  let _ = (len v sizer && hdcolor v false : [%v: int rbtree]) [@under] in
-  (hdcolor v true && len v sizel : [%v: int rbtree]) [@under]
+  let _ =
+    (numblack v sizer && noredred v && hdcolor v false
+      : [%v: int rbtree])
+      [@under]
+  in
+  (hdcolor v true && numblack v sizel && noredred v : [%v: int rbtree]) [@under]
 
 (* heap *)
 let[@library] hempty = (len v 0 : [%v: int heap]) [@under]
