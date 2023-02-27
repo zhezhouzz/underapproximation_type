@@ -16,6 +16,7 @@ type prim_path = {
   normalp : string;
   under_basicp : string;
   rev_underp : string;
+  underp_dir : string;
   type_decls : string;
   lemmas : string;
   functional_lemmas : string;
@@ -118,7 +119,7 @@ let load_meta meta_fname =
     {
       normalp = p |> member "normal_typing" |> to_string;
       under_basicp = p |> member "builtin_coverage_typing" |> to_string;
-      (* underp = p |> member "underp" |> to_string; *)
+      underp_dir = p |> member "builtin_datatype_coverage_typing" |> to_string;
       rev_underp = p |> member "rev_builtin_coverage_typing" |> to_string;
       type_decls = p |> member "data_type_decls" |> to_string;
       lemmas = p |> member "axioms_of_predicates" |> to_string;

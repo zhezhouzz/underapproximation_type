@@ -12,12 +12,12 @@ let __concat_without_overlap msg eq l1 l2 =
 
 let load fname =
   let j = load_json fname in
-  let underp = j |> member "underp" |> to_string in
+  let prim_path = Env.get_prim_path () in
   let all_mps =
     j |> member "method_predicates" |> to_list |> List.map to_string
   in
   let measure = j |> member "measure" |> to_string in
-  let prim_path = Env.get_prim_path () in
+  let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
   let open Abstraction in
   let under_basicr =
     match Inputstage.load_under_refinments prim_path.under_basicp with
