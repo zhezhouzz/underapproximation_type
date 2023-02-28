@@ -144,6 +144,7 @@ let under_type_check =
         in
         let code = Inputstage.load_ssa libs source_file in
         let () = Typecheck.Undersub.subtyping_check_counter_set0 () in
+        (* let () = failwith "end" in *)
         let runtime, results =
           Sugar.clock (fun () ->
               Typecheck.Undercheck.struc_check code notations libs refinements)
