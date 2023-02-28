@@ -1,3 +1,16 @@
+(* stlc const *)
+let stlc_const1 (tm : [%forall: stlc_term]) (u : [%exists: int]) =
+  implies (is_const tm) (is_const_eq tm u && u >= 0)
+
+let stlc_const2 (tm : [%forall: stlc_term]) (u : [%forall: int]) =
+  implies (is_const_eq tm u && u >= 0) (is_const tm)
+
+(* stlc type_eq *)
+
+let stlc_type1 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%exists: int]) =
+  implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u)
+
 (* int list *)
 let il1 (l : [%forall: int list]) (u : [%forall: int]) =
   implies (len l 0) (not (mem l u))

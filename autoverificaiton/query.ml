@@ -81,6 +81,15 @@ let known_mp =
     "rng";
     "heap";
     "rank";
+    (* stlc *)
+    (* const *)
+    "is_const_eq";
+    "is_const";
+    (* ty_eq *)
+    "ty_size";
+    "is_ty_pre";
+    "is_ty_post";
+    "type_eq_spec";
   ]
 
 let to_z3_ ctx = function

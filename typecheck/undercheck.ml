@@ -299,7 +299,89 @@ and handle_ite uctx (cond, e_t, e_f) =
   in
   merge_case_tys [ handle_case true e_t; handle_case false e_f ]
 
-and handle_match _ (_, _) = _failatwith __FILE__ __LINE__ "unimp"
+and handle_match uctx (matched, cases) =
+  let matched =
+    NL.(
+      match matched.x with
+      | Var id -> id
+      | _ -> _failatwith __FILE__ __LINE__ "unimp")
+  in
+  let handle_case NL.{ constructor; args; exp } =
+    let argsnty = List.map (fun x -> snd x.NL.ty) args in
+    let ftys =
+      match argsnty with
+      | [] ->
+          let fnty = snd matched.NL.ty in
+          let matched_rtys =
+            Prim.get_primitive_rev_under_ty NL.(constructor.x, fnty)
+          in
+          List.map
+            (fun rty ->
+              let basename, normalty, prop =
+                UT.assume_base __FILE__ __LINE__ rty
+              in
+              ( UT.UnderTy_base
+                  {
+                    basename;
+                    normalty;
+                    prop = P.subst_id prop basename matched.x;
+                  },
+                [] ))
+            matched_rtys
+      | _ ->
+          let fnty = NT.(Ty_arrow (snd matched.NL.ty, Ty_tuple argsnty)) in
+          let matched_rtys =
+            Prim.get_primitive_rev_under_ty NL.(constructor.x, fnty)
+          in
+          List.map
+            (fun rty ->
+              match rty with
+              | UT.(
+                  UnderTy_over_arrow
+                    { argname; argty = { basename; normalty; prop }; retty }) ->
+                  let matched_rty =
+                    UT.UnderTy_base
+                      {
+                        basename;
+                        normalty;
+                        prop = P.subst_id prop basename matched.x;
+                      }
+                  in
+                  let matched_argsrty =
+                    UT.assume_tuple __FILE__ __LINE__ retty
+                  in
+                  let matched_argsrty =
+                    List.map
+                      (fun rty -> UT.subst_id rty argname matched.x)
+                      matched_argsrty
+                  in
+                  (matched_rty, matched_argsrty)
+              | _ -> _failatwith __FILE__ __LINE__ "")
+            matched_rtys
+    in
+    let matched_rty, matched_argsrty =
+      match ftys with [ fty ] -> fty | _ -> _failatwith __FILE__ __LINE__ ""
+    in
+    let () =
+      Printf.printf "handle_case %s: %s ==> [%s]\n" constructor.x
+        (UT.pretty_layout matched_rty)
+        (List.split_by_comma UT.pretty_layout matched_argsrty)
+    in
+    let cond_id = (Rename.unique "b", MMT.UtNormal matched_rty) in
+    let matched_args =
+      List.map (fun (id, rty) -> (id.NL.x, MMT.UtNormal rty))
+      @@ _safe_combine __FILE__ __LINE__ args matched_argsrty
+    in
+    let ctx' =
+      Typectx.ut_force_add_to_rights uctx.ctx (cond_id :: matched_args)
+    in
+    let ety = term_type_infer { uctx with ctx = ctx' } exp in
+    close_ids [ cond_id ] ety
+  in
+
+  let res = List.map handle_case cases in
+  merge_case_tys res
+(* _failatwith __FILE__ __LINE__ "unimp" *)
 
 and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
   let open NL in
