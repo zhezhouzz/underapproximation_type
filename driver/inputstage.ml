@@ -46,10 +46,9 @@ let load_normal_refinements refine_file =
   in
   refinements
 
-let load_under_refinments refine_file =
+let _load_under_refinments refinements =
   let refinements =
-    Struc.refinement_of_ocamlstruct UT.undertype_of_ocamlexpr
-      (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+    Struc.refinement_of_ocamlstruct UT.undertype_of_ocamlexpr refinements
   in
   let refinements =
     List.map
@@ -82,6 +81,7 @@ let load_under_refinments refine_file =
             _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
       ~init:([], [], []) refinements
   in
+  let _ = List.map ~f:(fun x -> UT.stat @@ snd @@ snd x) refinements in
   (* let () = *)
   (*   Printf.printf "[Loading libs type]:\n%s" *)
   (*     (Struc.layout_refinements UT.pretty_layout libs) *)
@@ -91,6 +91,33 @@ let load_under_refinments refine_file =
   (*     (Struc.layout_refinements UT.pretty_layout refinements) *)
   (* in *)
   (notations, libs, refinements)
+
+let load_under_refinments refine_file =
+  _load_under_refinments (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+
+(* the first struct is the "mps" *)
+(* the rest of structs are the codes *)
+
+let load_user_defined_mps source_file =
+  match Ocaml_parser.Frontend.parse ~sourcefile:source_file with
+  | [] -> failwith "method predicates list is expected"
+  | e :: _ -> Struc.mps_of_ocamlstruct e
+
+let load_user_defined_under_refinments refine_file =
+  let randomness_refinements =
+    Ocaml_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
+  in
+  let refinements =
+    match Ocaml_parser.Frontend.parse ~sourcefile:refine_file with
+    | [] -> failwith "method predicates list is expected"
+    | _ :: code -> code
+  in
+  (* let () = *)
+  (*   Printf.printf "load_under_refinments\n%s\n" *)
+  (*     (Ocaml_parser.Pprintast.string_of_structure refinements) *)
+  (* in *)
+  (* let () = failwith "end" in *)
+  _load_under_refinments (randomness_refinements @ refinements)
 
 open Languages
 module LA = Lemma

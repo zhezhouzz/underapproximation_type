@@ -416,6 +416,7 @@ module Struc = struct
   include Struc
 
   let prog_of_ocamlstruct = Frontend.Structure.client_of_ocamlstruct
+  let mps_of_ocamlstruct = Frontend.Structure.mps_of_ocamlstruct_one
 end
 
 module NL = struct

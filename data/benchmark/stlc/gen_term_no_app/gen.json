@@ -1,0 +1,11 @@
+{
+  "mps": [
+    "size",
+    "dec_pair",
+    "typing"
+  ],
+  "libs": [
+    "gen_const",
+    "or_var_in_typectx"
+  ]
+}

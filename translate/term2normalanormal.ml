@@ -189,7 +189,26 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
                   | None -> _failatwith __FILE__ __LINE__ "die"
                   | Some ty -> ty
                 in
-                let argsty, _ = NT.destruct_arrow_tp (snd constructor_ty) in
+                (* let _ = *)
+                (*   Printf.printf "zz: (snd constructor_ty): %s\n" *)
+                (*     (Type.layout (snd constructor_ty)) *)
+                (* in *)
+                let argsty =
+                  match snd constructor_ty with
+                  | NT.Ty_arrow _ -> (
+                      match
+                        snd @@ NT.destruct_arrow_tp (snd constructor_ty)
+                      with
+                      | NT.Ty_tuple tys -> tys
+                      | ty -> [ ty ])
+                  | _ -> []
+                in
+                (* let _ = Printf.printf "zz: %s\n" case.S.constructor.x in *)
+                (* let _ = Printf.printf "zz: %s\n" (Type.layout_l argsty) in *)
+                (* let _ = *)
+                (*   Printf.printf "zz: %s\n" *)
+                (*     (Zzdatatype.Datatype.StrList.to_string case.S.args) *)
+                (* in *)
                 let args =
                   List.map (fun (x, ty) -> { x; ty = (None, ty) })
                   @@ _safe_combine __FILE__ __LINE__ case.S.args argsty

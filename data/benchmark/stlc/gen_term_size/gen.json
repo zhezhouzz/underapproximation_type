@@ -1,0 +1,14 @@
+{
+  "mps": [
+    "dec_pair",
+    "size_app",
+    "typing"
+  ],
+  "libs": [
+    "nonderter_dec",
+    "gen_type_size",
+    "gen_const",
+    "or_var_in_typectx",
+    "gen_term_no_app"
+  ]
+}

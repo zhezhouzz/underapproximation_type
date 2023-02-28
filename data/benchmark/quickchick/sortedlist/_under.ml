@@ -1,6 +1,4 @@
-let[@library] int_gen =
-  let _ = (true : [%v: unit]) [@over] in
-  (true : [%v: int]) [@under]
+external method_predicates : t = "rng" "mem" "ord" "<="
 
 let sorted_list_gen =
   let s = (0 <= v : [%v: int]) [@over] in

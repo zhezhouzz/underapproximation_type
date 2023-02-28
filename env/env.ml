@@ -14,10 +14,10 @@ type mode =
 
 type prim_path = {
   normalp : string;
-  overp : string;
   under_basicp : string;
-  underp : string;
+  under_randomp : string;
   rev_underp : string;
+  underp_dir : string;
   type_decls : string;
   lemmas : string;
   functional_lemmas : string;
@@ -29,10 +29,11 @@ type meta_config = {
   max_printing_size : int;
   logfile : string;
   resfile : string;
+  prim_path : prim_path;
 }
 [@@deriving sexp]
 
-type config = { all_mps : string list; prim_path : prim_path; measure : string }
+type config = { all_mps : string list; underp : string; measure : string }
 [@@deriving sexp]
 
 let meta_config : meta_config option ref = ref None
@@ -83,6 +84,13 @@ let get_resfile () =
   | None -> failwith "get_resfile"
   | Some config -> config.resfile
 
+let get_prim_path () =
+  match !meta_config with
+  | None -> failwith "uninited prim path"
+  | Some config -> config.prim_path
+
+let get_randomp_path () = (get_prim_path ()).under_randomp
+
 open Json
 open Yojson.Basic.Util
 
@@ -109,4 +117,18 @@ let load_meta meta_fname =
   let max_printing_size = metaj |> member "max_printing_size" |> to_int in
   let resfile = metaj |> member "resfile" |> to_string in
   let logfile = metaj |> member "logfile" |> to_string in
-  meta_config := Some { mode; max_printing_size; logfile; resfile }
+  let p = metaj |> member "prim_path" in
+  let prim_path =
+    {
+      normalp = p |> member "normal_typing" |> to_string;
+      under_basicp = p |> member "builtin_coverage_typing" |> to_string;
+      under_randomp =
+        p |> member "builtin_randomness_coverage_typing" |> to_string;
+      underp_dir = p |> member "builtin_datatype_coverage_typing" |> to_string;
+      rev_underp = p |> member "rev_builtin_coverage_typing" |> to_string;
+      type_decls = p |> member "data_type_decls" |> to_string;
+      lemmas = p |> member "axioms_of_predicates" |> to_string;
+      functional_lemmas = p |> member "axioms_of_query_encoding" |> to_string;
+    }
+  in
+  meta_config := Some { mode; max_printing_size; prim_path; logfile; resfile }

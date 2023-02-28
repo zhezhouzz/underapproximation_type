@@ -1,4 +1,4 @@
-# underapproximation_type
+# Poirot: Underapproximate Style Refinement Type Checker
 
 ## Dependency
 
@@ -29,24 +29,33 @@ ocolor                      1.3.0       Print with style in your terminal using 
 
 ## Example
 
+- Print the refinement types in the given file.
+
 ```
-# dune exec -- bin/main.exe test under-type-check meta-config.json data/benchmark/quickchick/sizedlist/config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+# dune exec -- bin/main.exe print-coverage-types meta-config.json data/benchmark/quickchick/sizedlist/_under.ml
 ```
-where
-    - the file `meta-config.json` and `data/benchmark/quickchick/sizedlist/config.json` contain the configurations.
-    - the file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
-    - the file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
+
+- Type check a program agaisnt the given type.
+  + The file `meta-config.json` contain the configurations of Poirot.
+  + The file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
+  + The file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
+  + By default, the verification result and statistics will be saved in the file `.result`.
+  + Set the field `debug_info.show_typing` in `meta-config.json` as `true` to show the typing details.
+
+```
+# dune exec -- bin/main.exe under-type-check meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+```
 
 ## Benchmarks
 
 ```
-# python3 get_table1.py
+# python3 scripts/get_table1.py
 ```
 
 when add the `verbose` flag, the script will print commands of each benchmark.
 
 ```
-# python3 get_table1.py verbose
+# python3 scripts/get_table1.py verbose
 ```
 
 ## Lines of Code

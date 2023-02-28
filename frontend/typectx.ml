@@ -89,7 +89,7 @@ let pretty_print_subtyping ctx (r1, r2) =
         (mmt_pretty_layout r1) (mmt_pretty_layout r2))
 
 let pretty_print_q uqvs eqvs pre body =
-  Env.show_debug_typing (fun _ ->
+  Env.show_debug_queries (fun _ ->
       let () = Pp.printf "@{<bold>Query:@}\n" in
       Quantified.print_qt_ uqvs eqvs;
       Pp.printf "\n@{<cyan>%s@} @{<bold>=>@}\n@{<hi_magenta>%s@}\n"

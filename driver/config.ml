@@ -1,5 +1,3 @@
-open Json
-open Yojson.Basic.Util
 open Env
 
 let __concat_without_overlap msg eq l1 l2 =
@@ -10,31 +8,29 @@ let __concat_without_overlap msg eq l1 l2 =
       else x :: res)
     l1 l2
 
-let load fname =
-  let j = load_json fname in
-  let p = j |> member "prim_path" in
-  let prim_path =
-    {
-      normalp = p |> member "normalp" |> to_string;
-      overp = p |> member "overp" |> to_string;
-      under_basicp = p |> member "under_basicp" |> to_string;
-      underp = p |> member "underp" |> to_string;
-      rev_underp = p |> member "rev_underp" |> to_string;
-      type_decls = p |> member "type_decls" |> to_string;
-      lemmas = p |> member "lemmas" |> to_string;
-      functional_lemmas = p |> member "functional_lemmas" |> to_string;
-    }
-  in
+let known_measures = [ "len"; "rng"; "numblack"; "size_app" ]
+
+let get_measure l =
+  match
+    List.filter (fun x -> List.exists (String.equal x) known_measures) l
+  with
+  | [ x ] -> x
+  | [] -> "len"
+  | _ -> failwith "multiple measurement"
+
+let load source_file =
+  let prim_path = Env.get_prim_path () in
+  let all_mps = Inputstage.load_user_defined_mps source_file in
+  let measure = get_measure all_mps in
+  let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
   let open Abstraction in
-  let all_mps = j |> member "all_mps" |> to_list |> List.map to_string in
-  let measure = j |> member "measure" |> to_string in
   let under_basicr =
     match Inputstage.load_under_refinments prim_path.under_basicp with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
   in
   let underr =
-    match Inputstage.load_under_refinments prim_path.underp with
+    match Inputstage.load_under_refinments underp with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
   in
@@ -71,17 +67,12 @@ let load fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { all_mps; prim_path; measure }
+  config := Some { all_mps; underp; measure }
 
 let get_mps () =
   match !config with
   | None -> failwith "uninited prim path"
   | Some config -> config.all_mps
-
-let get_prim_path () =
-  match !config with
-  | None -> failwith "uninited prim path"
-  | Some config -> config.prim_path
 
 let load_default () =
   let () = load_meta "../../../meta-config.json" in
