@@ -8,7 +8,7 @@ let __concat_without_overlap msg eq l1 l2 =
       else x :: res)
     l1 l2
 
-let known_measures = [ "len"; "rng"; "numblack"; "size_app" ]
+let known_measures = [ "len"; "rng"; "numblack"; "size_app"; "size" ]
 
 let get_measure l =
   match

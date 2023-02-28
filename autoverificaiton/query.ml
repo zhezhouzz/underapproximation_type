@@ -109,6 +109,7 @@ let to_z3_ ctx = function
         if List.exists (String.equal mp) known_mp then ()
         else failwith (spf "unknown mp: %s" mp)
       in
+      (* let () = Printf.printf "mp >>> %s\n" mp in *)
       let argsty = List.map lit_get_ty args in
       let args = List.map (lit_to_z3 ctx) args in
       let func = z3func ctx mp argsty Ty_bool in

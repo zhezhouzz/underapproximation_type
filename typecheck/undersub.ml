@@ -24,43 +24,55 @@ let check file line pres q =
         m
 
 let do_check file line (final_uqvs, final_eqvs, final_pre, final_post) =
-  (* HACK: we do not really check unit *)
-  if
-    List.length
-      (List.filter (fun x -> match x.ty with Ty_unit -> true | _ -> false)
-      @@ final_uqvs @ final_eqvs)
-    != 0
-  then ()
-  else
-    let () =
-      let hol_q =
-        P.(
-          topu_to_prop
-            ( final_uqvs,
-              tope_to_prop (final_eqvs, Implies (final_pre, final_post)) ))
-      in
-      match P.fv hol_q with
-      | [] -> ()
-      | fvs ->
-          (* let () = Printf.printf "Q: %s\n" (Autov.pretty_layout_prop hol_q) in *)
-          _failatwith __FILE__ __LINE__ @@ StrList.to_string fvs
+  (* let () = Printf.printf "_check\n" in *)
+  let final_uqvs =
+    List.filter
+      (fun x -> match x.ty with Ty_unit -> false | _ -> true)
+      final_uqvs
+  in
+  let final_eqvs =
+    List.filter
+      (fun x -> match x.ty with Ty_unit -> false | _ -> true)
+      final_eqvs
+  in
+  (* if *)
+  (*   List.length *)
+  (*     (List.filter (fun x -> match x.ty with Ty_unit -> true | _ -> false) *)
+  (*     @@ final_uqvs @ final_eqvs) *)
+  (*   != 0 *)
+  (* then () *)
+  (* else *)
+  let () =
+    let hol_q =
+      P.(
+        topu_to_prop
+          ( final_uqvs,
+            tope_to_prop (final_eqvs, Implies (final_pre, final_post)) ))
     in
-    let pres, uqvs, q =
-      with_lemma_to_query (Prim.lemmas_to_pres ())
-        (final_uqvs, final_eqvs, final_pre, final_post)
-    in
-    match
-      List.substract String.equal (Autov.prop_fv q)
-        (List.map (fun x -> x.x) uqvs)
-    with
-    | [] -> check file line pres q
-    | fv ->
+    match P.fv hol_q with
+    | [] -> ()
+    | fvs ->
         let () =
           Env.show_debug_info @@ fun _ ->
-          Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q
+          Printf.printf "Q: %s\n" (Autov.pretty_layout_prop hol_q)
         in
-        _failatwith __FILE__ __LINE__
-          (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
+        _failatwith __FILE__ __LINE__ @@ StrList.to_string fvs
+  in
+  let pres, uqvs, q =
+    with_lemma_to_query (Prim.lemmas_to_pres ())
+      (final_uqvs, final_eqvs, final_pre, final_post)
+  in
+  match
+    List.substract String.equal (Autov.prop_fv q) (List.map (fun x -> x.x) uqvs)
+  with
+  | [] -> check file line pres q
+  | fv ->
+      let () =
+        Env.show_debug_info @@ fun _ ->
+        Printf.printf "q: %s\n" @@ Autov.pretty_layout_prop q
+      in
+      _failatwith __FILE__ __LINE__
+        (spf "FV: %s" @@ Zzdatatype.Datatype.StrList.to_string fv)
 
 (* let counter = ref 0 *)
 
