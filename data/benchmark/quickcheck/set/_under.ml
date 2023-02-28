@@ -1,13 +1,13 @@
 external method_predicates : t = "rng" "mem" "sorted" "<="
 
-let[@library] int_range =
-  let a = (true : [%v: int]) [@over] in
-  let b = (1 + a < v : [%v: int]) [@over] in
-  (a < v && v < b : [%v: int]) [@under]
+(* let[@library] int_range = *)
+(*   let a = (true : [%v: int]) [@over] in *)
+(*   let b = (1 + a < v : [%v: int]) [@over] in *)
+(*   (a < v && v < b : [%v: int]) [@under] *)
 
-let[@library] bool_gen =
-  let _ = (true : [%v: unit]) [@over] in
-  (true : [%v: bool]) [@under]
+(* let[@library] bool_gen = *)
+(*   let _ = (true : [%v: unit]) [@over] in *)
+(*   (true : [%v: bool]) [@under] *)
 
 let set_gen =
   let d = (0 <= v : [%v: int]) [@over] in

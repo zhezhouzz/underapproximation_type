@@ -1,0 +1,8 @@
+{
+    "mps": [
+        "typing_var"
+    ],
+    "libs": [
+        "vars_with_type_size"
+    ]
+}

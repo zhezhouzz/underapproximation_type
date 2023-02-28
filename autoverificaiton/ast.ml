@@ -114,12 +114,12 @@ let get_mps prop =
 
 let count_mps prop =
   let mps = get_mps prop in
-  (* let () = *)
-  (*   Printf.printf "count_mps: %s\n" *)
-  (*     (List.split_by "; " *)
-  (*        (fun { x; ty } -> Printf.sprintf "%s: %s" x @@ Ty.layout ty) *)
-  (*        mps) *)
-  (* in *)
+  let () =
+    Printf.printf "count_mps: %s\n"
+      (List.split_by "; "
+         (fun { x; ty } -> Printf.sprintf "%s: %s" x @@ Ty.layout ty)
+         mps)
+  in
   List.length mps
 
 let var_space_ prop =

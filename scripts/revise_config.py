@@ -25,9 +25,12 @@ def modify_refine(path, mps):
         f.write(content)
     return
 
+names = iter_benchs.names
+# names = iter_benchs.stlc_names
+
 if __name__ == '__main__':
     benchmark_table, resfile = iter_benchs.init ()
-    for name in iter_benchs.names:
+    for name in names:
         source, path, is_rec = iter_benchs.get_info_from_name (benchmark_table, name)
         run_bench.show_refine(path, False)
         # config_path = "{}/{}".format(path, "config.json")

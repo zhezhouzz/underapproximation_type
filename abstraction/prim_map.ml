@@ -94,7 +94,7 @@ let make_m normal_m (over_refinements : (string * OT.t) list)
         (S.add prim entry res, om, um, rum))
       normal_m (S.empty, om, um, rum)
   in
-  let check m =
+  let check m : unit =
     List.iter
       (fun (name, _) ->
         let () = layout_m normal_m in

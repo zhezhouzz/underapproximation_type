@@ -1,0 +1,10 @@
+{
+    "mps": [
+        "size",
+        "typing_var",
+        "is_var_in_range"
+    ],
+    "libs": [
+        "type_eq"
+    ]
+}

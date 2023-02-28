@@ -1,12 +1,12 @@
 external method_predicates : t = "numblack" "hdcolor" "noredred"
 
-let[@library] int_gen =
-  let _ = (true : [%v: unit]) [@over] in
-  (true : [%v: int]) [@under]
+(* let[@library] int_gen = *)
+(*   let _ = (true : [%v: unit]) [@over] in *)
+(*   (true : [%v: int]) [@under] *)
 
-let[@library] bool_gen =
-  let _ = (true : [%v: unit]) [@over] in
-  (true : [%v: bool]) [@under]
+(* let[@library] bool_gen = *)
+(*   let _ = (true : [%v: unit]) [@over] in *)
+(*   (true : [%v: bool]) [@under] *)
 
 let rbtree_gen =
   let inv = (v >= 0 : [%v: int]) [@over] in

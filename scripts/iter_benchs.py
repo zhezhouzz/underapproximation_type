@@ -26,6 +26,18 @@ names = [
     "SizedSet",
     "UnbalanceSet"]
 
+stlc_names = [
+    # "gen_const",
+    # "gen_type_size",
+    # "or_var_in_typectx",
+    # "vars_with_type",
+    # "vars_with_type_size",
+    # "type_eq",
+    # "gen_term_no_app",
+    # "gen_term_size",
+    "nonderter_dec"
+]
+
 def get_info_from_name(tab, name):
     source = None
     path = None
