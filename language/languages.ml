@@ -158,7 +158,12 @@ module Lemma = struct
     in
     let mps = P.get_mps (Implies (vc_head, vc_body)) in
     let lemmas =
-      List.filter (fun x -> List.exists (fun y -> eq y.ty x.udt.ty) mps) lemmas
+      List.filter
+        (fun x ->
+          List.for_all
+            (fun udt -> List.exists (fun y -> eq y.ty udt.ty) mps)
+            x.lemma_udts)
+        lemmas
     in
     let vc_u_dts, vc_u_basics = List.partition (fun x -> is_dt x.ty) uqvs in
     let vc_e_dts, vc_e_basics = List.partition (fun x -> is_dt x.ty) eqvs in

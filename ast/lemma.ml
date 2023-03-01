@@ -6,7 +6,7 @@ open Sugar
 open Ntyped
 
 type qprop = { mode : Q.t; qvs : string typed list; prop : P.t }
-type t = { udt : string typed; qprop : qprop }
+type t = { lemma_udts : string typed list; qprop : qprop }
 
 let filter_by_mps mps lemma =
   let lemma_mps = List.map (fun x -> x.x) @@ P.get_mps lemma.qprop.prop in
@@ -38,9 +38,10 @@ let qprop_to_prop { mode; qvs; prop } =
       if is_forall mode then Forall (qv, prop) else Exists (qv, prop))
     qvs prop
 
-let to_prop { udt; qprop } =
+let to_prop { lemma_udts; qprop } =
   let open P in
-  Forall (udt, qprop_to_prop qprop)
+  List.fold_right (fun udt prop -> Forall (udt, prop)) lemma_udts
+  @@ qprop_to_prop qprop
 
 let parse_qvs qvs =
   let aux qv =
@@ -57,26 +58,43 @@ let parse_qvs qvs =
 open Zzdatatype.Datatype
 
 let of_raw (qvs, prop) =
-  match parse_qvs qvs with
-  | [] -> _failatwith __FILE__ __LINE__ ""
-  | (Q.Fa, udt) :: qvs ->
-      if not (NT.is_dt udt.ty) then _failatwith __FILE__ __LINE__ ""
-      else
-        let to_qvs qvs = List.map snd qvs in
-        let m = StrMap.add udt.x udt.ty StrMap.empty in
-        let qprop =
-          if List.for_all (fun (mode, _) -> is_forall mode) qvs then
-            let qvs = to_qvs qvs in
-            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
-            { mode = Q.Fa; qvs; prop = Autov.typeinfer m prop }
-          else if List.for_all (fun (mode, _) -> is_exists mode) qvs then
-            let qvs = to_qvs qvs in
-            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
-            { mode = Q.Ex; qvs; prop = Autov.typeinfer m prop }
-          else _failatwith __FILE__ __LINE__ ""
-        in
-        { udt; qprop }
-  | _ -> _failatwith __FILE__ __LINE__ ""
+  let rec get_udts udts = function
+    | (Q.Fa, udt) :: qvs when NT.is_dt udt.ty -> get_udts (udts @ [ udt ]) qvs
+    | qvs -> (udts, qvs)
+  in
+  let udts, qvs = get_udts [] @@ parse_qvs qvs in
+  let () =
+    if List.length udts == 0 then
+      _failatwith __FILE__ __LINE__ "lemma has no universial datatype variable"
+    else ()
+  in
+  let () =
+    List.iter
+      (fun (_, qv) ->
+        if not (NT.is_basic_tp qv.ty) then
+          _failatwith __FILE__ __LINE__
+            (spf "lemma has datatype qv: %s: %s" qv.x (Ntyped.layout qv.ty))
+        else ())
+      qvs
+  in
+  let to_qvs qvs = List.map snd qvs in
+  let m =
+    StrMap.add_seq
+      (List.to_seq @@ List.map (fun udt -> (udt.x, udt.ty)) udts)
+      StrMap.empty
+  in
+  let qprop =
+    if List.for_all (fun (mode, _) -> is_forall mode) qvs then
+      let qvs = to_qvs qvs in
+      let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+      { mode = Q.Fa; qvs; prop = Autov.typeinfer m prop }
+    else if List.for_all (fun (mode, _) -> is_exists mode) qvs then
+      let qvs = to_qvs qvs in
+      let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+      { mode = Q.Ex; qvs; prop = Autov.typeinfer m prop }
+    else _failatwith __FILE__ __LINE__ ""
+  in
+  { lemma_udts = udts; qprop }
 
 type vc = {
   vc_u_basics : string typed list;
@@ -110,18 +128,31 @@ let qprop_subst_id { mode; qvs; prop } id id' =
     _failatwith __FILE__ __LINE__ ""
   else { mode; qvs; prop = P.subst_id prop id id' }
 
-let instantiate_dt { udt; qprop = { qvs; prop; mode } } udts =
-  let l =
-    List.filter_map
-      (fun dt ->
-        if eq udt.ty dt.ty then
-          let prop = P.subst_id prop udt.x dt.x in
-          match mode with
-          | Ex -> Some (P.tope_to_prop (qvs, prop))
-          | Fa -> Some (P.topu_to_prop (qvs, prop))
-        else None)
-      udts
+let instantiate_dt { lemma_udts; qprop = { qvs; prop; mode } } udts =
+  let mk_header prop =
+    match mode with
+    | Ex -> Some (P.tope_to_prop (qvs, prop))
+    | Fa -> Some (P.topu_to_prop (qvs, prop))
   in
+  let rec aux lemma_udts pool =
+    match lemma_udts with
+    | [] -> pool
+    | udt :: lemma_udts ->
+        let pool =
+          List.map
+            (fun prop ->
+              List.filter_map
+                (fun dt ->
+                  if eq udt.ty dt.ty then
+                    let prop = P.subst_id prop udt.x dt.x in
+                    mk_header prop
+                  else None)
+                udts)
+            pool
+        in
+        aux lemma_udts @@ List.flatten pool
+  in
+  let l = aux lemma_udts [ prop ] in
   match mode with
   | Ex -> P.conjunct_tope_uprop __FILE__ __LINE__ l
   | Fa -> P.topu_to_prop @@ P.lift_uprop __FILE__ __LINE__ (And l)

@@ -93,13 +93,7 @@ let get_randomp_path () = (get_prim_path ()).under_randomp
 let known_mp : string list option ref = ref None
 
 let get_known_mp () =
-  match !known_mp with
-  | None -> failwith "uninit mps"
-  | Some mps ->
-      let () =
-        Printf.printf "mps: %s\n" (Zzdatatype.Datatype.StrList.to_string mps)
-      in
-      mps
+  match !known_mp with None -> failwith "uninit mps" | Some mps -> mps
 
 open Json
 open Yojson.Basic.Util

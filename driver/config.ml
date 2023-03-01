@@ -33,6 +33,10 @@ let init_known_mp mps =
     Zzdatatype.Datatype.List.(
       slow_rm_dup String.equal @@ interset String.equal predefined_mp mps)
   in
+  let () =
+    Env.show_debug_info (fun _ ->
+        Printf.printf "mps: %s\n" (Zzdatatype.Datatype.StrList.to_string mps))
+  in
   known_mp := Some mps
 
 let __concat_without_overlap msg eq l1 l2 =

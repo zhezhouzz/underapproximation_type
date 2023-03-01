@@ -7,7 +7,11 @@ let stlc_const2 (tm : [%forall: stlc_term]) (u : [%forall: int]) =
 
 (* stlc type_eq *)
 
-(* let stlc_type1 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty]) *)
+let stlc_type1 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%exists: int]) =
+  implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u)
+
+(* let stlc_type2 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty]) *)
 (*     (u : [%exists: int]) = *)
 (*   implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u) *)
 
