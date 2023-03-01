@@ -1,4 +1,4 @@
-external method_predicates : t = "type_eq_spec"
+external method_predicates : t = "ty_size" "type_eq_spec"
 
 let type_eq =
   let s = (v == 0 : [%v: int]) [@over] in

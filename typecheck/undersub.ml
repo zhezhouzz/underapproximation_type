@@ -86,7 +86,7 @@ let do_solve_pres pres =
           let prop = P.subst_id ot.prop ot.basename x.x in
           (x :: ot_uqvs, P.And [ prop; ot_pre ])
         else
-          let x = { x = id; ty = NT.Ty_int } in
+          let x = { x = id; ty = ot.UT.normalty } in
           let prop = P.subst_id ot.prop ot.basename x.x in
           (x :: ot_uqvs, P.And [ prop; ot_pre ])
         (* _failatwith __FILE__ __LINE__ "" *)
