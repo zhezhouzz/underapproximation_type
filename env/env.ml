@@ -90,6 +90,10 @@ let get_prim_path () =
   | Some config -> config.prim_path
 
 let get_randomp_path () = (get_prim_path ()).under_randomp
+let known_mp : string list option ref = ref None
+
+let get_known_mp () =
+  match !known_mp with None -> failwith "uninit mps" | Some mps -> mps
 
 open Json
 open Yojson.Basic.Util

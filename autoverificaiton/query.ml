@@ -64,34 +64,6 @@ let machine ctx expr = function
   | TExists u -> TStop (make_exists ctx [ u ] expr)
   | TStop _ -> _failatwith __FILE__ __LINE__ ""
 
-let known_mp =
-  [
-    "hd";
-    "mem";
-    "ord";
-    "len";
-    "left";
-    "right";
-    "para";
-    "sorted";
-    "numblack";
-    "noredred";
-    "hdcolor";
-    "complete";
-    "rng";
-    "heap";
-    "rank";
-    (* stlc *)
-    (* const *)
-    "is_const_eq";
-    "is_const";
-    (* ty_eq *)
-    "ty_size";
-    "is_ty_pre";
-    "is_ty_post";
-    "type_eq_spec";
-  ]
-
 let to_z3_ ctx = function
   | Lit lit -> lit_to_z3 ctx lit
   | MethodPred ("==", [ a; b ]) ->
@@ -115,7 +87,7 @@ let to_z3_ ctx = function
   | MethodPred (">", _) -> _failatwith __FILE__ __LINE__ ""
   | MethodPred (mp, args) ->
       let () =
-        if List.exists (String.equal mp) known_mp then ()
+        if List.exists (String.equal mp) (Env.get_known_mp ()) then ()
         else failwith (spf "unknown mp: %s" mp)
       in
       (* let () = Printf.printf "mp >>> %s\n" mp in *)

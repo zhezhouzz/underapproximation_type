@@ -1,5 +1,40 @@
 open Env
 
+let predefined_mp =
+  [
+    "hd";
+    "mem";
+    "ord";
+    "len";
+    "left";
+    "right";
+    "para";
+    "sorted";
+    "numblack";
+    "noredred";
+    "hdcolor";
+    "complete";
+    "rng";
+    "heap";
+    "rank";
+    (* kind: stlc *)
+    (* kind: const *)
+    "is_const_eq";
+    "is_const";
+    (* kind: ty_eq *)
+    "ty_size";
+    "is_ty_pre";
+    "is_ty_post";
+    "type_eq_spec";
+  ]
+
+let init_known_mp mps =
+  let mps =
+    Zzdatatype.Datatype.List.(
+      slow_rm_dup String.equal @@ interset String.equal predefined_mp mps)
+  in
+  known_mp := Some mps
+
 let __concat_without_overlap msg eq l1 l2 =
   List.fold_left
     (fun res x ->
@@ -22,6 +57,7 @@ let get_measure l =
 let load source_file =
   let prim_path = Env.get_prim_path () in
   let all_mps = Inputstage.load_user_defined_mps source_file in
+  let () = init_known_mp all_mps in
   let measure = get_measure all_mps in
   let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
   let open Abstraction in
