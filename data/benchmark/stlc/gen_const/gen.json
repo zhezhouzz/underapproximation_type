@@ -1,6 +1,6 @@
 {
   "mps": [
-      "size", "is_const", "is_const_eq"
+       "is_const", "is_const_eq"
   ],
   "libs": [
   ]

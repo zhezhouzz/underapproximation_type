@@ -1,6 +1,6 @@
 {
     "mps": [
-        "type_eq_spec"
+        "ty_size", "type_eq_spec", "is_ty_pre", "is_ty_post"
     ],
     "libs": [
     ]

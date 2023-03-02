@@ -26,6 +26,7 @@ let predefined_mp =
     "is_ty_pre";
     "is_ty_post";
     "type_eq_spec";
+    "size";
   ]
 
 let init_known_mp mps =
@@ -48,7 +49,7 @@ let __concat_without_overlap msg eq l1 l2 =
     l1 l2
 
 let known_measures =
-  [ "len"; "rng"; "numblack"; "size_app"; "size"; "is_const_eq" ]
+  [ "len"; "rng"; "numblack"; "size_app"; "size"; "is_const_eq"; "ty_size" ]
 
 let get_measure l =
   match

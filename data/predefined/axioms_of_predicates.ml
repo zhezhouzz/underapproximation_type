@@ -11,9 +11,42 @@ let stlc_type1 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
     (u : [%exists: int]) =
   implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u)
 
-(* let stlc_type2 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty]) *)
-(*     (u : [%exists: int]) = *)
-(*   implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u) *)
+let stlc_type2 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = ty_size t1 u
+
+let stlc_type3 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) =
+  implies (ty_size t1 u) (u >= 0)
+
+let stlc_type4 (t1 : [%forall: stlc_ty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (ty_size t1 u && ty_size t1 w) (u == w)
+
+let stlc_type5 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) =
+  implies (type_eq_spec t1 t2) (iff (ty_size t1 u) (ty_size t2 u))
+
+let stlc_type6 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) =
+  implies
+    (not (type_eq_spec t1 t2))
+    (implies (ty_size t1 u) (not (ty_size t2 u))
+    && implies (ty_size t2 u) (not (ty_size t1 u)))
+
+let stlc_type7 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_ty_post t1 t2 && ty_size t1 u && ty_size t2 w) (u == w + 1)
+
+let stlc_type8 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_ty_pre t1 t2 && ty_size t1 u && ty_size t2 w) (u == w + 1)
+
+let stlc_type9 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = size t1 u
+
+let stlc_type10 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) =
+  implies (size t1 u) (u >= 0)
+
+let stlc_type11 (t1 : [%forall: stlc_ty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (size t1 u && size t1 w) (u == w)
 
 (* int list *)
 let il1 (l : [%forall: int list]) (u : [%forall: int]) =

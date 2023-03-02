@@ -103,6 +103,297 @@ let record_max_qvs_num a b =
   let num = List.length b in
   if !a < num then a := num else ()
 
+type destruct_mp = { mp_name : string; intro_tys : NT.t -> NT.t list }
+
+type destruct_ty = {
+  elim_ty : Ntyped.t;
+  elim_pre : string -> P.t;
+  destruct_mps : destruct_mp list;
+}
+
+let make_destruct_mp_prop id { mp_name; intro_tys } =
+  let open P in
+  let args =
+    List.map
+      (fun ty -> { x = Rename.unique (spf "%sD" id.x); ty })
+      (intro_tys id.ty)
+  in
+  (mp_name, id, args, mk_mp_vars mp_name (id :: args))
+
+let known_destruct_predicates =
+  let open P in
+  let stlc_ty = NT.Ty_constructor ("stlc_ty", []) in
+  let stlc_ty_case =
+    {
+      elim_ty = stlc_ty;
+      elim_pre =
+        (fun x ->
+          let v = { x; ty = stlc_ty } in
+          mk_forall (Ty_int, "u") (fun u ->
+              Implies
+                ( mk_mp_vars "ty_size" [ v; u ],
+                  MethodPred (">", [ AVar u; ACint 0 ]) )));
+      destruct_mps =
+        [
+          { mp_name = "is_ty_pre"; intro_tys = (fun _ -> [ stlc_ty ]) };
+          { mp_name = "is_ty_post"; intro_tys = (fun _ -> [ stlc_ty ]) };
+        ];
+    }
+  in
+  [ stlc_ty_case ]
+
+let get_dmps =
+  List.flatten
+  @@ List.map
+       (fun { destruct_mps; _ } -> List.map (fun x -> x.mp_name) destruct_mps)
+       known_destruct_predicates
+
+let find_dmp_by_type ty =
+  List.find_opt (fun x -> NT.eq ty x.elim_ty) known_destruct_predicates
+
+let get_opt_mode () =
+  let mps = Env.get_known_mp () in
+  let res =
+    match List.interset String.equal get_dmps mps with [] -> false | _ -> true
+  in
+  res
+
+(* let infer_destruct_mp_record final_uqvs  *)
+
+let build_mapping_from_m m if_conj prop =
+  let open P in
+  let table = Hashtbl.create 10 in
+  let rec aux if_conj t =
+    match t with
+    | Lit _ -> t
+    | Implies (e1, e2) -> Implies (aux (not if_conj) e1, aux if_conj e2)
+    | Ite (e1, e2, e3) -> Ite (e1, aux if_conj e2, aux if_conj e3)
+    | Not e -> Not (aux (not if_conj) e)
+    | And es -> And (List.map (aux if_conj) es)
+    | Or es -> Or (List.map (aux (not if_conj)) es)
+    | Iff (e1, e2) -> Iff (e1, e2)
+    | MethodPred (mp, AVar dt :: args) -> (
+        match
+          List.find_opt
+            (fun ((dmp, id), _) -> String.equal dmp mp && Ntyped.typed_eq id dt)
+            m
+        with
+        | Some (_, new_args) ->
+            let args =
+              List.map
+                (fun x ->
+                  match x with
+                  | AVar x -> x
+                  | _ -> _failatwith __FILE__ __LINE__ "")
+                args
+            in
+            let ps = List.combine args new_args in
+            let () =
+              List.iter
+                (fun (x, y) ->
+                  match Hashtbl.find_opt table x.x with
+                  | Some y' when String.equal y.x y' -> ()
+                  | Some y' -> _failatwith __FILE__ __LINE__ (spf "y': %s" y')
+                  | None -> Hashtbl.add table x.x y.x)
+                ps
+            in
+            if if_conj then P.mk_true else P.mk_false
+        | None -> t)
+    | MethodPred (_, _) -> t
+    | Forall (qv, e) -> Forall (qv, aux if_conj e)
+    | Exists (qv, e) -> Exists (qv, aux if_conj e)
+  in
+  let prop = aux if_conj prop in
+  Hashtbl.fold (fun x y prop -> P.subst_id prop x y) table prop
+
+let remove_by_m m if_conj prop =
+  let open P in
+  let rec aux if_conj t =
+    match t with
+    | Lit _ -> t
+    | Implies (e1, e2) -> Implies (aux (not if_conj) e1, aux if_conj e2)
+    | Ite (e1, e2, e3) -> Ite (e1, aux if_conj e2, aux if_conj e3)
+    | Not e -> Not (aux (not if_conj) e)
+    | And es -> And (List.map (aux if_conj) es)
+    | Or es -> Or (List.map (aux (not if_conj)) es)
+    | Iff (e1, e2) -> Iff (e1, e2)
+    | MethodPred (mp, AVar dt :: _) -> (
+        match
+          List.find_opt
+            (fun ((dmp, id), _) -> String.equal dmp mp && Ntyped.typed_eq id dt)
+            m
+        with
+        | Some _ -> if if_conj then P.mk_true else P.mk_false
+        | None -> t)
+    | MethodPred (_, _) -> t
+    | Forall (qv, e) -> Forall (qv, aux if_conj e)
+    | Exists (qv, e) -> Exists (qv, aux if_conj e)
+  in
+  aux if_conj prop
+
+let simplify_final_eqvs final_eqvs (final_pre, final_post) =
+  List.filter
+    (fun qv ->
+      List.exists (fun x -> String.equal qv.x x)
+      @@ P.fv final_pre @ P.fv final_post)
+    final_eqvs
+
+let rlt_instantiate rlt =
+  let open P in
+  let mk_type_eq_spec (a, b) = mk_mp_vars "type_eq_spec" [ a; b ] in
+  let make rlt =
+    match rlt with
+    | [ (id1, args1); (id2, args2) ] ->
+        let matched_p = mk_type_eq_spec (id1, id2) in
+        let ps = List.combine args1 args2 in
+        (matched_p, List.map mk_type_eq_spec ps)
+    | _ -> _failatwith __FILE__ __LINE__ "never happen"
+  in
+  List.map make @@ List.combination_l rlt 2
+
+let simplify_by_rlt (pre, post) (matched_p, cases) =
+  let open P in
+  let table =
+    (matched_p, ref None) :: List.map (fun case -> (case, ref None)) cases
+  in
+  let update p y =
+    List.iter
+      (fun (p', x) ->
+        if strict_eq p p' then
+          match !x with
+          | None -> x := Some y
+          | Some _ -> _failatwith __FILE__ __LINE__ ""
+        else ())
+      table
+  in
+  let rec aux t =
+    match t with
+    | Lit _ -> t
+    | Implies (e1, e2) -> Implies (aux e1, aux e2)
+    | Ite (e1, e2, e3) -> Ite (aux e1, aux e2, aux e3)
+    | Not e -> Not (aux e)
+    | And es -> And (List.map aux es)
+    | Or es -> Or (List.map aux es)
+    | Iff (Lit (AVar id), p) ->
+        update p id;
+        mk_true
+    | Iff (p, Lit (AVar id)) ->
+        update p id;
+        mk_true
+    | Iff (e1, e2) -> Iff (aux e1, aux e2)
+    | MethodPred (_, _) -> t
+    | Forall (qv, e) -> Forall (qv, aux e)
+    | Exists (qv, e) -> Exists (qv, aux e)
+  in
+  let pre = aux pre in
+  let post = aux post in
+  let id_table = List.filter_map (fun (_, x) -> !x) table in
+  if List.length id_table == List.length table then
+    match id_table with
+    | [] -> _failatwith __FILE__ __LINE__ "never happen"
+    | mp :: case_ids ->
+        let c =
+          Iff (Lit (AVar mp), And (List.map (fun v -> Lit (AVar v)) case_ids))
+        in
+        (And [ c; pre ], post)
+  else (pre, post)
+
+let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
+  let post_mps = P.get_mps final_post in
+  let _ =
+    Env.show_debug_info @@ fun _ ->
+    Printf.printf "final_uqvs[ZZZZ]: %s\n"
+      (List.split_by_comma
+         (fun x ->
+           spf "%s:%s" x.x (Sexplib.Sexp.to_string @@ NT.sexp_of_t x.ty))
+         final_uqvs)
+  in
+  let if_opt =
+    List.exists (fun x -> List.exists (String.equal x.x) get_dmps) post_mps
+  in
+  if if_opt then
+    let record =
+      List.filter_map
+        (fun id ->
+          match find_dmp_by_type id.ty with
+          | None -> None
+          | Some { elim_pre; destruct_mps; _ } ->
+              let pre = elim_pre id.x in
+              let constraints =
+                List.map (make_destruct_mp_prop id) destruct_mps
+              in
+              let new_uqvs =
+                List.flatten @@ List.map (fun (_, _, qvs, _) -> qvs) constraints
+              in
+              (* let pres = List.map (fun (_, _, _, prop) -> prop) constraints in *)
+              (* let pre = pre :: pres in *)
+              let pre = [ pre ] in
+              let records =
+                List.map (fun (mp, id, args, _) -> ((mp, id), args)) constraints
+              in
+              let () =
+                Env.show_debug_info @@ fun _ ->
+                Printf.printf "new_uqvs: %s\n"
+                @@ List.split_by_comma (fun x -> x.x) new_uqvs
+              in
+              let () =
+                Env.show_debug_info @@ fun _ ->
+                Printf.printf "pre: %s\n"
+                @@ Autov.pretty_layout_prop (P.And pre)
+              in
+              Some ((id, new_uqvs, pre), records))
+        final_uqvs
+    in
+    let pres, m = List.split record in
+    let rlt, new_uqvs, new_pre =
+      List.fold_left
+        (fun (rlt, new_uqvs, new_pre) (id, a, b) ->
+          ((id, a) :: rlt, a :: new_uqvs, b :: new_pre))
+        ([], [], []) pres
+    in
+    let rlt = rlt_instantiate rlt in
+    let () = Printf.printf "len(rlt) := %i\n" (List.length rlt) in
+    let new_uqvs = List.flatten new_uqvs in
+    let new_pre = P.And (List.flatten new_pre) in
+    let () =
+      Env.show_debug_info @@ fun _ ->
+      Printf.printf "new_uqvs: %s\n"
+      @@ List.split_by_comma (fun x -> x.x) new_uqvs
+    in
+    let () =
+      Env.show_debug_info @@ fun _ ->
+      Printf.printf "pre: %s\n" @@ Autov.pretty_layout_prop new_pre
+    in
+    let final_post = build_mapping_from_m (List.flatten m) true final_post in
+    let () =
+      Env.show_debug_info @@ fun _ ->
+      Printf.printf "final_post: %s\n" @@ Autov.pretty_layout_prop final_post
+    in
+    let final_pre = P.And [ new_pre; final_pre ] in
+    let () =
+      Typectx.pretty_print_q
+        (List.map (fun x -> x.x) final_uqvs)
+        (List.map (fun x -> x.x) final_eqvs)
+        final_pre final_post
+    in
+    (* simplify *)
+    let final_pre, final_post =
+      List.fold_left simplify_by_rlt (final_pre, final_post) rlt
+    in
+    let final_eqvs = simplify_final_eqvs final_eqvs (final_pre, final_post) in
+    let final_uqvs =
+      simplify_final_eqvs (final_uqvs @ new_uqvs) (final_pre, final_post)
+    in
+    let () =
+      Typectx.pretty_print_q
+        (List.map (fun x -> x.x) final_uqvs)
+        (List.map (fun x -> x.x) final_eqvs)
+        final_pre final_post
+    in
+    (* let () = if if_opt then failwith "end" else () in *)
+    (final_uqvs, final_eqvs, final_pre, final_post)
+  else (final_uqvs, final_eqvs, final_pre, final_post)
+
 let solve_pres file line pres (t1, t2) =
   let name1, nt1, prop1 = UT.assume_base __FILE__ __LINE__ t1 in
   let name2, nt2, prop2 = UT.assume_base __FILE__ __LINE__ t2 in
@@ -130,7 +421,8 @@ let solve_pres file line pres (t1, t2) =
   let final_uqvs = ot_uqvs @ (nu :: eq2) in
   let () = record_max_qvs_num max_uqvs_num final_uqvs in
   let () = record_max_qvs_num max_eqvs_num final_eqvs in
-  do_check file line (final_uqvs, final_eqvs, final_pre, final_post)
+  do_check file line
+    (handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post))
 
 let check_in name t = List.exists (String.equal name) @@ UT.fv t
 
@@ -138,6 +430,20 @@ let check_under_ctx file line ctx (t1, t2) =
   let force_add (id, uty) t1 =
     if UT.is_base_type uty then UT.retty_add_ex_uprop_always_add (id, uty) t1
     else t1
+  in
+  let update_ty_pair (id, uty) (t1, t2) =
+    let () =
+      Printf.printf "[%s]t2: %s ==> %b\n" id (UT.pretty_layout t2)
+        (check_in id t2)
+    in
+    let t1 = force_add (id, uty) t1 in
+    match check_in id t2 with
+    | false ->
+        let t2 = if get_opt_mode () then t2 else force_add (id, uty) t2 in
+        (t1, t2)
+    | true ->
+        let t2 = force_add (id, uty) t2 in
+        (t1, t2)
   in
   let rec aux pres ctx (t1, t2) =
     match Typectx.destrct_right ctx with
@@ -150,26 +456,7 @@ let check_under_ctx file line ctx (t1, t2) =
         aux pres ctx (t1, t2)
     | Some (ctx, (id, MMT.Consumed (UtNormal uty)))
     | Some (ctx, (id, MMT.Ut (UtNormal uty))) ->
-        let t1 = force_add (id, uty) t1 in
-        let t2 = force_add (id, uty) t2 in
-        (* let t2 = match UT.fv t2 with [] -> t2 | _ -> force_add (id, uty) t2 in *)
-        aux pres ctx (t1, t2)
-    (* (match (check_in id t1, check_in id t2) with *)
-    (* | false, false -> *)
-    (*     (\* let () = *\) *)
-    (*     (\*   Printf.printf "Add (%s, %s) -> %s\n" id (UT.pretty_layout uty) *\) *)
-    (*     (\*     (UT.pretty_layout t1) *\) *)
-    (*     (\* in *\) *)
-    (*     let t1 = *)
-    (*       if UT.is_base_type uty then *)
-    (*         UT.retty_add_ex_uprop_always_add (id, uty) t1 *)
-    (*       else t1 *)
-    (*     in *)
-    (*     aux pres ctx (t1, t2) *)
-    (* | _, _ -> *)
-    (*     let t1 = UT.retty_add_ex_uprop_drop_independent (id, uty) t1 in *)
-    (*     let t2 = UT.retty_add_ex_uprop_drop_independent (id, uty) t2 in *)
-    (*     aux pres ctx (t1, t2)) *)
+        aux pres ctx (update_ty_pair (id, uty) (t1, t2))
   in
   let pres, (t1, t2) = aux [] ctx (t1, t2) in
   solve_pres file line pres (t1, t2)

@@ -2,12 +2,12 @@
     "mode": "debug",
     "max_printing_size": 3000,
     "debug_info": {
-        "show_preprocess": false,
-        "show_typing": false,
-        "show_queries": false,
-        "show_solving": false,
-        "show_stat": false,
-        "show_info": false
+        "show_preprocess": true,
+        "show_typing": true,
+        "show_queries": true,
+        "show_solving": true,
+        "show_stat": true,
+        "show_info": true
     },
     "logfile": ".log",
     "resfile": ".result",

@@ -376,9 +376,8 @@ and handle_match uctx (matched, cases) =
       Typectx.ut_force_add_to_rights uctx.ctx (cond_id :: matched_args)
     in
     let ety = term_type_infer { uctx with ctx = ctx' } exp in
-    close_ids [ cond_id ] ety
+    close_ids (cond_id :: matched_args) ety
   in
-
   let res = List.map handle_case cases in
   merge_case_tys res
 (* _failatwith __FILE__ __LINE__ "unimp" *)

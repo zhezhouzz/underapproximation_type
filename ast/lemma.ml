@@ -10,6 +10,10 @@ type t = { lemma_udts : string typed list; qprop : qprop }
 
 let filter_by_mps mps lemma =
   let lemma_mps = List.map (fun x -> x.x) @@ P.get_mps lemma.qprop.prop in
+  (* let () = *)
+  (*   Printf.printf "lemma_mps: %s\n" *)
+  (*   @@ Zzdatatype.Datatype.StrList.to_string lemma_mps *)
+  (* in *)
   let lemma_mps =
     List.filter
       (fun x ->
@@ -17,12 +21,12 @@ let filter_by_mps mps lemma =
         List.for_all
           (fun c ->
             let code = Char.code c in
-            97 <= code && code <= 122)
+            (97 <= code && code <= 122) || code == 95)
           l)
       lemma_mps
   in
   (* let () = *)
-  (*   Printf.printf "lemma_mps: %s\n" *)
+  (*   Printf.printf ">lemma_mps: %s\n" *)
   (*   @@ Zzdatatype.Datatype.StrList.to_string lemma_mps *)
   (* in *)
   match Zzdatatype.Datatype.List.substract String.equal lemma_mps mps with
