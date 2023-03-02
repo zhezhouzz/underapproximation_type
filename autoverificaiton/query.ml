@@ -16,6 +16,7 @@ let make_exists ctx qv body =
       (Quantifier.mk_exists_const ctx qv body (Some 1) [] [] None None)
 
 let z3func ctx funcname inptps outtp =
+  (* let () = Printf.printf "funcname: %s\n" funcname in *)
   FuncDecl.mk_func_decl ctx
     (Symbol.mk_string ctx funcname)
     (List.map (tp_to_sort ctx) inptps)
@@ -92,6 +93,11 @@ let to_z3_ ctx = function
       in
       (* let () = Printf.printf "mp >>> %s\n" mp in *)
       let argsty = List.map lit_get_ty args in
+      (* let () = *)
+      (*   Printf.printf "args >>> %s\n" *)
+      (*   @@ Zzdatatype.Datatype.List.split_by_comma Frontend.pretty_layout_lit *)
+      (*        args *)
+      (* in *)
       let args = List.map (lit_to_z3 ctx) args in
       let func = z3func ctx mp argsty Ty_bool in
       Z3.FuncDecl.apply func args

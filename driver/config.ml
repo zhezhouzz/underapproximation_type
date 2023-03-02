@@ -27,6 +27,17 @@ let predefined_mp =
     "is_ty_post";
     "type_eq_spec";
     "size";
+    (* kind: tyctx *)
+    "gamma_size";
+    "is_tyctx_hd";
+    "is_tyctx_tl";
+    "typing_var";
+    "is_var_in_range";
+    "is_id_eq";
+    "typing";
+    "size_app";
+    "no_app";
+    "num_nodes";
   ]
 
 let init_known_mp mps =
@@ -49,7 +60,16 @@ let __concat_without_overlap msg eq l1 l2 =
     l1 l2
 
 let known_measures =
-  [ "len"; "rng"; "numblack"; "size_app"; "size"; "is_const_eq"; "ty_size" ]
+  [
+    "len";
+    "rng";
+    "numblack";
+    "size_app";
+    "size";
+    "is_const_eq";
+    "ty_size";
+    "gamma_size";
+  ]
 
 let get_measure l =
   match

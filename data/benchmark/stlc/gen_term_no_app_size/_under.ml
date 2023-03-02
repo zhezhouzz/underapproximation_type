@@ -1,4 +1,4 @@
-external method_predicates : t = "size" "dec_pair" "typing"
+external method_predicates : t = "size" "typing" "is_abs" "is_const" "no_app"
 
 let[@library] gen_const =
   let a = (true : [%v: unit]) [@over] in
@@ -15,7 +15,7 @@ let[@library] or_var_in_typectx =
     : [%v: stlc_term])
     [@under]
 
-let gen_term_no_app =
+let gen_term_no_app_size =
   let s = (v >= 0 : [%v: int]) [@over] in
   let tau = (size v s : [%v: stlc_ty]) [@over] in
   let gamma = (true : [%v: stlc_tyctx]) [@over] in

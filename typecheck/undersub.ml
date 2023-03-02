@@ -123,6 +123,7 @@ let make_destruct_mp_prop id { mp_name; intro_tys } =
 let known_destruct_predicates =
   let open P in
   let stlc_ty = NT.Ty_constructor ("stlc_ty", []) in
+  let stlc_tyctx = NT.Ty_constructor ("stlc_tyctx", []) in
   let stlc_ty_case =
     {
       elim_ty = stlc_ty;
@@ -140,23 +141,36 @@ let known_destruct_predicates =
         ];
     }
   in
-  [ stlc_ty_case ]
-
-let get_dmps =
-  List.flatten
-  @@ List.map
-       (fun { destruct_mps; _ } -> List.map (fun x -> x.mp_name) destruct_mps)
-       known_destruct_predicates
-
-let find_dmp_by_type ty =
-  List.find_opt (fun x -> NT.eq ty x.elim_ty) known_destruct_predicates
-
-let get_opt_mode () =
-  let mps = Env.get_known_mp () in
-  let res =
-    match List.interset String.equal get_dmps mps with [] -> false | _ -> true
+  let stlc_tyctx_case =
+    {
+      elim_ty = stlc_tyctx;
+      elim_pre =
+        (fun x ->
+          let v = { x; ty = stlc_tyctx } in
+          mk_forall (Ty_int, "u") (fun u ->
+              Implies
+                ( mk_mp_vars "gamma_size" [ v; u ],
+                  MethodPred (">", [ AVar u; ACint 0 ]) )));
+      destruct_mps =
+        [
+          { mp_name = "is_tyctx_hd"; intro_tys = (fun _ -> [ stlc_ty ]) };
+          { mp_name = "is_tyctx_tl"; intro_tys = (fun _ -> [ stlc_tyctx ]) };
+        ];
+    }
   in
-  res
+  [ stlc_ty_case; stlc_tyctx_case ]
+
+let get_dmps { destruct_mps; _ } = List.map (fun x -> x.mp_name) destruct_mps
+
+let find_dmp_by_type ty cases =
+  List.find_opt (fun x -> NT.eq ty x.elim_ty) cases
+
+let get_opt_mode () = false
+(* let mps = Env.get_known_mp () in *)
+(* let res = *)
+(*   match List.interset String.equal get_dmps mps with [] -> false | _ -> true *)
+(* in *)
+(* res *)
 
 (* let infer_destruct_mp_record final_uqvs  *)
 
@@ -251,6 +265,28 @@ let rlt_instantiate rlt =
   in
   List.map make @@ List.combination_l rlt 2
 
+let rlt_instantiate2_post prop =
+  let open P in
+  let rec aux if_conj t =
+    match t with
+    | Lit _ -> t
+    | Implies (e1, e2) -> Implies (aux (not if_conj) e1, aux if_conj e2)
+    | Ite (e1, e2, e3) -> Ite (e1, aux if_conj e2, aux if_conj e3)
+    | Not e -> Not (aux (not if_conj) e)
+    | And es -> And (List.map (aux if_conj) es)
+    | Or es -> Or (List.map (aux (not if_conj)) es)
+    | Iff (Lit (AVar _), MethodPred ("type_eq_spec", _)) -> mk_true
+    | Iff (_, _) -> t
+    | MethodPred (mp, AVar dt :: _) ->
+        if String.equal mp "is_var_in_range" && not (String.equal dt.x "x") then
+          if if_conj then P.mk_true else P.mk_false
+        else t
+    | MethodPred (_, _) -> t
+    | Forall (qv, e) -> Forall (qv, aux if_conj e)
+    | Exists (qv, e) -> Exists (qv, aux if_conj e)
+  in
+  aux true prop
+
 let simplify_by_rlt (pre, post) (matched_p, cases) =
   let open P in
   let table =
@@ -308,14 +344,19 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
            spf "%s:%s" x.x (Sexplib.Sexp.to_string @@ NT.sexp_of_t x.ty))
          final_uqvs)
   in
-  let if_opt =
-    List.exists (fun x -> List.exists (String.equal x.x) get_dmps) post_mps
+  let cases =
+    List.filter
+      (fun x ->
+        List.length
+          (List.interset (fun x y -> String.equal x y.x) (get_dmps x) post_mps)
+        > 0)
+      known_destruct_predicates
   in
-  if if_opt then
+  if List.length cases > 0 then
     let record =
       List.filter_map
         (fun id ->
-          match find_dmp_by_type id.ty with
+          match find_dmp_by_type id.ty cases with
           | None -> None
           | Some { elim_pre; destruct_mps; _ } ->
               let pre = elim_pre id.x in
@@ -380,6 +421,7 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
     let final_pre, final_post =
       List.fold_left simplify_by_rlt (final_pre, final_post) rlt
     in
+    let final_post = rlt_instantiate2_post final_post in
     let final_eqvs = simplify_final_eqvs final_eqvs (final_pre, final_post) in
     let final_uqvs =
       simplify_final_eqvs (final_uqvs @ new_uqvs) (final_pre, final_post)
