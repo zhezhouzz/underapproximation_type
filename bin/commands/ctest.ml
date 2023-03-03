@@ -273,7 +273,7 @@ let qcheck =
       fun () ->
         let open Sugar in
         let () = Printf.printf "QCheck\n" in
-        let () = Cgen.test num in
+        (* let () = Cgen.test num in *)
         ())
 
 let test =

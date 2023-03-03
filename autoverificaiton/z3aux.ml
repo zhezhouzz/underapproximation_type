@@ -34,12 +34,16 @@ let int_to_z3 ctx i = mk_numeral_int ctx i (Integer.mk_sort ctx)
 let bool_to_z3 ctx b = if b then mk_true ctx else mk_false ctx
 
 let tp_to_sort ctx t =
+  (* let () = *)
+  (*   Printf.printf "z3aux t: %s\n" @@ Sexplib.Sexp.to_string @@ sexp_of_t t *)
+  (* in *)
   T.(
     match to_smtty t with
     | Int | Dt -> Integer.mk_sort ctx
     | Bool -> Boolean.mk_sort ctx)
 
 let z3func ctx funcname inptps outtp =
+  (* let () = Printf.printf "[%s]funcname: %s\n" __FILE__ funcname in *)
   FuncDecl.mk_func_decl ctx
     (Symbol.mk_string ctx funcname)
     (List.map (tp_to_sort ctx) inptps)

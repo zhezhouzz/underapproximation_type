@@ -1,4 +1,152 @@
+(* stlc const *)
+let stlc_const1 (tm : [%forall: stlc_term]) (u : [%exists: int]) =
+  implies (is_const tm) (is_const_eq tm u && u >= 0)
+
+let stlc_const2 (tm : [%forall: stlc_term]) (u : [%forall: int]) =
+  implies (is_const_eq tm u && u >= 0) (is_const tm)
+
+(* stlc type_eq *)
+
+let stlc_type1 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%exists: int]) =
+  implies (type_eq_spec t1 t2) (ty_size t1 u && ty_size t2 u)
+
+let stlc_type2 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = ty_size t1 u
+
+let stlc_type3 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) =
+  implies (ty_size t1 u) (u >= 0)
+
+let stlc_type4 (t1 : [%forall: stlc_ty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (ty_size t1 u && ty_size t1 w) (u == w)
+
+let stlc_type5 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) =
+  implies (type_eq_spec t1 t2) (iff (ty_size t1 u) (ty_size t2 u))
+
+let stlc_type6 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) =
+  implies
+    (not (type_eq_spec t1 t2))
+    (implies (ty_size t1 u) (not (ty_size t2 u))
+    && implies (ty_size t2 u) (not (ty_size t1 u)))
+
+let stlc_type7 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_ty_post t1 t2 && ty_size t1 u && ty_size t2 w) (u == w + 1)
+
+let stlc_type8 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_ty_pre t1 t2 && ty_size t1 u && ty_size t2 w) (u == w + 1)
+
+let stlc_type9 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = size t1 u
+
+let stlc_type10 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) =
+  implies (size t1 u) (u >= 0)
+
+let stlc_type11 (t1 : [%forall: stlc_ty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (size t1 u && size t1 w) (u == w)
+
+let stlc_type12 (t1 : [%forall: stlc_ty]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (ty_size t1 u) (ty_size t1 w)
+
+(* stlc tyctx *)
+
+let stlc_gamma_size1 (t1 : [%forall: stlc_tyctx]) (u : [%exists: int]) =
+  gamma_size t1 u
+
+let stlc_gamma_size2 (t1 : [%forall: stlc_tyctx]) (u : [%forall: int]) =
+  implies (gamma_size t1 u) (u >= 0)
+
+let stlc_gamma_size3 (t1 : [%forall: stlc_tyctx]) (u : [%forall: int])
+    (w : [%forall: int]) =
+  implies (gamma_size t1 u && gamma_size t1 w) (u == w)
+
+let stlc_gamma_size4 (t1 : [%forall: stlc_tyctx]) (t2 : [%forall: stlc_tyctx])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_tyctx_tl t1 t2 && gamma_size t1 u && gamma_size t2 w) (u == w + 1)
+
+let stlc_gamma_size5 (t : [%forall: stlc_term]) (s : [%forall: int])
+    (u : [%forall: int]) (w : [%forall: int]) =
+  implies (is_var_in_range t s u && w == s + 1) (is_var_in_range t s w)
+
+let stlc_gamma_size6 (gamma : [%forall: stlc_tyctx]) (t : [%forall: stlc_term])
+    (tau : [%forall: stlc_ty]) (s : [%forall: int]) (u : [%forall: int]) =
+  implies
+    (typing_var gamma t tau && u >= 0 && is_var_in_range t u s
+   && gamma_size gamma s)
+    (is_id_eq t u)
+
+let stlc_gamma_size7 (t : [%forall: stlc_term]) (u : [%forall: int]) =
+  implies (is_id_eq t u) (u >= 0)
+
+let stlc_gamma_size8 (t : [%forall: stlc_term]) (u : [%exists: int]) =
+  is_id_eq t u
+
+let stlc_gamma_size9 (t : [%forall: stlc_term]) (u : [%exists: int])
+    (w : [%exists: int]) =
+  is_var_in_range t u w
+
+let stlc_gamma_size10 (gamma : [%forall: stlc_tyctx]) (t : [%forall: stlc_term])
+    (tau : [%forall: stlc_ty]) (u : [%forall: int]) (w : [%forall: int]) =
+  implies
+    (is_var_in_range t u w && gamma_size gamma w && u == 0)
+    (typing_var gamma t tau)
+
+(* let stlc_gamma_size11 (gamma : [%forall: stlc_tyctx]) (t : [%forall: stlc_term]) *)
+(*     (tau : [%forall: stlc_ty]) = *)
+(*   typing_var gamma t tau *)
+
+let stlc_gamma_size11 (t : [%forall: stlc_term]) (u : [%forall: int]) =
+  is_id_eq t u
+
+let stlc_gamma_size12 (t : [%forall: stlc_term]) (gamma : [%forall: int])
+    (tau : [%forall: int]) (w : [%forall: int]) =
+  is_var_in_range t 0 w
+
+(* typing *)
+
+let stlc_typing1 (gamma : [%forall: stlc_tyctx]) (t : [%forall: stlc_term])
+    (tau : [%forall: stlc_ty]) =
+  implies (typing gamma t tau) (typing_var gamma t tau)
+
+let stlc_typing2 (a : [%forall: stlc_term]) (v : [%forall: stlc_term])
+    (u : [%forall: int]) =
+  implies
+    (implies (no_app a) (no_app v) && implies (size_app a u) (size_app v u))
+    (a == v)
+
+let stlc_typing3 (gamma : [%forall: stlc_tyctx]) (v : [%forall: stlc_term])
+    (tau : [%forall: stlc_ty]) =
+  iff
+    (no_app v && typing gamma v tau)
+    (is_const v || is_abs v || typing_var gamma v tau)
+
+(* let stlc_typing4 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = size_app t1 u *)
+
+(* let stlc_typing5 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) = *)
+(*   implies (size_app t1 u) (u >= 0) *)
+
+(* let stlc_typing6 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) *)
+(*     (w : [%forall: int]) = *)
+(*   implies (size_app t1 u && size_app t1 w) (u == w) *)
+
+let stlc_typing7 (a : [%forall: stlc_term]) (v : [%forall: stlc_term])
+    (u : [%exists: int]) =
+  implies
+    (implies (no_app a) (no_app v) && implies (size_app a u) (size_app v u))
+    (a == v)
+
+(* dec_pair *)
+
+let stlc_dec_pair1 (tau : [%forall: stlc_ty]) (dec : [%forall: int])
+    (num_app : [%forall: int]) =
+  implies (dec_pair tau dec num_app && not (num_app == 0)) (dec > 0)
+
 (* int list *)
+
 let il1 (l : [%forall: int list]) (u : [%forall: int]) =
   implies (len l 0) (not (mem l u))
 

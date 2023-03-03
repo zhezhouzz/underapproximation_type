@@ -63,7 +63,9 @@ open Sugar
 
 let layout_m m =
   S.iter
-    (fun name _ -> Printf.printf "key: %s\n" @@ t_to_string_for_load name)
+    (fun name _ ->
+      Env.show_debug_debug (fun _ ->
+          Printf.printf "key: %s\n" @@ t_to_string_for_load name))
     m
 
 let safe_make_m l =

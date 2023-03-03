@@ -1,8 +1,12 @@
 {
     "mps": [
-        "size",
+        "gamma_size",
         "typing_var",
-        "is_var_in_range"
+        "is_var_in_range",
+        "is_tyctx_hd",
+        "is_tyctx_tl",
+        "type_eq_spec",
+        "is_id_eq"
     ],
     "libs": [
         "type_eq"

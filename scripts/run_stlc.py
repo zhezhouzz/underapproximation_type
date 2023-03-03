@@ -16,7 +16,7 @@ def parse_stat ():
     return line
 
 def show_source(source, name):
-    tab = {"elrond": "⬦", "quickchick": "*",  "quickcheck": "◯", "leonidas": "★"}
+    tab = {"elrond": "⬦", "quickchick": "*",  "quickcheck": "◯", "leonidas": "★", "stlc": "▲"}
     return "{} {}".format(name, tab[source])
 
 def show_is_rec(is_rec, branches):
@@ -47,12 +47,12 @@ if __name__ == '__main__':
         if os.path.exists(resfile):
             os.remove(resfile)
         run_bench.run(path, if_verbose)
-        # res = parse_stat ()
-        # # print(res)
-        # if res[0] == "false":
-        #     print("fail")
-        #     exit(1)
-        # else:
-        #     res = [name] + res[2:]
-        #     data.append((source, is_rec, res))
+        res = parse_stat ()
+        # print(res)
+        if res[0] == "false":
+            print("fail")
+            exit(1)
+        else:
+            res = [name] + res[2:]
+            data.append((source, is_rec, res))
     show_data(data)

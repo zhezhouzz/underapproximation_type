@@ -1,11 +1,10 @@
 {
   "mps": [
     "size",
-    "dec_pair",
-    "typing"
+      "typing",
+    "no_app"
   ],
   "libs": [
-    "gen_const",
-    "or_var_in_typectx"
+    "gen_term_no_app_size"
   ]
 }

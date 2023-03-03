@@ -158,7 +158,12 @@ module Lemma = struct
     in
     let mps = P.get_mps (Implies (vc_head, vc_body)) in
     let lemmas =
-      List.filter (fun x -> List.exists (fun y -> eq y.ty x.udt.ty) mps) lemmas
+      List.filter
+        (fun x ->
+          List.for_all
+            (fun udt -> List.exists (fun y -> eq y.ty udt.ty) mps)
+            x.lemma_udts)
+        lemmas
     in
     let vc_u_dts, vc_u_basics = List.partition (fun x -> is_dt x.ty) uqvs in
     let vc_e_dts, vc_e_basics = List.partition (fun x -> is_dt x.ty) eqvs in
@@ -171,6 +176,7 @@ module Lemma = struct
       Pp.printf "@{<bold>add_lemma:@} vc_head(%i); vc_body(%i)\n"
         (P.size x.vcl_head) (P.size x.vcl_body)
     in
+    (* let () = if P.size x.vcl_body > 130000 then failwith "timeout" else () in *)
     let x = without_e_dt x in
     let () =
       Env.show_debug_stat @@ fun _ ->
@@ -291,7 +297,101 @@ module MustMayTypectx = struct
   (* let norefinement_force_add_to_right ctx id = *)
   (*   add_to_right ctx (id.Ntyped.x, NoRefinement id.Ntyped.ty) *)
 
-  let ut_force_add_to_right ctx (id, ty) = add_to_right ctx (id, Ut ty)
+  let try_simplify_measurement var prop =
+    let measure = Env.get_measure () in
+    let is_valid = ref true in
+    let open Autov.Prop in
+    let rec aux t =
+      match t with
+      | Not _ -> t
+      | Lit _ | Implies (_, _) | Ite (_, _, _) | Or _ | Iff (_, _) ->
+          is_valid := false;
+          t
+      | And es -> And (List.map aux es)
+      | MethodPred (mp, args) -> (
+          let args =
+            List.filter_map
+              (fun x -> match x with AVar x -> Some x | _ -> None)
+              args
+          in
+          match
+            (String.equal measure mp, List.exists (Ntyped.typed_eq var) args)
+          with
+          | true, true -> mk_true
+          | true, false -> t
+          | false, true ->
+              is_valid := false;
+              t
+          | false, false -> t)
+      | Forall (_, _) -> _failatwith __FILE__ __LINE__ "never happen"
+      | Exists (_, _) -> _failatwith __FILE__ __LINE__ "never happen"
+    in
+    let prop' = aux prop in
+    if !is_valid then
+      let () =
+        Env.show_debug_debug @@ fun _ ->
+        Printf.printf "before: %s\n" @@ Autov.pretty_layout_prop prop
+      in
+      let () =
+        Env.show_debug_debug @@ fun _ ->
+        Printf.printf "after: %s\n" @@ Autov.pretty_layout_prop prop'
+      in
+      (* let _ = failwith "end" in *)
+      Some prop'
+    else None
+
+  let try_simplify_true_dec prop =
+    let open Autov.Prop in
+    let rec aux t =
+      match t with
+      | Not _ -> false
+      | Lit (ACbool b) -> b
+      | Lit _ -> false
+      | Implies (_, _) | Ite (_, _, _) | Or _ | Iff (_, _) | MethodPred (_, _)
+        ->
+          false
+      | And es -> List.for_all aux es
+      | Forall (_, _) -> _failatwith __FILE__ __LINE__ "never happen"
+      | Exists (_, _) -> _failatwith __FILE__ __LINE__ "never happen"
+    in
+    aux prop
+
+  let simplify_ut ut =
+    (* let measure = Env.get_measure () in *)
+    let open UT in
+    match ut with
+    | UnderTy_base { basename; normalty; prop } -> (
+        let open Autov.Prop in
+        let res = try Some (to_e_nf prop) with _ -> None in
+        match res with
+        | None -> ut
+        | Some (eqvs, body) ->
+            (* let () = *)
+            (*   Printf.printf "simplify_ut: %s\n" (Autov.pretty_layout_prop body) *)
+            (* in *)
+            let prop =
+              if try_simplify_true_dec body then mk_true
+              else
+                let new_eqvs, new_body =
+                  List.fold_right
+                    (fun eqv (new_eqvs, new_body) ->
+                      (* let v = { x = basename; ty = normalty } in *)
+                      (* let clauze = mk_mp_vars measure [ v; eqv ] in *)
+                      match try_simplify_measurement eqv new_body with
+                      | None -> (eqv :: new_eqvs, new_body)
+                      | Some new_body -> (new_eqvs, new_body))
+                    eqvs ([], body)
+                in
+                P.tope_to_prop (new_eqvs, new_body)
+            in
+            UnderTy_base { basename; normalty; prop })
+    | _ -> ut
+
+  let ut_force_add_to_right ctx (id, ty) =
+    let ty =
+      match ty with MMT.UtNormal ut -> MMT.UtNormal (simplify_ut ut) | _ -> ty
+    in
+    add_to_right ctx (id, Ut ty)
 
   let ut_force_add_to_rights ctx ids =
     List.fold_left (fun ctx id -> ut_force_add_to_right ctx id) ctx ids
