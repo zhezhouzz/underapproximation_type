@@ -61,19 +61,19 @@ let sized_gen (low : int) (high : int) : int Tree.t t =
                        (self (n - 1)) );
                  ]))
 
-let test (num : int) =
-  let ls1 = Gen.generate ~n:num (bst_gen 0 4) in
-  let ls1 = List.filter (is_bst 0 4) ls1 in
-  let ls1 = List.slow_rm_dup (Tree.eq ( = )) ls1 in
-  let () =
-    List.iter (fun t -> Printf.printf "%s\n" @@ Tree.layout string_of_int t) ls1
-  in
-  let () = Printf.printf "bst: %i\n" @@ List.length ls1 in
-  let ls1 = Gen.generate ~n:(num * 1000) (sized_gen 0 4) in
-  let ls1 = List.filter (is_bst 0 4) ls1 in
-  let ls1 = List.slow_rm_dup (Tree.eq ( = )) ls1 in
-  let () =
-    List.iter (fun t -> Printf.printf "%s\n" @@ Tree.layout string_of_int t) ls1
-  in
-  let () = Printf.printf "bst: %i\n" @@ List.length ls1 in
-  ()
+(* let test (num : int) = *)
+(*   let ls1 = Gen.generate ~n:num (bst_gen 0 4) in *)
+(*   let ls1 = List.filter (is_bst 0 4) ls1 in *)
+(*   let ls1 = List.slow_rm_dup (Tree.eq ( = )) ls1 in *)
+(*   let () = *)
+(*     List.iter (fun t -> Printf.printf "%s\n" @@ Tree.layout string_of_int t) ls1 *)
+(*   in *)
+(*   let () = Printf.printf "bst: %i\n" @@ List.length ls1 in *)
+(*   let ls1 = Gen.generate ~n:(num * 1000) (sized_gen 0 4) in *)
+(*   let ls1 = List.filter (is_bst 0 4) ls1 in *)
+(*   let ls1 = List.slow_rm_dup (Tree.eq ( = )) ls1 in *)
+(*   let () = *)
+(*     List.iter (fun t -> Printf.printf "%s\n" @@ Tree.layout string_of_int t) ls1 *)
+(*   in *)
+(*   let () = Printf.printf "bst: %i\n" @@ List.length ls1 in *)
+(*   () *)

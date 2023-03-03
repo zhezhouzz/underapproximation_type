@@ -328,8 +328,14 @@ module MustMayTypectx = struct
     in
     let prop' = aux prop in
     if !is_valid then
-      let () = Printf.printf "before: %s\n" @@ Autov.pretty_layout_prop prop in
-      let () = Printf.printf "after: %s\n" @@ Autov.pretty_layout_prop prop' in
+      let () =
+        Env.show_debug_debug @@ fun _ ->
+        Printf.printf "before: %s\n" @@ Autov.pretty_layout_prop prop
+      in
+      let () =
+        Env.show_debug_debug @@ fun _ ->
+        Printf.printf "after: %s\n" @@ Autov.pretty_layout_prop prop'
+      in
       (* let _ = failwith "end" in *)
       Some prop'
     else None

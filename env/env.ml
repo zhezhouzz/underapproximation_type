@@ -8,6 +8,7 @@ type mode =
       show_solving : bool;
       show_stat : bool;
       show_info : bool;
+      show_debug : bool;
     }
   | Release
 [@@deriving sexp]
@@ -79,6 +80,11 @@ let show_debug_info (f : unit -> unit) =
   | Debug { show_info; _ } when show_info -> f ()
   | _ -> ()
 
+let show_debug_debug (f : unit -> unit) =
+  match get_mode () with
+  | Debug { show_debug; _ } when show_debug -> f ()
+  | _ -> ()
+
 let get_resfile () =
   match !meta_config with
   | None -> failwith "get_resfile"
@@ -119,6 +125,7 @@ let load_meta meta_fname =
             show_solving = get_bool "show_solving";
             show_stat = get_bool "show_stat";
             show_info = get_bool "show_info";
+            show_debug = (try get_bool "show_debug" with _ -> false);
           }
     | "release" -> Release
     | _ -> failwith "config: unknown mode"

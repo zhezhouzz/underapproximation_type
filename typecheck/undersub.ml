@@ -166,15 +166,6 @@ let get_dmps { destruct_mps; _ } = List.map (fun x -> x.mp_name) destruct_mps
 let find_dmp_by_type ty cases =
   List.find_opt (fun x -> NT.eq ty x.elim_ty) cases
 
-let get_opt_mode () = false
-(* let mps = Env.get_known_mp () in *)
-(* let res = *)
-(*   match List.interset String.equal get_dmps mps with [] -> false | _ -> true *)
-(* in *)
-(* res *)
-
-(* let infer_destruct_mp_record final_uqvs  *)
-
 let build_mapping_from_m m if_conj prop =
   let open P in
   let table = Hashtbl.create 10 in
@@ -335,10 +326,13 @@ let simplify_by_rlt (pre, post) (matched_p, cases) =
         (And [ c; pre ], post)
   else (pre, post)
 
+let show_debug_debug str =
+  Env.show_debug_debug (fun _ -> Printf.printf "%s" str)
+
 let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
   let post_mps = P.get_mps final_post in
   let _ =
-    Env.show_debug_info @@ fun _ ->
+    Env.show_debug_debug @@ fun _ ->
     Printf.printf "final_uqvs[ZZZZ]: %s\n"
       (List.split_by_comma
          (fun x ->
@@ -374,12 +368,12 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
                 List.map (fun (mp, id, args, _) -> ((mp, id), args)) constraints
               in
               let () =
-                Env.show_debug_info @@ fun _ ->
+                Env.show_debug_debug @@ fun _ ->
                 Printf.printf "new_uqvs: %s\n"
                 @@ List.split_by_comma (fun x -> x.x) new_uqvs
               in
               let () =
-                Env.show_debug_info @@ fun _ ->
+                Env.show_debug_debug @@ fun _ ->
                 Printf.printf "pre: %s\n"
                 @@ Autov.pretty_layout_prop (P.And pre)
               in
@@ -394,22 +388,25 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
         ([], [], []) pres
     in
     let rlt = rlt_instantiate rlt in
-    let () = Printf.printf "len(rlt) := %i\n" (List.length rlt) in
+    let () =
+      show_debug_debug @@ Printf.sprintf "len(rlt) := %i\n" (List.length rlt)
+    in
     let new_uqvs = List.flatten new_uqvs in
     let new_pre = P.And (List.flatten new_pre) in
     let () =
-      Env.show_debug_info @@ fun _ ->
-      Printf.printf "new_uqvs: %s\n"
+      show_debug_debug
+      @@ Printf.sprintf "new_uqvs: %s\n"
       @@ List.split_by_comma (fun x -> x.x) new_uqvs
     in
     let () =
-      Env.show_debug_info @@ fun _ ->
-      Printf.printf "pre: %s\n" @@ Autov.pretty_layout_prop new_pre
+      show_debug_debug @@ Printf.sprintf "pre: %s\n"
+      @@ Autov.pretty_layout_prop new_pre
     in
     let final_post = build_mapping_from_m (List.flatten m) true final_post in
     let () =
-      Env.show_debug_info @@ fun _ ->
-      Printf.printf "final_post: %s\n" @@ Autov.pretty_layout_prop final_post
+      show_debug_debug
+      @@ Printf.sprintf "final_post: %s\n"
+      @@ Autov.pretty_layout_prop final_post
     in
     let final_pre = P.And [ new_pre; final_pre ] in
     let () =
@@ -433,7 +430,6 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
         (List.map (fun x -> x.x) final_eqvs)
         final_pre final_post
     in
-    (* let () = if if_opt then failwith "end" else () in *)
     (final_uqvs, final_eqvs, final_pre, final_post)
   else (final_uqvs, final_eqvs, final_pre, final_post)
 
@@ -474,20 +470,16 @@ let check_under_ctx file line ctx (t1, t2) =
     if UT.is_base_type uty then UT.retty_add_ex_uprop_always_add (id, uty) t1
     else t1
   in
-  let update_ty_pair (id, uty) (t1, t2) =
-    let () =
-      Printf.printf "[%s]t2: %s ==> %b\n" id (UT.pretty_layout t2)
-        (check_in id t2)
-    in
-    let t1 = force_add (id, uty) t1 in
-    match check_in id t2 with
-    | false ->
-        let t2 = if get_opt_mode () then t2 else force_add (id, uty) t2 in
-        (t1, t2)
-    | true ->
-        let t2 = force_add (id, uty) t2 in
-        (t1, t2)
-  in
+  (* let update_ty_pair (id, uty) (t1, t2) = *)
+  (*   let t1 = force_add (id, uty) t1 in *)
+  (*   match check_in id t2 with *)
+  (*   | false -> *)
+  (*       let t2 = force_add (id, uty) t2 in *)
+  (*       (t1, t2) *)
+  (*   | true -> *)
+  (*       let t2 = force_add (id, uty) t2 in *)
+  (*       (t1, t2) *)
+  (* in *)
   let rec aux pres ctx (t1, t2) =
     match Typectx.destrct_right ctx with
     | None -> (pres, (t1, t2))
@@ -499,11 +491,15 @@ let check_under_ctx file line ctx (t1, t2) =
         aux pres ctx (t1, t2)
     | Some (ctx, (id, MMT.Consumed (UtNormal uty)))
     | Some (ctx, (id, MMT.Ut (UtNormal uty))) ->
-        (* let () = *)
-        (*   Printf.printf "simplify_ut: %s : %s\n" id (UT.pretty_layout uty) *)
-        (* in *)
-        (* let uty = simplify_ut uty in *)
-        aux pres ctx (update_ty_pair (id, uty) (t1, t2))
+        let t1 = force_add (id, uty) t1 in
+        let t2 = force_add (id, uty) t2 in
+        aux pres ctx (t1, t2)
+    (* let () = *)
+    (* (\*   Printf.printf "simplify_ut: %s : %s\n" id (UT.pretty_layout uty) *\) *)
+    (* (\* in *\) *)
+    (* (\* let uty = simplify_ut uty in *\) *)
+    (* aux pres ctx *)
+    (* (update_ty_pair (id, uty) (t1, t2)) *)
   in
   let pres, (t1, t2) = aux [] ctx (t1, t2) in
   solve_pres file line pres (t1, t2)

@@ -149,16 +149,16 @@ let load_default () =
   let () = load_meta "../../../meta-config.json" in
   load "../../../config/config.json"
 
-let%test_unit "load_default" =
-  let () = Printf.printf "%s\n" (Sys.getcwd ()) in
-  let () = load_meta "../../../meta-config.json" in
-  let () = load "../../../config/config.json" in
-  match !meta_config with
-  | None -> failwith "empty config"
-  | Some meta_config -> (
-      match meta_config.mode with
-      | Debug _ -> ()
-      | m ->
-          failwith
-          @@ Printf.sprintf "wrong mode: %s"
-          @@ Sexplib.Sexp.to_string @@ sexp_of_mode m)
+(* let%test_unit "load_default" = *)
+(*   let () = Printf.printf "%s\n" (Sys.getcwd ()) in *)
+(*   let () = load_meta "../../../meta-config.json" in *)
+(*   let () = load "../../../config/config.json" in *)
+(*   match !meta_config with *)
+(*   | None -> failwith "empty config" *)
+(*   | Some meta_config -> ( *)
+(*       match meta_config.mode with *)
+(*       | Debug _ -> () *)
+(*       | m -> *)
+(*           failwith *)
+(*           @@ Printf.sprintf "wrong mode: %s" *)
+(*           @@ Sexplib.Sexp.to_string @@ sexp_of_mode m) *)

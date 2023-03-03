@@ -263,7 +263,7 @@ and handle_letapp (uctx : uctx)
   | Some retty ->
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
       let () =
-        Env.show_debug_info @@ fun _ ->
+        Env.show_debug_debug @@ fun _ ->
         Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
           (UT.pretty_layout ret.ty)
       in
@@ -363,6 +363,7 @@ and handle_match uctx (matched, cases) =
       match ftys with [ fty ] -> fty | _ -> _failatwith __FILE__ __LINE__ ""
     in
     let () =
+      Env.show_debug_debug @@ fun _ ->
       Printf.printf "handle_case %s: %s ==> [%s]\n" constructor.x
         (UT.pretty_layout matched_rty)
         (List.split_by_comma UT.pretty_layout matched_argsrty)
