@@ -1,10 +1,15 @@
 {
 "mps": [
-    "num_nodes",
+    "size",
     "typing",
     "is_abs",
     "is_const",
-    "no_app"
+    "no_app",
+    "is_ty_post",
+    "is_ty_pre",
+    "ty_size",
+    "size_app",
+    "typing_var"
 ],
 "libs": [
     "gen_const",

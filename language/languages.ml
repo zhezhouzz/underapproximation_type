@@ -176,7 +176,7 @@ module Lemma = struct
       Pp.printf "@{<bold>add_lemma:@} vc_head(%i); vc_body(%i)\n"
         (P.size x.vcl_head) (P.size x.vcl_body)
     in
-    let () = if P.size x.vcl_body > 100000 then failwith "timeout" else () in
+    let () = if P.size x.vcl_body > 130000 then failwith "timeout" else () in
     let x = without_e_dt x in
     let () =
       Env.show_debug_stat @@ fun _ ->

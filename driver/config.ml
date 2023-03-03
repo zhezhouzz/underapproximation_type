@@ -26,7 +26,6 @@ let predefined_mp =
     "is_ty_pre";
     "is_ty_post";
     "type_eq_spec";
-    "size";
     (* kind: tyctx *)
     "gamma_size";
     "is_tyctx_hd";
@@ -37,7 +36,10 @@ let predefined_mp =
     "typing";
     "size_app";
     "no_app";
-    "num_nodes";
+    "num_arr";
+    "size";
+    "is_abs";
+    "dec_pair";
   ]
 
 let init_known_mp mps =
@@ -67,6 +69,7 @@ let known_measures =
     "size_app";
     "size";
     "is_const_eq";
+    "ty_deep";
     "ty_size";
     "gamma_size";
   ]
@@ -77,6 +80,7 @@ let get_measure l =
   with
   | [ x ] -> x
   | [] -> "len"
+  | l when List.exists (String.equal "size") l -> "size"
   | _ -> failwith "multiple measurement"
 
 let load source_file =
@@ -85,6 +89,7 @@ let load source_file =
   let () = init_known_mp all_mps in
   let measure = get_measure all_mps in
   let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
+  let rev_underp = Printf.sprintf "%s/%s.ml" prim_path.rev_underp_dir measure in
   let open Abstraction in
   let under_basicr =
     match Inputstage.load_under_refinments prim_path.under_basicp with
@@ -103,7 +108,11 @@ let load source_file =
     (*   under_basicr underr *)
   in
   let rev_underr =
-    match Inputstage.load_under_refinments prim_path.rev_underp with
+    let rtys =
+      (* Inputstage.load_under_refinments rev_underp *)
+      try Inputstage.load_under_refinments rev_underp with _ -> ([], [], [])
+    in
+    match rtys with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
   in

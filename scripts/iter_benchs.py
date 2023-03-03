@@ -27,17 +27,19 @@ names = [
     "UnbalanceSet"]
 
 stlc_names = [
-    # "gen_term_no_app",
-    # "gen_term_size",
     # "nonderter_dec",
     # "gen_const",
     # "type_eq_size",
     # "type_eq",
     # "gen_type_size",
+    # "gen_type"
     # "vars_with_type_size",
     # "vars_with_type",
-    # "or_var_in_typectx",
-    "gen_term_no_app_size",
+    # "or_var_in_typectx"
+    # "combine_terms"
+    # "gen_term_no_app_size",
+    # "gen_term_no_app",
+    "gen_term_size"
 ]
 
 def get_info_from_name(tab, name):

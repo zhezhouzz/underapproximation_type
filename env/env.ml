@@ -16,8 +16,8 @@ type prim_path = {
   normalp : string;
   under_basicp : string;
   under_randomp : string;
-  rev_underp : string;
   underp_dir : string;
+  rev_underp_dir : string;
   type_decls : string;
   lemmas : string;
   functional_lemmas : string;
@@ -89,6 +89,11 @@ let get_prim_path () =
   | None -> failwith "uninited prim path"
   | Some config -> config.prim_path
 
+let get_measure () =
+  match !config with
+  | None -> failwith "uninited prim path"
+  | Some config -> config.measure
+
 let get_randomp_path () = (get_prim_path ()).under_randomp
 let known_mp : string list option ref = ref None
 
@@ -129,7 +134,8 @@ let load_meta meta_fname =
       under_randomp =
         p |> member "builtin_randomness_coverage_typing" |> to_string;
       underp_dir = p |> member "builtin_datatype_coverage_typing" |> to_string;
-      rev_underp = p |> member "rev_builtin_coverage_typing" |> to_string;
+      rev_underp_dir =
+        p |> member "rev_builtin_datatype_coverage_typing" |> to_string;
       type_decls = p |> member "data_type_decls" |> to_string;
       lemmas = p |> member "axioms_of_predicates" |> to_string;
       functional_lemmas = p |> member "axioms_of_query_encoding" |> to_string;

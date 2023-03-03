@@ -120,8 +120,9 @@ let make_destruct_mp_prop id { mp_name; intro_tys } =
   in
   (mp_name, id, args, mk_mp_vars mp_name (id :: args))
 
-let known_destruct_predicates =
+let known_destruct_predicates () =
   let open P in
+  let measure = Env.get_measure () in
   let stlc_ty = NT.Ty_constructor ("stlc_ty", []) in
   let stlc_tyctx = NT.Ty_constructor ("stlc_tyctx", []) in
   let stlc_ty_case =
@@ -132,7 +133,7 @@ let known_destruct_predicates =
           let v = { x; ty = stlc_ty } in
           mk_forall (Ty_int, "u") (fun u ->
               Implies
-                ( mk_mp_vars "ty_size" [ v; u ],
+                ( mk_mp_vars measure [ v; u ],
                   MethodPred (">", [ AVar u; ACint 0 ]) )));
       destruct_mps =
         [
@@ -350,7 +351,7 @@ let handle_destruct_predicates (final_uqvs, final_eqvs, final_pre, final_post) =
         List.length
           (List.interset (fun x y -> String.equal x y.x) (get_dmps x) post_mps)
         > 0)
-      known_destruct_predicates
+      (known_destruct_predicates ())
   in
   if List.length cases > 0 then
     let record =
@@ -520,22 +521,15 @@ let subtyping_check_ot_ file line ctx t1 t2 =
   in
   check_under_ctx file line ctx (t2', t1')
 
-(* let subtyping_check_ot_ file line ctx t1 t2 = *)
-(*   let rec aux pres ctx (t1, t2) = *)
-(*     match Typectx.destrct_right ctx with *)
-(*     | None -> (pres, (t1, t2)) *)
-(*     | Some (ctx, (_, MMT.Consumed _)) -> aux pres ctx (t1, t2) *)
-(*     | Some (ctx, (id, MMT.Ot oty)) -> aux ([ (id, oty) ] @ pres) ctx (t1, t2) *)
-(*     | Some (ctx, (_, MMT.Ut _)) -> aux pres ctx (t1, t2) *)
-(*   in *)
-(*   let pres, (t1, t2) = aux [] ctx (t1, t2) in *)
-(*   let () = *)
-(*     let () = Pp.printf "@{<bold>OVERCHECK@}\n" in *)
-(*     let psudo_ctx = List.map (fun (id, ty) -> (id, MMT.Ot ty)) pres in *)
-(*     let () = Typectx.pretty_print_subtyping psudo_ctx (MMT.Ot t1, MMT.Ot t2) in *)
-(*     () *)
-(*   in *)
-(*   solve_pres file line pres (UT.ot_to_ut t2, UT.ot_to_ut t1) *)
+(* let simplify_ut ut = *)
+(*   let open UT in *)
+(*   match ut with *)
+(*   | UnderTy_base {name; normalty; prop} -> *)
+(*     let open P in *)
+(*     let mk ( *)
+(*     try *)
+(*       P.to_e_nf with *)
+(*     | _ -> ut *)
 
 let subtyping_check_ file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
     (target_ty : UT.t) =
