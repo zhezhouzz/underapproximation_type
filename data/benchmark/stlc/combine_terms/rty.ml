@@ -5,4 +5,4 @@ let combine_terms =
     (typing gamma v tau && (is_const v || is_abs v) : [%v: stlc_term]) [@over]
   in
   let b = (typing gamma v tau && not (no_app v) : [%v: stlc_term]) [@over] in
-  (typing_var gamma v tau : [%v: stlc_term]) [@under]
+  (typing gamma v tau : [%v: stlc_term]) [@under]

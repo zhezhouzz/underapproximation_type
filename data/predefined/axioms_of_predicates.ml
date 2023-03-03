@@ -39,7 +39,7 @@ let stlc_type8 (t1 : [%forall: stlc_ty]) (t2 : [%forall: stlc_ty])
     (u : [%forall: int]) (w : [%forall: int]) =
   implies (is_ty_pre t1 t2 && ty_size t1 u && ty_size t2 w) (u == w + 1)
 
-(* let stlc_type9 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = size t1 u *)
+let stlc_type9 (t1 : [%forall: stlc_ty]) (u : [%exists: int]) = size t1 u
 
 let stlc_type10 (t1 : [%forall: stlc_ty]) (u : [%forall: int]) =
   implies (size t1 u) (u >= 0)
@@ -112,11 +112,11 @@ let stlc_typing1 (gamma : [%forall: stlc_tyctx]) (t : [%forall: stlc_term])
     (tau : [%forall: stlc_ty]) =
   implies (typing gamma t tau) (typing_var gamma t tau)
 
-(* let stlc_typing2 (a : [%forall: stlc_term]) (v : [%forall: stlc_term]) *)
-(*     (u : [%forall: int]) = *)
-(*   implies *)
-(*     (implies (no_app a) (no_app v) && implies (size_app a u) (size_app v u)) *)
-(*     (a == v) *)
+let stlc_typing2 (a : [%forall: stlc_term]) (v : [%forall: stlc_term])
+    (u : [%forall: int]) =
+  implies
+    (implies (no_app a) (no_app v) && implies (size_app a u) (size_app v u))
+    (a == v)
 
 let stlc_typing3 (gamma : [%forall: stlc_tyctx]) (v : [%forall: stlc_term])
     (tau : [%forall: stlc_ty]) =

@@ -499,6 +499,10 @@ let check_under_ctx file line ctx (t1, t2) =
         aux pres ctx (t1, t2)
     | Some (ctx, (id, MMT.Consumed (UtNormal uty)))
     | Some (ctx, (id, MMT.Ut (UtNormal uty))) ->
+        (* let () = *)
+        (*   Printf.printf "simplify_ut: %s : %s\n" id (UT.pretty_layout uty) *)
+        (* in *)
+        (* let uty = simplify_ut uty in *)
         aux pres ctx (update_ty_pair (id, uty) (t1, t2))
   in
   let pres, (t1, t2) = aux [] ctx (t1, t2) in
@@ -520,16 +524,6 @@ let subtyping_check_ot_ file line ctx t1 t2 =
       (MMT.Ut (MMT.UtNormal t2'), MMT.Ut (MMT.UtNormal t1'))
   in
   check_under_ctx file line ctx (t2', t1')
-
-(* let simplify_ut ut = *)
-(*   let open UT in *)
-(*   match ut with *)
-(*   | UnderTy_base {name; normalty; prop} -> *)
-(*     let open P in *)
-(*     let mk ( *)
-(*     try *)
-(*       P.to_e_nf with *)
-(*     | _ -> ut *)
 
 let subtyping_check_ file line (ctx : Typectx.ctx) (inferred_ty : UT.t)
     (target_ty : UT.t) =

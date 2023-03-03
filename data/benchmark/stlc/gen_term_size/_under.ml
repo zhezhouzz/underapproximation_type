@@ -1,4 +1,4 @@
-external method_predicates : t = "dec_pair" "size" "typing" "no_app" "is_const" "is_abs" "is_ty_post" "is_ty_pre" "ty_size"
+external method_predicates : t = "dec_pair" "size" "typing" "no_app" "is_const" "is_abs" "is_ty_post" "is_ty_pre" "typing_var"
 
 let[@library] nonderter_dec =
   let a = (v > 0 : [%v: int]) [@over] in
@@ -19,7 +19,7 @@ let[@library] combine_terms =
     (typing gamma v tau && (is_const v || is_abs v) : [%v: stlc_term]) [@over]
   in
   let b = (typing gamma v tau && not (no_app v) : [%v: stlc_term]) [@over] in
-  (typing_var gamma v tau : [%v: stlc_term]) [@under]
+  (typing gamma v tau : [%v: stlc_term]) [@under]
 
 let[@library] gen_term_no_app =
   let tau = (true : [%v: stlc_ty]) [@over] in
