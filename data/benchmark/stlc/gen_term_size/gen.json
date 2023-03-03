@@ -1,14 +1,20 @@
 {
   "mps": [
     "dec_pair",
-    "size_app",
-    "typing"
+    "size",
+    "typing",
+    "no_app",
+    "is_const",
+    "is_abs",
+    "is_ty_post",
+      "is_ty_pre",
+      "typing_var"
   ],
   "libs": [
     "nonderter_dec",
-    "gen_type_size",
+    "gen_type",
     "gen_const",
-    "or_var_in_typectx",
+    "combine_terms",
     "gen_term_no_app"
   ]
 }

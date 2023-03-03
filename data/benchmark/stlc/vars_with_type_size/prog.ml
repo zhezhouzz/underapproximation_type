@@ -7,5 +7,7 @@ let rec vars_with_type_size (size_gamma : int) (gamma : stlc_tyctx)
         vars_with_type_size (size_gamma - 1) gamma_rest (offset + 1) tau
       in
       if bool_gen () then id
-      else if type_eq tau_hd tau then Stlc_id offset
+      else if type_eq tau_hd tau then
+        let (t2 : stlc_term) = Stlc_id offset in
+        t2
       else Exn

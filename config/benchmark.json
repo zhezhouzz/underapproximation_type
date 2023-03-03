@@ -100,8 +100,18 @@
           "is_rec": true
         },
         {
+          "name": "gen_term",
+          "path": "gen_term",
+          "is_rec": true
+        },
+        {
           "name": "gen_term_no_app",
           "path": "gen_term_no_app",
+          "is_rec": true
+        },
+        {
+          "name": "gen_term_no_app_size",
+          "path": "gen_term_no_app_size",
           "is_rec": true
         },
         {
@@ -114,10 +124,20 @@
           "path": "gen_type_size",
           "is_rec": true
         },
+          {
+            "name": "gen_type",
+            "path": "gen_type",
+            "is_rec": false
+        },
         {
           "name": "or_var_in_typectx",
           "path": "or_var_in_typectx",
           "is_rec": false
+        },
+          {
+            "name": "combine_terms",
+            "path": "combine_terms",
+            "is_rec": false
         },
         {
           "name": "vars_with_type",
@@ -130,9 +150,14 @@
           "is_rec": true
         },
         {
+          "name": "type_eq_size",
+          "path": "type_eq_size",
+          "is_rec": true
+        },
+        {
           "name": "type_eq",
           "path": "type_eq",
-          "is_rec": true
+          "is_rec": false
         },
         {
           "name": "nonderter_dec",

@@ -5,11 +5,6 @@ import json
 
 meta_config_file = "meta-config.json"
 
-# names = ["RedBlackTree"]
-# names = ["SizedList"]
-# names = ["UniqueList"]
-# names = ["CompleteTree"]
-
 names = [
     "SizedList",
     "SortedList",
@@ -27,15 +22,19 @@ names = [
     "UnbalanceSet"]
 
 stlc_names = [
-    # "gen_const",
-    # "gen_type_size",
-    # "or_var_in_typectx",
-    # "vars_with_type",
-    # "vars_with_type_size",
-    # "type_eq",
-    # "gen_term_no_app",
-    # "gen_term_size",
-    "nonderter_dec"
+    "nonderter_dec",
+    "gen_const",
+    "type_eq_size",
+    "type_eq",
+    "gen_type_size",
+    "gen_type",
+    "vars_with_type_size",
+    "vars_with_type",
+    "or_var_in_typectx",
+    "combine_terms",
+    "gen_term_no_app_size",
+    "gen_term_no_app",
+    "gen_term_size"
 ]
 
 def get_info_from_name(tab, name):

@@ -21,3 +21,8 @@ let[@library] int_range_inc =
   let a = (true : [%v: int]) [@over] in
   let b = (a <= v : [%v: int]) [@over] in
   (a <= v && v <= b : [%v: int]) [@under]
+
+let[@library] int_range_inex =
+  let a = (true : [%v: int]) [@over] in
+  let b = (a <= v : [%v: int]) [@over] in
+  (a <= v && v < b : [%v: int]) [@under]

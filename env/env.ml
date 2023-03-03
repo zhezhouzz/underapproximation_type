@@ -8,6 +8,7 @@ type mode =
       show_solving : bool;
       show_stat : bool;
       show_info : bool;
+      show_debug : bool;
     }
   | Release
 [@@deriving sexp]
@@ -16,8 +17,8 @@ type prim_path = {
   normalp : string;
   under_basicp : string;
   under_randomp : string;
-  rev_underp : string;
   underp_dir : string;
+  rev_underp_dir : string;
   type_decls : string;
   lemmas : string;
   functional_lemmas : string;
@@ -79,6 +80,11 @@ let show_debug_info (f : unit -> unit) =
   | Debug { show_info; _ } when show_info -> f ()
   | _ -> ()
 
+let show_debug_debug (f : unit -> unit) =
+  match get_mode () with
+  | Debug { show_debug; _ } when show_debug -> f ()
+  | _ -> ()
+
 let get_resfile () =
   match !meta_config with
   | None -> failwith "get_resfile"
@@ -89,7 +95,16 @@ let get_prim_path () =
   | None -> failwith "uninited prim path"
   | Some config -> config.prim_path
 
+let get_measure () =
+  match !config with
+  | None -> failwith "uninited prim path"
+  | Some config -> config.measure
+
 let get_randomp_path () = (get_prim_path ()).under_randomp
+let known_mp : string list option ref = ref None
+
+let get_known_mp () =
+  match !known_mp with None -> failwith "uninit mps" | Some mps -> mps
 
 open Json
 open Yojson.Basic.Util
@@ -110,6 +125,7 @@ let load_meta meta_fname =
             show_solving = get_bool "show_solving";
             show_stat = get_bool "show_stat";
             show_info = get_bool "show_info";
+            show_debug = (try get_bool "show_debug" with _ -> false);
           }
     | "release" -> Release
     | _ -> failwith "config: unknown mode"
@@ -125,7 +141,8 @@ let load_meta meta_fname =
       under_randomp =
         p |> member "builtin_randomness_coverage_typing" |> to_string;
       underp_dir = p |> member "builtin_datatype_coverage_typing" |> to_string;
-      rev_underp = p |> member "rev_builtin_coverage_typing" |> to_string;
+      rev_underp_dir =
+        p |> member "rev_builtin_datatype_coverage_typing" |> to_string;
       type_decls = p |> member "data_type_decls" |> to_string;
       lemmas = p |> member "axioms_of_predicates" |> to_string;
       functional_lemmas = p |> member "axioms_of_query_encoding" |> to_string;

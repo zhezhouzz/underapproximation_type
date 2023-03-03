@@ -9,7 +9,7 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "19999") ]
+  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "99999") ]
 
 let pretty_print_model model =
   Env.show_debug_solving @@ fun _ ->
