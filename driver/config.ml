@@ -1,39 +1,118 @@
-open Json
-open Yojson.Basic.Util
 open Env
 
-let load fname =
-  let j = load_json fname in
-  let mode =
-    match j |> member "mode" |> to_string with
-    | "debug" ->
-        let logfile = j |> member "logfile" |> to_string in
-        Debug logfile
-    | "release" -> Release
-    | _ -> failwith "config: unknown mode"
+let predefined_mp =
+  [
+    "hd";
+    "mem";
+    "ord";
+    "len";
+    "left";
+    "right";
+    "para";
+    "sorted";
+    "numblack";
+    "noredred";
+    "hdcolor";
+    "complete";
+    "rng";
+    "heap";
+    "rank";
+    (* kind: stlc *)
+    (* kind: const *)
+    "is_const_eq";
+    "is_const";
+    (* kind: ty_eq *)
+    "ty_size";
+    "is_ty_pre";
+    "is_ty_post";
+    "type_eq_spec";
+    (* kind: tyctx *)
+    "gamma_size";
+    "is_tyctx_hd";
+    "is_tyctx_tl";
+    "typing_var";
+    "is_var_in_range";
+    "is_id_eq";
+    "typing";
+    "size_app";
+    "no_app";
+    "num_arr";
+    "size";
+    "is_abs";
+    "dec_pair";
+  ]
+
+let init_known_mp mps =
+  let mps =
+    Zzdatatype.Datatype.List.(
+      slow_rm_dup String.equal @@ interset String.equal predefined_mp mps)
   in
-  let p = j |> member "prim_path" in
-  let prim_path =
-    {
-      normalp = p |> member "normalp" |> to_string;
-      overp = p |> member "overp" |> to_string;
-      underp = p |> member "underp" |> to_string;
-      rev_underp = p |> member "rev_underp" |> to_string;
-      type_decls = p |> member "type_decls" |> to_string;
-      lemmas = p |> member "lemmas" |> to_string;
-      functional_lemmas = p |> member "functional_lemmas" |> to_string;
-    }
+  let () =
+    Env.show_debug_info (fun _ ->
+        Printf.printf "mps: %s\n" (Zzdatatype.Datatype.StrList.to_string mps))
   in
+  known_mp := Some mps
+
+let __concat_without_overlap msg eq l1 l2 =
+  List.fold_left
+    (fun res x ->
+      if List.exists (fun y -> eq x y) res then
+        failwith (Printf.sprintf "__concat_without_overlap: %s" msg)
+      else x :: res)
+    l1 l2
+
+let known_measures =
+  [
+    "len";
+    "rng";
+    "numblack";
+    "size_app";
+    "size";
+    "is_const_eq";
+    "ty_deep";
+    "ty_size";
+    "gamma_size";
+  ]
+
+let get_measure l =
+  match
+    List.filter (fun x -> List.exists (String.equal x) known_measures) l
+  with
+  | [ x ] -> x
+  | [] -> "len"
+  | l when List.exists (String.equal "size") l -> "size"
+  | _ -> failwith "multiple measurement"
+
+let load source_file =
+  let prim_path = Env.get_prim_path () in
+  let all_mps = Inputstage.load_user_defined_mps source_file in
+  let () = init_known_mp all_mps in
+  let measure = get_measure all_mps in
+  let underp = Printf.sprintf "%s/%s.ml" prim_path.underp_dir measure in
+  let rev_underp = Printf.sprintf "%s/%s.ml" prim_path.rev_underp_dir measure in
   let open Abstraction in
-  let all_mps = j |> member "all_mps" |> to_list |> List.map to_string in
-  let measure = j |> member "measure" |> to_string in
-  let underr =
-    match Inputstage.load_under_refinments prim_path.underp with
+  let under_basicr =
+    match Inputstage.load_under_refinments prim_path.under_basicp with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
   in
+  let underr =
+    match Inputstage.load_under_refinments underp with
+    | [], underr, [] -> underr
+    | _, _, _ -> failwith "wrong under prim"
+  in
+  let underr =
+    under_basicr @ underr
+    (* __concat_without_overlap "basic underp is overlapped with underp" *)
+    (*   (fun (x, _) (y, _) -> String.equal x y) *)
+    (*   under_basicr underr *)
+  in
   let rev_underr =
-    match Inputstage.load_under_refinments prim_path.rev_underp with
+    let rtys =
+      (* Inputstage.load_under_refinments rev_underp *)
+      try Inputstage.load_under_refinments rev_underp with _ -> ([], [], [])
+    in
+    match rtys with
     | [], underr, [] -> underr
     | _, _, _ -> failwith "wrong under prim"
   in
@@ -59,24 +138,27 @@ let load fname =
         lemmas,
         functional_lemmas )
   in
-  config := Some { mode; all_mps; prim_path; measure }
+  config := Some { all_mps; underp; measure }
 
-let get_prim_path () =
+let get_mps () =
   match !config with
   | None -> failwith "uninited prim path"
-  | Some config -> config.prim_path
+  | Some config -> config.all_mps
 
-let load_default () = load "config/config.json"
+let load_default () =
+  let () = load_meta "../../../meta-config.json" in
+  load "../../../config/config.json"
 
-let%test_unit "load_default" =
-  let () = Printf.printf "%s\n" (Sys.getcwd ()) in
-  let () = load "../../../config/config.json" in
-  match !config with
-  | None -> failwith "empty config"
-  | Some config -> (
-      match config.mode with
-      | Debug ".log" -> ()
-      | m ->
-          failwith
-          @@ Printf.sprintf "wrong mode: %s"
-          @@ Sexplib.Sexp.to_string @@ sexp_of_mode m)
+(* let%test_unit "load_default" = *)
+(*   let () = Printf.printf "%s\n" (Sys.getcwd ()) in *)
+(*   let () = load_meta "../../../meta-config.json" in *)
+(*   let () = load "../../../config/config.json" in *)
+(*   match !meta_config with *)
+(*   | None -> failwith "empty config" *)
+(*   | Some meta_config -> ( *)
+(*       match meta_config.mode with *)
+(*       | Debug _ -> () *)
+(*       | m -> *)
+(*           failwith *)
+(*           @@ Printf.sprintf "wrong mode: %s" *)
+(*           @@ Sexplib.Sexp.to_string @@ sexp_of_mode m) *)

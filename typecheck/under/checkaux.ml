@@ -232,7 +232,10 @@ let ut_eq_to_ut_underctx (uctx : uctx) t =
                 | None -> _failatwith __FILE__ __LINE__ ""
                 | Some config -> config.all_mps
               in
-              let () = Pp.printf "all_mps: %s\n" @@ StrList.to_string all_mps in
+              let () =
+                Env.show_debug_debug @@ fun _ ->
+                Pp.printf "all_mps: %s\n" @@ StrList.to_string all_mps
+              in
               Dt_eq.make_eq_type all_mps id
           else idty
       | _ -> _failatwith __FILE__ __LINE__ "")
@@ -246,7 +249,7 @@ let subtyping_check_bool file line uctx t1 t2 =
   Undersub.subtyping_check_bool file line uctx.ctx t1 t2
 
 let id_type_infer (uctx : uctx) (id : NL.id NL.typed) : MMT.ut_with_copy =
-  let () = Pp.printf "infer %s\n" id.x in
+  let () = Env.show_debug_debug @@ fun _ -> Pp.printf "infer %s\n" id.x in
   try MMT.UtNormal (Prim.get_primitive_under_ty (id.x, snd id.ty))
   with _ -> (
     try MMT.UtNormal (Nctx.get_ty uctx.libctx id.x)

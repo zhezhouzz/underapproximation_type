@@ -240,7 +240,10 @@ and handle_letapp_aux (uctx : uctx)
     | (x, xty) :: args, UnderTy_under_arrow { retty; argty } ->
         if subtyping_check_bool __FILE__ __LINE__ uctx xty argty then
           let ctx' = Typectx.ut_force_add_to_right uctx.ctx (x, xty) in
-          let () = Pp.printf "@{<bold>Consume variable %s@}\n" x in
+          let () =
+            Env.show_debug_info @@ fun _ ->
+            Pp.printf "@{<bold>Consume variable %s@}\n" x
+          in
           let uctx = { uctx with ctx = Typectx.consume ctx' x } in
           let () = Typectx.pretty_print uctx.ctx in
           aux uctx (args, retty)
@@ -260,6 +263,7 @@ and handle_letapp (uctx : uctx)
   | Some retty ->
       let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
       let () =
+        Env.show_debug_debug @@ fun _ ->
         Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
           (UT.pretty_layout ret.ty)
       in
@@ -295,7 +299,89 @@ and handle_ite uctx (cond, e_t, e_f) =
   in
   merge_case_tys [ handle_case true e_t; handle_case false e_f ]
 
-and handle_match _ (_, _) = _failatwith __FILE__ __LINE__ "unimp"
+and handle_match uctx (matched, cases) =
+  let matched =
+    NL.(
+      match matched.x with
+      | Var id -> id
+      | _ -> _failatwith __FILE__ __LINE__ "unimp")
+  in
+  let handle_case NL.{ constructor; args; exp } =
+    let argsnty = List.map (fun x -> snd x.NL.ty) args in
+    let ftys =
+      match argsnty with
+      | [] ->
+          let fnty = snd matched.NL.ty in
+          let matched_rtys =
+            Prim.get_primitive_rev_under_ty NL.(constructor.x, fnty)
+          in
+          List.map
+            (fun rty ->
+              let basename, normalty, prop =
+                UT.assume_base __FILE__ __LINE__ rty
+              in
+              ( UT.UnderTy_base
+                  {
+                    basename;
+                    normalty;
+                    prop = P.subst_id prop basename matched.x;
+                  },
+                [] ))
+            matched_rtys
+      | _ ->
+          let fnty = NT.(Ty_arrow (snd matched.NL.ty, Ty_tuple argsnty)) in
+          let matched_rtys =
+            Prim.get_primitive_rev_under_ty NL.(constructor.x, fnty)
+          in
+          List.map
+            (fun rty ->
+              match rty with
+              | UT.(
+                  UnderTy_over_arrow
+                    { argname; argty = { basename; normalty; prop }; retty }) ->
+                  let matched_rty =
+                    UT.UnderTy_base
+                      {
+                        basename;
+                        normalty;
+                        prop = P.subst_id prop basename matched.x;
+                      }
+                  in
+                  let matched_argsrty =
+                    UT.assume_tuple __FILE__ __LINE__ retty
+                  in
+                  let matched_argsrty =
+                    List.map
+                      (fun rty -> UT.subst_id rty argname matched.x)
+                      matched_argsrty
+                  in
+                  (matched_rty, matched_argsrty)
+              | _ -> _failatwith __FILE__ __LINE__ "")
+            matched_rtys
+    in
+    let matched_rty, matched_argsrty =
+      match ftys with [ fty ] -> fty | _ -> _failatwith __FILE__ __LINE__ ""
+    in
+    let () =
+      Env.show_debug_debug @@ fun _ ->
+      Printf.printf "handle_case %s: %s ==> [%s]\n" constructor.x
+        (UT.pretty_layout matched_rty)
+        (List.split_by_comma UT.pretty_layout matched_argsrty)
+    in
+    let cond_id = (Rename.unique "b", MMT.UtNormal matched_rty) in
+    let matched_args =
+      List.map (fun (id, rty) -> (id.NL.x, MMT.UtNormal rty))
+      @@ _safe_combine __FILE__ __LINE__ args matched_argsrty
+    in
+    let ctx' =
+      Typectx.ut_force_add_to_rights uctx.ctx (cond_id :: matched_args)
+    in
+    let ety = term_type_infer { uctx with ctx = ctx' } exp in
+    close_ids (cond_id :: matched_args) ety
+  in
+  let res = List.map handle_case cases in
+  merge_case_tys res
+(* _failatwith __FILE__ __LINE__ "unimp" *)
 
 and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
   let open NL in
@@ -362,6 +448,7 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
         | [ retty ] ->
             let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
             let () =
+              Env.show_debug_info @@ fun _ ->
               Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
                 (UT.pretty_layout ret.ty)
             in
@@ -370,6 +457,7 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
             let () =
               List.iter
                 (fun fty ->
+                  Env.show_debug_info @@ fun _ ->
                   Pp.printf "@{<bold>ALLOWED: %s:@} ==> %s\n" f.x
                     (UT.pretty_layout fty))
                 tys
@@ -420,6 +508,7 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) : unit =
       | [ retty ] ->
           let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
           let () =
+            Env.show_debug_info @@ fun _ ->
             Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
               (UT.pretty_layout ret.ty)
           in
@@ -475,19 +564,17 @@ let struc_check l notations libs r =
   List.mapi
     (fun id (_, (name', ty)) ->
       let id = id + 1 in
-      let () = Pp.printf "@{<bold>Task %i:@}\n" id in
+      let () =
+        Env.show_debug_typing @@ fun _ -> Pp.printf "@{<bold>Task %i:@}\n" id
+      in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
       | None ->
           _failatwith __FILE__ __LINE__
             (spf "The source code of given refinement type '%s' is missing."
                name')
       | Some { body; _ } ->
-          (* let _ = *)
-          (*   Dependentcheck.dependent_check *)
-          (*     (List.map fst notations @ List.map fst libs) *)
-          (*     body *)
-          (* in *)
           let () =
+            Env.show_debug_typing @@ fun _ ->
             Pp.printf "@{<bold>check against with:@} %s\n" (UT.pretty_layout ty)
           in
           let ctx = Typectx.empty in
@@ -497,9 +584,12 @@ let struc_check l notations libs r =
           in
           let () =
             if res then
+              Env.show_debug_typing @@ fun _ ->
               Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
                 id
-            else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
+            else
+              Env.show_debug_typing @@ fun _ ->
+              Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
           in
           res)
     r

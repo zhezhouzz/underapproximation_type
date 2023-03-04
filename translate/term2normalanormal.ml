@@ -66,6 +66,91 @@ let value_to_id v =
 (*       let body = cont { ty = value.ty; x = Var x } in *)
 (*       make_letval x value body *)
 
+let to_term e =
+  let open S in
+  let to_var id = S.{ ty = Some id.T.ty; x = Var id.x } in
+  let to_tid id = (id.T.ty, id.T.x) in
+  let aux_lit x =
+    match x with
+    | T.ConstI i -> Const (Value.I i)
+    | T.ConstB b -> Const (Value.B b)
+  in
+  (* let lit_to_var lit = { ty = Some lit.ty; x = aux_lit lit.x } in *)
+  let rec aux_value (e : T.value typed) : term opttyped =
+    let x =
+      match e.x with
+      | T.Var id -> Var id.x
+      | T.Exn -> Exn
+      | T.Lit lit -> aux_lit lit
+      | T.Lam { lamarg; lambody } -> Lam (lamarg.ty, lamarg.x, None, aux lambody)
+      | T.Fix { fstarg; lambody; _ } ->
+          (aux_value { x = T.Lam { lamarg = fstarg; lambody }; ty = e.ty }).x
+    in
+    { ty = Some e.ty; x }
+  and aux e =
+    let x =
+      match e.x with
+      | V v -> (aux_value v).x
+      | T.LetTu { tu; args; body } ->
+          Let
+            ( false,
+              [ to_tid tu ],
+              { ty = Some tu.ty; x = Tu (List.map aux_value args) },
+              aux body )
+      | T.LetDeTu { tu; args; body } ->
+          Let (false, List.map to_tid args, aux_value tu, aux body)
+      | T.LetApp { ret; f; args; body } ->
+          Let
+            ( false,
+              [ to_tid ret ],
+              { ty = Some ret.ty; x = App (to_var f, List.map aux_value args) },
+              aux body )
+      | T.LetDtConstructor { ret; f; args; body } ->
+          let fty = T.recover_dt_constructor_ty (ret, args) in
+          Let
+            ( false,
+              [ to_tid ret ],
+              {
+                ty = Some ret.ty;
+                x =
+                  App (S.{ ty = Some fty; x = Var f.x }, List.map aux_value args);
+              },
+              aux body )
+      | T.LetOp { ret; op; args; body } ->
+          Let
+            ( false,
+              [ to_tid ret ],
+              {
+                ty = Some ret.ty;
+                x =
+                  App
+                    ( { ty = None; x = Var (Op.op_to_string op) },
+                      List.map aux_value args );
+              },
+              aux body )
+      | T.LetVal { lhs; rhs; body } ->
+          Let (false, [ to_tid lhs ], aux_value rhs, aux body)
+      | T.Ite { cond; e_t; e_f } -> Ite (aux_value cond, aux e_t, aux e_f)
+      | T.Match { matched; cases } ->
+          Match
+            ( aux_value matched,
+              List.map
+                (fun case ->
+                  {
+                    constructor =
+                      {
+                        ty = Some case.T.constructor.ty;
+                        x = case.T.constructor.x;
+                      };
+                    args = List.map (fun x -> x.T.x) case.T.args;
+                    exp = aux case.T.exp;
+                  })
+                cases )
+    in
+    { ty = Some e.ty; x }
+  in
+  aux e
+
 (* TODO: alpha renaming *)
 let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
     T.term typed =
@@ -87,7 +172,16 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
         | B b -> ConstB b
         | _ -> _failatwith __FILE__ __LINE__ "unimp complex const"
       in
-      cont { ty = ety; x = Lit lit }
+      let lit = { ty = ety; x = Lit lit } in
+      let res =
+        match ename with
+        | None -> cont lit
+        | Some ename -> T.make_letval ename lit (cont lit)
+      in
+      (* let () = *)
+      (*   Printf.printf "res ::\n%s\n" (Frontend.Expr.layout (to_term res)) *)
+      (* in *)
+      res
   | Var id -> (
       let vid = id_to_value { ty = ety; x = id } in
       match ename with
@@ -189,7 +283,26 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
                   | None -> _failatwith __FILE__ __LINE__ "die"
                   | Some ty -> ty
                 in
-                let argsty, _ = NT.destruct_arrow_tp (snd constructor_ty) in
+                (* let _ = *)
+                (*   Printf.printf "zz: (snd constructor_ty): %s\n" *)
+                (*     (Type.layout (snd constructor_ty)) *)
+                (* in *)
+                let argsty =
+                  match snd constructor_ty with
+                  | NT.Ty_arrow _ -> (
+                      match
+                        snd @@ NT.destruct_arrow_tp (snd constructor_ty)
+                      with
+                      | NT.Ty_tuple tys -> tys
+                      | ty -> [ ty ])
+                  | _ -> []
+                in
+                (* let _ = Printf.printf "zz: %s\n" case.S.constructor.x in *)
+                (* let _ = Printf.printf "zz: %s\n" (Type.layout_l argsty) in *)
+                (* let _ = *)
+                (*   Printf.printf "zz: %s\n" *)
+                (*     (Zzdatatype.Datatype.StrList.to_string case.S.args) *)
+                (* in *)
                 let args =
                   List.map (fun (x, ty) -> { x; ty = (None, ty) })
                   @@ _safe_combine __FILE__ __LINE__ case.S.args argsty
@@ -217,88 +330,3 @@ and convert_multi (conts : conts) (es : term opttyped list) : T.term typed =
     []
 
 let id_trans_rev (e : T.id typed) = S.{ ty = Some e.ty; x = e.x }
-
-let to_term e =
-  let open S in
-  let to_var id = S.{ ty = Some id.T.ty; x = Var id.x } in
-  let to_tid id = (id.T.ty, id.T.x) in
-  let aux_lit x =
-    match x with
-    | T.ConstI i -> Const (Value.I i)
-    | T.ConstB b -> Const (Value.B b)
-  in
-  (* let lit_to_var lit = { ty = Some lit.ty; x = aux_lit lit.x } in *)
-  let rec aux_value (e : T.value typed) : term opttyped =
-    let x =
-      match e.x with
-      | T.Var id -> Var id.x
-      | T.Exn -> Exn
-      | T.Lit lit -> aux_lit lit
-      | T.Lam { lamarg; lambody } -> Lam (lamarg.ty, lamarg.x, None, aux lambody)
-      | T.Fix { fstarg; lambody; _ } ->
-          (aux_value { x = T.Lam { lamarg = fstarg; lambody }; ty = e.ty }).x
-    in
-    { ty = Some e.ty; x }
-  and aux e =
-    let x =
-      match e.x with
-      | V v -> (aux_value v).x
-      | T.LetTu { tu; args; body } ->
-          Let
-            ( false,
-              [ to_tid tu ],
-              { ty = Some tu.ty; x = Tu (List.map aux_value args) },
-              aux body )
-      | T.LetDeTu { tu; args; body } ->
-          Let (false, List.map to_tid args, aux_value tu, aux body)
-      | T.LetApp { ret; f; args; body } ->
-          Let
-            ( false,
-              [ to_tid ret ],
-              { ty = Some ret.ty; x = App (to_var f, List.map aux_value args) },
-              aux body )
-      | T.LetDtConstructor { ret; f; args; body } ->
-          let fty = T.recover_dt_constructor_ty (ret, args) in
-          Let
-            ( false,
-              [ to_tid ret ],
-              {
-                ty = Some ret.ty;
-                x =
-                  App (S.{ ty = Some fty; x = Var f.x }, List.map aux_value args);
-              },
-              aux body )
-      | T.LetOp { ret; op; args; body } ->
-          Let
-            ( false,
-              [ to_tid ret ],
-              {
-                ty = Some ret.ty;
-                x =
-                  App
-                    ( { ty = None; x = Var (Op.op_to_string op) },
-                      List.map aux_value args );
-              },
-              aux body )
-      | T.LetVal { lhs; rhs; body } ->
-          Let (false, [ to_tid lhs ], aux_value rhs, aux body)
-      | T.Ite { cond; e_t; e_f } -> Ite (aux_value cond, aux e_t, aux e_f)
-      | T.Match { matched; cases } ->
-          Match
-            ( aux_value matched,
-              List.map
-                (fun case ->
-                  {
-                    constructor =
-                      {
-                        ty = Some case.T.constructor.ty;
-                        x = case.T.constructor.x;
-                      };
-                    args = List.map (fun x -> x.T.x) case.T.args;
-                    exp = aux case.T.exp;
-                  })
-                cases )
-    in
-    { ty = Some e.ty; x }
-  in
-  aux e

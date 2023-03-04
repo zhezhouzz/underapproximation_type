@@ -9,9 +9,10 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "19999") ]
+  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "99999") ]
 
 let pretty_print_model model =
+  Env.show_debug_solving @@ fun _ ->
   Z3.Model.to_string model |> fun s ->
   List.fold_left
     (fun acc c ->
@@ -31,12 +32,16 @@ exception SMTTIMEOUT
 let _check pre q =
   let open Check in
   let time_t, res = Sugar.clock (fun () -> smt_neg_and_solve ctx pre q) in
-  let () = Pp.printf "@{<bold>Solving time: %.2f@}\n" time_t in
+  let () =
+    Env.show_debug_stat @@ fun _ ->
+    Pp.printf "@{<bold>Solving time: %.2f@}\n" time_t
+  in
   match res with
   | SmtUnsat -> None
   | SmtSat model ->
-      Printf.printf "model:\n%s\n"
-      @@ Sugar.short_str 100 @@ Z3.Model.to_string model;
+      ( Env.show_debug_stat @@ fun _ ->
+        Printf.printf "model:\n%s\n"
+        @@ Sugar.short_str 100 @@ Z3.Model.to_string model );
       Some model
   | Timeout -> raise SMTTIMEOUT
 

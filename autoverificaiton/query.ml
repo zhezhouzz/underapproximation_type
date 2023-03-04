@@ -16,6 +16,7 @@ let make_exists ctx qv body =
       (Quantifier.mk_exists_const ctx qv body (Some 1) [] [] None None)
 
 let z3func ctx funcname inptps outtp =
+  (* let () = Printf.printf "funcname: %s\n" funcname in *)
   FuncDecl.mk_func_decl ctx
     (Symbol.mk_string ctx funcname)
     (List.map (tp_to_sort ctx) inptps)
@@ -64,25 +65,6 @@ let machine ctx expr = function
   | TExists u -> TStop (make_exists ctx [ u ] expr)
   | TStop _ -> _failatwith __FILE__ __LINE__ ""
 
-let known_mp =
-  [
-    "hd";
-    "mem";
-    "ord";
-    "len";
-    "left";
-    "right";
-    "para";
-    "sorted";
-    "numblack";
-    "noredred";
-    "hdcolor";
-    "complete";
-    "rng";
-    "heap";
-    "rank";
-  ]
-
 let to_z3_ ctx = function
   | Lit lit -> lit_to_z3 ctx lit
   | MethodPred ("==", [ a; b ]) ->
@@ -106,10 +88,16 @@ let to_z3_ ctx = function
   | MethodPred (">", _) -> _failatwith __FILE__ __LINE__ ""
   | MethodPred (mp, args) ->
       let () =
-        if List.exists (String.equal mp) known_mp then ()
+        if List.exists (String.equal mp) (Env.get_known_mp ()) then ()
         else failwith (spf "unknown mp: %s" mp)
       in
+      (* let () = Printf.printf "mp >>> %s\n" mp in *)
       let argsty = List.map lit_get_ty args in
+      (* let () = *)
+      (*   Printf.printf "args >>> %s\n" *)
+      (*   @@ Zzdatatype.Datatype.List.split_by_comma Frontend.pretty_layout_lit *)
+      (*        args *)
+      (* in *)
       let args = List.map (lit_to_z3 ctx) args in
       let func = z3func ctx mp argsty Ty_bool in
       Z3.FuncDecl.apply func args

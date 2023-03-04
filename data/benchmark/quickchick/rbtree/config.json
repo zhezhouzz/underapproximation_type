@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "mode": "debug",
     "logfile": ".log",
@@ -15,3 +16,6 @@
         "functional_lemmas": "data/benchmark/functional_lemmas.ml"
     }
 }
+=======
+{"method_predicates": ["numblack", "hdcolor", "noredred"], "measure": "numblack", "underp": "data/benchmark/under_numblack.ml"}
+>>>>>>> beb65e3410d07f207f5b75a09a7428c146b4099f

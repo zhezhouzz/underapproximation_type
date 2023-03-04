@@ -2,13 +2,14 @@ import sys
 import argparse
 import os
 import subprocess
-verbose = True
 
 cmd_prefix = ["dune", "exec", "--", "bin/main.exe"]
 
 workdir = ""
 
-def invoc_cmd(cmd, output_file):
+meta_config_file = "meta-config.json"
+
+def invoc_cmd(verbose, cmd, output_file):
     if output_file is not None:
         # print("{}:{}".format(output_file, type(output_file)))
         if (verbose):
@@ -26,11 +27,22 @@ def invoc_cmd(cmd, output_file):
         except subprocess.CalledProcessError as e:
             print(e.output)
 
-if __name__ == '__main__':
-    name = sys.argv[1]
-    dir_str =name
-    cmd = cmd_prefix + ["test", "under-type-check",
-                        "{}/{}".format(dir_str, "config.json"),
+def run(dir_str, verbose):
+    cmd = cmd_prefix + ["under-type-check", meta_config_file,
+                        # "{}/{}".format(dir_str, "config.json"),
                         "{}/{}".format(dir_str, "prog.ml"),
                         "{}/{}".format(dir_str, "_under.ml")]
-    invoc_cmd(cmd, None)
+    invoc_cmd(verbose, cmd, None)
+
+def show_refine(dir_str, verbose):
+    cmd = cmd_prefix + ["print-coverage-types", meta_config_file,
+                        "{}/{}".format(dir_str, "_under.ml")]
+    invoc_cmd(verbose, cmd, None)
+
+if __name__ == '__main__':
+    try:
+        if sys.argv[2] == "verbose":
+            verbose = True
+    except:
+        verbose = False
+    run(sys.argv[1], verbose)

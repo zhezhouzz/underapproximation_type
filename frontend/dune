@@ -1,7 +1,7 @@
 (library
  (name frontend)
  (wrapped true)
- (libraries utils ast core ocaml_parser abstraction)
+ (libraries utils ast core ocaml_parser abstraction env)
  (modules
    ; qtypectx
    quantified

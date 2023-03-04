@@ -82,21 +82,25 @@ let parse_to_anormal =
 (*         in *)
 (*         ()) *)
 
-let parsing_under_refinements =
+let print_coverage_types =
   Command.basic ~summary:"parsing_under_refinements"
     Command.Let_syntax.(
-      let%map_open refine_file = anon ("source file" %: regular_file) in
+      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      and refine_file = anon ("source file" %: regular_file) in
       fun () ->
-        let () = Config.load_default () in
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
-        let refinements =
-          List.map ~f:(fun ((_, a), b) -> (a, b))
-          @@ Structure.refinement_of_ocamlstruct Underty.undertype_of_ocamlexpr
-               x
+        let () = Env.load_meta meta_config_file in
+        let notations, libs, refinements =
+          Inputstage.load_under_refinments refine_file
         in
         let () =
-          Printf.printf "%s"
-            (Structure.layout_refinements Underty.pretty_layout refinements)
+          Pp.printf "@{<bold>Library Function Types:@}\n%s"
+            Languages.(Struc.layout_refinements UT.pretty_layout libs)
+        in
+        let () =
+          Pp.printf "@{<bold>Types to Check:@}\n%s"
+            Languages.(
+              Struc.layout_refinements UT.pretty_layout
+              @@ List.map ~f:snd refinements)
         in
         ())
 
@@ -128,49 +132,50 @@ let parsing_type_decls =
 let under_type_check =
   Command.basic ~summary:"under_type_check"
     Command.Let_syntax.(
-      let%map_open config_file = anon ("config file" %: regular_file)
+      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      (* and config_file = anon ("config file" %: regular_file) *)
       and source_file = anon ("source file" %: regular_file)
       and refine_file = anon ("refine_file" %: regular_file) in
       fun () ->
-        let () = Config.load config_file in
+        let () = Env.load_meta meta_config_file in
+        let () = Config.load refine_file in
         let notations, libs, refinements =
-          Inputstage.load_under_refinments refine_file
+          Inputstage.load_user_defined_under_refinments refine_file
         in
         let code = Inputstage.load_ssa libs source_file in
         let () = Typecheck.Undersub.subtyping_check_counter_set0 () in
+        (* let () = failwith "end" in *)
         let runtime, results =
           Sugar.clock (fun () ->
               Typecheck.Undercheck.struc_check code notations libs refinements)
         in
-        let () =
+        let str =
           match Ast.StrucNA.stat code with
           | [ (name, num_branches, num_localvars) ] -> (
               let num_query = Typecheck.Undersub.(!subtyping_check_counter) in
               let str =
-                Printf.sprintf "%s\n $%i$ & $%i$ & " name num_branches
+                Printf.sprintf "%s & $%i$ & $%i$ & " name num_branches
                   num_localvars
               in
               match refinements with
               | [ (_, (_, ty)) ] ->
-                  let num_mps, _ = Ast.UT.stat ty in
-                  let () =
-                    Printf.printf
-                      "& %s$%i$ & $%i$ & $(%i, %i)$ & $%0.2f(%0.2f)$\n" str
-                      num_mps num_query
-                      Typecheck.Undersub.(!max_uqvs_num)
-                      Typecheck.Undersub.(!max_eqvs_num)
-                      runtime
-                      (runtime /. float_of_int num_query)
-                  in
-                  ()
-              | _ -> ())
-          | _ -> ()
+                  let num_mps = List.length @@ Config.get_mps () in
+                  (* let num_mps, _ = Ast.UT.stat ty in *)
+                  Printf.sprintf
+                    "& %s$%i$ & $%i$ & $(%i, %i)$ & $%0.2f(%0.2f)$\n" str
+                    num_mps num_query
+                    Typecheck.Undersub.(!max_uqvs_num)
+                    Typecheck.Undersub.(!max_eqvs_num)
+                    runtime
+                    (runtime /. float_of_int num_query)
+              | _ -> "")
+          | _ -> ""
         in
         let () =
           match results with
           | [ res ] ->
-              let oc = Out_channel.create ".result" in
-              Printf.fprintf oc "%b\n" res;
+              let oc = Out_channel.create @@ Env.get_resfile () in
+              Printf.fprintf oc "%b %s\n" res str;
               Out_channel.close oc
           | _ -> ()
         in
@@ -268,7 +273,7 @@ let qcheck =
       fun () ->
         let open Sugar in
         let () = Printf.printf "QCheck\n" in
-        let () = Cgen.test num in
+        (* let () = Cgen.test num in *)
         ())
 
 let test =
@@ -278,7 +283,7 @@ let test =
       ("parse-to-typed-term", parse_to_typed_term);
       ("parse-structure", parsing_structure);
       (* ("parse-over-refinements", parsing_over_refinements); *)
-      ("parse-under-refinements", parsing_under_refinements);
+      ("print-coverage-types", print_coverage_types);
       ("parsing-type-decls", parsing_type_decls);
       (* ("over-type-check", over_type_check); *)
       ("under-type-check", under_type_check);

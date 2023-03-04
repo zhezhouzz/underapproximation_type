@@ -13,13 +13,10 @@ let mk_eqs xs = List.fold_right (fun x e -> mk_q (Ex, x, e)) xs ""
 let layout_qt_ uqvs eqvs qbody = mk_uqs_ uqvs ^ mk_eqs_ eqvs ^ qbody
 let layout_qt uqvs eqvs qbody = mk_uqs uqvs ^ mk_eqs eqvs ^ qbody
 
-(* List.fold_right *)
-(*   (fun x e -> mk_q (Fa, x, e)) *)
-(*   uqvs *)
-(*   (List.fold_right (fun x e -> mk_q (Ex, x, e)) eqvs qbody) *)
-
 let print_qt uqvs eqvs =
+  Env.show_debug_typing @@ fun _ ->
   Pp.printf "@{<yellow>%s@}@{<green>%s@}" (mk_uqs uqvs) (mk_eqs eqvs)
 
 let print_qt_ uqvs eqvs =
+  Env.show_debug_typing @@ fun _ ->
   Pp.printf "@{<yellow>%s@}@{<green>%s@}" (mk_uqs_ uqvs) (mk_eqs_ eqvs)
