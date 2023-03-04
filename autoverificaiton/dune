@@ -3,23 +3,20 @@
  (wrapped true)
  (modules
    ast
-   ; smtty
-   prop
-   ; typecheck
-   z3aux
-   query
-   check
    autov
-   frontend
-   ; fv
+   check
    encoding
-   unique
    enum
+   frontend
    func_interp
    parse
    peval
-   unify_qvs
+   prop
+   query
    stat
+   unify_qvs
+   unique
+   z3aux
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
  (libraries zzdatatype str z3 ocaml_parser normalty utils z3parser env)

@@ -3,9 +3,7 @@
  (wrapped true)
  (libraries utils ast core ocaml_parser abstraction env)
  (modules
-   ; qtypectx
    quantified
-   ; qunderty
    anormal
    expr
    lemma
