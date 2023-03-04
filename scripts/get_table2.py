@@ -2,7 +2,7 @@ import sys
 import argparse
 import os
 import json
-import synth_iter_benchs
+import synth_iter_benchs as synth_iter_benchs
 import run_bench
 import shutil
 import run_many

@@ -50,6 +50,7 @@ ocolor                      1.3.0       Print with style in your terminal using 
 
 ```
 # python3 scripts/get_table1.py
+# python3 scripts/get_table2.py
 ```
 
 when add the `verbose` flag, the script will print commands of each benchmark.
