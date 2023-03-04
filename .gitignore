@@ -2,3 +2,5 @@
 _build/
 *.out
 .result
+**/outputs/**
+**/inputs/**
