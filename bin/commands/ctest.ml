@@ -83,18 +83,20 @@ let parse_to_anormal =
 (*         ()) *)
 
 let print_coverage_types =
-  Command.basic ~summary:"parsing_under_refinements"
+  Command.basic ~summary:"print coverage types from the given file"
     Command.Let_syntax.(
-      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
-      and refine_file = anon ("source file" %: regular_file) in
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
       fun () ->
         let () = Env.load_meta meta_config_file in
         let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
         let () =
-          Pp.printf "@{<bold>Library Function Types:@}\n%s"
-            Languages.(Struc.layout_refinements UT.pretty_layout libs)
+          if Int.equal 0 @@ List.length libs then ()
+          else
+            Pp.printf "@{<bold>Library Function Types:@}\n%s"
+              Languages.(Struc.layout_refinements UT.pretty_layout libs)
         in
         let () =
           Pp.printf "@{<bold>Types to Check:@}\n%s"
@@ -130,12 +132,12 @@ let parsing_type_decls =
 (*         ()) *)
 
 let under_type_check =
-  Command.basic ~summary:"under_type_check"
+  Command.basic ~summary:"coverage type check"
     Command.Let_syntax.(
-      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
       (* and config_file = anon ("config file" %: regular_file) *)
-      and source_file = anon ("source file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file) in
+      and source_file = anon ("source_code_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
       fun () ->
         let () = Env.load_meta meta_config_file in
         let () = Config.load refine_file in
@@ -277,20 +279,10 @@ let qcheck =
         ())
 
 let test =
-  Command.group ~summary:"test"
+  Command.group ~summary:"Poirot"
     [
-      ("parse-to-anormal", parse_to_anormal);
-      ("parse-to-typed-term", parse_to_typed_term);
-      ("parse-structure", parsing_structure);
-      (* ("parse-over-refinements", parsing_over_refinements); *)
       ("print-coverage-types", print_coverage_types);
-      ("parsing-type-decls", parsing_type_decls);
-      (* ("over-type-check", over_type_check); *)
-      ("under-type-check", under_type_check);
-      (* ("under-post-shrink", under_post_shrink); *)
-      (* ("test-mk-features", test_mk_features); *)
-      ("qcheck", qcheck);
-      ("init", init) (* ("under-subtype-check", under_subtype_check); *);
+      ("coverage-type-check", under_type_check);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]
