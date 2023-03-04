@@ -1,7 +1,19 @@
 module T = struct
   open Sexplib.Std
 
-  type op = Plus | Minus | Gt | Ge | Lt | Le | Eq | Neq | And | Or
+  type op =
+    | Plus
+    | Minus
+    | Multiply
+    | Div
+    | Gt
+    | Ge
+    | Lt
+    | Le
+    | Eq
+    | Neq
+    | And
+    | Or
   [@@deriving sexp]
 
   type t = PrimOp of op | DtConstructor of string | External of string
@@ -12,6 +24,8 @@ module T = struct
   let op_of_string = function
     | "+" -> Plus
     | "-" -> Minus
+    | "*" -> Multiply
+    | "/" -> Div
     | ">" -> Gt
     | ">=" -> Ge
     | "<" -> Lt
@@ -29,6 +43,8 @@ module T = struct
   let op_to_string = function
     | Plus -> "+"
     | Minus -> "-"
+    | Multiply -> "*"
+    | Div -> "/"
     | Gt -> ">"
     | Ge -> ">="
     | Lt -> "<"
@@ -42,6 +58,8 @@ module T = struct
   let op_to_alias = function
     | Plus -> "plus"
     | Minus -> "minus"
+    | Multiply -> "multiply"
+    | Div -> "div"
     | Gt -> "gt"
     | Ge -> "ge"
     | Lt -> "lt"
@@ -57,6 +75,8 @@ module T = struct
   let op_of_alias = function
     | "plus" -> Plus
     | "minus" -> Minus
+    | "multiply" -> Multiply
+    | "div" -> Div
     | "gt" -> Gt
     | "ge" -> Ge
     | "lt" -> Lt

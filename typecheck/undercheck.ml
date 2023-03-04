@@ -1,319 +1,505 @@
 open Languages
-module Typectx = Languages.UnderTypectx
-module Nctx = Simpletypectx.UTSimpleTypectx
 open Zzdatatype.Datatype
 open Abstraction
 open Sugar
 
 (* include Litcheck *)
-module P = Autov.Prop
+(* module P = Autov.Prop *)
 include Checkaux
 
-let rec id_type_infer (ctx : Typectx.t) (id : NL.id NL.typed) : UL.id UL.typed =
-  let ty =
-    try Typectx.get_ty ctx id.x with _ -> Prim.get_primitive_under_ty id.x
-  in
-  erase_check_mk_id __FILE__ __LINE__ id ty
+let current_rec_self : string option = None
 
-and id_type_check (ctx : Typectx.t) (id : NL.id NL.typed) (ty : UT.t) :
-    NL.id UL.typed =
-  let id = id_type_infer ctx id in
-  let () = subtyping_check __FILE__ __LINE__ ctx id.UL.ty ty in
-  id
+(* let value_set_bot (a : NL.value NL.typed) = *)
+(*   let open UL in *)
+(*   { ty = UT.nt_to_exn_type (snd a.ty); x = Exn } *)
 
-and lit_type_infer (ctx : Typectx.t) (lit : NL.smt_lit NL.typed) :
-    UL.smt_lit UL.typed =
-  let open NL in
-  let open UT in
-  match lit.x with
-  | ConstI n -> { ty = make_basic_from_const_int n; x = ConstI n }
-  | ConstB b -> { ty = make_basic_from_const_bool b; x = ConstB b }
-  | Var id ->
-      UL.(typed_map (fun x -> Var x))
-      @@ id_type_infer ctx { ty = lit.ty; x = id }
+(* let term_set_bot (a : NL.term NL.typed) = *)
+(*   let open UL in *)
+(*   { ty = UT.nt_to_exn_type (snd a.ty); x = V Exn } *)
 
-and value_type_infer (notations_ctx : Nctx.t) (ctx : Typectx.t)
-    (a : NL.value NL.typed) : UL.value UL.typed =
+(* let reachability_check uctx ty = Reachability_check.reachability_check uctx ty *)
+(* let persistence_check uctx ty = Persistence_check.persistence_check uctx ty *)
+
+let rec value_type_infer (uctx : uctx) (a : NL.value NL.typed) :
+    MMT.ut_with_copy =
   let aty = a.ty in
   let open UL in
+  let open MMT in
   match a.x with
-  | NL.Lit lit ->
-      typed_map (fun x -> Lit x) @@ lit_type_infer ctx { ty = aty; x = lit }
-  | NL.Lam (id, body) ->
+  | NL.Exn -> UtNormal (UT.nt_to_exn_type (snd aty))
+  | NL.Var id -> id_type_infer uctx id
+  | NL.Lit lit -> UtNormal (lit_type_infer lit)
+  | NL.Lam { lamarg = id; lambody = body } -> (
       let typename =
         match fst id.ty with
         | None -> _failatwith __FILE__ __LINE__ "die"
         | Some x -> x
       in
       let idty =
-        match Nctx.get_opt notations_ctx typename with
+        match Typectx.get_opt uctx.nctx typename with
         | Some (_, idty) -> idty
         | None ->
             _failatwith __FILE__ __LINE__
             @@ spf "cannot find the notation of %s (named %s)" id.x typename
       in
-      let id = erase_check_mk_id __FILE__ __LINE__ id idty in
-      let ctx' = Typectx.add_to_right ctx id in
-      let body = term_type_infer notations_ctx ctx' body in
-      let ty =
-        UT.UnderTy_arrow { argname = id.x; argty = id.ty; retty = body.ty }
-      in
-      { ty; x = Lam (id, body) }
+      match idty with
+      | Consumed _ | Ut (UtCopy _) ->
+          _failatwith __FILE__ __LINE__ "wrong format"
+      | Ut (UtNormal idty) ->
+          let id = erase_check_mk_id __FILE__ __LINE__ id idty in
+          let retty =
+            term_type_infer
+              {
+                uctx with
+                ctx =
+                  Typectx.ut_force_add_to_right uctx.ctx (id.x, UtNormal id.ty);
+              }
+              body
+          in
+          UtNormal (UT.UnderTy_under_arrow { argty = id.ty; retty })
+      | Ot idty ->
+          let _ =
+            _check_equality __FILE__ __LINE__ NT.eq idty.UT.normalty (snd id.ty)
+          in
+          let retty =
+            term_type_infer
+              { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (id.x, idty) }
+              body
+          in
+          UtNormal
+            (UT.UnderTy_over_arrow { argname = id.x; argty = idty; retty }))
   | NL.Fix _ -> _failatwith __FILE__ __LINE__ "unimp"
 
-and value_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
-    (a : NL.value NL.typed) (ty : UT.t) : UL.value UL.typed =
+and value_type_check (uctx : uctx) (a : NL.value NL.typed) (ty : UT.t) : unit =
   let open UT in
   let result =
     match (a.NL.x, ty) with
-    | NL.Lit _, _ ->
-        let x = value_type_infer notations_ctx ctx a in
-        term_subtyping_check __FILE__ __LINE__ ctx x ty
-    | NL.Lam (id, body), UnderTy_arrow { argname; argty; retty } ->
+    | NL.Exn, _ | NL.Lit _, _ | NL.Var _, _ ->
+        let x = value_type_infer uctx a in
+        subtyping_check __FILE__ __LINE__ uctx x ty
+    | ( NL.Lam { lamarg = id; lambody = body },
+        UnderTy_over_arrow { argname; argty; retty } ) ->
         let () =
-          match Nctx.get_opt notations_ctx id.x with
+          match Typectx.get_opt uctx.nctx id.x with
+          | Some _ -> _failatwith __FILE__ __LINE__ "die"
+          | None -> ()
+        in
+        let _ =
+          _check_equality __FILE__ __LINE__ NTyped.eq argty.normalty
+            (snd id.NL.ty)
+        in
+        let retty = UT.subst_id retty argname id.x in
+        term_type_check
+          { uctx with ctx = Typectx.ot_add_to_right uctx.ctx (id.x, argty) }
+          body retty
+    | ( NL.Lam { lamarg = id; lambody = body },
+        UnderTy_under_arrow { argty; retty } ) ->
+        let () =
+          match Nctx.get_opt uctx.nctx id.x with
           | Some _ -> _failatwith __FILE__ __LINE__ "die"
           | None -> ()
         in
         let id = erase_check_mk_id __FILE__ __LINE__ id argty in
-        let retty = UT.subst_id retty argname id.x in
-        let ctx' = Typectx.add_to_right ctx id in
-        let body = term_type_check notations_ctx ctx' body retty in
-        {
-          ty = UnderTy_arrow { argname; argty; retty = body.ty };
-          x = Lam (id, body);
-        }
-    | NL.Fix (f, body), ty ->
-        let f = erase_check_mk_id __FILE__ __LINE__ f ty in
-        let ctx' = Typectx.add_to_right ctx f in
-        let body = value_type_check notations_ctx ctx' body ty in
-        { ty = body.ty; x = Fix (f, body) }
-    | _, _ -> _failatwith __FILE__ __LINE__ ""
+        term_type_check
+          {
+            uctx with
+            ctx = Typectx.ut_force_add_to_right uctx.ctx (id.x, UtNormal id.ty);
+          }
+          body retty
+    | NL.Lam _, _ -> _failatwith __FILE__ __LINE__ ""
+    | ( NL.Fix { fixname; fstarg; lambody },
+        UnderTy_over_arrow { argname; argty; retty } ) ->
+        let a = NL.{ x = Rename.unique fstarg.x; ty = fstarg.ty } in
+        let _ = erase_check_mk_id __FILE__ __LINE__ a (ot_to_ut argty) in
+        let f = erase_check_mk_id __FILE__ __LINE__ fixname ty in
+        let prop = make_order_constraint a.x argname (snd fstarg.ty) in
+        let f =
+          UL.
+            {
+              x = f.x;
+              ty =
+                UT.modify_retty
+                  (fun _ prop' ->
+                    P.conjunct_tope_uprop __FILE__ __LINE__ [ prop; prop' ])
+                  f.ty;
+            }
+        in
+        let ctx' = Typectx.ot_add_to_right uctx.ctx (a.x, argty) in
+        let ctx'' = Typectx.ut_force_add_to_right ctx' (f.x, UtNormal f.ty) in
+        let retty = UT.subst_id retty argname a.x in
+        let lambody = NL.subst_id (fstarg.x, a.x) lambody in
+        term_type_check { uctx with ctx = ctx'' } lambody retty
+    (* let _ = erase_check_mk_id __FILE__ __LINE__ f ty in *)
+    (* NOTE: no step 1 (full projection check) any more *)
+    (* let _ = full_projection_check uctx ty in *)
+    (* let uctx_base = *)
+    (*   { *)
+    (*     uctx with *)
+    (*     ctx = *)
+    (*       Typectx.norefinement_force_add_to_right uctx.ctx *)
+    (*         { x = f.x; ty = snd @@ f.ty }; *)
+    (*   } *)
+    (* in *)
+    (* let ty_base = right_ty_measure_0 uctx_base ty in *)
+    (* let () = *)
+    (*   Typectx.pretty_print_judge uctx_base.ctx *)
+    (*     (NL.layout_value body, ty_base) *)
+    (* in *)
+    (* let _ = value_type_check uctx_base body ty_base in *)
+    (* (\* let _ = failwith "end" in *\) *)
+    (* let uctx_ind = *)
+    (*   { *)
+    (*     uctx with *)
+    (*     ctx = Typectx.ut_force_add_to_right uctx.ctx UL.{ x = f.x; ty }; *)
+    (*   } *)
+    (* in *)
+    (* let ty_ind = right_ty_measure_ind uctx_ind ty in *)
+    (* let () = *)
+    (*   Typectx.pretty_print_judge uctx_ind.ctx (NL.layout_value body, ty_ind) *)
+    (* in *)
+    (* let body = value_type_check uctx_ind body ty_ind in *)
+    (* { ty; x = Fix ({ x = f.x; ty }, body) } *)
+    | NL.Fix _, _ -> _failatwith __FILE__ __LINE__ ""
   in
   result
 
-and handle_let_body (notations_ctx : Nctx.t) ctx ctx' body target_type =
+and handle_let_body (uctx : uctx) rets body target_type : UL.t =
+  (* HACK: Why I fail here? *)
+  let if_opt = false in
+  let opt_infer =
+    match (body, rets) with
+    | NL.{ x = NL.V { x = NL.Var id; _ }; _ }, [ (id', idty') ]
+      when String.equal id.x id' ->
+        if if_opt then Some idty' else None
+    | _ -> None
+  in
+  let ctx' = Typectx.ut_force_add_to_rights uctx.ctx rets in
   match target_type with
-  | None ->
-      let body = term_type_infer notations_ctx ctx' body in
-      (Typectx.close_by_diff ctx' ctx body.ty, body)
-  | Some ty ->
-      let body = term_type_check notations_ctx ctx' body ty in
-      (ty, body)
+  | None -> (
+      match opt_infer with
+      | None ->
+          let ty = term_type_infer { uctx with ctx = ctx' } body in
+          close_ids rets ty
+      | Some inferred -> ut_eq_to_ut_underctx uctx inferred)
+  | Some ty -> (
+      match opt_infer with
+      | None ->
+          let () = term_type_check { uctx with ctx = ctx' } body ty in
+          close_ids rets ty
+      | Some inferred ->
+          let () = subtyping_check __FILE__ __LINE__ uctx inferred ty in
+          ty)
 
-and handle_lettu (notations_ctx : Nctx.t) ctx (tu, args, body) target_type =
-  let open UL in
-  let args = List.map (id_type_infer ctx) args in
-  let tu =
-    erase_check_mk_id __FILE__ __LINE__ tu
-      (UT.UnderTy_tuple (List.map (fun x -> x.ty) args))
-  in
-  let ctx' = Typectx.add_to_right ctx tu in
-  let ty, body = handle_let_body notations_ctx ctx ctx' body target_type in
-  UL.{ ty; x = LetTu { tu; args; body } }
-
-and handle_letdetu (notations_ctx : Nctx.t) ctx (tu, args, body) target_type =
-  let open UL in
-  let tu = id_type_infer ctx tu in
+and handle_lettu (uctx : uctx) (tu, args, body) target_type =
   let args =
-    List.map (fun (x, ty) -> erase_check_mk_id __FILE__ __LINE__ x ty)
-    @@ List.combine args (UT.assume_tuple __FILE__ __LINE__ tu.ty)
+    List.map
+      (fun arg -> ut_eq_to_ut_underctx uctx @@ value_type_infer uctx arg)
+      args
   in
-  let ctx' = Typectx.add_to_rights ctx args in
-  let ty, body = handle_let_body notations_ctx ctx ctx' body target_type in
-  UL.{ ty; x = LetDeTu { tu; args; body } }
+  let tu = erase_check_mk_id __FILE__ __LINE__ tu (UT.UnderTy_tuple args) in
+  handle_let_body uctx [ (tu.x, UtNormal tu.ty) ] body target_type
 
-and handle_letapp (notations_ctx : Nctx.t) ctx (ret, fty, args, body)
-    target_type =
-  let open UL in
+and handle_letdetu (uctx : uctx) (tu, args, body) target_type =
+  let tuty = ut_eq_to_ut_underctx uctx @@ value_type_infer uctx tu in
+  let rec loop = function
+    | [], [] -> []
+    | x :: args, ty :: ts ->
+        erase_check_mk_id __FILE__ __LINE__ x ty :: loop (args, ts)
+    | _ -> _failatwith __FILE__ __LINE__ ""
+  in
+  let args = loop (args, UT.assume_tuple __FILE__ __LINE__ tuty) in
+  handle_let_body uctx
+    (List.map (fun x -> (x.UL.x, MMT.UtNormal x.ty)) args)
+    body target_type
+
+and handle_letapp_aux (uctx : uctx)
+    (fname, fty, (argsty : MMT.ut_with_copy list)) =
   let open UT in
-  let args = List.map (id_type_infer ctx) args in
-  (* let () = Typectx.pretty_print_app_judge ctx (args, fty) in *)
   (* arguments type check *)
-  let rec aux = function
-    | [], ty -> ty
-    | arg :: args, UnderTy_poly_arrow { argname; argnty; retty } ->
-        let () = erase_check __FILE__ __LINE__ (arg.ty, (arg.x, argnty)) in
-        let retty = subst_id retty argname arg.x in
-        aux (args, retty)
-    | arg :: args, UnderTy_arrow { argname; argty; retty } ->
-        let () = subtyping_check __FILE__ __LINE__ ctx arg.ty argty in
-        let retty = subst_id retty argname arg.x in
-        aux (args, retty)
+  let args = List.map (fun ty -> (Rename.unique "a", ty)) argsty in
+  let () =
+    Typectx.pretty_print_app_judge fname uctx.ctx (args, Ut (UtNormal fty))
+  in
+  let rec aux uctx (a, b) : UT.t option =
+    match (a, b) with
+    | [], retty ->
+        Some retty (* let uctx' = handle_consume uctx (args, fty) in *)
+    | (x, xty) :: args, UnderTy_over_arrow { argname; argty; retty } ->
+        (* NOTE: special application rule *)
+        if
+          subtyping_check_bool __FILE__ __LINE__ uctx
+            (UtNormal (ot_to_ut argty))
+            (ut_eq_to_ut_underctx uctx xty)
+        then
+          let ctx' = Typectx.ut_force_add_to_right uctx.ctx (x, xty) in
+          let retty = subst_id retty argname x in
+          match aux { uctx with ctx = ctx' } (args, retty) with
+          | None -> None
+          | Some ty -> Some (close_ids [ (x, xty) ] ty)
+        else None
+    | (x, xty) :: args, UnderTy_under_arrow { retty; argty } ->
+        if subtyping_check_bool __FILE__ __LINE__ uctx xty argty then
+          let ctx' = Typectx.ut_force_add_to_right uctx.ctx (x, xty) in
+          let () = Pp.printf "@{<bold>Consume variable %s@}\n" x in
+          let uctx = { uctx with ctx = Typectx.consume ctx' x } in
+          let () = Typectx.pretty_print uctx.ctx in
+          aux uctx (args, retty)
+        else None
     | _, _ -> _failatwith __FILE__ __LINE__ ""
   in
-  (* let () = Pp.printf "@{<bold>Begin@}\n" in *)
-  let retty =
-    try aux (args, fty) with
-    | Autov.FailWithModel (msg, _) ->
-        let () = Pp.printf "@{<orange>Application failed:@}%s\n" msg in
-        make_basic_top (snd ret.NL.ty)
-    | Autov.SMTTIMEOUT ->
-        let () = Pp.printf "@{<orange>Application failed:@}%s\n" "timeout" in
-        make_basic_top (snd ret.NL.ty)
-    | e -> raise e
-  in
-  (* let () = Pp.printf "@{<end>Begin@}\n" in *)
-  let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
-  let ctx' = Typectx.add_to_right ctx ret in
-  let ty, body = handle_let_body notations_ctx ctx ctx' body target_type in
-  (ty, (ret, args, body))
+  aux uctx (args, fty)
 
-and handle_letval (notations_ctx : Nctx.t) ctx (lhs, rhs, body) target_type =
+and handle_letapp (uctx : uctx)
+    (ret, fname, fty, (argsty : MMT.ut_with_copy list), body) target_type =
   let open UL in
-  let rhs = value_type_infer notations_ctx ctx rhs in
-  let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs.ty in
-  let ctx' = Typectx.add_to_right ctx lhs in
-  let ty, body = handle_let_body notations_ctx ctx ctx' body target_type in
-  UL.{ ty; x = LetVal { lhs; rhs; body } }
+  let open UT in
+  match
+    handle_letapp_aux uctx (fname, fty, (argsty : MMT.ut_with_copy list))
+  with
+  | None -> make_basic_bot (snd body.NL.ty)
+  | Some retty ->
+      let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
+      let () =
+        Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
+          (UT.pretty_layout ret.ty)
+      in
+      handle_let_body uctx [ (ret.x, MMT.UtNormal ret.ty) ] body target_type
 
-and handle_ite nctx ctx (cond, e_t, e_f) =
-  let open UL in
-  let () =
-    Pp.printf "@{<bold>Before If@}\n";
-    Typectx.pretty_print ctx
-  in
-  let cond = id_type_infer ctx cond in
-  let handle_case ty e =
-    let ctx' = Typectx.conjunct ctx (cond.x, ty) in
-    let e = term_type_infer nctx ctx' e in
-    { x = e.x; ty = Typectx.close_by_diff ctx' ctx e.ty }
-  in
-  let e_t =
-    handle_case (UT.make_basic_from_prop NT.Ty_bool P.bvar_to_prop) e_t
-  in
-  let e_f =
-    handle_case
-      (UT.make_basic_from_prop NT.Ty_bool (fun x -> P.(Not (bvar_to_prop x))))
-      e_f
-  in
-  let ty = merge_case_tys @@ List.map (fun e -> e.ty) [ e_t; e_f ] in
-  { ty; x = Ite { cond; e_t; e_f } }
+and handle_letval (uctx : uctx) (lhs, rhs, body) target_type =
+  let rhs = value_type_infer uctx rhs in
+  (* let lhs = erase_check_mk_id __FILE__ __LINE__ lhs rhs in *)
+  handle_let_body uctx [ (lhs.NL.x, rhs) ] body target_type
 
-and handle_match nctx ctx (matched, cases) =
-  let open UL in
-  let matched = id_type_infer ctx matched in
-  let handle_case NL.{ constructor; args; exp } =
-    let constructor_ty = Prim.get_primitive_rev_under_ty constructor.x in
-    let constructor = UL.{ ty = constructor_ty; x = constructor.x } in
-    let retty, args =
-      let open UT in
-      match constructor.ty with
-      | UnderTy_base _ -> (constructor.ty, [])
-      | UnderTy_arrow { argname; argty; retty = UnderTy_tuple ts } ->
-          let ts = List.map (fun t -> UT.subst_id t argname matched.x) ts in
-          let tsargs = _safe_combine __FILE__ __LINE__ ts args in
-          let args = List.map (fun (ty, x) -> { ty; x }) tsargs in
-          (argty, args)
-      | _ -> _failatwith __FILE__ __LINE__ "wrong rev under prim"
+and handle_ite uctx (cond, e_t, e_f) =
+  (* let open UL in *)
+  (* let () = *)
+  (*   Pp.printf "@{<bold>Before If@}\n"; *)
+  (*   Typectx.pretty_print uctx.ctx *)
+  (* in *)
+  let condty = value_type_infer uctx cond in
+  let handle_case b e =
+    let ty =
+      match condty with
+      | UtCopy id ->
+          UT.make_basic_from_prop id.ty (fun _ ->
+              if b then P.(Lit (AVar id)) else P.(Not (Lit (AVar id))))
+      | UtNormal condty ->
+          UT.conjunct condty
+          @@ UT.make_basic_from_prop NT.Ty_bool (fun x ->
+                 P.(if b then bvar_to_prop x else Not (bvar_to_prop x)))
     in
-    let ctx' = Typectx.conjunct ctx (matched.x, retty) in
-    let ctx' = Typectx.add_to_rights ctx' args in
-    let exp = term_type_infer nctx ctx' exp in
-    ( Typectx.close_by_diff ctx' ctx exp.ty,
-      UL.{ constructor; args = List.map (fun x -> x.x) args; exp } )
+    let cond_id = (Rename.unique "b", MMT.UtNormal ty) in
+    let ctx' = Typectx.ut_force_add_to_right uctx.ctx cond_id in
+    let ety = term_type_infer { uctx with ctx = ctx' } e in
+    close_ids [ cond_id ] ety
   in
-  let tys, cases = List.split @@ List.map handle_case cases in
-  (* { ty = List.nth tys 1; x = Match { matched; cases } } *)
-  { ty = merge_case_tys tys; x = Match { matched; cases } }
+  merge_case_tys [ handle_case true e_t; handle_case false e_f ]
 
-and term_type_infer (notations_ctx : Nctx.t) (ctx : Typectx.t)
-    (a : NL.term NL.typed) : UL.term UL.typed =
+and handle_match _ (_, _) = _failatwith __FILE__ __LINE__ "unimp"
+
+and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
   let open NL in
+  let bot_res = UT.nt_to_exn_type (snd a.ty) in
   let res =
     match a.x with
-    | V v ->
-        UL.(typed_map (fun x -> V x))
-        @@ value_type_infer notations_ctx ctx { ty = a.ty; x = v }
-    | LetTu { tu; args; body } ->
-        handle_lettu notations_ctx ctx (tu, args, body) None
-    | LetDeTu { tu; args; body } ->
-        handle_letdetu notations_ctx ctx (tu, args, body) None
+    | V v -> ut_eq_to_ut_underctx uctx @@ value_type_infer uctx v
+    | LetTu { tu; args; body } -> handle_lettu uctx (tu, args, body) None
+    | LetDeTu { tu; args; body } -> handle_letdetu uctx (tu, args, body) None
     | LetOp { ret; op; args; body } ->
-        let opty = Prim.get_primitive_under_ty (Op.op_to_string op) in
-        let ty, (ret, args, body) =
-          handle_letapp notations_ctx ctx (ret, opty, args, body) None
+        let opty =
+          Prim.get_primitive_under_ty
+            ( Op.op_to_string op,
+              NT.construct_arrow_tp
+                (List.map (fun x -> snd x.ty) args, snd ret.ty) )
         in
-        { ty; x = LetOp { ret; op; args; body } }
-    | LetApp { ret; f; args; body } ->
-        let f = id_type_infer ctx f in
-        let ty, (ret, args, body) =
-          handle_letapp notations_ctx ctx (ret, f.ty, args, body) None
+        let fname = Op.op_to_string op in
+        let argsty = List.map (value_type_infer uctx) args in
+        handle_letapp uctx (ret, fname, opty, argsty, body) None
+    | LetApp { ret; f; args; body } -> (
+        let fty =
+          try Some (id_type_infer uctx f)
+          with FailTypeConsumedonsumed _ -> None
         in
-        { ty; x = LetApp { ret; f; args; body } }
-    | LetVal { lhs; rhs; body } ->
-        handle_letval notations_ctx ctx (lhs, rhs, body) None
-    | Ite { cond; e_t; e_f } -> handle_ite notations_ctx ctx (cond, e_t, e_f)
-    | Match { matched; cases } -> handle_match notations_ctx ctx (matched, cases)
+        match fty with
+        | None -> bot_res
+        | Some (UtCopy _) -> _failatwith __FILE__ __LINE__ ""
+        | Some (UtNormal fty) ->
+            let argsty = List.map (value_type_infer uctx) args in
+            handle_letapp uctx (ret, f.x, fty, argsty, body) None)
+    | LetDtConstructor { ret; f; args; body } -> (
+        let argsty = List.map (value_type_infer uctx) args in
+        let fnty, argsty = dt_expand f argsty in
+        (* let argsty = *)
+        (*   List.concat *)
+        (*   @@ List.map *)
+        (*        (fun v -> *)
+        (*          let uty = value_type_infer uctx v in *)
+        (*          if NT.is_dt (MMT.ut_erase_ uty) then *)
+        (*            match uty with *)
+        (*            | UtNormal _ -> _failatwith __FILE__ __LINE__ "unimp" *)
+        (*            | UtCopy id -> *)
+        (*                let sizeargty = *)
+        (*                  UT.make_basic_from_prop NT.Ty_int (fun v -> *)
+        (*                      P.(MethodPred ("len", [ AVar id; AVar v ]))) *)
+        (*                in *)
+        (*                [ MMT.UtNormal sizeargty; uty ] *)
+        (*          else [ uty ]) *)
+        (*        args *)
+        (* in *)
+        (* let fnty = *)
+        (*   let _, retnty = NT.destruct_arrow_tp (snd f.ty) in *)
+        (*   let argsnty = List.map MMT.ut_erase_ argsty in *)
+        (*   NT.construct_arrow_tp (argsnty, retnty) *)
+        (* in *)
+        let ftys = Prim.get_primitive_under_multi_ty (f.x, fnty) in
+        let tys =
+          List.filter_map
+            (fun fty -> handle_letapp_aux uctx (f.x, fty, argsty))
+            ftys
+        in
+        match tys with
+        | [] -> UT.make_basic_bot (snd body.NL.ty)
+        | [ retty ] ->
+            let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
+            let () =
+              Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
+                (UT.pretty_layout ret.ty)
+            in
+            handle_let_body uctx [ (ret.x, MMT.UtNormal ret.ty) ] body None
+        | _ ->
+            let () =
+              List.iter
+                (fun fty ->
+                  Pp.printf "@{<bold>ALLOWED: %s:@} ==> %s\n" f.x
+                    (UT.pretty_layout fty))
+                tys
+            in
+            _failatwith __FILE__ __LINE__ "unimp: still multi")
+    | LetVal { lhs; rhs; body } -> handle_letval uctx (lhs, rhs, body) None
+    | Ite { cond; e_t; e_f } -> handle_ite uctx (cond, e_t, e_f)
+    | Match { matched; cases } -> handle_match uctx (matched, cases)
   in
-  (* let () = Typectx.pretty_print_infer ctx (UL.layout a, res.UL.ty) in *)
+  let () = Typectx.pretty_print_infer uctx.ctx (NL.layout a, res) in
   res
 
-and term_type_check (notations_ctx : Nctx.t) (ctx : Typectx.t)
-    (x : NL.term NL.typed) (ty : UT.t) : UL.term UL.typed =
-  (* let () = Typectx.pretty_print_judge ctx (UL.layout x, ty) in *)
-  let () = erase_check __FILE__ __LINE__ (ty, x.ty) in
+and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) : unit =
+  let () = Typectx.pretty_print_judge uctx.ctx (NL.layout x, ty) in
+  let _ = _check_equality __FILE__ __LINE__ NT.eq (UT.erase ty) (snd @@ x.ty) in
   let open NL in
   match (x.x, ty) with
-  | V v, _ ->
-      let v = value_type_check notations_ctx ctx { ty = x.ty; x = v } ty in
-      { ty = v.ty; x = V v.x }
+  | V v, _ -> value_type_check uctx v ty
   | LetTu { tu; args; body }, _ ->
-      handle_lettu notations_ctx ctx (tu, args, body) (Some ty)
+      let _ = handle_lettu uctx (tu, args, body) (Some ty) in
+      ()
   | LetDeTu { tu; args; body }, _ ->
-      handle_letdetu notations_ctx ctx (tu, args, body) (Some ty)
-  | LetApp { ret; f; args; body }, _ ->
-      let f = id_type_infer ctx f in
-      let ty, (ret, args, body) =
-        handle_letapp notations_ctx ctx (ret, f.ty, args, body) (Some ty)
+      let _ = handle_letdetu uctx (tu, args, body) (Some ty) in
+      ()
+  | LetApp { ret; f; args; body }, _ -> (
+      let fty = id_type_infer uctx f in
+      let argsty = List.map (value_type_infer uctx) args in
+      match fty with
+      | UtCopy _ -> _failatwith __FILE__ __LINE__ ""
+      | UtNormal fty ->
+          let _ = handle_letapp uctx (ret, f.x, fty, argsty, body) (Some ty) in
+          ())
+  | LetDtConstructor { ret; f; args; body }, _ -> (
+      (* NOTE: add a size before each data type argument *)
+      let argsty = List.map (value_type_infer uctx) args in
+      let fnty, argsty = dt_expand f argsty in
+      let ftys = Prim.get_primitive_under_multi_ty (f.x, fnty) in
+      let tys =
+        List.filter_map
+          (fun fty -> handle_letapp_aux uctx (f.x, fty, argsty))
+          ftys
       in
-      { ty; x = LetApp { ret; f; args; body } }
+      match tys with
+      | [] ->
+          subtyping_check __FILE__ __LINE__ uctx
+            (MMT.UtNormal (UT.make_basic_bot (snd body.NL.ty)))
+            ty
+      | [ retty ] ->
+          let ret = erase_check_mk_id __FILE__ __LINE__ ret retty in
+          let () =
+            Pp.printf "@{<bold>Let LHS:@} %s => %s\n" ret.x
+              (UT.pretty_layout ret.ty)
+          in
+          let _ =
+            handle_let_body uctx [ (ret.x, MMT.UtNormal ret.ty) ] body (Some ty)
+          in
+          ()
+      | _ -> _failatwith __FILE__ __LINE__ "unimp: still multi")
   | LetOp { ret; op; args; body }, _ ->
-      let opty = Prim.get_primitive_under_ty (Op.op_to_string op) in
-      let ty, (ret, args, body) =
-        handle_letapp notations_ctx ctx (ret, opty, args, body) (Some ty)
+      let opty =
+        Prim.get_primitive_under_ty
+          ( Op.op_to_string op,
+            NT.construct_arrow_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
+          )
       in
-      { ty; x = LetOp { ret; op; args; body } }
+      let fname = Op.op_to_string op in
+      let argsty = List.map (value_type_infer uctx) args in
+      let _ = handle_letapp uctx (ret, fname, opty, argsty, body) (Some ty) in
+      ()
   | LetVal { lhs; rhs; body }, _ ->
-      handle_letval notations_ctx ctx (lhs, rhs, body) (Some ty)
+      let _ = handle_letval uctx (lhs, rhs, body) (Some ty) in
+      ()
   | Ite _, _ | Match _, _ ->
-      let x = term_type_infer notations_ctx ctx x in
-      let () = subtyping_check __FILE__ __LINE__ ctx x.ty ty in
-      (* NOTE: underappproximate here *)
-      { ty; x = x.x }
+      let x = term_type_infer uctx x in
+      Undersub.subtyping_check __FILE__ __LINE__ uctx.ctx x ty
 
-let type_check (notations_ctx : Nctx.t) x ty =
-  (* let ty = Well_found.reduction ty in *)
-  let ctx = Typectx.empty in
-  (* let _ = Typectx.close_type ty "v" in *)
-  let res = term_type_check notations_ctx ctx x ty in
+let type_check (uctx : uctx) x ty =
+  let res = term_type_check uctx x ty in
   res
 
 module SNA = Languages.StrucNA
 
-let struc_check l notations r =
+let struc_check l notations libs r =
   let open SNA in
-  List.iteri
-    (fun id (name', ty) ->
+  (* let () = *)
+  (*   List.iter *)
+  (*     (fun (name, ty) -> *)
+  (*       Pp.printf "@{<bold>%s@}: %s\n" name @@ UT.pretty_layout ty) *)
+  (*     libs *)
+  (* in *)
+  (* let () = failwith "zz" in *)
+  let nctx =
+    Typectx.(
+      List.fold_left
+        (fun ctx (name, ty) -> add_to_right ctx (name, ty))
+        empty notations)
+  in
+  let libctx =
+    List.fold_left
+      (fun ctx (x, ty) -> Nctx.add_to_right ctx (x, ty))
+      Nctx.empty libs
+  in
+  List.mapi
+    (fun id (_, (name', ty)) ->
       let id = id + 1 in
       let () = Pp.printf "@{<bold>Task %i:@}\n" id in
       match List.find_opt (fun { name; _ } -> String.equal name name') l with
-      | None -> _failatwith __FILE__ __LINE__ "does not provide source code"
-      | Some { body; _ } -> (
-          let notations_ctx =
-            Nctx.(
-              List.fold_left
-                (fun ctx (name, ty) -> add_to_right ctx (ty, name))
-                empty notations)
+      | None ->
+          _failatwith __FILE__ __LINE__
+            (spf "The source code of given refinement type '%s' is missing."
+               name')
+      | Some { body; _ } ->
+          (* let _ = *)
+          (*   Dependentcheck.dependent_check *)
+          (*     (List.map fst notations @ List.map fst libs) *)
+          (*     body *)
+          (* in *)
+          let () =
+            Pp.printf "@{<bold>check against with:@} %s\n" (UT.pretty_layout ty)
           in
-          try
-            let _ = type_check notations_ctx body ty in
-            let _ =
+          let ctx = Typectx.empty in
+          let res =
+            Undersub.type_err_to_false (fun () ->
+                type_check { nctx; ctx; libctx } body ty)
+          in
+          let () =
+            if res then
               Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
                 id
-            in
-            ()
-          with e ->
-            Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id;
-            raise e))
+            else Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
+          in
+          res)
     r

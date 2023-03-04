@@ -1,0 +1,56 @@
+{
+    "cases": [
+        {
+            "name": "sizedlist",
+            "source": "QuickChick"
+        },
+        {
+            "name": "sizedtree",
+            "source": "QuickChick"
+        },
+        {
+            "name": "sortedlist",
+            "source": "QuickChick"
+        },
+        {
+            "name": "rbtree",
+            "source": "QuickChick"
+        },
+        {
+            "name": "completetree",
+            "source": "GeneratingGoodGenerators"
+        },
+        {
+            "name": "sizedbst_withbound",
+            "source": "GeneratingGoodGenerators"
+        },
+        {
+            "name": "sized_set",
+            "source": "QuickCheck"
+        },
+        {
+            "name": "sized_heap",
+            "source": "QuickCheck"
+        },
+        {
+            "name": "batchedq",
+            "source": "Elrond"
+        },
+        {
+            "name": "stream",
+            "source": "Elrond"
+        },
+        {
+            "name": "bankersq",
+            "source": "Elrond"
+        },
+        {
+            "name": "lestisthp",
+            "source": "Elrond"
+        },
+        {
+            "name": "unbset",
+            "source": "Elrond"
+        }
+    ]
+}

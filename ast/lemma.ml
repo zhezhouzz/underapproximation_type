@@ -1,12 +1,33 @@
 open Normalty.Ast
 module P = Autov.Prop
-module T = Termlang.T
+module Term = Termlang.T
 open Q
 open Sugar
 open Ntyped
 
 type qprop = { mode : Q.t; qvs : string typed list; prop : P.t }
 type t = { udt : string typed; qprop : qprop }
+
+let filter_by_mps mps lemma =
+  let lemma_mps = List.map (fun x -> x.x) @@ P.get_mps lemma.qprop.prop in
+  let lemma_mps =
+    List.filter
+      (fun x ->
+        let l = List.of_seq @@ String.to_seq x in
+        List.for_all
+          (fun c ->
+            let code = Char.code c in
+            97 <= code && code <= 122)
+          l)
+      lemma_mps
+  in
+  (* let () = *)
+  (*   Printf.printf "lemma_mps: %s\n" *)
+  (*   @@ Zzdatatype.Datatype.StrList.to_string lemma_mps *)
+  (* in *)
+  match Zzdatatype.Datatype.List.substract String.equal lemma_mps mps with
+  | [] -> true
+  | _ -> false
 
 let split_to_u_e l = List.partition (fun x -> is_forall x.qprop.mode) l
 
@@ -24,14 +45,16 @@ let to_prop { udt; qprop } =
 let parse_qvs qvs =
   let aux qv =
     match qv with
-    | T.{ x; ty = Some (Some "forall", nty) } -> (Q.Fa, { x; ty = nty })
-    | T.{ x; ty = Some (Some "exists", nty) } -> (Q.Ex, { x; ty = nty })
-    | T.{ ty = Some (Some name, _); _ } ->
+    | Term.{ x; ty = Some (Some "forall", nty) } -> (Q.Fa, { x; ty = nty })
+    | Term.{ x; ty = Some (Some "exists", nty) } -> (Q.Ex, { x; ty = nty })
+    | Term.{ ty = Some (Some name, _); _ } ->
         _failatwith __FILE__ __LINE__ @@ Printf.sprintf "unknown label %s" name
-    | T.{ ty = Some (None, _); _ } -> failwith "wrong format"
+    | Term.{ ty = Some (None, _); _ } -> failwith "wrong format"
     | _ -> _failatwith __FILE__ __LINE__ "wrong format: untyped"
   in
   List.map aux qvs
+
+open Zzdatatype.Datatype
 
 let of_raw (qvs, prop) =
   match parse_qvs qvs with
@@ -40,11 +63,16 @@ let of_raw (qvs, prop) =
       if not (NT.is_dt udt.ty) then _failatwith __FILE__ __LINE__ ""
       else
         let to_qvs qvs = List.map snd qvs in
+        let m = StrMap.add udt.x udt.ty StrMap.empty in
         let qprop =
           if List.for_all (fun (mode, _) -> is_forall mode) qvs then
-            { mode = Q.Fa; qvs = to_qvs qvs; prop }
+            let qvs = to_qvs qvs in
+            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+            { mode = Q.Fa; qvs; prop = Autov.typeinfer m prop }
           else if List.for_all (fun (mode, _) -> is_exists mode) qvs then
-            { mode = Q.Ex; qvs = to_qvs qvs; prop }
+            let qvs = to_qvs qvs in
+            let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
+            { mode = Q.Ex; qvs; prop = Autov.typeinfer m prop }
           else _failatwith __FILE__ __LINE__ ""
         in
         { udt; qprop }

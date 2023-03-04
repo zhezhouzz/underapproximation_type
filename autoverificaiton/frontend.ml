@@ -5,6 +5,7 @@ module Ty = Normalty.Ast.T
 module Q = Normalty.Ast.Q
 open Normalty.Ast.Ntyped
 open Normalty.Frontend
+open Sugar
 
 (* type label = Fa of Ty.t | Ex of Ty.t *)
 
@@ -38,7 +39,45 @@ let ptyp_desc_to_ct ct =
 (*   ptyp_desc_to_ct ct *)
 
 (* NOTE: should we parse type here? or is the prop is typed? *)
-let default_type = Ty.Ty_int
+let default_type = Ty.Ty_unknown
+
+let typeinfer m prop =
+  let open L in
+  let open Zzdatatype.Datatype in
+  let open Sugar in
+  let rec aux_lit m prop =
+    match prop with
+    | ACint _ | ACbool _ -> prop
+    | AVar id ->
+        let id' =
+          match (id.ty, StrMap.find_opt m id.x) with
+          | Ty.Ty_unknown, Some ty -> { x = id.x; ty }
+          | _, None -> id
+          | _, _ -> _failatwith __FILE__ __LINE__ ""
+        in
+        (* let _ = *)
+        (*   Printf.printf "Check: (%s:%s) --> (%s:%s)\n" id.x *)
+        (*     (Normalty.Frontend.layout id.ty) *)
+        (*     id'.x *)
+        (*     (Normalty.Frontend.layout id'.ty) *)
+        (* in *)
+        AVar id'
+    | AOp2 (op, a, b) -> AOp2 (op, aux_lit m a, aux_lit m b)
+  in
+  let rec aux m t =
+    match t with
+    | Lit lit -> Lit (aux_lit m lit)
+    | Implies (e1, e2) -> Implies (aux m e1, aux m e2)
+    | Ite (e1, e2, e3) -> Ite (aux m e1, aux m e2, aux m e3)
+    | Not e -> Not (aux m e)
+    | And es -> And (List.map (aux m) es)
+    | Or es -> Or (List.map (aux m) es)
+    | Iff (e1, e2) -> Iff (aux m e1, aux m e2)
+    | MethodPred (mp, args) -> MethodPred (mp, List.map (aux_lit m) args)
+    | Forall (u, e) -> Forall (u, aux (StrMap.add u.x u.ty m) e)
+    | Exists (u, e) -> Exists (u, aux (StrMap.add u.x u.ty m) e)
+  in
+  aux m prop
 
 let handle_id id =
   match Longident.flatten id.Location.txt with
@@ -53,13 +92,21 @@ let rec lit_of_ocamlexpr e =
   | Pexp_ident id -> L.AVar (handle_id id)
   | Pexp_constant (Pconst_integer (istr, None)) -> L.ACint (int_of_string istr)
   | Pexp_constant _ -> raise @@ failwith "do not support complicate literal"
+  | Pexp_construct (id, None) -> (
+      match Longident.last id.txt with
+      | "true" -> L.ACbool true
+      | "false" -> L.ACbool false
+      | _ -> raise @@ failwith "do not support complicate literal")
   | Pexp_apply (func, [ a; b ]) ->
       let a = lit_of_ocamlexpr @@ snd a in
       let b = lit_of_ocamlexpr @@ snd b in
       let f =
         match func.pexp_desc with
         | Pexp_ident id -> (handle_id id).x
-        | _ -> failwith "wrong method predicate"
+        | _ ->
+            failwith
+              (spf "wrong method predicate: %s"
+              @@ Pprintast.string_of_expression func)
       in
       if L.is_op f then L.AOp2 (f, a, b)
       else
@@ -88,7 +135,10 @@ let prop_of_ocamlexpr expr =
         let f =
           match func.pexp_desc with
           | Pexp_ident id -> (handle_id id).x
-          | _ -> failwith "wrong method predicate"
+          | _ ->
+              failwith
+                (spf "wrong method predicate: %s"
+                @@ Pprintast.string_of_expression func)
         in
         let args = List.map snd args in
         match (f, args) with
@@ -138,7 +188,7 @@ let prop_of_ocamlexpr expr =
              (Printf.sprintf "not imp client parsing:%s"
              @@ Pprintast.string_of_expression expr)
   in
-  aux expr
+  typeinfer Zzdatatype.Datatype.StrMap.empty @@ aux expr
 
 module P = L
 
@@ -255,6 +305,22 @@ type layout_setting = {
 open Printf
 open Zzdatatype.Datatype
 
+let detailssetting =
+  {
+    sym_true = "⊤";
+    sym_false = "⊥";
+    sym_and = " ∧ ";
+    sym_or = " ∨ ";
+    sym_not = "¬";
+    sym_implies = "=>";
+    sym_iff = "<=>";
+    sym_forall = "∀";
+    sym_exists = "∃";
+    layout_typedid =
+      (fun x -> Printf.sprintf "(%s:%s)" x.x (Normalty.Frontend.layout x.ty));
+    layout_mp = (fun x -> x);
+  }
+
 let psetting =
   {
     sym_true = "⊤";
@@ -282,8 +348,7 @@ let coqsetting =
     sym_iff = "<->";
     sym_forall = "forall";
     sym_exists = "exists";
-    layout_typedid =
-      (fun x -> sprintf "(%s:%s)" x.x (Normalty.Frontend.layout x.ty));
+    layout_typedid = (fun x -> x.x);
     layout_mp = (function "==" -> "=" | x -> x);
   }
 
@@ -312,6 +377,7 @@ let _pretty_layout s =
     sym_forall;
     sym_exists;
     layout_typedid;
+    layout_mp;
     _;
   } =
     s
@@ -323,7 +389,7 @@ let _pretty_layout s =
           let args = List.map (lit_pretty_layout_ s) args in
           if is_bop mp then
             match args with
-            | [ a; b ] -> sprintf "(%s %s %s)" a mp b
+            | [ a; b ] -> sprintf "(%s %s %s)" a (layout_mp mp) b
             | _ -> _failatwith __FILE__ __LINE__ ""
           else sprintf "(%s %s)" mp (List.split_by " " (fun x -> x) args)
       | Implies (p1, p2) ->
@@ -343,6 +409,6 @@ let _pretty_layout s =
   in
   pretty_layout
 
-let pretty_layout = _pretty_layout psetting
+let pretty_layout = _pretty_layout (* detailssetting *) psetting
 let pretty_layout_lit = lit_pretty_layout_ psetting
-let coq_layout = _pretty_layout coqsetting
+let coq_layout = _pretty_layout (* detailssetting *) coqsetting

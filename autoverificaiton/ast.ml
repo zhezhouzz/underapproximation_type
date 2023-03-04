@@ -34,10 +34,26 @@ let is_bop = function
 
 open Zzdatatype.Datatype
 
+let count_qvs prop =
+  let rec aux t =
+    match t with
+    | Lit _ -> 0
+    | Implies (e1, e2) -> aux e1 + aux e2
+    | Ite (e1, e2, e3) -> aux e1 + aux e2 + aux e3
+    | Not e -> aux e
+    | And es -> List.fold_left (fun sum e -> sum + aux e) 0 es
+    | Or es -> List.fold_left (fun sum e -> sum + aux e) 0 es
+    | Iff (e1, e2) -> aux e1 + aux e2
+    | MethodPred (_, _) -> 0
+    | Forall (_, e) -> 1 + aux e
+    | Exists (_, e) -> 1 + aux e
+  in
+  aux prop
+
 let rec lit_fv m t =
   match t with
   | ACint _ | ACbool _ -> m
-  | AVar id -> StrMap.add id.x () m
+  | AVar id -> StrMap.add id.x id.ty m
   | AOp2 (_, a, b) -> lit_fv (lit_fv m a) b
 
 let _add_fv m prop =
@@ -57,15 +73,11 @@ let _add_fv m prop =
   aux m prop
 
 let add_fv fv prop =
-  let fv =
-    StrMap.to_key_list
-    @@ _add_fv
-         (StrMap.from_kv_list @@ List.map (fun name -> (name, ())) fv)
-         prop
-  in
+  let fv = StrMap.to_kv_list @@ _add_fv (StrMap.from_kv_list fv) prop in
   fv
 
-let fv prop = add_fv [] prop
+let fv prop = fst @@ List.split @@ add_fv [] prop
+let tvar_fv prop = List.map (fun (x, ty) -> { x; ty }) @@ add_fv [] prop
 
 let negate prop =
   let rec aux t =
@@ -100,10 +112,12 @@ let get_mps prop =
   let m = aux [] prop in
   List.slow_rm_dup typed_eq m
 
-let var_space prop =
+let count_mps prop = List.length @@ get_mps prop
+
+let var_space_ prop =
   let rec aux_lit s = function
     | ACint _ | ACbool _ -> s
-    | AVar x -> StrMap.add x.x () s
+    | AVar x -> StrMap.add x.x x.ty s
     | AOp2 (_, arg1, arg2) -> aux_lit (aux_lit s arg1) arg2
   in
   let rec aux s t =
@@ -116,11 +130,16 @@ let var_space prop =
     | And es -> List.fold_left aux s es
     | Or es -> List.fold_left aux s es
     | Iff (e1, e2) -> aux (aux s e1) e2
-    | Forall (x, e) -> StrMap.add x.x () (aux s e)
-    | Exists (x, e) -> StrMap.add x.x () (aux s e)
+    | Forall (x, e) -> StrMap.add x.x x.ty (aux s e)
+    | Exists (x, e) -> StrMap.add x.x x.ty (aux s e)
   in
   let m = aux StrMap.empty prop in
-  StrMap.to_key_list m
+  m
+
+let var_space prop = StrMap.to_key_list (var_space_ prop)
+
+let tvar_space prop =
+  List.map (fun (x, ty) -> { x; ty }) @@ StrMap.to_kv_list (var_space_ prop)
 
 let has_qv prop =
   let rec aux t =

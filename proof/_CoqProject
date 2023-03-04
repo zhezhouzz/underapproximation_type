@@ -1,0 +1,29 @@
+-Q . PLF
+Maps.v
+Imp.v
+Smallstep.v
+Types.v
+Stlc.v
+MoreStlc.v
+BasicConstant.v
+CoreLang.v
+NormalTypeSystem.v
+LinearContext.v
+# RefinementType.v
+CoreLangSimp.v
+NormalTypeSystemSimp.v
+TermOrdering.v
+RfTypeDef.v
+NoDup.v
+TypeClosedSimp.v
+DenotationSimp.v
+CtxErase.v
+DenotationAux.v
+TypeDisj.v
+WellFormedSimp.v
+TermMeet.v
+DenotationSpecsSimp.v
+WellFormedSpecsSimp.v
+SubtypingSimp.v
+TypingRules.v
+Soundness.v

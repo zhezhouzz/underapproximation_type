@@ -9,8 +9,7 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context
-    [ ("model", "true"); ("proof", "false"); ("timeout", "2999999") ]
+  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "19999") ]
 
 let pretty_print_model model =
   Z3.Model.to_string model |> fun s ->
@@ -31,11 +30,13 @@ exception SMTTIMEOUT
 
 let _check pre q =
   let open Check in
-  match smt_neg_and_solve ctx pre q with
+  let time_t, res = Sugar.clock (fun () -> smt_neg_and_solve ctx pre q) in
+  let () = Pp.printf "@{<bold>Solving time: %.2f@}\n" time_t in
+  match res with
   | SmtUnsat -> None
   | SmtSat model ->
-      (* Printf.printf "model:\n%s\n" @@ Z3.Model.to_string model; *)
-      (* pretty_print_model model; *)
+      Printf.printf "model:\n%s\n"
+      @@ Sugar.short_str 100 @@ Z3.Model.to_string model;
       Some model
   | Timeout -> raise SMTTIMEOUT
 
@@ -74,6 +75,8 @@ let check_implies pres a b = _check pres Prop.(Implies (a, b))
 let check_implies_multi_pre pres a_s b = _check pres Prop.(Implies (And a_s, b))
 let prop_of_ocamlexpr = Frontend.prop_of_ocamlexpr
 let prop_to_ocamlexpr = Frontend.prop_to_expr
+let lit_of_ocamlexpr = Frontend.lit_of_ocamlexpr
+let lit_to_ocamlexpr = Frontend.lit_to_expr
 let layout_prop = Frontend.layout
 let pretty_layout_prop = Frontend.pretty_layout
 let pretty_layout_lit = Frontend.pretty_layout_lit
@@ -82,4 +85,5 @@ let prop_fv = Prop.fv
 let add_prop_to_fv = Prop.add_fv
 let uqv_encoding = Encoding.uqv_encoding
 let vars_reduction = Encoding.vars_reduction
+let typeinfer = Frontend.typeinfer
 (* let peval = Simp.peval *)

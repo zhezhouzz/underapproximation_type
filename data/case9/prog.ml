@@ -1,2 +1,2 @@
-let foo (t : int_tree) =
-  match t with ILeaf -> ILeaf | INode (a, left, right) -> left
+let foo (t : int tree) : int tree =
+  match t with Leaf -> Leaf | Node (a, left, right) -> left

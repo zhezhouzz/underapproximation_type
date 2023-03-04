@@ -28,6 +28,14 @@ module StrucNA = struct
   [@@deriving sexp]
 
   type code = t list [@@deriving sexp]
+
+  let stat progs =
+    List.map
+      (fun { name; body } ->
+        let num_branches = Anormal.NormalAnormal.term_count_branches body.x in
+        let num_localvars = Anormal.NormalAnormal.term_count_localvars body.x in
+        (name, num_branches, 1 + num_localvars))
+      progs
 end
 
 module StrucOA = struct

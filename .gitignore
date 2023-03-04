@@ -1,2 +1,6 @@
+.log
 _build/
 *.out
+.result
+**/outputs/**
+**/inputs/**
