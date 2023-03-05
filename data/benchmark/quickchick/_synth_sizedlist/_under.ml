@@ -15,6 +15,7 @@ let[@library] bool_gen =
   (true : [%v: bool]) *)
 external method_predicates : t = "len" "<="
 
+let[@library] n = (true : [%v: int]) [@under]
 
 let goal =
   let s = (0 <= v : [%v: int]) [@over] in

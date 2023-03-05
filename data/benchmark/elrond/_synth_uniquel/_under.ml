@@ -1,12 +1,14 @@
 external method_predicates : t = "mem" "len" ">="
 
 
+let[@library] size1 = (true : [%v: int]) [@under]
+
 
 let goal =
 
-  let s = (v >= 0 : [%v: int]) [@over] in
-  let x = (true : [%v: int]) [@over] in
-  (len v s && fun (u : [%forall: int]) -> implies (mem v u) (u == x)
+  let size = (v >= 0 : [%v: int]) [@over] in
+  let x0 = (true : [%v: int]) [@over] in
+  (len v size && fun (u : [%forall: int]) -> implies (mem v u) (u == x0)
     : [%v: int ulist])
     [@under]
 
