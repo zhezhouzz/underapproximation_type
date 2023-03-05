@@ -27,6 +27,7 @@ def show_is_rec(is_rec, branches):
 
 def show_data(data):
     lines = []
+    print("\n")
     for (source, is_rec, res) in data:
         res = [show_source(source, res[0]), show_is_rec(is_rec, res[1])] + res[2:]
         lines.append(res)

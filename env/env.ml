@@ -122,9 +122,10 @@ let load_meta meta_fname =
             show_preprocess = get_bool "show_preprocess";
             show_typing = get_bool "show_typing";
             show_queries = get_bool "show_queries";
-            show_solving = get_bool "show_solving";
+            (* we don't need this field *)
+            show_solving = false;
             show_stat = get_bool "show_stat";
-            show_info = get_bool "show_info";
+            show_info = get_bool "show_others";
             show_debug = (try get_bool "show_debug" with _ -> false);
           }
     | "release" -> Release

@@ -5,9 +5,8 @@
         "show_preprocess": false,
         "show_typing": false,
         "show_queries": false,
-        "show_solving": false,
         "show_stat": false,
-        "show_info": false
+        "show_others": false
     },
     "logfile": ".log",
     "resfile": ".result",
