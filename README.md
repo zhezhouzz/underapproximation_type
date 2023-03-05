@@ -5,8 +5,8 @@ This is the accompanying artifact for the PLDI 2023 submission *Covering All the
 ## Getting Started Guide
 
 We recommend machines have at least 8 GB of memory and 8 GB of hard
-disk space available when building and running Docker images. These
-benchmarks were tested on MacBook Pro 14-inc, 2021, that has an Apple M1 Pro CPU with 16 GB RAM.
+disk space available when building and running Docker images. All
+benchmarks were tested on MacBook Pro 14-inc, 2021, that has an Apple M1 Pro CPU with 16 GB RAM. The estimated execition time in the rest of document also fits this setting.
 
 ### Requirements
 
@@ -70,9 +70,9 @@ The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_
 
 ## Step-by-Step Instructions
 
-In this section, we provides the instructions to evaluate our artifact. The first half of this section describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The rest of the document describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
+In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
 
-### Running Poirot Benchmarks
+### Running Benchmarks of Poirot
 
 ##### Comprehensive Scripts
 
@@ -104,6 +104,8 @@ dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/st
 ...
 ```
 
+### STLC Benchmark
+
 ### Detail Usage of Poirot
 
 ##### Commands of Poirot
@@ -123,12 +125,15 @@ $ ./main.exe print-coverage-types <config_file> <refinement_type_file>
 > will print
 
 ```
+Types to Check:
+⊢ sized_list_gen : s:{v:int | (0 <= v)}→[v:int list | (∀ u, ((len v u) => ((0 <= u) ∧ (u <= s))))]
+
 ```
 
 + Print the source code from the given file in given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the Ocaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
 
 ```
-$ ./main.exe print-source-code <saw | typed | mnf> <config_file> <source_code_file> <refinement_type_file>
+$ ./main.exe print-source-code <raw | typed | mnf> <config_file> <source_code_file> <refinement_type_file>
 ```
 
 > For example,
@@ -138,6 +143,29 @@ $ ./main.exe print-source-code <saw | typed | mnf> <config_file> <source_code_fi
 > will print
 
 ```
+[(Basic) Typed]:
+
+let rec sized_list_gen = (fun (size : int) ->
+   (let ((b : bool)) = ((size : int) == (0 : int) : bool) in
+    (if (b : bool)
+     then ((nil : int list)  : int list)
+     else
+       ((let ((b1 : bool)) =
+           ((bool_gen : unit -> bool) ((tt : unit)  : unit) : bool) in
+         (if (b1 : bool)
+          then ((nil : int list)  : int list)
+          else
+            ((let ((size1 : int)) = ((size : int) - (1 : int) : int) in
+              (let ((l : int list)) =
+                 ((sized_list_gen : int -> int list) (size1 : int) :
+                 int list) in
+               (let ((n : int)) =
+                  ((int_gen : unit -> int) ((tt : unit)  : unit) : int) in
+                ((cons : int -> int list -> int list) (n : int)
+                   (l : int list) : int list) : int list) : int list)) :
+            int list) : int list)) : int list) : int list) : int list) :
+int -> int list)
+
 ```
 
 + Type check the given source code is type safe with respect to the given refinement type (line `810` in the paper):
@@ -154,7 +182,7 @@ The result of type check is saved in the file `.result` by default. The first wo
 
 > For example,
 
-    $ ./main.exe coverage-type-check typed meta-config.json data/benchmark/quickchick/sizedlist/_prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+    $ ./main.exe coverage-type-check meta-config.json data/benchmark/quickchick/sizedlist/_prog.ml data/benchmark/quickchick/sizedlist/_under.ml
 
 > The content of `.result` would be:
 
@@ -165,15 +193,14 @@ true & sized_list_gen & $4$ & $12$ & $2$ & $11$ & $(7, 9)$ & $0.38(0.03)$
 You can also turn on the `debug_info.show_typing` in the configuration file (`meta-config.json`) to show the each step of type check. The details about the configuration file is the section [Configuration of Poirot](#configuration-of-poirot).
 
 ```
-Type Infer:
 ...
 
 Subtyping Check:
-...
+size!0:{v:int | (0 <= v)},sized_list_gen:s:{v:int | (0 <= v)}→[v:int list | ((s < size!0) ∧ (s >= 0) ∧ (∀ u, ((len v u) => ((0 <= u) ∧ (u <= s)))))],b:[v:bool | ((v => (size!0 == 0)) ∧ ((size!0 == 0) => v))],
+⊢ [v:int list | (∃ b!14, (∃ x!8, (∃ b!15, (∃ x!9, (∃ b1!7, (∃ a!15, (∃ b!16, (∃ x!10, (∃ b!17, (∃ size1!6, (∃ l!5, (∃ x!11, (∃ n!2, (∃ a!16, (∃ x!12, (∃ a!17, (∃ a!18, ((b ∧ (len x!8 0) ∧ (len v 0)) ∨ ((¬ b) ∧ ((b1!7 ∧ (len x!10 0) ∧ (len v 0)) ∨ ((¬ b1!7) ∧ ((size!0 - 1) == size1!6) ∧ (size1!6 < size!0) ∧ (size1!6 >= 0) ∧ (∀ u, ((len l!5 u) => ((0 <= u) ∧ (u <= size1!6)))) ∧ (len l!5 a!17) ∧ (∀ u, (((1 + a!17) == u) => (len x!12 u))) ∧ (len l!5 a!18) ∧ (∀ u, (((1 + a!18) == u) => (len v u))))))))))))))))))))))))] <: [v:int list | (∀ u, ((len v u) => ((0 <= u) ∧ (u <= size!0))))]
 
 Task 1, type check succeeded
 ```
-
 
 ##### Configuration of Poirot
 
@@ -192,49 +219,30 @@ outputs results in JSON format to some output directory.
 OCaml primitives, including constants, various arithmetic operators, and data constructors for a
 range of datatypes(line `813` to `815` in the paper).
 
+##### Input File Formats
+
+**Poirot** expects both an input OCaml code listing and an assertion
+file. The input code listing is given as a specially formatted
+OCaml source file with certain restrictions, and looks as follows:
+
+```c
+(* The library signature. *)
+module type DT_NAME = sig
+  type TP_NAME
+  ...
+  val VAR: FUNC_TP
+  ...
+end
+
+(* The type of the client function. *)
+val VAR: FUNC_TP
+
+(* The client implementation. *)
+let [rec] VAR (VAR: ARG_TP) ... = EXPR
+```
+
 ### Running Coq Proofs
 
 The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof` directory. These proofs may be executed by running `make`, which may take about `10` min.
 
-### Proof Readme
-
-## Details Explianation
-
-The first half of this section describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The rest of the document describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
-
-## Example
-
-- Print the refinement types in the given file.
-
-```
-# dune exec -- bin/main.exe print-coverage-types meta-config.json data/benchmark/quickchick/sizedlist/_under.ml
-```
-
-- Type check a program agaisnt the given type.
-  + The file `meta-config.json` contain the configurations of Poirot.
-  + The file `data/benchmark/quickchick/sizedlist/prog.ml` contains the target program to be verified.
-  + The file `data/benchmark/quickchick/sizedlist/_under.ml` contains the coverage refinement types.
-  + By default, the verification result and statistics will be saved in the file `.result`.
-  + Set the field `debug_info.show_typing` in `meta-config.json` as `true` to show the typing details.
-
-```
-# dune exec -- bin/main.exe under-type-check meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
-```
-
-## Benchmarks
-
-```
-# python3 scripts/get_table1.py
-```
-
-when add the `verbose` flag, the script will print commands of each benchmark.
-
-```
-# python3 scripts/get_table1.py verbose
-```
-
-## Lines of Code
-
-```
-git ls-files | grep .ml | grep -v data | xargs wc -l
-```
+### Proof Readme of **λ<sup>TG</sup>**
