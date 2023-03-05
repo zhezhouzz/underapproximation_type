@@ -1,4 +1,4 @@
-let[@library] gt_eq_int_gen =
+(* let[@library] gt_eq_int_gen =
   let (x : [%over: int]) = (true : [%v: int]) in
   (true : [%v: int])
 
@@ -12,10 +12,12 @@ let[@library] subs =
 
 let[@library] bool_gen =
   let (dummy : [%over: unit]) = (true : [%v: unit]) in
-  (true : [%v: bool])
+  (true : [%v: bool]) *)
+external method_predicates : t = "len" "<="
 
 
 let goal =
-  let (s : [%over: int]) = (0 <= v : [%v: int]) in
+  let s = (0 <= v : [%v: int]) [@over] in
   (fun (u : [%forall: int]) -> implies (len v u) (0 <= u && u <= s)
     : [%v: int list])
+    [@under]

@@ -82,9 +82,9 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
 The following scripts run the benchmark suite displayed in Table 2 of the paper:
 
-    $ python3 ???
+    $ python3 scripts/get_table2.py
 
-The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in ??.
+The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
 
     $ python3 scripts/run_stlc.py
 
@@ -105,6 +105,26 @@ dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/st
 ```
 
 ### STLC Benchmark
+
+The STLC is a new benchmarks suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a details explaination in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Beside the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library function in the QuickChick.
+
+The expected expiroment result is shown in the following table. The meaning of the table is the same with the Table 1 in the paper (see "benchmarks" paragraph from line `822`), where we use "▲" indicates these functions are from the STLC benchmark.
+
+|                        | #Branch   | #LocalVar   | #MP   | #Query   | (max. #∀,#∃)   | total (avg. time)(s)   |
+|------------------------|-----------|-------------|-------|----------|----------------|------------------------|
+| nonderter_dec ▲        | 2         | 4           | 1     | 5        | (4,2)          | 0.10(0.02)             |
+| gen_const ▲            | 2         | 5           | 2     | 3        | (4,2)          | 0.05(0.02)             |
+| type_eq_size ▲         | 6†        | 7           | 5     | 9        | (10,9)         | 35.93(3.99)            |
+| type_eq ▲              | 2         | 6           | 2     | 5        | (5,2)          | 0.10(0.02)             |
+| gen_type_size ▲        | 3†        | 10          | 1     | 15       | (10,12)        | 0.48(0.03)             |
+| gen_type ▲             | 2         | 5           | 1     | 3        | (4,2)          | 0.05(0.02)             |
+| vars_with_type_size ▲  | 5†        | 12          | 7     | 13       | (12,8)         | 7.44(0.57)             |
+| vars_with_type ▲       | 2         | 6           | 3     | 6        | (5,2)          | 0.48(0.08)             |
+| or_var_in_typectx ▲    | 3         | 7           | 4     | 4        | (5,2)          | 0.05(0.01)             |
+| combine_terms ▲        | 3         | 9           | 6     | 8        | (6,5)          | 0.14(0.02)             |
+| gen_term_no_app_size ▲ | 3†        | 13          | 10    | 20       | (14,15)        | 4.35(0.22)             |
+| gen_term_no_app ▲      | 2†        | 6           | 3     | 5        | (5,2)          | 0.06(0.01)             |
+| gen_term_size ▲        | 4†        | 24          | 9     | 50       | (27,27)        | 142.93(2.86)           |
 
 ### Detail Usage of Poirot
 
@@ -130,7 +150,7 @@ Types to Check:
 
 ```
 
-+ Print the source code from the given file in given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the Ocaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
++ Print the source code from the given file in given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
 
 ```
 $ ./main.exe print-source-code <raw | typed | mnf> <config_file> <source_code_file> <refinement_type_file>
@@ -221,25 +241,62 @@ range of datatypes(line `813` to `815` in the paper).
 
 ##### Input File Formats
 
-**Poirot** expects both an input OCaml code listing and an assertion
-file. The input code listing is given as a specially formatted
-OCaml source file with certain restrictions, and looks as follows:
+The source code file expected by **Poirot** is simply a OCaml functions listing. Currently, **Poirot** handles only a subset of OCaml, it does not handle features involving references and effects, parametric polymorphism, or concurrency. Additionally, all functions should be annotated with precise input and output type; all left-hand-side variable in the let binding should be annotated with its precise type.
+
+The refinement type file expected by **Poirot** is also a OCaml source code file with specially formatted:
 
 ```c
-(* The library signature. *)
-module type DT_NAME = sig
-  type TP_NAME
-  ...
-  val VAR: FUNC_TP
-  ...
-end
+(* The method predicates used in the current benchmark *)
+external method_predicates : t = "NAME" "NAME" "NAME" ...
 
-(* The type of the client function. *)
-val VAR: FUNC_TP
+(* The refinement type of the library function NAME, which doesn't need to be type check *)
+let[@library] NAME = UNDER_APPR_RTY
 
-(* The client implementation. *)
-let [rec] VAR (VAR: ARG_TP) ... = EXPR
+...
+
+(* The refinement type of the function NAME, which needs to be type check *)
+let NAME = UNDER_APPR_RTY
+
+...
 ```
+
+where `NAME` is simply a string, the syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonyms of coverage type) is similar with the OCaml let expression but with Attributes:
+
+```c
+VAR:=string
+OCAML_TYPE:= the OCmal type
+
+METHOD_PREDICATE := the method predicate
+OP := "==" | "!=" | "+" | "-" | "<" | ">"
+
+TYPED_QUANTIFIER := "[%forall: OCAML_TYPE]" | "[exists: OCAML_TYPE]"
+
+PROP :=
+| "METHOD_PREDICATE VAR ..."
+| "VAR OP VAR"
+| "implies PROP PROP"
+| "iff PROP PROP"
+| "PROP && PROP"
+| "PROP || PROP"
+| "not PROP"
+| "fun (VAR : TYPED_QUANTIFIER) -> PROP"
+
+UNDER_APPR_BASE_RTY := "(PROP : [%VAR: OCAML_TYPE]) [@under]"
+
+OVER_APPR_BASE_RTY := "(PROP : [%VAR: OCAML_TYPE]) [@over]"
+
+UNDER_APPR_RTY :=
+| UNDER_APPR_BASE_RTY
+| "let VAR = OVER_APPR_BASE_RTY in UNDER_APPR_RTY"
+| "let VAR = UNDER_APPR_BASE_RTY in UNDER_APPR_RTY"
+
+```
+where the `METHOD_PREDICATE` is the method predcicates introduced in the first line of the file; the quantifers in the first-order logic (FOL) proposition `PROP` is typed (`TYPED_QUANTIFIER`).
+
+Currently, the `OCAML_TYPE` supported by the **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
+
+The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. We use the let binding to represent the argument type and use the body of the let expression to represent the return type.
+
 
 ### Running Coq Proofs
 

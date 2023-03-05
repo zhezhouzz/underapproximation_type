@@ -1,3 +1,5 @@
+external method_predicates : t = "len" "<="
+(* 
 let[@library] int_gen =
   let (dummy : [%over: unit]) = (true : [%v: unit]) in
   (true : [%v: int])
@@ -12,14 +14,16 @@ let[@library] subs =
 
 let[@library] bool_gen =
   let (dummy : [%over: unit]) = (true : [%v: unit]) in
-  (true : [%v: bool])
+  (true : [%v: bool]) *)
 
 let[@library] s01 = 
-   (true : [%v: int])
+   (true : [%v: int]) [@under]
 
 let[@library] s = 
-   (true : [%v: int])   
+   (true : [%v: int]) [@under]  
+
 let goal =
-  let (s : [%over: int]) = (0 <= v : [%v: int]) in
+  let s = (0 <= v : [%v: int]) [@over] in
   (fun (u : [%forall: int]) -> implies (len v u) (0 <= u && u <= s)
     : [%v: int tree])
+    [@under]
