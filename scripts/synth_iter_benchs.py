@@ -6,7 +6,7 @@ import json
 meta_config_file = "meta-config.json"
 
 names = [
-    # "UniqueList",
+    "UniqueList",
     "SizedList",
     "SortedList",
     "SizedTree",
@@ -25,11 +25,13 @@ def get_info_from_name(tab, name):
     return spath
 
 def init ():
+    resfile = None
     benchmark_table = None
     with open (meta_config_file) as f:
         j = json.load(f)
+        resfile = j['resfile']
         benchmark_table_file = j['benchmark_table_file']
         print (benchmark_table_file)
         with open (benchmark_table_file) as f:
             benchmark_table = json.load(f)
-    return benchmark_table
+    return benchmark_table, resfile
