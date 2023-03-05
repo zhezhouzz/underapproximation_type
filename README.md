@@ -13,7 +13,7 @@ benchmarks were tested on MacBook Pro 14-inc, 2021, that has an Apple M1 Pro CPU
 This artifact is built as a Docker image. Before proceeding, ensure
 Docker is installed. (On *nix, `sudo docker run hello-world` will test
 your installation.) If Docker is not installed, install it via the
-[official installation guide](https://docs.docker.com/get-docker/). This guide was tested using Docker version `20.10.23**, but any contemporary Docker version is expected to work.
+[official installation guide](https://docs.docker.com/get-docker/). This guide was tested using Docker version `20.10.23`, but any contemporary Docker version is expected to work.
 
 ### Using the Pre-Built Docker Image
 
@@ -28,7 +28,7 @@ directory containing the Dockerfile and tell Docker to build:
 
     $ docker build . --tag poirot23/poirot:pldi-2023
 
-This step may take a long time (over `30` min).
+This step may take a long time (about `30` min).
 
 **Resource Requirements:** Although our tool **Poirot** and the Coq formalization doesn't have large memory usage, building the docker image needs more than `32GB` RAM available. This memory usage requirement comes from the then installation of the SMT solver `z3` (https://github.com/Z3Prover/z3).
 The memory error can be fixed by increasing the memory limit in Docker; you can find instructions for doing so on Mac here: (https://docs.docker.com/desktop/settings/mac/#resources), for Windows here: (https://docs.docker.com/desktop/settings/windows/#resources), and for Linux here: (https://docs.docker.com/desktop/settings/linux/#resources). The pre-built docker image is built on a Linux machine having Intel i7-8700 CPU @ 3.20GHz with `64GB` of RAM.
@@ -260,20 +260,30 @@ let NAME = UNDER_APPR_RTY
 ...
 ```
 
-where `NAME` is simply a string, the syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonyms of coverage type) is similar with the OCaml let expression but with Attributes:
+where `NAME` is simply a string.
+
+The method predicates are predefined uninterrupted functions that capture non-trivial datatype shape properties (see line `815` to `821` in the paper). The semantics of the method predicates are define in the file `data/predefined/axioms_of_predicates.ml`.
+
+The syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonyms of coverage type) is similar with the OCaml let expression but with [attributes](https://v2.ocaml.org/manual/attributes.html):
 
 ```c
-VAR:=string
+VAR := string
 OCAML_TYPE:= the OCmal type
 
 METHOD_PREDICATE := the method predicate
 OP := "==" | "!=" | "+" | "-" | "<" | ">"
 
-TYPED_QUANTIFIER := "[%forall: OCAML_TYPE]" | "[exists: OCAML_TYPE]"
+TYPED_QUANTIFIER := "[%forall: OCAML_TYPE]" | "[%exists: OCAML_TYPE]"
+
+LIT :=
+| "true"
+| "false"
+| VAR
+| "VAR OP VAR"
 
 PROP :=
-| "METHOD_PREDICATE VAR ..."
-| "VAR OP VAR"
+| LIT
+| "METHOD_PREDICATE LIT ..."
 | "implies PROP PROP"
 | "iff PROP PROP"
 | "PROP && PROP"
