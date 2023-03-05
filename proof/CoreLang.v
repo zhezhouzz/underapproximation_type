@@ -201,61 +201,10 @@ Inductive step : tm -> tm -> Prop :=
 | ST_Random: forall n:nat, trandom --> (tvalue (vconst (cnat n)))
 | ST_Lete1: forall x e1 e1' e, e1 --> e1' -> (tlete x e1 e) --> (tlete x e1' e)
 | ST_Lete2: forall x v1 e, (tlete x (tvalue v1) e) --> (subst x v1 e)
-| ST_LetOp: forall x op n1 n2 e,
-    (tletbiop x op (vconst (cnat n1)) (vconst (cnat n2)) e) --> (subst x (vconst (apply_op op n1 n2)) e)
-| ST_LetOpExn1: forall x op v1 e,
-    (tletbiop x op v1 vexn e) --> (tvalue vexn)
-| ST_LetOpExn2: forall x op v2 e,
-    (tletbiop x op vexn v2 e) --> (tvalue vexn)
-| ST_LetS: forall x n e,
-    (tlets x (vconst (cnat n)) e) --> (subst x (vconst (cnat (n + 1))) e)
-| ST_LetSExn: forall x e,
-    (tlets x vexn e) --> (tvalue vexn)
-| ST_LetCons: forall x T c1 c2 e,
-    (tletcons x T (vconst c1) (vconst c2) e) --> (subst x (vconst (ccons T c1 c2)) e)
-| ST_LetConsExn1: forall x T v1 e,
-    (tletcons x T v1 vexn e) --> (tvalue vexn)
-| ST_LetConsExn2: forall x T v2 e,
-    (tletcons x T vexn v2 e) --> (tvalue vexn)
-| ST_LetNode: forall x T c1 c2 c3 e,
-    (tletnode x T (vconst c1) (vconst c2) (vconst c3) e) --> (subst x (vconst (cnode T c1 c2 c3)) e)
-| ST_LetNodeExn1: forall x T v1 v2 e,
-    (tletnode x T v1 v2 vexn e) --> (tvalue vexn)
-| ST_LetNodeExn2: forall x T v1 v3 e,
-    (tletnode x T v1 vexn v3 e) --> (tvalue vexn)
-| ST_LetNodeExn3: forall x T v2 v3 e,
-    (tletnode x T vexn v2 v3 e) --> (tvalue vexn)
-| ST_LetAppLam: forall T x y v_x e1 e,
-    (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
-| ST_LetAppFix: forall f T_f T x y v_x e1 e,
-    (tletapp y ((vfix f T_f x T e1)) v_x e) --> tlete y (subst f (vfix f T_f x T e1) (subst x v_x e1)) e
-| ST_LetAppExn1: forall y v_x e,
-    (tletapp y vexn v_x e) --> (tvalue vexn)
-| ST_Matchbtrue: forall e1 e2,
-    (tmatchb (vconst (cbool true)) e1 e2) --> e1
-| ST_Matchbfalse: forall e1 e2,
-    (tmatchb (vconst (cbool false)) e1 e2) --> e2
-| ST_MatchbExn: forall e1 e2,
-    (tmatchb vexn e1 e2) --> (tvalue vexn)
-| ST_Matchno: forall e1 y e2,
-    (tmatchn (vconst (cnat 0)) e1 y e2) --> e1
-| ST_Matchns: forall n e1 y e2,
-    (tmatchn (vconst (cnat (1 + n))) e1 y e2) --> (subst y (vconst (cnat n)) e2)
-| ST_MatchnExn: forall e1 y e2,
-    (tmatchn vexn e1 y e2) --> (tvalue vexn)
-| ST_Matchlnil: forall T e1 h t e2,
-    (tmatchl T (vconst (cnil T)) e1 h t e2) --> e1
-| ST_Matchlcons: forall T ch ct e1 h t e2,
-    (tmatchl T (vconst (ccons T ch ct)) e1 h t e2) --> (subst t (vconst ct) (subst h (vconst ch) e2))
-| ST_MatchlExn: forall T e1 h t e2,
-    (tmatchl T vexn e1 h t e2) --> (tvalue vexn)
-| ST_Matchtleaf: forall T e1 root lt rt e2,
-    (tmatcht T (vconst (cleaf T)) e1 root lt rt e2) --> e1
-| ST_Matchtnode: forall T croot clt crt e1 root lt rt e2,
-    (tmatcht T (vconst (cnode T croot clt crt)) e1 root lt rt e2) --> (subst rt (vconst crt) (subst lt (vconst clt) (subst root (vconst croot) e2)))
-| ST_MatchExn: forall T e1 root lt rt e2,
-    (tmatcht T vexn e1 root lt rt e2) --> (tvalue vexn)
-
+| ST_LetAppLam: forall T x y v_x e1 e, (tletapp y ((vlam x T e1)) v_x e) --> tlete y (subst x v_x e1) e
+| ST_LetAppFix: forall f T_f T x y v_x e1 e, (tletapp y ((vfix f T_f x T e1)) v_x e) --> tlete y (subst f (vfix f T_f x T e1) (subst x v_x e1)) e
+| ST_Matchb_true: forall e1 e2, (tmatchb true e1 e2) --> e1
+| ST_Matchb_false: forall e1 e2, (tmatchb false e1 e2) --> e2
 where "t1 '-->' t2" := (step t1 t2).
 
 Notation multistep := (multi step).

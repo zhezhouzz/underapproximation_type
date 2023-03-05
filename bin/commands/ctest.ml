@@ -65,36 +65,94 @@ let parse_to_anormal =
         in
         ())
 
-(* let parsing_over_refinements = *)
-(*   Command.basic ~summary:"parsing_over_refinements" *)
-(*     Command.Let_syntax.( *)
-(*       let%map_open refine_file = anon ("source file" %: regular_file) in *)
-(*       fun () -> *)
-(*         let () = Config.load_default () in *)
-(*         let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in *)
-(*         let refinements = *)
-(*           List.map ~f:(fun ((_, a), b) -> (a, b)) *)
-(*           @@ Structure.refinement_of_ocamlstruct Overty.overtype_of_ocamlexpr x *)
-(*         in *)
-(*         let () = *)
-(*           Printf.printf "%s" *)
-(*             (Structure.layout_refinements Overty.pretty_layout refinements) *)
-(*         in *)
-(*         ()) *)
+type format = Raw | Typed | MonadicNormalForm
+
+let print_source_code meta_config_file source_file refine_file format () =
+  let () = Env.load_meta meta_config_file in
+  let () = Config.load_normal () in
+  let notations, libs, refinements =
+    Inputstage.load_user_defined_under_refinments refine_file
+  in
+  let open Typecheck in
+  let open Languages in
+  let ctx =
+    NSimpleTypectx.(
+      List.fold_left
+        ~f:(fun ctx (x, ty) -> add_to_right ctx (x, UT.erase ty))
+        ~init:empty libs)
+  in
+  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let msize = Env.get_max_printing_size () in
+  let code = Struc.prog_of_ocamlstruct code in
+  match format with
+  | Raw ->
+      let () = Printf.printf "[Raw]:\n\n%s\n\n" @@ Struc.layout code in
+      ()
+  | _ -> (
+      let code = Termcheck.struc_check ctx code in
+      match format with
+      | Typed ->
+          let () =
+            Printf.printf "[(Basic) Typed]:\n\n%s\n\n" @@ Struc.layout code
+          in
+          ()
+      | _ ->
+          let code = Trans.struc_term_to_nan code in
+          let () =
+            Printf.printf "[(Basic) Typed Monadic Normal Form]:\n\n%s\n\n"
+            @@ StrucNA.layout code
+          in
+          ())
+
+let print_source_code_raw =
+  Command.basic ~summary:"print raw source code"
+    Command.Let_syntax.(
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
+      and source_file = anon ("source_code_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
+      print_source_code meta_config_file source_file refine_file Raw)
+
+let print_source_code_typed =
+  Command.basic ~summary:"print typed source code"
+    Command.Let_syntax.(
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
+      and source_file = anon ("source_code_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
+      print_source_code meta_config_file source_file refine_file Typed)
+
+let print_source_code_mnf =
+  Command.basic ~summary:"print typed source code in MNF"
+    Command.Let_syntax.(
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
+      and source_file = anon ("source_code_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
+      print_source_code meta_config_file source_file refine_file
+        MonadicNormalForm)
+
+let print_source_code =
+  Command.group ~summary:"print source code"
+    [
+      ("raw", print_source_code_raw);
+      ("typed", print_source_code_typed);
+      ("mnf", print_source_code_mnf);
+    ]
 
 let print_coverage_types =
-  Command.basic ~summary:"parsing_under_refinements"
+  Command.basic ~summary:"print coverage types from the given file"
     Command.Let_syntax.(
-      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
-      and refine_file = anon ("source file" %: regular_file) in
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
       fun () ->
         let () = Env.load_meta meta_config_file in
+        let () = Config.load_normal () in
         let notations, libs, refinements =
           Inputstage.load_under_refinments refine_file
         in
         let () =
-          Pp.printf "@{<bold>Library Function Types:@}\n%s"
-            Languages.(Struc.layout_refinements UT.pretty_layout libs)
+          if Int.equal 0 @@ List.length libs then ()
+          else
+            Pp.printf "@{<bold>Library Function Types:@}\n%s"
+              Languages.(Struc.layout_refinements UT.pretty_layout libs)
         in
         let () =
           Pp.printf "@{<bold>Types to Check:@}\n%s"
@@ -130,14 +188,15 @@ let parsing_type_decls =
 (*         ()) *)
 
 let under_type_check =
-  Command.basic ~summary:"under_type_check"
+  Command.basic ~summary:"coverage type check"
     Command.Let_syntax.(
-      let%map_open meta_config_file = anon ("meta config file" %: regular_file)
+      let%map_open meta_config_file = anon ("meta_config_file" %: regular_file)
       (* and config_file = anon ("config file" %: regular_file) *)
-      and source_file = anon ("source file" %: regular_file)
-      and refine_file = anon ("refine_file" %: regular_file) in
+      and source_file = anon ("source_code_file" %: regular_file)
+      and refine_file = anon ("coverage_type_file" %: regular_file) in
       fun () ->
         let () = Env.load_meta meta_config_file in
+        let () = Config.load_normal () in
         let () = Config.load refine_file in
         let notations, libs, refinements =
           Inputstage.load_user_defined_under_refinments refine_file
@@ -277,20 +336,11 @@ let qcheck =
         ())
 
 let test =
-  Command.group ~summary:"test"
+  Command.group ~summary:"Poirot"
     [
-      ("parse-to-anormal", parse_to_anormal);
-      ("parse-to-typed-term", parse_to_typed_term);
-      ("parse-structure", parsing_structure);
-      (* ("parse-over-refinements", parsing_over_refinements); *)
       ("print-coverage-types", print_coverage_types);
-      ("parsing-type-decls", parsing_type_decls);
-      (* ("over-type-check", over_type_check); *)
-      ("under-type-check", under_type_check);
-      (* ("under-post-shrink", under_post_shrink); *)
-      (* ("test-mk-features", test_mk_features); *)
-      ("qcheck", qcheck);
-      ("init", init) (* ("under-subtype-check", under_subtype_check); *);
+      ("coverage-type-check", under_type_check);
+      ("print-source-code", print_source_code);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]

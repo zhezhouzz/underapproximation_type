@@ -1,0 +1,52 @@
+DIGEST 7b6c01f4057fbda3422f2114984384e2
+FPLF.BasicConstant
+mod 54:66 <> BasicConstant
+ind 82:89 BasicConstant basic_ty
+constr 105:108 BasicConstant TNat
+constr 127:131 BasicConstant TBool
+constr 149:153 BasicConstant TList
+constr 183:187 BasicConstant TTree
+R114:121 PLF.BasicConstant <> basic_ty:1 ind
+R136:143 PLF.BasicConstant <> basic_ty:1 ind
+R166:169 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R158:165 PLF.BasicConstant <> basic_ty:1 ind
+R170:177 PLF.BasicConstant <> basic_ty:1 ind
+R200:203 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R192:199 PLF.BasicConstant <> basic_ty:1 ind
+R204:211 PLF.BasicConstant <> basic_ty:1 ind
+ind 227:234 BasicConstant constant
+constr 250:253 BasicConstant cnil
+constr 281:285 BasicConstant cleaf
+constr 313:317 BasicConstant ccons
+constr 369:373 BasicConstant cnode
+constr 437:441 BasicConstant cbool
+constr 465:468 BasicConstant cnat
+R264:267 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R256:263 PLF.BasicConstant BasicConstant basic_ty ind
+R268:275 PLF.BasicConstant <> constant:3 ind
+R296:299 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R288:295 PLF.BasicConstant BasicConstant basic_ty ind
+R300:307 PLF.BasicConstant <> constant:3 ind
+R328:331 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R320:327 PLF.BasicConstant BasicConstant basic_ty ind
+R340:343 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R332:339 PLF.BasicConstant <> constant:3 ind
+R352:355 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R344:351 PLF.BasicConstant <> constant:3 ind
+R356:363 PLF.BasicConstant <> constant:3 ind
+R384:387 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R376:383 PLF.BasicConstant BasicConstant basic_ty ind
+R396:399 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R388:395 PLF.BasicConstant <> constant:3 ind
+R408:411 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R400:407 PLF.BasicConstant <> constant:3 ind
+R420:423 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R412:419 PLF.BasicConstant <> constant:3 ind
+R424:431 PLF.BasicConstant <> constant:3 ind
+R448:451 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R444:447 Coq.Init.Datatypes <> bool ind
+R452:459 PLF.BasicConstant <> constant:3 ind
+R475:478 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R472:474 Coq.Init.Datatypes <> nat ind
+R479:486 PLF.BasicConstant <> constant:3 ind
+R494:506 PLF.BasicConstant BasicConstant <> mod

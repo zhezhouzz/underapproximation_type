@@ -19,7 +19,8 @@ names = [
     "SizedHeap",
     "LeftistHeap",
     "SizedSet",
-    "UnbalanceSet"]
+    "UnbalanceSet"
+]
 
 stlc_names = [
     "nonderter_dec",

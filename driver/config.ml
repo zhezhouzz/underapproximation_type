@@ -83,6 +83,26 @@ let get_measure l =
   | l when List.exists (String.equal "size") l -> "size"
   | _ -> failwith "multiple measurement"
 
+let load_normal () =
+  let prim_path = Env.get_prim_path () in
+  let () =
+    Abstraction.Prim.init_normal
+      ( Inputstage.load_type_decls prim_path.type_decls,
+        Inputstage.load_normal_refinements prim_path.normalp )
+  in
+  ()
+
+let load_basic () =
+  let prim_path = Env.get_prim_path () in
+  let open Abstraction in
+  let under_basicr =
+    match Inputstage.load_under_refinments prim_path.under_basicp with
+    | [], underr, [] -> underr
+    | _, _, _ -> failwith "wrong under prim"
+  in
+  let () = Prim.init_refinement ([], under_basicr, [], [], []) in
+  ()
+
 let load source_file =
   let prim_path = Env.get_prim_path () in
   let all_mps = Inputstage.load_user_defined_mps source_file in
@@ -128,15 +148,7 @@ let load source_file =
   in
   (* let () = failwith "end" in *)
   let () =
-    Prim.init
-      ( Inputstage.load_type_decls prim_path.type_decls,
-        Inputstage.load_normal_refinements prim_path.normalp,
-        (* Inputstage.load_over_refinments prim_path.overp, *)
-        [],
-        underr,
-        rev_underr,
-        lemmas,
-        functional_lemmas )
+    Prim.init_refinement ([], underr, rev_underr, lemmas, functional_lemmas)
   in
   config := Some { all_mps; underp; measure }
 

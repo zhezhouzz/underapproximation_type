@@ -21,19 +21,17 @@ let load_ssa libs source_file =
   let code = Struc.prog_of_ocamlstruct code in
   let () =
     Env.show_debug_preprocess @@ fun _ ->
-    Printf.printf "[Before type check]:\n%s\n\n"
-    @@ short_str msize @@ Struc.layout code
+    Printf.printf "[Raw]:\n%s\n\n" @@ short_str msize @@ Struc.layout code
   in
   let code = Termcheck.struc_check ctx code in
   let () =
     Env.show_debug_preprocess @@ fun _ ->
-    Printf.printf "[Typed program]:\n%s\n\n"
-    @@ short_str msize @@ Struc.layout code
+    Printf.printf "[Typed]:\n%s\n\n" @@ short_str msize @@ Struc.layout code
   in
   let code = Trans.struc_term_to_nan code in
   let () =
     Env.show_debug_preprocess @@ fun _ ->
-    Printf.printf "[Typed A-normal from]:\n%s\n\n"
+    Printf.printf "[Typed MNF]:\n%s\n\n"
     @@ short_str msize (StrucNA.layout code)
   in
   (* let () = _failatwith __FILE__ __LINE__ "end" in *)
@@ -102,6 +100,12 @@ let load_user_defined_mps source_file =
   match Ocaml_parser.Frontend.parse ~sourcefile:source_file with
   | [] -> failwith "method predicates list is expected"
   | e :: _ -> Struc.mps_of_ocamlstruct e
+
+let load_user_defined_under_refinments_empty () =
+  let randomness_refinements =
+    Ocaml_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
+  in
+  _load_under_refinments randomness_refinements
 
 let load_user_defined_under_refinments refine_file =
   let randomness_refinements =

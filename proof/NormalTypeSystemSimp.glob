@@ -1,0 +1,1436 @@
+DIGEST eaf285e8d0682cf33c64c9a3d7ae29d6
+FPLF.NormalTypeSystemSimp
+R70:73 PLF.Maps <> <> lib
+R100:104 PLF.Types <> <> lib
+R131:139 PLF.Smallstep <> <> lib
+R166:177 PLF.CoreLangSimp <> <> lib
+R354:365 PLF.CoreLangSimp <> <> mod
+def 380:386 <> context
+R391:401 PLF.Maps <> partial_map def
+R403:404 PLF.CoreLangSimp <> ty ind
+ind 476:483 <> has_type
+constr 520:524 <> T_Exn
+constr 568:574 <> T_Value
+constr 666:671 <> T_Lete
+constr 813:819 <> T_LetOp
+constr 1069:1076 <> T_LetApp
+constr 1293:1300 <> T_Matchb
+ind 1461:1474 <> value_has_type
+constr 1514:1520 <> T_Const
+constr 1593:1596 <> T_Op
+constr 1673:1677 <> T_Var
+constr 1753:1757 <> T_Lam
+R494:497 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R487:493 PLF.NormalTypeSystemSimp <> context def
+R500:503 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R498:499 PLF.CoreLangSimp <> tm ind
+R506:509 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R504:505 PLF.CoreLangSimp <> ty ind
+R1485:1488 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1478:1484 PLF.NormalTypeSystemSimp <> context def
+R1494:1497 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1489:1493 PLF.CoreLangSimp <> value ind
+R1500:1503 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1498:1499 PLF.CoreLangSimp <> ty ind
+R1928:1935 PLF.NormalTypeSystemSimp <> has_type:3 ind
+binder 535:539 <> Gamma:5
+binder 541:541 <> T:6
+R544:551 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R564:564 PLF.NormalTypeSystemSimp <> T:6 var
+R559:562 PLF.CoreLangSimp <> texn constr
+R553:557 PLF.NormalTypeSystemSimp <> Gamma:5 var
+binder 585:589 <> Gamma:7
+binder 591:595 <> value:8
+binder 597:597 <> T:9
+R628:631 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R600:613 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R627:627 PLF.NormalTypeSystemSimp <> T:9 var
+R621:625 PLF.NormalTypeSystemSimp <> value:8 var
+R615:619 PLF.NormalTypeSystemSimp <> Gamma:7 var
+R632:639 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R662:662 PLF.NormalTypeSystemSimp <> T:9 var
+R648:653 PLF.CoreLangSimp <> tvalue constr
+R655:659 PLF.NormalTypeSystemSimp <> value:8 var
+R641:645 PLF.NormalTypeSystemSimp <> Gamma:7 var
+binder 682:686 <> Gamma:10
+binder 688:688 <> x:11
+binder 690:691 <> e1:12
+binder 693:694 <> e2:13
+binder 696:697 <> T1:14
+binder 699:700 <> T2:15
+R727:734 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R707:714 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R725:726 PLF.NormalTypeSystemSimp <> T1:14 var
+R722:723 PLF.NormalTypeSystemSimp <> e1:12 var
+R716:720 PLF.NormalTypeSystemSimp <> Gamma:10 var
+R769:776 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R735:742 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R767:768 PLF.NormalTypeSystemSimp <> T2:15 var
+R764:765 PLF.NormalTypeSystemSimp <> e2:13 var
+R745:750 PLF.Maps <> update def
+R760:761 PLF.NormalTypeSystemSimp <> T1:14 var
+R758:758 PLF.NormalTypeSystemSimp <> x:11 var
+R752:756 PLF.NormalTypeSystemSimp <> Gamma:10 var
+R777:784 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R808:809 PLF.NormalTypeSystemSimp <> T2:15 var
+R793:797 PLF.CoreLangSimp <> tlete constr
+R799:799 PLF.NormalTypeSystemSimp <> x:11 var
+R801:802 PLF.NormalTypeSystemSimp <> e1:12 var
+R804:805 PLF.NormalTypeSystemSimp <> e2:13 var
+R786:790 PLF.NormalTypeSystemSimp <> Gamma:10 var
+binder 830:834 <> Gamma:16
+binder 836:836 <> x:17
+binder 838:839 <> op:18
+binder 841:842 <> v1:19
+binder 844:845 <> v2:20
+binder 847:847 <> e:21
+R860:866 PLF.CoreLangSimp <> base_ty ind
+binder 850:851 <> T1:22
+binder 853:854 <> T2:23
+binder 856:857 <> Tx:24
+binder 869:869 <> T:25
+R902:909 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R876:889 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R900:901 PLF.NormalTypeSystemSimp <> T1:22 var
+R897:898 PLF.NormalTypeSystemSimp <> v1:19 var
+R891:895 PLF.NormalTypeSystemSimp <> Gamma:16 var
+R936:943 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R910:923 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R934:935 PLF.NormalTypeSystemSimp <> T2:23 var
+R931:932 PLF.NormalTypeSystemSimp <> v2:20 var
+R925:929 PLF.NormalTypeSystemSimp <> Gamma:16 var
+R978:985 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R955:957 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R944:951 PLF.CoreLangSimp <> ty_of_op def
+R953:954 PLF.NormalTypeSystemSimp <> op:18 var
+R960:966 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R977:977 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R958:959 PLF.NormalTypeSystemSimp <> T1:22 var
+R969:974 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R967:968 PLF.NormalTypeSystemSimp <> T2:23 var
+R975:976 PLF.NormalTypeSystemSimp <> Tx:24 var
+R1018:1025 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R986:993 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1017:1017 PLF.NormalTypeSystemSimp <> T:25 var
+R1015:1015 PLF.NormalTypeSystemSimp <> e:21 var
+R996:1001 PLF.Maps <> update def
+R1011:1012 PLF.NormalTypeSystemSimp <> Tx:24 var
+R1009:1009 PLF.NormalTypeSystemSimp <> x:17 var
+R1003:1007 PLF.NormalTypeSystemSimp <> Gamma:16 var
+R1026:1033 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1065:1065 PLF.NormalTypeSystemSimp <> T:25 var
+R1042:1049 PLF.CoreLangSimp <> tletbiop constr
+R1051:1051 PLF.NormalTypeSystemSimp <> x:17 var
+R1053:1054 PLF.NormalTypeSystemSimp <> op:18 var
+R1056:1057 PLF.NormalTypeSystemSimp <> v1:19 var
+R1059:1060 PLF.NormalTypeSystemSimp <> v2:20 var
+R1062:1062 PLF.NormalTypeSystemSimp <> e:21 var
+R1035:1039 PLF.NormalTypeSystemSimp <> Gamma:16 var
+binder 1087:1091 <> Gamma:26
+binder 1093:1093 <> y:27
+binder 1095:1097 <> v_x:28
+binder 1099:1101 <> v_f:29
+binder 1103:1104 <> e2:30
+binder 1106:1108 <> T_x:31
+binder 1110:1112 <> T_y:32
+binder 1114:1115 <> T2:33
+R1150:1157 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1122:1135 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1147:1149 PLF.NormalTypeSystemSimp <> T_x:31 var
+R1143:1145 PLF.NormalTypeSystemSimp <> v_x:28 var
+R1137:1141 PLF.NormalTypeSystemSimp <> Gamma:26 var
+R1199:1206 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1158:1171 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1184:1189 PLF.CoreLangSimp <> TArrow constr
+R1191:1193 PLF.NormalTypeSystemSimp <> T_x:31 var
+R1195:1197 PLF.NormalTypeSystemSimp <> T_y:32 var
+R1179:1181 PLF.NormalTypeSystemSimp <> v_f:29 var
+R1173:1177 PLF.NormalTypeSystemSimp <> Gamma:26 var
+R1242:1249 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1207:1214 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1240:1241 PLF.NormalTypeSystemSimp <> T2:33 var
+R1237:1238 PLF.NormalTypeSystemSimp <> e2:30 var
+R1217:1222 PLF.Maps <> update def
+R1232:1234 PLF.NormalTypeSystemSimp <> T_y:32 var
+R1230:1230 PLF.NormalTypeSystemSimp <> y:27 var
+R1224:1228 PLF.NormalTypeSystemSimp <> Gamma:26 var
+R1250:1257 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1288:1289 PLF.NormalTypeSystemSimp <> T2:33 var
+R1266:1272 PLF.CoreLangSimp <> tletapp constr
+R1274:1274 PLF.NormalTypeSystemSimp <> y:27 var
+R1276:1278 PLF.NormalTypeSystemSimp <> v_f:29 var
+R1280:1282 PLF.NormalTypeSystemSimp <> v_x:28 var
+R1284:1285 PLF.NormalTypeSystemSimp <> e2:30 var
+R1259:1263 PLF.NormalTypeSystemSimp <> Gamma:26 var
+binder 1310:1314 <> Gamma:34
+binder 1316:1316 <> v:35
+binder 1318:1319 <> e1:36
+binder 1321:1322 <> e2:37
+binder 1324:1324 <> T:38
+R1359:1366 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1331:1344 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1354:1358 PLF.CoreLangSimp <> TBool constr
+R1352:1352 PLF.NormalTypeSystemSimp <> v:35 var
+R1346:1350 PLF.NormalTypeSystemSimp <> Gamma:34 var
+R1386:1393 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1367:1374 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1385:1385 PLF.NormalTypeSystemSimp <> T:38 var
+R1382:1383 PLF.NormalTypeSystemSimp <> e1:36 var
+R1376:1380 PLF.NormalTypeSystemSimp <> Gamma:34 var
+R1413:1420 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1394:1401 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1412:1412 PLF.NormalTypeSystemSimp <> T:38 var
+R1409:1410 PLF.NormalTypeSystemSimp <> e2:37 var
+R1403:1407 PLF.NormalTypeSystemSimp <> Gamma:34 var
+R1421:1428 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1454:1454 PLF.NormalTypeSystemSimp <> T:38 var
+R1437:1443 PLF.CoreLangSimp <> tmatchb constr
+R1445:1445 PLF.NormalTypeSystemSimp <> v:35 var
+R1447:1448 PLF.NormalTypeSystemSimp <> e1:36 var
+R1450:1451 PLF.NormalTypeSystemSimp <> e2:37 var
+R1430:1434 PLF.NormalTypeSystemSimp <> Gamma:34 var
+binder 1531:1535 <> Gamma:39
+R1541:1548 PLF.CoreLangSimp <> constant ind
+binder 1538:1538 <> c:40
+R1552:1565 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1576:1586 PLF.CoreLangSimp <> ty_of_const def
+R1588:1588 PLF.NormalTypeSystemSimp <> c:40 var
+R1573:1573 PLF.NormalTypeSystemSimp <> c:40 var
+R1567:1571 PLF.NormalTypeSystemSimp <> Gamma:39 var
+binder 1607:1611 <> Gamma:41
+R1618:1621 PLF.CoreLangSimp <> biop ind
+binder 1614:1615 <> op:42
+R1625:1638 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1658:1665 PLF.CoreLangSimp <> ty_of_op def
+R1667:1668 PLF.NormalTypeSystemSimp <> op:42 var
+R1647:1651 PLF.CoreLangSimp <> vbiop constr
+R1653:1654 PLF.NormalTypeSystemSimp <> op:42 var
+R1640:1644 PLF.NormalTypeSystemSimp <> Gamma:41 var
+binder 1688:1692 <> Gamma:43
+binder 1694:1694 <> x:44
+binder 1696:1696 <> T:45
+R1715:1718 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1706:1708 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1699:1703 PLF.NormalTypeSystemSimp <> Gamma:43 var
+R1705:1705 PLF.NormalTypeSystemSimp <> x:44 var
+R1709:1712 Coq.Init.Datatypes <> Some constr
+R1714:1714 PLF.NormalTypeSystemSimp <> T:45 var
+R1719:1732 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1749:1749 PLF.NormalTypeSystemSimp <> T:45 var
+R1741:1744 PLF.CoreLangSimp <> vvar constr
+R1746:1746 PLF.NormalTypeSystemSimp <> x:44 var
+R1734:1738 PLF.NormalTypeSystemSimp <> Gamma:43 var
+binder 1768:1772 <> Gamma:46
+binder 1774:1774 <> x:47
+binder 1776:1778 <> T11:48
+binder 1780:1782 <> T12:49
+binder 1784:1786 <> t12:50
+R1830:1837 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1793:1800 PLF.NormalTypeSystemSimp <> has_type:1 ind
+R1827:1829 PLF.NormalTypeSystemSimp <> T12:49 var
+R1823:1825 PLF.NormalTypeSystemSimp <> t12:50 var
+R1803:1808 PLF.Maps <> update def
+R1818:1820 PLF.NormalTypeSystemSimp <> T11:48 var
+R1816:1816 PLF.NormalTypeSystemSimp <> x:47 var
+R1810:1814 PLF.NormalTypeSystemSimp <> Gamma:46 var
+R1838:1851 PLF.NormalTypeSystemSimp <> value_has_type:2 ind
+R1877:1882 PLF.CoreLangSimp <> TArrow constr
+R1884:1886 PLF.NormalTypeSystemSimp <> T11:48 var
+R1888:1890 PLF.NormalTypeSystemSimp <> T12:49 var
+R1860:1863 PLF.CoreLangSimp <> vlam constr
+R1865:1865 PLF.NormalTypeSystemSimp <> x:47 var
+R1867:1869 PLF.NormalTypeSystemSimp <> T11:48 var
+R1871:1873 PLF.NormalTypeSystemSimp <> t12:50 var
+R1853:1857 PLF.NormalTypeSystemSimp <> Gamma:46 var
+R1928:1935 PLF.NormalTypeSystemSimp <> has_type ind
+not 1900:1900 <> :::x_'|-'_x_'\Tin'_x
+R1986:1999 PLF.NormalTypeSystemSimp <> value_has_type ind
+not 1958:1958 <> :::x_'|-'_x_'\Vin'_x
+R2053:2060 PLF.NormalTypeSystemSimp <> has_type ind
+R2094:2107 PLF.NormalTypeSystemSimp <> value_has_type ind
+prf 2123:2142 <> eval_op_is_type_safe
+binder 2152:2156 <> Gamma:51
+binder 2158:2159 <> op:52
+R2172:2179 PLF.CoreLangSimp <> constant ind
+binder 2162:2163 <> c1:53
+binder 2165:2166 <> c2:54
+binder 2168:2169 <> c3:55
+R2193:2199 PLF.CoreLangSimp <> base_ty ind
+binder 2183:2184 <> T1:56
+binder 2186:2187 <> T2:57
+binder 2189:2190 <> T3:58
+R2226:2229 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2212:2215 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2218:2223 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2207:2211 PLF.NormalTypeSystemSimp <> Gamma:51 var
+R2216:2217 PLF.NormalTypeSystemSimp <> c1:53 var
+R2224:2225 PLF.NormalTypeSystemSimp <> T1:56 var
+R2249:2285 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2235:2238 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2241:2246 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2230:2234 PLF.NormalTypeSystemSimp <> Gamma:51 var
+R2239:2240 PLF.NormalTypeSystemSimp <> c2:54 var
+R2247:2248 PLF.NormalTypeSystemSimp <> T2:57 var
+R2305:2308 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2286:2292 PLF.CoreLangSimp <> eval_op ind
+R2294:2295 PLF.NormalTypeSystemSimp <> op:52 var
+R2297:2298 PLF.NormalTypeSystemSimp <> c1:53 var
+R2300:2301 PLF.NormalTypeSystemSimp <> c2:54 var
+R2303:2304 PLF.NormalTypeSystemSimp <> c3:55 var
+R2343:2379 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2320:2322 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2309:2316 PLF.CoreLangSimp <> ty_of_op def
+R2318:2319 PLF.NormalTypeSystemSimp <> op:52 var
+R2325:2331 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R2342:2342 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R2323:2324 PLF.NormalTypeSystemSimp <> T1:56 var
+R2334:2339 PLF.CoreLangSimp <> :::x_'t-->'_x not
+R2332:2333 PLF.NormalTypeSystemSimp <> T2:57 var
+R2340:2341 PLF.NormalTypeSystemSimp <> T3:58 var
+R2385:2388 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2391:2396 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2380:2384 PLF.Maps <> empty def
+R2389:2390 PLF.NormalTypeSystemSimp <> c3:55 var
+R2397:2398 PLF.NormalTypeSystemSimp <> T3:58 var
+prf 2621:2643 <> base_value_const_exists
+binder 2655:2655 <> T:59
+binder 2657:2657 <> v:60
+R2685:2689 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2712:2712 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2665:2668 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2670:2676 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2684:2684 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2660:2664 PLF.Maps <> empty def
+R2669:2669 PLF.NormalTypeSystemSimp <> v:60 var
+R2677:2681 PLF.CoreLangSimp <> TBase constr
+R2683:2683 PLF.NormalTypeSystemSimp <> T:59 var
+R2690:2696 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2698:2699 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 2697:2697 <> c:61
+R2701:2703 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2700:2700 PLF.NormalTypeSystemSimp <> v:60 var
+R2704:2709 PLF.CoreLangSimp <> vconst constr
+R2711:2711 PLF.NormalTypeSystemSimp <> c:61 var
+prf 2855:2872 <> nat_const_n_exists
+binder 2882:2886 <> Gamma:62
+R2892:2899 PLF.CoreLangSimp <> constant ind
+binder 2889:2889 <> c:63
+R2931:2935 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2958:2958 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2908:2911 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2913:2919 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2930:2930 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2903:2907 PLF.NormalTypeSystemSimp <> Gamma:62 var
+R2912:2912 PLF.NormalTypeSystemSimp <> c:63 var
+R2920:2924 PLF.CoreLangSimp <> TBase constr
+R2926:2929 PLF.CoreLangSimp <> TNat constr
+R2936:2943 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2950:2952 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2947:2949 Coq.Init.Datatypes <> nat ind
+binder 2944:2944 <> n:64
+R2954:2956 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2953:2953 PLF.NormalTypeSystemSimp <> c:63 var
+R2957:2957 PLF.NormalTypeSystemSimp <> n:64 var
+prf 3082:3100 <> bool_const_b_exists
+binder 3110:3114 <> Gamma:65
+R3120:3127 PLF.CoreLangSimp <> constant ind
+binder 3117:3117 <> c:66
+R3160:3164 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3188:3188 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3136:3139 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3141:3147 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3159:3159 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3131:3135 PLF.NormalTypeSystemSimp <> Gamma:65 var
+R3140:3140 PLF.NormalTypeSystemSimp <> c:66 var
+R3148:3152 PLF.CoreLangSimp <> TBase constr
+R3154:3158 PLF.CoreLangSimp <> TBool constr
+R3165:3172 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3180:3182 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3176:3179 Coq.Init.Datatypes <> bool ind
+binder 3173:3173 <> n:67
+R3184:3186 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3183:3183 PLF.NormalTypeSystemSimp <> c:66 var
+R3187:3187 PLF.NormalTypeSystemSimp <> n:67 var
+prf 3313:3330 <> nat_value_n_exists
+binder 3340:3340 <> v:68
+R3371:3375 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3407:3407 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3348:3351 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3353:3359 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3370:3370 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3343:3347 PLF.Maps <> empty def
+R3352:3352 PLF.NormalTypeSystemSimp <> v:68 var
+R3360:3364 PLF.CoreLangSimp <> TBase constr
+R3366:3369 PLF.CoreLangSimp <> TNat constr
+R3376:3382 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3384:3385 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3383:3383 <> n:69
+R3387:3390 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3406:3406 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3386:3386 PLF.NormalTypeSystemSimp <> v:68 var
+R3391:3396 PLF.CoreLangSimp <> vconst constr
+R3399:3402 PLF.CoreLangSimp <> cnat constr
+R3404:3404 PLF.NormalTypeSystemSimp <> n:69 var
+R3446:3452 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3454:3455 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3453:3453 <> c:70
+R3457:3459 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3460:3465 PLF.CoreLangSimp <> vconst constr
+R3467:3467 PLF.NormalTypeSystemSimp <> c:70 var
+R3446:3452 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3454:3455 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3453:3453 <> c:71
+R3457:3459 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3460:3465 PLF.CoreLangSimp <> vconst constr
+R3467:3467 PLF.NormalTypeSystemSimp <> c:71 var
+R3522:3539 PLF.NormalTypeSystemSimp <> nat_const_n_exists thm
+R3522:3539 PLF.NormalTypeSystemSimp <> nat_const_n_exists thm
+prf 3629:3647 <> bool_value_b_exists
+binder 3657:3657 <> v:72
+R3689:3693 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3726:3726 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3665:3668 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3670:3676 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3688:3688 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3660:3664 PLF.Maps <> empty def
+R3669:3669 PLF.NormalTypeSystemSimp <> v:72 var
+R3677:3681 PLF.CoreLangSimp <> TBase constr
+R3683:3687 PLF.CoreLangSimp <> TBool constr
+R3694:3700 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3702:3703 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3701:3701 <> b:73
+R3705:3708 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3725:3725 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3704:3704 PLF.NormalTypeSystemSimp <> v:72 var
+R3709:3714 PLF.CoreLangSimp <> vconst constr
+R3717:3721 PLF.CoreLangSimp <> cbool constr
+R3723:3723 PLF.NormalTypeSystemSimp <> b:73 var
+R3765:3771 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3773:3774 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3772:3772 <> c:74
+R3776:3778 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3779:3784 PLF.CoreLangSimp <> vconst constr
+R3786:3786 PLF.NormalTypeSystemSimp <> c:74 var
+R3765:3771 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3773:3774 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3772:3772 <> c:75
+R3776:3778 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3779:3784 PLF.CoreLangSimp <> vconst constr
+R3786:3786 PLF.NormalTypeSystemSimp <> c:75 var
+R3841:3859 PLF.NormalTypeSystemSimp <> bool_const_b_exists thm
+R3841:3859 PLF.NormalTypeSystemSimp <> bool_const_b_exists thm
+prf 3950:3970 <> base_value_cid_exists
+binder 3982:3986 <> Gamma:76
+binder 3988:3988 <> T:77
+binder 3990:3990 <> v:78
+R4018:4022 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4084:4084 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3998:4001 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4003:4009 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4017:4017 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3993:3997 PLF.NormalTypeSystemSimp <> Gamma:76 var
+R4002:4002 PLF.NormalTypeSystemSimp <> v:78 var
+R4010:4014 PLF.CoreLangSimp <> TBase constr
+R4016:4016 PLF.NormalTypeSystemSimp <> T:77 var
+R4023:4023 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4046:4051 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4083:4083 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4024:4030 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4032:4033 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 4031:4031 <> c:79
+R4035:4037 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4034:4034 PLF.NormalTypeSystemSimp <> v:78 var
+R4038:4043 PLF.CoreLangSimp <> vconst constr
+R4045:4045 PLF.NormalTypeSystemSimp <> c:79 var
+R4052:4059 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4072:4074 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4066:4071 Coq.Strings.String <> string ind
+binder 4060:4063 <> name:80
+R4076:4078 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4075:4075 PLF.NormalTypeSystemSimp <> v:78 var
+R4079:4082 PLF.NormalTypeSystemSimp <> name:80 var
+prf 4265:4284 <> nat_value_cid_exists
+binder 4294:4298 <> Gamma:81
+binder 4300:4300 <> v:82
+R4331:4382 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4453:4453 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4308:4311 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4313:4319 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4330:4330 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4303:4307 PLF.NormalTypeSystemSimp <> Gamma:81 var
+R4312:4312 PLF.NormalTypeSystemSimp <> v:82 var
+R4320:4324 PLF.CoreLangSimp <> TBase constr
+R4326:4329 PLF.CoreLangSimp <> TNat constr
+R4383:4383 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4415:4420 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4452:4452 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4384:4390 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4392:4393 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 4391:4391 <> n:83
+R4395:4398 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4414:4414 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4394:4394 PLF.NormalTypeSystemSimp <> v:82 var
+R4399:4404 PLF.CoreLangSimp <> vconst constr
+R4407:4410 PLF.CoreLangSimp <> cnat constr
+R4412:4412 PLF.NormalTypeSystemSimp <> n:83 var
+R4421:4428 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4441:4443 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4435:4440 Coq.Strings.String <> string ind
+binder 4429:4432 <> name:84
+R4445:4447 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4444:4444 PLF.NormalTypeSystemSimp <> v:82 var
+R4448:4451 PLF.NormalTypeSystemSimp <> name:84 var
+R4492:4492 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4519:4524 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4555:4555 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4493:4499 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4512:4513 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4504:4511 PLF.CoreLangSimp <> constant ind
+binder 4500:4500 <> c:85
+R4515:4517 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4518:4518 PLF.NormalTypeSystemSimp <> c:85 var
+R4525:4531 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4545:4546 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4539:4544 Coq.Strings.String <> string ind
+binder 4532:4535 <> name:86
+R4548:4550 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4551:4554 PLF.NormalTypeSystemSimp <> name:86 var
+R4492:4492 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4519:4524 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4555:4555 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4493:4499 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4512:4513 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4504:4511 PLF.CoreLangSimp <> constant ind
+binder 4500:4500 <> c:87
+R4515:4517 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4518:4518 PLF.NormalTypeSystemSimp <> c:87 var
+R4525:4531 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4545:4546 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4539:4544 Coq.Strings.String <> string ind
+binder 4532:4535 <> name:88
+R4548:4550 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4551:4554 PLF.NormalTypeSystemSimp <> name:88 var
+R4618:4635 PLF.NormalTypeSystemSimp <> nat_const_n_exists thm
+R4618:4635 PLF.NormalTypeSystemSimp <> nat_const_n_exists thm
+prf 4728:4748 <> bool_value_cid_exists
+binder 4758:4762 <> Gamma:89
+binder 4764:4764 <> v:90
+R4796:4847 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4919:4919 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4772:4775 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4777:4783 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4795:4795 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R4767:4771 PLF.NormalTypeSystemSimp <> Gamma:89 var
+R4776:4776 PLF.NormalTypeSystemSimp <> v:90 var
+R4784:4788 PLF.CoreLangSimp <> TBase constr
+R4790:4794 PLF.CoreLangSimp <> TBool constr
+R4848:4848 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4881:4886 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4918:4918 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4849:4855 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4857:4858 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 4856:4856 <> n:91
+R4860:4863 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4880:4880 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4859:4859 PLF.NormalTypeSystemSimp <> v:90 var
+R4864:4869 PLF.CoreLangSimp <> vconst constr
+R4872:4876 PLF.CoreLangSimp <> cbool constr
+R4878:4878 PLF.NormalTypeSystemSimp <> n:91 var
+R4887:4894 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4907:4909 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4901:4906 Coq.Strings.String <> string ind
+binder 4895:4898 <> name:92
+R4911:4913 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4910:4910 PLF.NormalTypeSystemSimp <> v:90 var
+R4914:4917 PLF.NormalTypeSystemSimp <> name:92 var
+R4958:4958 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4985:4990 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R5021:5021 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4959:4965 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4978:4979 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4970:4977 PLF.CoreLangSimp <> constant ind
+binder 4966:4966 <> c:93
+R4981:4983 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4984:4984 PLF.NormalTypeSystemSimp <> c:93 var
+R4991:4997 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5011:5012 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5005:5010 Coq.Strings.String <> string ind
+binder 4998:5001 <> name:94
+R5014:5016 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5017:5020 PLF.NormalTypeSystemSimp <> name:94 var
+R4958:4958 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4985:4990 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R5021:5021 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R4959:4965 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4978:4979 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4970:4977 PLF.CoreLangSimp <> constant ind
+binder 4966:4966 <> c:95
+R4981:4983 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4984:4984 PLF.NormalTypeSystemSimp <> c:95 var
+R4991:4997 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5011:5012 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5005:5010 Coq.Strings.String <> string ind
+binder 4998:5001 <> name:96
+R5014:5016 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5017:5020 PLF.NormalTypeSystemSimp <> name:96 var
+R5084:5102 PLF.NormalTypeSystemSimp <> bool_const_b_exists thm
+R5084:5102 PLF.NormalTypeSystemSimp <> bool_const_b_exists thm
+prf 5482:5499 <> has_type_inv_value
+binder 5509:5513 <> Gamma:97
+binder 5515:5515 <> v:98
+binder 5517:5517 <> T:99
+R5544:5547 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5525:5528 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5537:5542 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5520:5524 PLF.NormalTypeSystemSimp <> Gamma:97 var
+R5529:5534 PLF.CoreLangSimp <> tvalue constr
+R5536:5536 PLF.NormalTypeSystemSimp <> v:98 var
+R5543:5543 PLF.NormalTypeSystemSimp <> T:99 var
+R5553:5556 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R5558:5563 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R5548:5552 PLF.NormalTypeSystemSimp <> Gamma:97 var
+R5557:5557 PLF.NormalTypeSystemSimp <> v:98 var
+R5564:5564 PLF.NormalTypeSystemSimp <> T:99 var
+def 5629:5633 <> halts
+R5638:5639 PLF.CoreLangSimp <> tm ind
+binder 5636:5636 <> t:100
+R5653:5659 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5662:5663 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 5660:5661 <> t':101
+R5673:5676 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5665:5670 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R5664:5664 PLF.NormalTypeSystemSimp <> t:100 var
+R5671:5672 PLF.NormalTypeSystemSimp <> t':101 var
+R5688:5690 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5677:5684 PLF.CoreLangSimp <> is_value def
+R5686:5687 PLF.NormalTypeSystemSimp <> t':101 var
+R5691:5694 Coq.Init.Datatypes <> true constr
+prf 5704:5714 <> value_halts
+binder 5725:5725 <> v:102
+R5728:5732 PLF.NormalTypeSystemSimp <> halts def
+R5735:5740 PLF.CoreLangSimp <> tvalue constr
+R5742:5742 PLF.NormalTypeSystemSimp <> v:102 var
+R5772:5776 PLF.NormalTypeSystemSimp <> halts def
+R5787:5792 PLF.CoreLangSimp <> tvalue constr
+R5787:5792 PLF.CoreLangSimp <> tvalue constr
+prf 5823:5831 <> weakening
+binder 5842:5842 <> e:103
+binder 5844:5844 <> T:104
+binder 5846:5850 <> Gamma:105
+binder 5852:5857 <> Gamma':106
+R5887:5895 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5936:5936 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5864:5873 PLF.Maps <> includedin def
+R5881:5886 PLF.NormalTypeSystemSimp <> Gamma':106 var
+R5875:5879 PLF.NormalTypeSystemSimp <> Gamma:105 var
+R5914:5917 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5901:5905 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5907:5912 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5896:5900 PLF.NormalTypeSystemSimp <> Gamma:105 var
+R5906:5906 PLF.NormalTypeSystemSimp <> e:103 var
+R5913:5913 PLF.NormalTypeSystemSimp <> T:104 var
+R5924:5927 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5929:5934 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R5918:5923 PLF.NormalTypeSystemSimp <> Gamma':106 var
+R5928:5928 PLF.NormalTypeSystemSimp <> e:103 var
+R5935:5935 PLF.NormalTypeSystemSimp <> T:104 var
+R5966:5978 PLF.CoreLangSimp <> tm_mutual_rec scheme
+binder 5994:5994 <> v:107
+binder 6006:6006 <> T:108
+binder 6008:6012 <> Gamma:109
+binder 6014:6019 <> Gamma':110
+R6045:6049 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6090:6090 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6022:6031 PLF.Maps <> includedin def
+R6039:6044 PLF.NormalTypeSystemSimp <> Gamma':110 var
+R6033:6037 PLF.NormalTypeSystemSimp <> Gamma:109 var
+R6068:6071 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6055:6059 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6061:6066 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6050:6054 PLF.NormalTypeSystemSimp <> Gamma:109 var
+R6060:6060 PLF.NormalTypeSystemSimp <> v:107 var
+R6067:6067 PLF.NormalTypeSystemSimp <> T:108 var
+R6078:6081 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6083:6088 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6072:6077 PLF.NormalTypeSystemSimp <> Gamma':110 var
+R6082:6082 PLF.NormalTypeSystemSimp <> v:107 var
+R6089:6089 PLF.NormalTypeSystemSimp <> T:108 var
+binder 6107:6107 <> e:111
+binder 6119:6119 <> T:112
+binder 6121:6125 <> Gamma:113
+binder 6127:6132 <> Gamma':114
+R6158:6162 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6203:6203 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6135:6144 PLF.Maps <> includedin def
+R6152:6157 PLF.NormalTypeSystemSimp <> Gamma':114 var
+R6146:6150 PLF.NormalTypeSystemSimp <> Gamma:113 var
+R6181:6184 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6168:6172 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6174:6179 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6163:6167 PLF.NormalTypeSystemSimp <> Gamma:113 var
+R6173:6173 PLF.NormalTypeSystemSimp <> e:111 var
+R6180:6180 PLF.NormalTypeSystemSimp <> T:112 var
+R6191:6194 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6196:6201 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6185:6190 PLF.NormalTypeSystemSimp <> Gamma':114 var
+R6195:6195 PLF.NormalTypeSystemSimp <> e:111 var
+R6202:6202 PLF.NormalTypeSystemSimp <> T:112 var
+R5966:5978 PLF.CoreLangSimp <> tm_mutual_rec scheme
+binder 5994:5994 <> v:115
+binder 6006:6006 <> T:116
+binder 6008:6012 <> Gamma:117
+binder 6014:6019 <> Gamma':118
+R6045:6049 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6090:6090 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6022:6031 PLF.Maps <> includedin def
+R6039:6044 PLF.NormalTypeSystemSimp <> Gamma':118 var
+R6033:6037 PLF.NormalTypeSystemSimp <> Gamma:117 var
+R6068:6071 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6055:6059 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6061:6066 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6050:6054 PLF.NormalTypeSystemSimp <> Gamma:117 var
+R6060:6060 PLF.NormalTypeSystemSimp <> v:115 var
+R6067:6067 PLF.NormalTypeSystemSimp <> T:116 var
+R6078:6081 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6083:6088 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6072:6077 PLF.NormalTypeSystemSimp <> Gamma':118 var
+R6082:6082 PLF.NormalTypeSystemSimp <> v:115 var
+R6089:6089 PLF.NormalTypeSystemSimp <> T:116 var
+binder 6107:6107 <> e:119
+binder 6119:6119 <> T:120
+binder 6121:6125 <> Gamma:121
+binder 6127:6132 <> Gamma':122
+R6158:6162 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6203:6203 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6135:6144 PLF.Maps <> includedin def
+R6152:6157 PLF.NormalTypeSystemSimp <> Gamma':122 var
+R6146:6150 PLF.NormalTypeSystemSimp <> Gamma:121 var
+R6181:6184 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6168:6172 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6174:6179 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6163:6167 PLF.NormalTypeSystemSimp <> Gamma:121 var
+R6173:6173 PLF.NormalTypeSystemSimp <> e:119 var
+R6180:6180 PLF.NormalTypeSystemSimp <> T:120 var
+R6191:6194 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6196:6201 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R6185:6190 PLF.NormalTypeSystemSimp <> Gamma':122 var
+R6195:6195 PLF.NormalTypeSystemSimp <> e:119 var
+R6202:6202 PLF.NormalTypeSystemSimp <> T:120 var
+R6255:6271 PLF.Maps <> includedin_update thm
+R6255:6271 PLF.Maps <> includedin_update thm
+R6321:6337 PLF.Maps <> includedin_update thm
+R6321:6337 PLF.Maps <> includedin_update thm
+R6321:6337 PLF.Maps <> includedin_update thm
+R6387:6403 PLF.Maps <> includedin_update thm
+R6387:6403 PLF.Maps <> includedin_update thm
+R6453:6469 PLF.Maps <> includedin_update thm
+R6453:6469 PLF.Maps <> includedin_update thm
+R6519:6535 PLF.Maps <> includedin_update thm
+R6519:6535 PLF.Maps <> includedin_update thm
+R6585:6601 PLF.Maps <> includedin_update thm
+R6585:6601 PLF.Maps <> includedin_update thm
+R6651:6667 PLF.Maps <> includedin_update thm
+R6651:6667 PLF.Maps <> includedin_update thm
+R6789:6805 PLF.Maps <> includedin_update thm
+R6789:6805 PLF.Maps <> includedin_update thm
+R6855:6871 PLF.Maps <> includedin_update thm
+R6855:6871 PLF.Maps <> includedin_update thm
+prf 6886:6900 <> value_weakening
+binder 6911:6911 <> e:123
+binder 6913:6913 <> T:124
+binder 6915:6919 <> Gamma:125
+binder 6921:6926 <> Gamma':126
+R6956:6964 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7005:7005 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6933:6942 PLF.Maps <> includedin def
+R6950:6955 PLF.NormalTypeSystemSimp <> Gamma':126 var
+R6944:6948 PLF.NormalTypeSystemSimp <> Gamma:125 var
+R6983:6986 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6970:6974 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6976:6981 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6965:6969 PLF.NormalTypeSystemSimp <> Gamma:125 var
+R6975:6975 PLF.NormalTypeSystemSimp <> e:123 var
+R6982:6982 PLF.NormalTypeSystemSimp <> T:124 var
+R6993:6996 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6998:7003 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6987:6992 PLF.NormalTypeSystemSimp <> Gamma':126 var
+R6997:6997 PLF.NormalTypeSystemSimp <> e:123 var
+R7004:7004 PLF.NormalTypeSystemSimp <> T:124 var
+R7052:7057 PLF.CoreLangSimp <> tvalue constr
+R7033:7041 PLF.NormalTypeSystemSimp <> weakening thm
+R7052:7057 PLF.CoreLangSimp <> tvalue constr
+R7033:7041 PLF.NormalTypeSystemSimp <> weakening thm
+prf 7121:7135 <> weakening_empty
+binder 7146:7150 <> Gamma:127
+binder 7152:7152 <> t:128
+binder 7154:7154 <> T:129
+R7178:7182 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7166:7169 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7171:7176 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7161:7165 PLF.Maps <> empty def
+R7170:7170 PLF.NormalTypeSystemSimp <> t:128 var
+R7177:7177 PLF.NormalTypeSystemSimp <> T:129 var
+R7188:7191 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7193:7198 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7183:7187 PLF.NormalTypeSystemSimp <> Gamma:127 var
+R7192:7192 PLF.NormalTypeSystemSimp <> t:128 var
+R7199:7199 PLF.NormalTypeSystemSimp <> T:129 var
+R7238:7246 PLF.NormalTypeSystemSimp <> weakening thm
+R7238:7246 PLF.NormalTypeSystemSimp <> weakening thm
+prf 7277:7297 <> value_weakening_empty
+binder 7308:7312 <> Gamma:130
+binder 7314:7314 <> t:131
+binder 7316:7316 <> T:132
+R7340:7344 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7328:7331 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7333:7338 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7323:7327 PLF.Maps <> empty def
+R7332:7332 PLF.NormalTypeSystemSimp <> t:131 var
+R7339:7339 PLF.NormalTypeSystemSimp <> T:132 var
+R7350:7353 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7355:7360 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7345:7349 PLF.NormalTypeSystemSimp <> Gamma:130 var
+R7354:7354 PLF.NormalTypeSystemSimp <> t:131 var
+R7361:7361 PLF.NormalTypeSystemSimp <> T:132 var
+R7408:7412 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7421:7427 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7403:7407 PLF.Maps <> empty def
+R7413:7418 PLF.CoreLangSimp <> tvalue constr
+R7408:7412 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7421:7427 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R7403:7407 PLF.Maps <> empty def
+R7413:7418 PLF.CoreLangSimp <> tvalue constr
+R7446:7460 PLF.NormalTypeSystemSimp <> weakening_empty thm
+R7446:7460 PLF.NormalTypeSystemSimp <> weakening_empty thm
+prf 7528:7557 <> substitution_preserves_typing2
+R7575:7580 Coq.Strings.String <> string ind
+binder 7571:7571 <> s:133
+R7592:7602 PLF.Maps <> partial_map def
+R7604:7605 PLF.CoreLangSimp <> ty ind
+binder 7584:7588 <> Gamma:134
+R7613:7618 Coq.Strings.String <> string ind
+binder 7609:7609 <> x:135
+R7626:7627 PLF.CoreLangSimp <> ty ind
+binder 7622:7622 <> U:136
+R7635:7639 PLF.CoreLangSimp <> value ind
+binder 7631:7631 <> v:137
+R7647:7648 PLF.CoreLangSimp <> ty ind
+binder 7643:7643 <> T:138
+R7686:7689 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7658:7658 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7673:7677 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7679:7684 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7660:7664 PLF.Maps <> :::x_'|->'_x_';'_x not
+R7666:7667 PLF.Maps <> :::x_'|->'_x_';'_x not
+R7668:7672 PLF.NormalTypeSystemSimp <> Gamma:134 var
+R7659:7659 PLF.NormalTypeSystemSimp <> x:135 var
+R7665:7665 PLF.NormalTypeSystemSimp <> U:136 var
+R7678:7678 PLF.NormalTypeSystemSimp <> s:133 var
+R7685:7685 PLF.NormalTypeSystemSimp <> T:138 var
+R7707:7710 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7695:7698 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7700:7705 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7690:7694 PLF.Maps <> empty def
+R7699:7699 PLF.NormalTypeSystemSimp <> v:137 var
+R7706:7706 PLF.NormalTypeSystemSimp <> U:136 var
+R7716:7719 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7732:7737 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R7711:7715 PLF.NormalTypeSystemSimp <> Gamma:134 var
+R7720:7720 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R7722:7725 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R7727:7730 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R7721:7721 PLF.NormalTypeSystemSimp <> x:135 var
+R7726:7726 PLF.NormalTypeSystemSimp <> v:137 var
+R7731:7731 PLF.NormalTypeSystemSimp <> s:133 var
+R7738:7738 PLF.NormalTypeSystemSimp <> T:138 var
+R7850:7857 Coq.Strings.String <> eqb_spec thm
+R7850:7857 Coq.Strings.String <> eqb_spec thm
+R7898:7906 PLF.Maps <> update_eq thm
+R7898:7906 PLF.Maps <> update_eq thm
+R7898:7906 PLF.Maps <> update_eq thm
+R7956:7976 PLF.NormalTypeSystemSimp <> value_weakening_empty thm
+R7956:7976 PLF.NormalTypeSystemSimp <> value_weakening_empty thm
+R8016:8020 PLF.NormalTypeSystemSimp <> T_Var constr
+R8016:8020 PLF.NormalTypeSystemSimp <> T_Var constr
+R8031:8040 PLF.Maps <> update_neq thm
+R8031:8040 PLF.Maps <> update_neq thm
+R8031:8040 PLF.Maps <> update_neq thm
+R8031:8040 PLF.Maps <> update_neq thm
+prf 8067:8096 <> substitution_preserves_typing7
+R8114:8119 Coq.Strings.String <> string ind
+binder 8110:8110 <> s:139
+R8127:8128 PLF.CoreLangSimp <> tm ind
+binder 8123:8123 <> t:140
+R8138:8138 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8304:8314 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8155:8165 PLF.Maps <> partial_map def
+R8167:8168 PLF.CoreLangSimp <> ty ind
+binder 8147:8151 <> Gamma:141
+R8176:8181 Coq.Strings.String <> string ind
+binder 8172:8172 <> x:142
+R8189:8190 PLF.CoreLangSimp <> ty ind
+binder 8185:8185 <> U:143
+R8198:8202 PLF.CoreLangSimp <> value ind
+binder 8194:8194 <> v:144
+R8210:8211 PLF.CoreLangSimp <> ty ind
+binder 8206:8206 <> T:145
+R8253:8256 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8225:8225 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8240:8244 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8246:8251 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8227:8231 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8233:8234 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8235:8239 PLF.NormalTypeSystemSimp <> Gamma:141 var
+R8226:8226 PLF.NormalTypeSystemSimp <> x:142 var
+R8232:8232 PLF.NormalTypeSystemSimp <> U:143 var
+R8245:8245 PLF.NormalTypeSystemSimp <> t:140 var
+R8252:8252 PLF.NormalTypeSystemSimp <> T:145 var
+R8274:8277 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8262:8265 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8267:8272 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8257:8261 PLF.Maps <> empty def
+R8266:8266 PLF.NormalTypeSystemSimp <> v:144 var
+R8273:8273 PLF.NormalTypeSystemSimp <> U:143 var
+R8283:8286 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8297:8302 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8278:8282 PLF.NormalTypeSystemSimp <> Gamma:141 var
+R8287:8287 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8289:8292 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8294:8295 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8288:8288 PLF.NormalTypeSystemSimp <> x:142 var
+R8293:8293 PLF.NormalTypeSystemSimp <> v:144 var
+R8296:8296 PLF.NormalTypeSystemSimp <> t:140 var
+R8303:8303 PLF.NormalTypeSystemSimp <> T:145 var
+R8327:8328 PLF.CoreLangSimp <> tm ind
+binder 8322:8323 <> t0:146
+R8339:8339 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8509:8521 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8356:8366 PLF.Maps <> partial_map def
+R8368:8369 PLF.CoreLangSimp <> ty ind
+binder 8348:8352 <> Gamma:147
+R8377:8382 Coq.Strings.String <> string ind
+binder 8373:8373 <> x:148
+R8390:8391 PLF.CoreLangSimp <> ty ind
+binder 8386:8386 <> U:149
+R8399:8403 PLF.CoreLangSimp <> value ind
+binder 8395:8395 <> v:150
+R8411:8412 PLF.CoreLangSimp <> ty ind
+binder 8407:8407 <> T:151
+R8457:8460 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8428:8428 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8443:8447 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8450:8455 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8430:8434 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8436:8437 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8438:8442 PLF.NormalTypeSystemSimp <> Gamma:147 var
+R8429:8429 PLF.NormalTypeSystemSimp <> x:148 var
+R8435:8435 PLF.NormalTypeSystemSimp <> U:149 var
+R8448:8449 PLF.NormalTypeSystemSimp <> t0:146 var
+R8456:8456 PLF.NormalTypeSystemSimp <> T:151 var
+R8478:8481 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8466:8469 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8471:8476 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8461:8465 PLF.Maps <> empty def
+R8470:8470 PLF.NormalTypeSystemSimp <> v:150 var
+R8477:8477 PLF.NormalTypeSystemSimp <> U:149 var
+R8487:8490 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8502:8507 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8482:8486 PLF.NormalTypeSystemSimp <> Gamma:147 var
+R8491:8491 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8493:8496 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8498:8499 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8492:8492 PLF.NormalTypeSystemSimp <> x:148 var
+R8497:8497 PLF.NormalTypeSystemSimp <> v:150 var
+R8500:8501 PLF.NormalTypeSystemSimp <> t0:146 var
+R8508:8508 PLF.NormalTypeSystemSimp <> T:151 var
+R8538:8548 PLF.Maps <> partial_map def
+R8550:8551 PLF.CoreLangSimp <> ty ind
+binder 8530:8534 <> Gamma:152
+R8559:8564 Coq.Strings.String <> string ind
+binder 8555:8555 <> x:153
+R8572:8573 PLF.CoreLangSimp <> ty ind
+binder 8568:8568 <> U:154
+R8581:8585 PLF.CoreLangSimp <> value ind
+binder 8577:8577 <> v:155
+R8593:8594 PLF.CoreLangSimp <> ty ind
+binder 8589:8589 <> T:156
+R8647:8650 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8608:8608 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8623:8627 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8640:8645 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8610:8614 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8616:8617 PLF.Maps <> :::x_'|->'_x_';'_x not
+R8618:8622 PLF.NormalTypeSystemSimp <> Gamma:152 var
+R8609:8609 PLF.NormalTypeSystemSimp <> x:153 var
+R8615:8615 PLF.NormalTypeSystemSimp <> U:154 var
+R8628:8632 PLF.CoreLangSimp <> tlete constr
+R8634:8634 PLF.NormalTypeSystemSimp <> s:139 var
+R8636:8636 PLF.NormalTypeSystemSimp <> t:140 var
+R8638:8639 PLF.NormalTypeSystemSimp <> t0:146 var
+R8646:8646 PLF.NormalTypeSystemSimp <> T:156 var
+R8668:8671 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8656:8659 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8661:8666 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R8651:8655 PLF.Maps <> empty def
+R8660:8660 PLF.NormalTypeSystemSimp <> v:155 var
+R8667:8667 PLF.NormalTypeSystemSimp <> U:154 var
+R8677:8680 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8702:8707 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8672:8676 PLF.NormalTypeSystemSimp <> Gamma:152 var
+R8681:8681 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8683:8686 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8688:8689 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R8682:8682 PLF.NormalTypeSystemSimp <> x:153 var
+R8687:8687 PLF.NormalTypeSystemSimp <> v:155 var
+R8690:8694 PLF.CoreLangSimp <> tlete constr
+R8696:8696 PLF.NormalTypeSystemSimp <> s:139 var
+R8698:8698 PLF.NormalTypeSystemSimp <> t:140 var
+R8700:8701 PLF.NormalTypeSystemSimp <> t0:146 var
+R8708:8708 PLF.NormalTypeSystemSimp <> T:156 var
+R8822:8829 Coq.Strings.String <> eqb_spec thm
+R8822:8829 Coq.Strings.String <> eqb_spec thm
+R8870:8882 PLF.Maps <> update_shadow thm
+R8870:8882 PLF.Maps <> update_shadow thm
+R8870:8882 PLF.Maps <> update_shadow thm
+R8901:8906 PLF.NormalTypeSystemSimp <> T_Lete constr
+R8901:8906 PLF.NormalTypeSystemSimp <> T_Lete constr
+R8982:8987 PLF.NormalTypeSystemSimp <> T_Lete constr
+R8982:8987 PLF.NormalTypeSystemSimp <> T_Lete constr
+R9050:9063 PLF.Maps <> update_permute thm
+R9050:9063 PLF.Maps <> update_permute thm
+R9050:9063 PLF.Maps <> update_permute thm
+R9050:9063 PLF.Maps <> update_permute thm
+prf 9118:9147 <> substitution_preserves_typing9
+R9165:9170 Coq.Strings.String <> string ind
+binder 9161:9161 <> s:157
+R9178:9182 PLF.CoreLangSimp <> value ind
+binder 9174:9174 <> v:158
+R9192:9192 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9363:9373 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9209:9219 PLF.Maps <> partial_map def
+R9221:9222 PLF.CoreLangSimp <> ty ind
+binder 9201:9205 <> Gamma:159
+R9230:9235 Coq.Strings.String <> string ind
+binder 9226:9226 <> x:160
+R9243:9244 PLF.CoreLangSimp <> ty ind
+binder 9239:9239 <> U:161
+R9253:9257 PLF.CoreLangSimp <> value ind
+binder 9248:9249 <> v0:162
+R9265:9266 PLF.CoreLangSimp <> ty ind
+binder 9261:9261 <> T:163
+R9308:9311 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9280:9280 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9295:9299 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9301:9306 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9282:9286 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9288:9289 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9290:9294 PLF.NormalTypeSystemSimp <> Gamma:159 var
+R9281:9281 PLF.NormalTypeSystemSimp <> x:160 var
+R9287:9287 PLF.NormalTypeSystemSimp <> U:161 var
+R9300:9300 PLF.NormalTypeSystemSimp <> v:158 var
+R9307:9307 PLF.NormalTypeSystemSimp <> T:163 var
+R9330:9333 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9317:9320 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9323:9328 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9312:9316 PLF.Maps <> empty def
+R9321:9322 PLF.NormalTypeSystemSimp <> v0:162 var
+R9329:9329 PLF.NormalTypeSystemSimp <> U:161 var
+R9339:9342 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9356:9361 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9334:9338 PLF.NormalTypeSystemSimp <> Gamma:159 var
+R9343:9343 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9345:9348 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9351:9354 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9344:9344 PLF.NormalTypeSystemSimp <> x:160 var
+R9349:9350 PLF.NormalTypeSystemSimp <> v0:162 var
+R9355:9355 PLF.NormalTypeSystemSimp <> v:158 var
+R9362:9362 PLF.NormalTypeSystemSimp <> T:163 var
+R9386:9390 PLF.CoreLangSimp <> value ind
+binder 9381:9382 <> v0:164
+R9401:9401 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9576:9588 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9418:9428 PLF.Maps <> partial_map def
+R9430:9431 PLF.CoreLangSimp <> ty ind
+binder 9410:9414 <> Gamma:165
+R9439:9444 Coq.Strings.String <> string ind
+binder 9435:9435 <> x:166
+R9452:9453 PLF.CoreLangSimp <> ty ind
+binder 9448:9448 <> U:167
+R9462:9466 PLF.CoreLangSimp <> value ind
+binder 9457:9458 <> v1:168
+R9474:9475 PLF.CoreLangSimp <> ty ind
+binder 9470:9470 <> T:169
+R9520:9523 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9491:9491 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9506:9510 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9513:9518 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9493:9497 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9499:9500 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9501:9505 PLF.NormalTypeSystemSimp <> Gamma:165 var
+R9492:9492 PLF.NormalTypeSystemSimp <> x:166 var
+R9498:9498 PLF.NormalTypeSystemSimp <> U:167 var
+R9511:9512 PLF.NormalTypeSystemSimp <> v0:164 var
+R9519:9519 PLF.NormalTypeSystemSimp <> T:169 var
+R9542:9545 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9529:9532 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9535:9540 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9524:9528 PLF.Maps <> empty def
+R9533:9534 PLF.NormalTypeSystemSimp <> v1:168 var
+R9541:9541 PLF.NormalTypeSystemSimp <> U:167 var
+R9551:9554 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9569:9574 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9546:9550 PLF.NormalTypeSystemSimp <> Gamma:165 var
+R9555:9555 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9557:9560 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9563:9566 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R9556:9556 PLF.NormalTypeSystemSimp <> x:166 var
+R9561:9562 PLF.NormalTypeSystemSimp <> v1:168 var
+R9567:9568 PLF.NormalTypeSystemSimp <> v0:164 var
+R9575:9575 PLF.NormalTypeSystemSimp <> T:169 var
+R9600:9601 PLF.CoreLangSimp <> tm ind
+binder 9596:9596 <> t:170
+R9614:9614 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9787:9801 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9631:9641 PLF.Maps <> partial_map def
+R9643:9644 PLF.CoreLangSimp <> ty ind
+binder 9623:9627 <> Gamma:171
+R9652:9657 Coq.Strings.String <> string ind
+binder 9648:9648 <> x:172
+R9665:9666 PLF.CoreLangSimp <> ty ind
+binder 9661:9661 <> U:173
+R9675:9679 PLF.CoreLangSimp <> value ind
+binder 9670:9671 <> v1:174
+R9687:9688 PLF.CoreLangSimp <> ty ind
+binder 9683:9683 <> T:175
+R9734:9737 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9706:9706 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9721:9725 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9727:9732 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9708:9712 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9714:9715 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9716:9720 PLF.NormalTypeSystemSimp <> Gamma:171 var
+R9707:9707 PLF.NormalTypeSystemSimp <> x:172 var
+R9713:9713 PLF.NormalTypeSystemSimp <> U:173 var
+R9726:9726 PLF.NormalTypeSystemSimp <> t:170 var
+R9733:9733 PLF.NormalTypeSystemSimp <> T:175 var
+R9756:9759 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9743:9746 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9749:9754 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9738:9742 PLF.Maps <> empty def
+R9747:9748 PLF.NormalTypeSystemSimp <> v1:174 var
+R9755:9755 PLF.NormalTypeSystemSimp <> U:173 var
+R9765:9768 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9780:9785 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9760:9764 PLF.NormalTypeSystemSimp <> Gamma:171 var
+R9769:9769 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9771:9774 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9777:9778 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9770:9770 PLF.NormalTypeSystemSimp <> x:172 var
+R9775:9776 PLF.NormalTypeSystemSimp <> v1:174 var
+R9779:9779 PLF.NormalTypeSystemSimp <> t:170 var
+R9786:9786 PLF.NormalTypeSystemSimp <> T:175 var
+R9818:9828 PLF.Maps <> partial_map def
+R9830:9831 PLF.CoreLangSimp <> ty ind
+binder 9810:9814 <> Gamma:176
+R9839:9844 Coq.Strings.String <> string ind
+binder 9835:9835 <> x:177
+R9852:9853 PLF.CoreLangSimp <> ty ind
+binder 9848:9848 <> U:178
+R9862:9866 PLF.CoreLangSimp <> value ind
+binder 9857:9858 <> v1:179
+R9874:9875 PLF.CoreLangSimp <> ty ind
+binder 9870:9870 <> T:180
+R9934:9937 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9891:9891 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9906:9910 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9927:9932 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9893:9897 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9899:9900 PLF.Maps <> :::x_'|->'_x_';'_x not
+R9901:9905 PLF.NormalTypeSystemSimp <> Gamma:176 var
+R9892:9892 PLF.NormalTypeSystemSimp <> x:177 var
+R9898:9898 PLF.NormalTypeSystemSimp <> U:178 var
+R9911:9917 PLF.CoreLangSimp <> tletapp constr
+R9919:9919 PLF.NormalTypeSystemSimp <> s:157 var
+R9921:9921 PLF.NormalTypeSystemSimp <> v:158 var
+R9923:9924 PLF.NormalTypeSystemSimp <> v0:164 var
+R9926:9926 PLF.NormalTypeSystemSimp <> t:170 var
+R9933:9933 PLF.NormalTypeSystemSimp <> T:180 var
+R9956:9959 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9943:9946 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9949:9954 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R9938:9942 PLF.Maps <> empty def
+R9947:9948 PLF.NormalTypeSystemSimp <> v1:179 var
+R9955:9955 PLF.NormalTypeSystemSimp <> U:178 var
+R9965:9968 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9995:10000 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R9960:9964 PLF.NormalTypeSystemSimp <> Gamma:176 var
+R9969:9969 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9971:9974 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9977:9978 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R9970:9970 PLF.NormalTypeSystemSimp <> x:177 var
+R9975:9976 PLF.NormalTypeSystemSimp <> v1:179 var
+R9979:9985 PLF.CoreLangSimp <> tletapp constr
+R9987:9987 PLF.NormalTypeSystemSimp <> s:157 var
+R9989:9989 PLF.NormalTypeSystemSimp <> v:158 var
+R9991:9992 PLF.NormalTypeSystemSimp <> v0:164 var
+R9994:9994 PLF.NormalTypeSystemSimp <> t:170 var
+R10001:10001 PLF.NormalTypeSystemSimp <> T:180 var
+R10115:10122 Coq.Strings.String <> eqb_spec thm
+R10115:10122 Coq.Strings.String <> eqb_spec thm
+R10163:10175 PLF.Maps <> update_shadow thm
+R10163:10175 PLF.Maps <> update_shadow thm
+R10163:10175 PLF.Maps <> update_shadow thm
+R10195:10202 PLF.NormalTypeSystemSimp <> T_LetApp constr
+R10195:10202 PLF.NormalTypeSystemSimp <> T_LetApp constr
+R10320:10333 PLF.Maps <> update_permute thm
+R10320:10333 PLF.Maps <> update_permute thm
+R10320:10333 PLF.Maps <> update_permute thm
+R10320:10333 PLF.Maps <> update_permute thm
+R10359:10366 PLF.NormalTypeSystemSimp <> T_LetApp constr
+R10359:10366 PLF.NormalTypeSystemSimp <> T_LetApp constr
+prf 10509:10537 <> substitution_preserves_typing
+binder 10548:10548 <> t:181
+binder 10550:10554 <> Gamma:182
+binder 10556:10556 <> x:183
+binder 10558:10558 <> U:184
+binder 10560:10560 <> v:185
+binder 10562:10562 <> T:186
+R10598:10602 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10569:10569 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10585:10589 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10591:10596 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10571:10575 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10577:10579 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10580:10584 PLF.NormalTypeSystemSimp <> Gamma:182 var
+R10570:10570 PLF.NormalTypeSystemSimp <> x:183 var
+R10576:10576 PLF.NormalTypeSystemSimp <> U:184 var
+R10590:10590 PLF.NormalTypeSystemSimp <> t:181 var
+R10597:10597 PLF.NormalTypeSystemSimp <> T:186 var
+R10620:10625 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10608:10611 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10613:10618 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10603:10607 PLF.Maps <> empty def
+R10612:10612 PLF.NormalTypeSystemSimp <> v:185 var
+R10619:10619 PLF.NormalTypeSystemSimp <> U:184 var
+R10631:10634 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10642:10647 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10626:10630 PLF.NormalTypeSystemSimp <> Gamma:182 var
+R10635:10635 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10637:10638 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10640:10640 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10636:10636 PLF.NormalTypeSystemSimp <> x:183 var
+R10639:10639 PLF.NormalTypeSystemSimp <> v:185 var
+R10641:10641 PLF.NormalTypeSystemSimp <> t:181 var
+R10648:10648 PLF.NormalTypeSystemSimp <> T:186 var
+R10689:10701 PLF.CoreLangSimp <> tm_mutual_rec scheme
+binder 10719:10720 <> ev:187
+binder 10732:10736 <> Gamma:188
+binder 10738:10738 <> x:189
+binder 10740:10740 <> U:190
+binder 10742:10742 <> v:191
+binder 10744:10744 <> T:192
+R10777:10781 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10747:10747 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10763:10767 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10770:10775 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10749:10753 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10755:10757 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10758:10762 PLF.NormalTypeSystemSimp <> Gamma:188 var
+R10748:10748 PLF.NormalTypeSystemSimp <> x:189 var
+R10754:10754 PLF.NormalTypeSystemSimp <> U:190 var
+R10768:10769 PLF.NormalTypeSystemSimp <> ev:187 var
+R10776:10776 PLF.NormalTypeSystemSimp <> T:192 var
+R10799:10803 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10787:10790 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10792:10797 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10782:10786 PLF.Maps <> empty def
+R10791:10791 PLF.NormalTypeSystemSimp <> v:191 var
+R10798:10798 PLF.NormalTypeSystemSimp <> U:190 var
+R10809:10812 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10823:10828 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10804:10808 PLF.NormalTypeSystemSimp <> Gamma:188 var
+R10813:10813 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10815:10816 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10818:10820 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10814:10814 PLF.NormalTypeSystemSimp <> x:189 var
+R10817:10817 PLF.NormalTypeSystemSimp <> v:191 var
+R10821:10822 PLF.NormalTypeSystemSimp <> ev:187 var
+R10829:10829 PLF.NormalTypeSystemSimp <> T:192 var
+binder 10848:10848 <> e:193
+binder 10860:10864 <> Gamma:194
+binder 10866:10866 <> x:195
+binder 10868:10868 <> U:196
+binder 10870:10870 <> v:197
+binder 10872:10872 <> T:198
+R10904:10908 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10875:10875 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10891:10895 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10897:10902 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10877:10881 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10883:10885 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10886:10890 PLF.NormalTypeSystemSimp <> Gamma:194 var
+R10876:10876 PLF.NormalTypeSystemSimp <> x:195 var
+R10882:10882 PLF.NormalTypeSystemSimp <> U:196 var
+R10896:10896 PLF.NormalTypeSystemSimp <> e:193 var
+R10903:10903 PLF.NormalTypeSystemSimp <> T:198 var
+R10926:10930 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10914:10917 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10919:10924 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10909:10913 PLF.Maps <> empty def
+R10918:10918 PLF.NormalTypeSystemSimp <> v:197 var
+R10925:10925 PLF.NormalTypeSystemSimp <> U:196 var
+R10936:10939 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10948:10953 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10931:10935 PLF.NormalTypeSystemSimp <> Gamma:194 var
+R10940:10940 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10942:10943 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10945:10946 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10941:10941 PLF.NormalTypeSystemSimp <> x:195 var
+R10944:10944 PLF.NormalTypeSystemSimp <> v:197 var
+R10947:10947 PLF.NormalTypeSystemSimp <> e:193 var
+R10954:10954 PLF.NormalTypeSystemSimp <> T:198 var
+R10689:10701 PLF.CoreLangSimp <> tm_mutual_rec scheme
+binder 10719:10720 <> ev:199
+binder 10732:10736 <> Gamma:200
+binder 10738:10738 <> x:201
+binder 10740:10740 <> U:202
+binder 10742:10742 <> v:203
+binder 10744:10744 <> T:204
+R10777:10781 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10747:10747 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10763:10767 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10770:10775 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10749:10753 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10755:10757 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10758:10762 PLF.NormalTypeSystemSimp <> Gamma:200 var
+R10748:10748 PLF.NormalTypeSystemSimp <> x:201 var
+R10754:10754 PLF.NormalTypeSystemSimp <> U:202 var
+R10768:10769 PLF.NormalTypeSystemSimp <> ev:199 var
+R10776:10776 PLF.NormalTypeSystemSimp <> T:204 var
+R10799:10803 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10787:10790 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10792:10797 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10782:10786 PLF.Maps <> empty def
+R10791:10791 PLF.NormalTypeSystemSimp <> v:203 var
+R10798:10798 PLF.NormalTypeSystemSimp <> U:202 var
+R10809:10812 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10823:10828 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10804:10808 PLF.NormalTypeSystemSimp <> Gamma:200 var
+R10813:10813 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10815:10816 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10818:10820 PLF.CoreLangSimp <> :::'['_x_':='_x_']v'_x not
+R10814:10814 PLF.NormalTypeSystemSimp <> x:201 var
+R10817:10817 PLF.NormalTypeSystemSimp <> v:203 var
+R10821:10822 PLF.NormalTypeSystemSimp <> ev:199 var
+R10829:10829 PLF.NormalTypeSystemSimp <> T:204 var
+binder 10848:10848 <> e:205
+binder 10860:10864 <> Gamma:206
+binder 10866:10866 <> x:207
+binder 10868:10868 <> U:208
+binder 10870:10870 <> v:209
+binder 10872:10872 <> T:210
+R10904:10908 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10875:10875 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10891:10895 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10897:10902 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10877:10881 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10883:10885 PLF.Maps <> :::x_'|->'_x_';'_x not
+R10886:10890 PLF.NormalTypeSystemSimp <> Gamma:206 var
+R10876:10876 PLF.NormalTypeSystemSimp <> x:207 var
+R10882:10882 PLF.NormalTypeSystemSimp <> U:208 var
+R10896:10896 PLF.NormalTypeSystemSimp <> e:205 var
+R10903:10903 PLF.NormalTypeSystemSimp <> T:210 var
+R10926:10930 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10914:10917 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10919:10924 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R10909:10913 PLF.Maps <> empty def
+R10918:10918 PLF.NormalTypeSystemSimp <> v:209 var
+R10925:10925 PLF.NormalTypeSystemSimp <> U:208 var
+R10936:10939 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10948:10953 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R10931:10935 PLF.NormalTypeSystemSimp <> Gamma:206 var
+R10940:10940 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10942:10943 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10945:10946 PLF.CoreLangSimp <> :::'['_x_':='_x_']'_x not
+R10941:10941 PLF.NormalTypeSystemSimp <> x:207 var
+R10944:10944 PLF.NormalTypeSystemSimp <> v:209 var
+R10947:10947 PLF.NormalTypeSystemSimp <> e:205 var
+R10954:10954 PLF.NormalTypeSystemSimp <> T:210 var
+R11160:11189 PLF.NormalTypeSystemSimp <> substitution_preserves_typing2 thm
+R11160:11189 PLF.NormalTypeSystemSimp <> substitution_preserves_typing2 thm
+R11253:11260 Coq.Strings.String <> eqb_spec thm
+R11253:11260 Coq.Strings.String <> eqb_spec thm
+R11289:11301 PLF.Maps <> update_shadow thm
+R11289:11301 PLF.Maps <> update_shadow thm
+R11289:11301 PLF.Maps <> update_shadow thm
+R11326:11339 PLF.Maps <> update_permute thm
+R11326:11339 PLF.Maps <> update_permute thm
+R11326:11339 PLF.Maps <> update_permute thm
+R11326:11339 PLF.Maps <> update_permute thm
+R11454:11483 PLF.NormalTypeSystemSimp <> substitution_preserves_typing7 thm
+R11454:11483 PLF.NormalTypeSystemSimp <> substitution_preserves_typing7 thm
+R11616:11623 Coq.Strings.String <> eqb_spec thm
+R11645:11651 PLF.NormalTypeSystemSimp <> T_LetOp constr
+R11616:11623 Coq.Strings.String <> eqb_spec thm
+R11645:11651 PLF.NormalTypeSystemSimp <> T_LetOp constr
+R11645:11651 PLF.NormalTypeSystemSimp <> T_LetOp constr
+R11674:11686 PLF.Maps <> update_shadow thm
+R11674:11686 PLF.Maps <> update_shadow thm
+R11674:11686 PLF.Maps <> update_shadow thm
+R11719:11732 PLF.Maps <> update_permute thm
+R11719:11732 PLF.Maps <> update_permute thm
+R11719:11732 PLF.Maps <> update_permute thm
+R11719:11732 PLF.Maps <> update_permute thm
+R11747:11776 PLF.NormalTypeSystemSimp <> substitution_preserves_typing9 thm
+R11747:11776 PLF.NormalTypeSystemSimp <> substitution_preserves_typing9 thm
+R11882:11889 PLF.NormalTypeSystemSimp <> T_Matchb constr
+R11882:11889 PLF.NormalTypeSystemSimp <> T_Matchb constr
+prf 11908:11919 <> preservation
+binder 11930:11930 <> t:211
+binder 11932:11933 <> t':212
+binder 11935:11935 <> T:213
+R11959:11981 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11947:11950 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R11952:11957 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R11942:11946 PLF.Maps <> empty def
+R11951:11951 PLF.NormalTypeSystemSimp <> t:211 var
+R11958:11958 PLF.NormalTypeSystemSimp <> T:213 var
+R11990:12012 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11983:11987 PLF.CoreLangSimp <> :::x_'-->'_x not
+R11982:11982 PLF.NormalTypeSystemSimp <> t:211 var
+R11988:11989 PLF.NormalTypeSystemSimp <> t':212 var
+R12018:12021 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R12024:12029 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R12013:12017 PLF.Maps <> empty def
+R12022:12023 PLF.NormalTypeSystemSimp <> t':212 var
+R12030:12030 PLF.NormalTypeSystemSimp <> T:213 var
+R12107:12111 PLF.Maps <> empty def
+R12107:12111 PLF.Maps <> empty def
+R12197:12225 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+R12197:12225 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+R12277:12305 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+R12277:12305 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+R12320:12325 PLF.NormalTypeSystemSimp <> T_Lete constr
+R12320:12325 PLF.NormalTypeSystemSimp <> T_Lete constr
+R12357:12385 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+R12357:12385 PLF.NormalTypeSystemSimp <> substitution_preserves_typing thm
+prf 12440:12457 <> preservation_value
+binder 12468:12468 <> t:214
+R12474:12478 PLF.CoreLangSimp <> value ind
+binder 12471:12471 <> v:215
+binder 12481:12481 <> T:216
+R12505:12509 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12493:12496 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R12498:12503 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R12488:12492 PLF.Maps <> empty def
+R12497:12497 PLF.NormalTypeSystemSimp <> t:214 var
+R12504:12504 PLF.NormalTypeSystemSimp <> T:216 var
+R12518:12540 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12511:12516 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R12510:12510 PLF.NormalTypeSystemSimp <> t:214 var
+R12517:12517 PLF.NormalTypeSystemSimp <> v:215 var
+R12546:12549 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R12551:12556 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R12541:12545 PLF.Maps <> empty def
+R12550:12550 PLF.NormalTypeSystemSimp <> v:215 var
+R12557:12557 PLF.NormalTypeSystemSimp <> T:216 var

@@ -1,0 +1,834 @@
+DIGEST a663d136a1eb1d383ade110661a518b5
+FPLF.DenotationSimp
+R131:134 PLF.Maps <> <> lib
+R161:172 PLF.CoreLangSimp <> <> lib
+R199:218 PLF.NormalTypeSystemSimp <> <> lib
+R245:257 PLF.LinearContext <> <> lib
+R284:292 PLF.RfTypeDef <> <> lib
+R319:332 PLF.TypeClosedSimp <> <> lib
+R359:370 PLF.TermOrdering <> <> lib
+R397:426 Coq.Logic.FunctionalExtensionality <> <> lib
+R453:472 Coq.Logic.ClassicalFacts <> <> lib
+R499:508 Coq.Lists.List <> <> lib
+R535:540 Coq.funind.FunInd <> <> lib
+R567:572 Coq.funind.Recdef <> <> lib
+R583:594 PLF.CoreLangSimp <> <> mod
+R604:623 PLF.NormalTypeSystemSimp <> <> mod
+R633:645 PLF.LinearContext <> <> mod
+R655:663 PLF.RfTypeDef <> <> mod
+R673:686 PLF.TypeClosedSimp <> <> mod
+R696:708 Coq.Lists.List ListNotations <> mod
+def 723:730 <> empstate
+R733:737 PLF.RfTypeDef <> state def
+R742:748 PLF.Maps <> t_empty def
+R751:755 PLF.CoreLangSimp <> cbool constr
+R757:761 Coq.Init.Datatypes <> false constr
+def 777:783 <> context
+R788:801 PLF.LinearContext <> linear_context def
+R803:813 PLF.RfTypeDef <> overunderty ind
+def 828:836 <> empty_ctx
+R839:845 PLF.DenotationSimp <> context def
+R850:852 Coq.Init.Datatypes <> nil constr
+def 1692:1702 <> is_constant
+R1708:1712 PLF.CoreLangSimp <> value ind
+binder 1705:1705 <> v:1
+R1726:1726 PLF.DenotationSimp <> v:1 var
+R1737:1742 PLF.CoreLangSimp <> vconst constr
+R1749:1752 Coq.Init.Logic <> True ind
+R1763:1767 Coq.Init.Logic <> False ind
+ind 1813:1828 <> overbase_tmR_aux
+constr 1876:1888 <> over_tmR_base
+R1836:1839 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1831:1835 PLF.RfTypeDef <> state def
+R1850:1853 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1840:1849 PLF.RfTypeDef <> overbasety ind
+R1862:1865 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1854:1861 PLF.CoreLangSimp <> constant ind
+R1904:1908 PLF.RfTypeDef <> state def
+binder 1900:1901 <> st:5
+R1915:1921 PLF.CoreLangSimp <> base_ty ind
+binder 1912:1912 <> T:6
+R1930:1939 PLF.RfTypeDef <> refinement def
+binder 1925:1927 <> phi:7
+R1946:1953 PLF.CoreLangSimp <> constant ind
+binder 1943:1943 <> c:8
+R1978:1981 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1966:1969 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R1971:1976 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R1961:1965 PLF.Maps <> empty def
+R1970:1970 PLF.DenotationSimp <> c:8 var
+R1977:1977 PLF.DenotationSimp <> T:6 var
+R1990:1993 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1982:1984 PLF.DenotationSimp <> phi:7 var
+R1986:1987 PLF.DenotationSimp <> st:5 var
+R1989:1989 PLF.DenotationSimp <> c:8 var
+R1994:2009 PLF.DenotationSimp <> overbase_tmR_aux:3 ind
+R2031:2031 PLF.DenotationSimp <> c:8 var
+R2015:2019 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2021:2023 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2027:2028 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2020:2020 PLF.DenotationSimp <> T:6 var
+R2024:2026 PLF.DenotationSimp <> phi:7 var
+R2011:2012 PLF.DenotationSimp <> st:5 var
+R2060:2075 PLF.DenotationSimp <> overbase_tmR_aux ind
+prf 2091:2111 <> over_tmR_aux_has_type
+binder 2121:2121 <> T:9
+binder 2123:2125 <> phi:10
+binder 2127:2128 <> st:11
+binder 2130:2130 <> c:12
+R2171:2174 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2133:2148 PLF.DenotationSimp <> overbase_tmR_aux ind
+R2150:2151 PLF.DenotationSimp <> st:11 var
+R2154:2158 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2160:2162 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2166:2167 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R2159:2159 PLF.DenotationSimp <> T:9 var
+R2163:2165 PLF.DenotationSimp <> phi:10 var
+R2170:2170 PLF.DenotationSimp <> c:12 var
+R2180:2183 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2185:2190 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R2175:2179 PLF.Maps <> empty def
+R2184:2184 PLF.DenotationSimp <> c:12 var
+R2191:2191 PLF.DenotationSimp <> T:9 var
+ind 2244:2257 <> is_application
+constr 2394:2407 <> Is_application
+R2262:2265 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2260:2261 PLF.CoreLangSimp <> tm ind
+R2271:2274 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2266:2270 PLF.CoreLangSimp <> value ind
+R2277:2280 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2275:2276 PLF.CoreLangSimp <> tm ind
+R2422:2423 PLF.CoreLangSimp <> tm ind
+binder 2418:2419 <> e1:15
+R2431:2435 PLF.CoreLangSimp <> value ind
+binder 2427:2428 <> v2:16
+R2446:2451 Coq.Strings.String <> string ind
+binder 2439:2440 <> x1:17
+binder 2442:2443 <> x2:18
+R2475:2482 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2459:2460 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2463:2472 PLF.CoreLangSimp <> :::x_'\FVvalue'_x not
+R2461:2462 PLF.DenotationSimp <> x1:17 var
+R2473:2474 PLF.DenotationSimp <> v2:16 var
+R2483:2496 PLF.DenotationSimp <> is_application:13 ind
+R2524:2528 PLF.CoreLangSimp <> tlete constr
+R2530:2531 PLF.DenotationSimp <> x1:17 var
+R2533:2534 PLF.DenotationSimp <> e1:15 var
+R2563:2569 PLF.CoreLangSimp <> tletapp constr
+R2571:2572 PLF.DenotationSimp <> x2:18 var
+R2574:2575 PLF.DenotationSimp <> x1:17 var
+R2577:2578 PLF.DenotationSimp <> v2:16 var
+R2580:2581 PLF.DenotationSimp <> x2:18 var
+R2501:2502 PLF.DenotationSimp <> v2:16 var
+R2498:2499 PLF.DenotationSimp <> e1:15 var
+R2632:2645 PLF.DenotationSimp <> is_application ind
+prf 2693:2717 <> exists_fresh_var_of_value
+R2731:2735 PLF.CoreLangSimp <> value ind
+binder 2728:2728 <> e:19
+R2739:2746 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2756:2758 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2750:2755 Coq.Strings.String <> string ind
+binder 2747:2747 <> x:20
+R2759:2760 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2762:2771 PLF.CoreLangSimp <> :::x_'\FVvalue'_x not
+R2761:2761 PLF.DenotationSimp <> x:20 var
+R2772:2772 PLF.DenotationSimp <> e:19 var
+prf 2792:2817 <> value_value_is_application
+binder 2827:2827 <> x:21
+R2837:2841 PLF.CoreLangSimp <> value ind
+binder 2830:2831 <> v1:22
+binder 2833:2834 <> v2:23
+R2849:2856 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2863:2865 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2861:2862 PLF.CoreLangSimp <> tm ind
+binder 2857:2858 <> e3:24
+R2889:2893 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2920:2920 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2866:2879 PLF.DenotationSimp <> is_application ind
+R2881:2882 PLF.DenotationSimp <> v1:22 var
+R2884:2885 PLF.DenotationSimp <> v2:23 var
+R2887:2888 PLF.DenotationSimp <> e3:24 var
+R2894:2894 PLF.TermOrdering <> :::x_'<=<'_x not
+R2912:2917 PLF.TermOrdering <> :::x_'<=<'_x not
+R2895:2901 PLF.CoreLangSimp <> tletapp constr
+R2903:2903 PLF.DenotationSimp <> x:21 var
+R2905:2906 PLF.DenotationSimp <> v1:22 var
+R2908:2909 PLF.DenotationSimp <> v2:23 var
+R2911:2911 PLF.DenotationSimp <> x:21 var
+R2918:2919 PLF.DenotationSimp <> e3:24 var
+R2918:2919 PLF.DenotationSimp <> e3:24 var
+R2895:2901 PLF.CoreLangSimp <> tletapp constr
+R2903:2903 PLF.DenotationSimp <> x:21 var
+R2905:2906 PLF.DenotationSimp <> v1:22 var
+R2908:2909 PLF.DenotationSimp <> v2:23 var
+R2911:2911 PLF.DenotationSimp <> x:21 var
+R2961:2985 PLF.DenotationSimp <> exists_fresh_var_of_value prfax
+R2961:2985 PLF.DenotationSimp <> exists_fresh_var_of_value prfax
+R3014:3018 PLF.CoreLangSimp <> tlete constr
+R3026:3032 PLF.CoreLangSimp <> tletapp constr
+R3014:3018 PLF.CoreLangSimp <> tlete constr
+R3026:3032 PLF.CoreLangSimp <> tletapp constr
+R3064:3076 PLF.TermOrdering <> eta_reduction prfax
+R3064:3076 PLF.TermOrdering <> eta_reduction prfax
+def 3096:3108 <> under_tmR_aux
+R3115:3119 PLF.RfTypeDef <> state def
+binder 3111:3112 <> st:25
+R3128:3134 PLF.RfTypeDef <> underty ind
+binder 3123:3125 <> tau:26
+R3141:3142 PLF.CoreLangSimp <> tm ind
+binder 3138:3138 <> e:27
+R3177:3184 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R3157:3172 PLF.RfTypeDef <> well_formed_type ind
+R3174:3176 PLF.DenotationSimp <> tau:26 var
+R3211:3235 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R3908:3908 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R3190:3193 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R3195:3200 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R3185:3189 PLF.Maps <> empty def
+R3194:3194 PLF.DenotationSimp <> e:27 var
+R3201:3204 PLF.RfTypeDef <> :::'u\_'_x_'_/' not
+R3208:3210 PLF.RfTypeDef <> :::'u\_'_x_'_/' not
+R3205:3207 PLF.DenotationSimp <> tau:26 var
+R3242:3244 PLF.DenotationSimp <> tau:26 var
+R3274:3278 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3280:3282 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3286:3288 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3330:3337 PLF.CoreLangSimp <> constant ind
+binder 3327:3327 <> c:30
+R3365:3369 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3399:3399 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3346:3349 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3358:3363 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R3341:3345 PLF.Maps <> empty def
+R3350:3355 PLF.CoreLangSimp <> vconst constr
+R3357:3357 PLF.DenotationSimp <> c:30 var
+R3378:3381 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3374:3375 PLF.DenotationSimp <> st:25 var
+R3377:3377 PLF.DenotationSimp <> c:30 var
+R3383:3389 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R3398:3398 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R3382:3382 PLF.DenotationSimp <> e:27 var
+R3390:3395 PLF.CoreLangSimp <> vconst constr
+R3397:3397 PLF.DenotationSimp <> c:30 var
+R3426:3429 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3432:3437 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3482:3489 PLF.CoreLangSimp <> constant ind
+binder 3477:3479 <> c_x:31
+R3546:3577 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3655:3655 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3520:3535 PLF.DenotationSimp <> overbase_tmR_aux ind
+R3537:3538 PLF.DenotationSimp <> st:25 var
+R3543:3545 PLF.DenotationSimp <> c_x:31 var
+binder 3585:3586 <> e3:32
+R3612:3615 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3589:3602 PLF.DenotationSimp <> is_application ind
+R3604:3604 PLF.DenotationSimp <> e:27 var
+R3606:3608 PLF.DenotationSimp <> c_x:31 var
+R3610:3611 PLF.DenotationSimp <> e3:32 var
+R3616:3628 PLF.DenotationSimp <> under_tmR_aux:28 def
+R3653:3654 PLF.DenotationSimp <> e3:32 var
+R3631:3638 PLF.Maps <> t_update def
+R3645:3647 PLF.DenotationSimp <> c_x:31 var
+R3640:3641 PLF.DenotationSimp <> st:25 var
+R3682:3687 PLF.RfTypeDef <> :::x_'u-->'_x not
+R3732:3736 PLF.CoreLangSimp <> value ind
+binder 3727:3729 <> e_x:33
+R3790:3821 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3882:3882 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3767:3779 PLF.DenotationSimp <> under_tmR_aux:28 def
+R3787:3789 PLF.DenotationSimp <> e_x:33 var
+R3781:3782 PLF.DenotationSimp <> st:25 var
+binder 3829:3830 <> e3:34
+R3856:3859 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3833:3846 PLF.DenotationSimp <> is_application ind
+R3848:3848 PLF.DenotationSimp <> e:27 var
+R3850:3852 PLF.DenotationSimp <> e_x:33 var
+R3854:3855 PLF.DenotationSimp <> e3:34 var
+R3860:3872 PLF.DenotationSimp <> under_tmR_aux:28 def
+R3880:3881 PLF.DenotationSimp <> e3:34 var
+R3874:3875 PLF.DenotationSimp <> st:25 var
+prf 3918:3935 <> under_tmR_has_type
+binder 3945:3947 <> tau:35
+binder 3949:3950 <> st:36
+binder 3952:3952 <> e:37
+R3977:3980 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3955:3967 PLF.DenotationSimp <> under_tmR_aux def
+R3969:3970 PLF.DenotationSimp <> st:36 var
+R3972:3974 PLF.DenotationSimp <> tau:35 var
+R3976:3976 PLF.DenotationSimp <> e:37 var
+R3986:3989 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R3991:3996 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R3981:3985 PLF.Maps <> empty def
+R3990:3990 PLF.DenotationSimp <> e:37 var
+R3997:4000 PLF.RfTypeDef <> :::'u\_'_x_'_/' not
+R4004:4006 PLF.RfTypeDef <> :::'u\_'_x_'_/' not
+R4001:4003 PLF.DenotationSimp <> tau:35 var
+ind 4247:4253 <> tmR_aux
+constr 4296:4302 <> tmR_oty
+constr 4370:4376 <> tmR_uty
+R4261:4264 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4256:4260 PLF.RfTypeDef <> state def
+R4276:4279 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4265:4275 PLF.RfTypeDef <> overunderty ind
+R4282:4285 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4280:4281 PLF.CoreLangSimp <> tm ind
+binder 4312:4313 <> st:40
+binder 4315:4317 <> oty:41
+binder 4319:4319 <> c:42
+R4347:4350 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4322:4337 PLF.DenotationSimp <> overbase_tmR_aux ind
+R4339:4340 PLF.DenotationSimp <> st:40 var
+R4342:4344 PLF.DenotationSimp <> oty:41 var
+R4346:4346 PLF.DenotationSimp <> c:42 var
+R4351:4357 PLF.DenotationSimp <> tmR_aux:38 ind
+R4366:4366 PLF.DenotationSimp <> c:42 var
+R4362:4364 PLF.DenotationSimp <> oty:41 var
+R4359:4360 PLF.DenotationSimp <> st:40 var
+binder 4386:4387 <> st:43
+binder 4389:4391 <> uty:44
+binder 4393:4393 <> e:45
+R4418:4421 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4396:4408 PLF.DenotationSimp <> under_tmR_aux def
+R4410:4411 PLF.DenotationSimp <> st:43 var
+R4413:4415 PLF.DenotationSimp <> uty:44 var
+R4417:4417 PLF.DenotationSimp <> e:45 var
+R4422:4428 PLF.DenotationSimp <> tmR_aux:38 ind
+R4437:4437 PLF.DenotationSimp <> e:45 var
+R4433:4435 PLF.DenotationSimp <> uty:44 var
+R4430:4431 PLF.DenotationSimp <> st:43 var
+R4466:4472 PLF.DenotationSimp <> tmR_aux ind
+prf 4488:4511 <> denotation_has_base_type
+binder 4521:4522 <> st:46
+binder 4524:4526 <> tau:47
+binder 4528:4528 <> e:48
+R4547:4550 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4531:4537 PLF.DenotationSimp <> tmR_aux ind
+R4539:4540 PLF.DenotationSimp <> st:46 var
+R4542:4544 PLF.DenotationSimp <> tau:47 var
+R4546:4546 PLF.DenotationSimp <> e:48 var
+R4556:4559 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R4561:4566 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R4551:4555 PLF.Maps <> empty def
+R4560:4560 PLF.DenotationSimp <> e:48 var
+R4567:4571 PLF.RfTypeDef <> :::'ou\_'_x_'_/' not
+R4575:4577 PLF.RfTypeDef <> :::'ou\_'_x_'_/' not
+R4572:4574 PLF.DenotationSimp <> tau:47 var
+R4663:4680 PLF.DenotationSimp <> under_tmR_has_type thm
+R4663:4680 PLF.DenotationSimp <> under_tmR_has_type thm
+prf 4697:4716 <> denotation_is_closed
+binder 4726:4728 <> tau:49
+binder 4730:4730 <> e:50
+R4755:4758 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4733:4739 PLF.DenotationSimp <> tmR_aux ind
+R4741:4748 PLF.DenotationSimp <> empstate def
+R4750:4752 PLF.DenotationSimp <> tau:49 var
+R4754:4754 PLF.DenotationSimp <> e:50 var
+R4759:4769 PLF.TypeClosedSimp <> type_closed def
+R4771:4777 PLF.LinearContext <> l_empty def
+R4779:4781 PLF.DenotationSimp <> tau:49 var
+R4869:4876 PLF.DenotationSimp <> has_type ind
+R4910:4923 PLF.DenotationSimp <> value_has_type ind
+prf 4939:4961 <> constant_has_denotation
+R4967:4974 PLF.CoreLangSimp <> constant ind
+binder 4964:4964 <> c:51
+binder 4985:4986 <> st:52
+R4989:4995 PLF.DenotationSimp <> tmR_aux ind
+R4997:4998 PLF.DenotationSimp <> st:52 var
+R5001:5014 PLF.RfTypeDef <> mk_eq_constant def
+R5016:5016 PLF.DenotationSimp <> c:51 var
+R5020:5025 PLF.CoreLangSimp <> vconst constr
+R5027:5027 PLF.DenotationSimp <> c:51 var
+R5080:5093 PLF.RfTypeDef <> mk_eq_constant def
+prf 5366:5385 <> mk_op_has_denotation
+binder 5395:5396 <> st:53
+binder 5398:5399 <> op:54
+binder 5401:5401 <> a:55
+binder 5403:5403 <> b:56
+R5406:5412 PLF.DenotationSimp <> tmR_aux ind
+R5414:5415 PLF.DenotationSimp <> st:53 var
+R5418:5422 PLF.RfTypeDef <> mk_op def
+R5424:5425 PLF.DenotationSimp <> op:54 var
+R5427:5427 PLF.DenotationSimp <> a:55 var
+R5429:5429 PLF.DenotationSimp <> b:56 var
+R5433:5437 PLF.CoreLangSimp <> vbiop constr
+R5439:5440 PLF.DenotationSimp <> op:54 var
+ind 5575:5588 <> tmR_in_ctx_aux
+constr 5642:5659 <> tmR_in_ctx_aux_nil
+constr 5752:5779 <> tmR_in_ctx_aux_cons_overbase
+constr 6167:6191 <> tmR_in_ctx_aux_cons_under
+constr 6841:6868 <> tmR_in_ctx_aux_cons_underarr
+R5596:5599 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5591:5595 PLF.RfTypeDef <> state def
+R5607:5610 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5600:5606 PLF.DenotationSimp <> context def
+R5622:5625 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5611:5621 PLF.RfTypeDef <> overunderty ind
+R5628:5631 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5626:5627 PLF.CoreLangSimp <> tm ind
+R5674:5678 PLF.RfTypeDef <> state def
+binder 5670:5671 <> st:59
+R5687:5697 PLF.RfTypeDef <> overunderty ind
+binder 5682:5684 <> tau:60
+binder 5700:5700 <> e:61
+R5719:5722 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5703:5709 PLF.DenotationSimp <> tmR_aux ind
+R5711:5712 PLF.DenotationSimp <> st:59 var
+R5714:5716 PLF.DenotationSimp <> tau:60 var
+R5718:5718 PLF.DenotationSimp <> e:61 var
+R5723:5736 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R5748:5748 PLF.DenotationSimp <> e:61 var
+R5744:5746 PLF.DenotationSimp <> tau:60 var
+R5741:5742 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R5738:5739 PLF.DenotationSimp <> st:59 var
+R5794:5798 PLF.RfTypeDef <> state def
+binder 5790:5791 <> st:62
+R5805:5810 Coq.Strings.String <> string ind
+binder 5802:5802 <> x:63
+R5816:5822 PLF.CoreLangSimp <> base_ty ind
+binder 5814:5814 <> T:64
+R5831:5840 PLF.RfTypeDef <> refinement def
+binder 5826:5828 <> phi:65
+R5851:5857 PLF.DenotationSimp <> context def
+binder 5844:5848 <> Gamma:66
+R5866:5876 PLF.RfTypeDef <> overunderty ind
+binder 5861:5863 <> tau:67
+binder 5879:5879 <> e:68
+R5906:5913 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5886:5901 PLF.RfTypeDef <> well_formed_type ind
+R5903:5905 PLF.DenotationSimp <> tau:67 var
+R5947:5954 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5914:5929 PLF.RfTypeDef <> well_formed_type ind
+R5932:5936 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5938:5940 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5944:5945 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5937:5937 PLF.DenotationSimp <> T:64 var
+R5941:5943 PLF.DenotationSimp <> phi:65 var
+R5955:5955 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6093:6101 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 5963:5965 <> c_x:69
+R6008:6023 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5968:5983 PLF.DenotationSimp <> overbase_tmR_aux ind
+R5985:5986 PLF.DenotationSimp <> st:62 var
+R5989:5993 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5995:5997 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6001:6002 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5994:5994 PLF.DenotationSimp <> T:64 var
+R5998:6000 PLF.DenotationSimp <> phi:65 var
+R6005:6007 PLF.DenotationSimp <> c_x:69 var
+R6024:6037 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R6070:6074 PLF.CoreLangSimp <> tlete constr
+R6076:6076 PLF.DenotationSimp <> x:63 var
+R6079:6084 PLF.CoreLangSimp <> vconst constr
+R6086:6088 PLF.DenotationSimp <> c_x:69 var
+R6091:6091 PLF.DenotationSimp <> e:68 var
+R6065:6067 PLF.DenotationSimp <> tau:67 var
+R6059:6063 PLF.DenotationSimp <> Gamma:66 var
+R6040:6047 PLF.Maps <> t_update def
+R6054:6056 PLF.DenotationSimp <> c_x:69 var
+R6052:6052 PLF.DenotationSimp <> x:63 var
+R6049:6050 PLF.DenotationSimp <> st:62 var
+R6102:6115 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R6163:6163 PLF.DenotationSimp <> e:68 var
+R6159:6161 PLF.DenotationSimp <> tau:67 var
+R6148:6151 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6121:6121 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6123:6125 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6146:6147 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6122:6122 PLF.DenotationSimp <> x:63 var
+R6126:6128 PLF.RfTypeDef <> Oty constr
+R6131:6135 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6137:6139 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6143:6144 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6136:6136 PLF.DenotationSimp <> T:64 var
+R6140:6142 PLF.DenotationSimp <> phi:65 var
+R6152:6156 PLF.DenotationSimp <> Gamma:66 var
+R6117:6118 PLF.DenotationSimp <> st:62 var
+R6206:6210 PLF.RfTypeDef <> state def
+binder 6202:6203 <> st:70
+R6217:6222 Coq.Strings.String <> string ind
+binder 6214:6214 <> x:71
+R6228:6234 PLF.CoreLangSimp <> base_ty ind
+binder 6226:6226 <> T:72
+R6243:6252 PLF.RfTypeDef <> refinement def
+binder 6238:6240 <> phi:73
+R6263:6269 PLF.DenotationSimp <> context def
+binder 6256:6260 <> Gamma:74
+R6278:6288 PLF.RfTypeDef <> overunderty ind
+binder 6273:6275 <> tau:75
+binder 6291:6291 <> e:76
+R6318:6325 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6298:6313 PLF.RfTypeDef <> well_formed_type ind
+R6315:6317 PLF.DenotationSimp <> tau:75 var
+R6359:6366 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6326:6341 PLF.RfTypeDef <> well_formed_type ind
+R6344:6348 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6350:6352 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6356:6357 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6349:6349 PLF.DenotationSimp <> T:72 var
+R6353:6355 PLF.DenotationSimp <> phi:73 var
+R6367:6367 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6762:6775 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6368:6374 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R6382:6383 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 6375:6381 <> e_x_hat:77
+R6425:6447 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R6742:6761 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R6384:6396 PLF.DenotationSimp <> under_tmR_aux def
+R6398:6399 PLF.DenotationSimp <> st:70 var
+R6402:6406 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6408:6410 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6414:6415 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6407:6407 PLF.DenotationSimp <> T:72 var
+R6411:6413 PLF.DenotationSimp <> phi:73 var
+R6418:6424 PLF.DenotationSimp <> e_x_hat:77 var
+binder 6455:6457 <> e_x:78
+R6497:6527 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6741:6741 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6460:6472 PLF.DenotationSimp <> under_tmR_aux def
+R6474:6475 PLF.DenotationSimp <> st:70 var
+R6478:6482 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6484:6486 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6490:6491 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6483:6483 PLF.DenotationSimp <> T:72 var
+R6487:6489 PLF.DenotationSimp <> phi:73 var
+R6494:6496 PLF.DenotationSimp <> e_x:78 var
+R6541:6548 PLF.CoreLangSimp <> constant ind
+binder 6536:6538 <> c_x:79
+R6610:6613 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6587:6591 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6602:6608 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Vin'_x not
+R6582:6586 PLF.Maps <> empty def
+R6592:6597 PLF.CoreLangSimp <> vconst constr
+R6599:6601 PLF.DenotationSimp <> c_x:79 var
+R6609:6609 PLF.DenotationSimp <> T:72 var
+R6639:6680 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6621:6627 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R6638:6638 PLF.CoreLangSimp <> :::x_'-->*'_x not
+R6614:6620 PLF.DenotationSimp <> e_x_hat:77 var
+R6628:6633 PLF.CoreLangSimp <> vconst constr
+R6635:6637 PLF.DenotationSimp <> c_x:79 var
+R6681:6694 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R6727:6731 PLF.CoreLangSimp <> tlete constr
+R6733:6733 PLF.DenotationSimp <> x:71 var
+R6735:6737 PLF.DenotationSimp <> e_x:78 var
+R6739:6739 PLF.DenotationSimp <> e:76 var
+R6722:6724 PLF.DenotationSimp <> tau:75 var
+R6716:6720 PLF.DenotationSimp <> Gamma:74 var
+R6697:6704 PLF.Maps <> t_update def
+R6711:6713 PLF.DenotationSimp <> c_x:79 var
+R6709:6709 PLF.DenotationSimp <> x:71 var
+R6706:6707 PLF.DenotationSimp <> st:70 var
+R6776:6789 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R6837:6837 PLF.DenotationSimp <> e:76 var
+R6833:6835 PLF.DenotationSimp <> tau:75 var
+R6822:6825 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6795:6795 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6797:6799 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6820:6821 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6796:6796 PLF.DenotationSimp <> x:71 var
+R6800:6802 PLF.RfTypeDef <> Uty constr
+R6805:6809 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6811:6813 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6817:6818 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6810:6810 PLF.DenotationSimp <> T:72 var
+R6814:6816 PLF.DenotationSimp <> phi:73 var
+R6826:6830 PLF.DenotationSimp <> Gamma:74 var
+R6791:6792 PLF.DenotationSimp <> st:70 var
+R6883:6887 PLF.RfTypeDef <> state def
+binder 6879:6880 <> st:80
+R6894:6899 Coq.Strings.String <> string ind
+binder 6891:6891 <> x:81
+R6910:6916 PLF.RfTypeDef <> underty ind
+binder 6903:6907 <> tau_x:82
+R6927:6933 PLF.DenotationSimp <> context def
+binder 6920:6924 <> Gamma:83
+R6942:6952 PLF.RfTypeDef <> overunderty ind
+binder 6937:6939 <> tau:84
+binder 6955:6955 <> e:85
+R6982:6989 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6962:6977 PLF.RfTypeDef <> well_formed_type ind
+R6979:6981 PLF.DenotationSimp <> tau:84 var
+R7012:7019 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6990:7005 PLF.RfTypeDef <> well_formed_type ind
+R7007:7011 PLF.DenotationSimp <> tau_x:82 var
+R7020:7020 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7118:7126 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 7028:7030 <> e_x:86
+R7059:7074 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7033:7045 PLF.DenotationSimp <> under_tmR_aux def
+R7047:7048 PLF.DenotationSimp <> st:80 var
+R7050:7054 PLF.DenotationSimp <> tau_x:82 var
+R7056:7058 PLF.DenotationSimp <> e_x:86 var
+R7075:7088 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R7104:7108 PLF.CoreLangSimp <> tlete constr
+R7110:7110 PLF.DenotationSimp <> x:81 var
+R7112:7114 PLF.DenotationSimp <> e_x:86 var
+R7116:7116 PLF.DenotationSimp <> e:85 var
+R7099:7101 PLF.DenotationSimp <> tau:84 var
+R7093:7097 PLF.DenotationSimp <> Gamma:83 var
+R7090:7091 PLF.DenotationSimp <> st:80 var
+R7127:7140 PLF.DenotationSimp <> tmR_in_ctx_aux:57 ind
+R7175:7175 PLF.DenotationSimp <> e:85 var
+R7171:7173 PLF.DenotationSimp <> tau:84 var
+R7160:7163 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7146:7146 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7148:7149 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7159:7159 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7147:7147 PLF.DenotationSimp <> x:81 var
+R7150:7152 PLF.RfTypeDef <> Uty constr
+R7154:7158 PLF.DenotationSimp <> tau_x:82 var
+R7164:7168 PLF.DenotationSimp <> Gamma:83 var
+R7142:7143 PLF.DenotationSimp <> st:80 var
+R7204:7217 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+prf 7410:7440 <> mk_eq_constant_is_itsefl_in_ctx
+binder 7450:7451 <> st:87
+binder 7453:7457 <> Gamma:88
+R7466:7473 PLF.CoreLangSimp <> constant ind
+binder 7460:7460 <> c:89
+binder 7462:7463 <> c':90
+R7526:7530 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R7481:7494 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R7496:7497 PLF.DenotationSimp <> st:87 var
+R7499:7503 PLF.DenotationSimp <> Gamma:88 var
+R7506:7519 PLF.RfTypeDef <> mk_eq_constant def
+R7521:7521 PLF.DenotationSimp <> c:89 var
+R7524:7525 PLF.DenotationSimp <> c':90 var
+R7533:7535 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7531:7532 PLF.DenotationSimp <> c':90 var
+R7536:7536 PLF.DenotationSimp <> c:89 var
+prf 7588:7631 <> denotation_ctx_implies_last_well_formed_type
+binder 7641:7642 <> st:91
+binder 7644:7648 <> Gamma:92
+binder 7650:7650 <> x:93
+binder 7652:7654 <> tau:94
+binder 7656:7659 <> tau':95
+binder 7661:7661 <> e:96
+R7719:7722 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7668:7681 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R7683:7684 PLF.DenotationSimp <> st:91 var
+R7692:7696 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7710:7710 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7687:7691 PLF.DenotationSimp <> Gamma:92 var
+R7705:7706 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7697:7697 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7699:7700 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7704:7704 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7698:7698 PLF.DenotationSimp <> x:93 var
+R7701:7703 PLF.DenotationSimp <> tau:94 var
+R7707:7709 Coq.Init.Datatypes <> nil constr
+R7713:7716 PLF.DenotationSimp <> tau':95 var
+R7718:7718 PLF.DenotationSimp <> e:96 var
+R7723:7738 PLF.RfTypeDef <> well_formed_type ind
+R7740:7742 PLF.DenotationSimp <> tau:94 var
+prf 7762:7796 <> under_variable_has_same_type_in_ctx
+binder 7806:7807 <> st:97
+binder 7809:7813 <> Gamma:98
+binder 7815:7815 <> x:99
+R7823:7829 PLF.RfTypeDef <> underty ind
+binder 7818:7820 <> tau:100
+R7837:7850 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R7852:7853 PLF.DenotationSimp <> st:97 var
+R7861:7865 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7883:7883 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7856:7860 PLF.DenotationSimp <> Gamma:98 var
+R7878:7879 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7866:7866 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7868:7869 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7877:7877 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7867:7867 PLF.DenotationSimp <> x:99 var
+R7870:7872 PLF.RfTypeDef <> Uty constr
+R7874:7876 PLF.DenotationSimp <> tau:100 var
+R7880:7882 Coq.Init.Datatypes <> nil constr
+R7886:7888 PLF.DenotationSimp <> tau:100 var
+R7890:7890 PLF.DenotationSimp <> x:99 var
+prf 7910:7941 <> over_variable_has_eq_type_in_ctx
+binder 7951:7952 <> st:101
+binder 7954:7958 <> Gamma:102
+binder 7960:7960 <> x:103
+binder 7962:7962 <> T:104
+binder 7964:7966 <> phi:105
+R7973:7986 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R7988:7989 PLF.DenotationSimp <> st:101 var
+R7997:8001 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8032:8032 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7992:7996 PLF.DenotationSimp <> Gamma:102 var
+R8027:8028 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R8002:8002 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8004:8005 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8026:8026 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8003:8003 PLF.DenotationSimp <> x:103 var
+R8006:8008 PLF.RfTypeDef <> Oty constr
+R8011:8015 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R8017:8019 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R8023:8024 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R8016:8016 PLF.DenotationSimp <> T:104 var
+R8020:8022 PLF.DenotationSimp <> phi:105 var
+R8029:8031 Coq.Init.Datatypes <> nil constr
+R8036:8044 PLF.RfTypeDef <> mk_eq_var def
+R8046:8046 PLF.DenotationSimp <> T:104 var
+R8048:8048 PLF.DenotationSimp <> x:103 var
+R8051:8051 PLF.DenotationSimp <> x:103 var
+prf 8071:8103 <> under_variable_has_eq_type_in_ctx
+binder 8113:8114 <> st:106
+binder 8116:8120 <> Gamma:107
+binder 8122:8122 <> x:108
+binder 8124:8124 <> T:109
+binder 8126:8128 <> phi:110
+R8135:8148 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8150:8151 PLF.DenotationSimp <> st:106 var
+R8159:8163 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8194:8194 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8154:8158 PLF.DenotationSimp <> Gamma:107 var
+R8189:8190 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R8164:8164 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8166:8167 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8188:8188 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8165:8165 PLF.DenotationSimp <> x:108 var
+R8168:8170 PLF.RfTypeDef <> Uty constr
+R8173:8177 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R8179:8181 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R8185:8186 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R8178:8178 PLF.DenotationSimp <> T:109 var
+R8182:8184 PLF.DenotationSimp <> phi:110 var
+R8191:8193 Coq.Init.Datatypes <> nil constr
+R8198:8206 PLF.RfTypeDef <> mk_eq_var def
+R8208:8208 PLF.DenotationSimp <> T:109 var
+R8210:8210 PLF.DenotationSimp <> x:108 var
+R8213:8213 PLF.DenotationSimp <> x:108 var
+prf 8233:8262 <> step_preserve_under_denotation
+R8279:8280 PLF.CoreLangSimp <> tm ind
+binder 8273:8273 <> e:111
+binder 8275:8276 <> e':112
+R8296:8300 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8365:8365 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8289:8293 PLF.TermOrdering <> :::x_'<-<'_x not
+R8288:8288 PLF.DenotationSimp <> e:111 var
+R8294:8295 PLF.DenotationSimp <> e':112 var
+binder 8308:8309 <> st:113
+binder 8311:8313 <> tau:114
+R8338:8341 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8316:8328 PLF.DenotationSimp <> under_tmR_aux def
+R8330:8331 PLF.DenotationSimp <> st:113 var
+R8333:8335 PLF.DenotationSimp <> tau:114 var
+R8337:8337 PLF.DenotationSimp <> e:111 var
+R8342:8354 PLF.DenotationSimp <> under_tmR_aux def
+R8356:8357 PLF.DenotationSimp <> st:113 var
+R8359:8361 PLF.DenotationSimp <> tau:114 var
+R8363:8364 PLF.DenotationSimp <> e':112 var
+prf 8385:8412 <> step_preserve_ctx_denotation
+R8429:8430 PLF.CoreLangSimp <> tm ind
+binder 8423:8423 <> e:115
+binder 8425:8426 <> e':116
+R8446:8450 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8535:8535 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8439:8443 PLF.TermOrdering <> :::x_'<-<'_x not
+R8438:8438 PLF.DenotationSimp <> e:115 var
+R8444:8445 PLF.DenotationSimp <> e':116 var
+binder 8458:8459 <> st:117
+binder 8461:8465 <> Gamma:118
+binder 8467:8469 <> tau:119
+R8501:8504 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8472:8485 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8487:8488 PLF.DenotationSimp <> st:117 var
+R8490:8494 PLF.DenotationSimp <> Gamma:118 var
+R8496:8498 PLF.DenotationSimp <> tau:119 var
+R8500:8500 PLF.DenotationSimp <> e:115 var
+R8505:8518 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8520:8521 PLF.DenotationSimp <> st:117 var
+R8523:8527 PLF.DenotationSimp <> Gamma:118 var
+R8529:8531 PLF.DenotationSimp <> tau:119 var
+R8533:8534 PLF.DenotationSimp <> e':116 var
+prf 8555:8585 <> tmR_in_ctx_aux_implies_has_type
+binder 8595:8599 <> Gamma:120
+binder 8601:8602 <> st:121
+binder 8604:8606 <> tau:122
+binder 8608:8608 <> e:123
+R8644:8647 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8615:8628 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8630:8631 PLF.DenotationSimp <> st:121 var
+R8633:8637 PLF.DenotationSimp <> Gamma:120 var
+R8639:8641 PLF.DenotationSimp <> tau:122 var
+R8643:8643 PLF.DenotationSimp <> e:123 var
+R8648:8648 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8675:8679 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8681:8686 PLF.NormalTypeSystemSimp <> :::x_'|-'_x_'\Tin'_x not
+R8649:8668 PLF.TypeClosedSimp <> lcontxt_to_basic_ctx def
+R8670:8674 PLF.DenotationSimp <> Gamma:120 var
+R8680:8680 PLF.DenotationSimp <> e:123 var
+R8687:8691 PLF.RfTypeDef <> :::'ou\_'_x_'_/' not
+R8695:8697 PLF.RfTypeDef <> :::'ou\_'_x_'_/' not
+R8692:8694 PLF.DenotationSimp <> tau:122 var
+prf 8717:8740 <> tmR_in_ctx_pre_weakening
+binder 8750:8755 <> Gamma1:124
+binder 8757:8762 <> Gamma2:125
+binder 8764:8769 <> Gamma3:126
+R8777:8787 PLF.RfTypeDef <> overunderty ind
+binder 8772:8774 <> tau:127
+R8822:8829 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8795:8795 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8812:8815 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8802:8805 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8796:8801 PLF.DenotationSimp <> Gamma1:124 var
+R8806:8811 PLF.DenotationSimp <> Gamma2:125 var
+R8816:8821 PLF.DenotationSimp <> Gamma3:126 var
+R8852:8860 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8938:8938 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8830:8840 PLF.TypeClosedSimp <> type_closed def
+R8842:8847 PLF.DenotationSimp <> Gamma2:125 var
+R8849:8851 PLF.DenotationSimp <> tau:127 var
+binder 8868:8869 <> st:128
+binder 8871:8871 <> e:129
+R8904:8907 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8874:8887 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8889:8890 PLF.DenotationSimp <> st:128 var
+R8892:8897 PLF.DenotationSimp <> Gamma2:125 var
+R8899:8901 PLF.DenotationSimp <> tau:127 var
+R8903:8903 PLF.DenotationSimp <> e:129 var
+R8908:8921 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R8923:8924 PLF.DenotationSimp <> st:128 var
+R8926:8931 PLF.DenotationSimp <> Gamma3:126 var
+R8933:8935 PLF.DenotationSimp <> tau:127 var
+R8937:8937 PLF.DenotationSimp <> e:129 var
+prf 8958:8982 <> tmR_in_ctx_post_weakening
+binder 8992:8997 <> Gamma1:130
+binder 8999:9004 <> Gamma2:131
+binder 9006:9011 <> Gamma3:132
+R9019:9029 PLF.RfTypeDef <> overunderty ind
+binder 9014:9016 <> tau:133
+R9064:9071 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9037:9037 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9054:9057 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9044:9047 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R9038:9043 PLF.DenotationSimp <> Gamma1:130 var
+R9048:9053 PLF.DenotationSimp <> Gamma2:131 var
+R9058:9063 PLF.DenotationSimp <> Gamma3:132 var
+R9094:9102 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9180:9180 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9072:9082 PLF.TypeClosedSimp <> type_closed def
+R9084:9089 PLF.DenotationSimp <> Gamma1:130 var
+R9091:9093 PLF.DenotationSimp <> tau:133 var
+binder 9110:9111 <> st:134
+binder 9113:9113 <> e:135
+R9146:9149 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9116:9129 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R9131:9132 PLF.DenotationSimp <> st:134 var
+R9134:9139 PLF.DenotationSimp <> Gamma1:130 var
+R9141:9143 PLF.DenotationSimp <> tau:133 var
+R9145:9145 PLF.DenotationSimp <> e:135 var
+R9150:9163 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R9165:9166 PLF.DenotationSimp <> st:134 var
+R9168:9173 PLF.DenotationSimp <> Gamma3:132 var
+R9175:9177 PLF.DenotationSimp <> tau:133 var
+R9179:9179 PLF.DenotationSimp <> e:135 var
+R9273:9292 PLF.TypeClosedSimp <> lcontxt_to_basic_ctx def
+def 9353:9369 <> tmR_in_ctx_all_st
+binder 9371:9375 <> Gamma:136
+binder 9377:9379 <> tau:137
+binder 9381:9381 <> e:138
+binder 9393:9394 <> st:139
+R9397:9410 PLF.DenotationSimp <> tmR_in_ctx_aux ind
+R9412:9413 PLF.DenotationSimp <> st:139 var
+R9415:9419 PLF.DenotationSimp <> Gamma:136 var
+R9421:9423 PLF.DenotationSimp <> tau:137 var
+R9425:9425 PLF.DenotationSimp <> e:138 var
+R9448:9464 PLF.DenotationSimp <> tmR_in_ctx_all_st def

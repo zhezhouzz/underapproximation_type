@@ -1,0 +1,27 @@
+-Q . CT
+Atom.v
+Tactics.v
+CoreLang.v
+NamelessTactics.v
+CoreLangProp.v
+OperationalSemantics.v
+OperationalSemanticsProp.v
+ListCtx.v
+BasicTyping.v
+BasicTypingProp.v
+SyntaxSugar.v
+TermOrdering.v
+Refinement.v
+RefinementTac.v
+RefinementDenotation.v
+RefinementDenotationTac.v
+RefinementDenotationProp.v
+WFDenotation.v
+WFDenotationTac.v
+RDInv.v
+RDInv2.v
+RDInv3.v
+RDInv5.v
+CtxDenotation.v
+CtxDenotationTac.v
+AuxTyping.v

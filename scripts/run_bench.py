@@ -28,7 +28,7 @@ def invoc_cmd(verbose, cmd, output_file):
             print(e.output)
 
 def run(dir_str, verbose):
-    cmd = cmd_prefix + ["under-type-check", meta_config_file,
+    cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                         # "{}/{}".format(dir_str, "config.json"),
                         "{}/{}".format(dir_str, "prog.ml"),
                         "{}/{}".format(dir_str, "_under.ml")]
@@ -36,6 +36,12 @@ def run(dir_str, verbose):
 
 def show_refine(dir_str, verbose):
     cmd = cmd_prefix + ["print-coverage-types", meta_config_file,
+                        "{}/{}".format(dir_str, "_under.ml")]
+    invoc_cmd(verbose, cmd, None)
+
+def show_source(dir_str, fm, verbose):
+    cmd = cmd_prefix + ["print-source-code", fm, meta_config_file,
+                        "{}/{}".format(dir_str, "prog.ml"),
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
 

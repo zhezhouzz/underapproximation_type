@@ -1,0 +1,738 @@
+DIGEST 199c6c42f18ee2258aeeb660b48c7433
+FCT.LinearContext
+R69:72 CT.Maps <> <> lib
+R98:99 CT.Ax <> <> lib
+R126:135 Coq.Lists.List <> <> lib
+R145:157 Coq.Lists.List ListNotations <> mod
+R167:168 CT.Ax <> <> mod
+def 183:196 <> linear_context
+binder 199:199 <> A:1
+R212:215 Coq.Init.Datatypes <> list ind
+R224:226 Coq.Init.Datatypes <> ::type_scope:x_'*'_x not
+R218:223 Coq.Strings.String <> string ind
+R227:227 CT.LinearContext <> A:1 var
+def 243:249 <> l_empty
+binder 252:252 <> A:2
+R262:275 CT.LinearContext <> linear_context def
+R277:277 CT.LinearContext <> A:2 var
+R282:284 Coq.Init.Datatypes <> nil constr
+def 345:352 <> l_append
+binder 355:355 <> A:3
+R370:383 CT.LinearContext <> linear_context def
+R385:385 CT.LinearContext <> A:3 var
+binder 366:366 <> m:4
+R393:398 Coq.Strings.String <> string ind
+binder 389:389 <> x:5
+R406:406 CT.LinearContext <> A:3 var
+binder 402:402 <> v:6
+R411:424 CT.LinearContext <> linear_context def
+R426:426 CT.LinearContext <> A:3 var
+R432:435 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R431:431 CT.LinearContext <> m:4 var
+R436:436 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R443:443 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R437:437 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R439:440 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R442:442 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R438:438 CT.LinearContext <> x:5 var
+R441:441 CT.LinearContext <> v:6 var
+def 478:495 <> linear_context_inv
+binder 498:498 <> A:7
+R512:525 CT.LinearContext <> linear_context def
+R527:527 CT.LinearContext <> A:7 var
+binder 507:509 <> ctx:8
+R533:536 Coq.Init.Logic <> True ind
+R576:583 CT.LinearContext <> l_append def
+not 549:549 <> :::x_'<l>'_x_':l:'_x
+R629:637 Coq.Lists.List <> app_nil_l thm
+R666:674 Coq.Lists.List <> app_nil_r thm
+prf 710:723 <> app_one_eq_nil
+binder 726:726 <> A:9
+R747:752 Coq.Strings.String <> string ind
+binder 744:744 <> x:10
+R760:760 CT.LinearContext <> A:9 var
+binder 756:758 <> tau:11
+binder 763:767 <> Gamma:12
+R770:772 Coq.Init.Logic <> ::type_scope:'~'_x not
+R797:797 Coq.Init.Logic <> ::type_scope:'~'_x not
+R775:777 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R773:774 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R783:786 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R778:782 CT.LinearContext <> Gamma:12 var
+R787:787 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R796:796 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R788:788 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R790:791 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R795:795 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R789:789 CT.LinearContext <> x:10 var
+R792:794 CT.LinearContext <> tau:11 var
+R847:856 Coq.Lists.List <> app_eq_nil thm
+R847:856 Coq.Lists.List <> app_eq_nil thm
+prf 902:916 <> app_one_is_cons
+binder 919:919 <> A:13
+R940:940 CT.LinearContext <> A:13 var
+binder 937:937 <> x:14
+binder 943:943 <> l:15
+R959:961 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R946:946 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R953:957 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R948:949 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R947:947 CT.LinearContext <> x:14 var
+R950:952 Coq.Init.Datatypes <> nil constr
+R958:958 CT.LinearContext <> l:15 var
+R963:966 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R962:962 CT.LinearContext <> x:14 var
+R967:967 CT.LinearContext <> l:15 var
+prf 1009:1029 <> app_list_unit_eq_unit
+binder 1032:1032 <> A:16
+R1055:1055 CT.LinearContext <> A:16 var
+binder 1050:1050 <> x:17
+binder 1052:1052 <> y:18
+binder 1058:1058 <> l:19
+R1075:1078 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1069:1071 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1062:1065 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R1061:1061 CT.LinearContext <> l:19 var
+R1066:1066 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1068:1068 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1067:1067 CT.LinearContext <> x:17 var
+R1072:1072 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1074:1074 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R1073:1073 CT.LinearContext <> y:18 var
+R1084:1087 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R1080:1082 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1079:1079 CT.LinearContext <> x:17 var
+R1083:1083 CT.LinearContext <> y:18 var
+R1089:1091 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1088:1088 CT.LinearContext <> l:19 var
+R1092:1093 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R1117:1127 Coq.Lists.List <> app_eq_unit thm
+R1117:1127 Coq.Lists.List <> app_eq_unit thm
+def 1299:1315 <> l_find_right_most
+binder 1318:1318 <> A:20
+R1332:1335 Coq.Init.Datatypes <> list ind
+R1338:1341 Coq.Init.Datatypes <> prod ind
+R1350:1350 CT.LinearContext <> A:20 var
+R1343:1348 Coq.Strings.String <> string ind
+binder 1327:1329 <> ctx:21
+R1361:1366 Coq.Strings.String <> string ind
+binder 1355:1358 <> name:22
+R1380:1382 CT.LinearContext <> ctx:21 var
+R1393:1395 Coq.Init.Datatypes <> nil constr
+R1400:1403 Coq.Init.Datatypes <> None constr
+R1417:1418 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1409:1409 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1411:1412 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1416:1416 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1438:1454 CT.LinearContext <> l_find_right_most:23 def
+R1460:1463 CT.LinearContext <> name:22 var
+R1456:1458 CT.LinearContext <> ctx:21 var
+R1478:1481 Coq.Init.Datatypes <> None constr
+R1489:1498 Coq.Strings.String <> eqb def
+R1502:1505 CT.LinearContext <> name:22 var
+R1526:1529 Coq.Init.Datatypes <> None constr
+R1512:1515 Coq.Init.Datatypes <> Some constr
+R1539:1542 Coq.Init.Datatypes <> Some constr
+R1551:1554 Coq.Init.Datatypes <> Some constr
+prf 1585:1613 <> l_find_right_most_none_neq_hd
+binder 1616:1616 <> A:25
+R1641:1654 CT.LinearContext <> linear_context def
+R1656:1656 CT.LinearContext <> A:25 var
+binder 1634:1638 <> Gamma:26
+binder 1659:1659 <> x:27
+binder 1661:1662 <> tx:28
+binder 1664:1664 <> a:29
+R1715:1718 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1708:1710 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1671:1687 CT.LinearContext <> l_find_right_most def
+R1707:1707 CT.LinearContext <> a:29 var
+R1697:1699 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R1690:1690 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1692:1693 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1696:1696 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R1691:1691 CT.LinearContext <> x:27 var
+R1694:1695 CT.LinearContext <> tx:28 var
+R1700:1704 CT.LinearContext <> Gamma:26 var
+R1711:1714 Coq.Init.Datatypes <> None constr
+R1720:1723 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1719:1719 CT.LinearContext <> x:27 var
+R1724:1724 CT.LinearContext <> a:29 var
+R1778:1794 CT.LinearContext <> l_find_right_most def
+R1778:1794 CT.LinearContext <> l_find_right_most def
+R1831:1838 Coq.Strings.String <> eqb_spec thm
+R1831:1838 Coq.Strings.String <> eqb_spec thm
+prf 1931:1959 <> l_find_right_most_none_neq_tl
+binder 1962:1962 <> A:30
+R1987:2000 CT.LinearContext <> linear_context def
+R2002:2002 CT.LinearContext <> A:30 var
+binder 1980:1984 <> Gamma:31
+binder 2005:2005 <> x:32
+binder 2007:2008 <> tx:33
+binder 2010:2010 <> a:34
+R2061:2064 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2054:2056 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2017:2033 CT.LinearContext <> l_find_right_most def
+R2053:2053 CT.LinearContext <> a:34 var
+R2043:2045 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R2036:2036 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R2038:2039 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R2042:2042 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R2037:2037 CT.LinearContext <> x:32 var
+R2040:2041 CT.LinearContext <> tx:33 var
+R2046:2050 CT.LinearContext <> Gamma:31 var
+R2057:2060 Coq.Init.Datatypes <> None constr
+R2090:2092 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2065:2081 CT.LinearContext <> l_find_right_most def
+R2089:2089 CT.LinearContext <> a:34 var
+R2083:2087 CT.LinearContext <> Gamma:31 var
+R2093:2096 Coq.Init.Datatypes <> None constr
+R2150:2166 CT.LinearContext <> l_find_right_most def
+R2150:2166 CT.LinearContext <> l_find_right_most def
+R2203:2210 Coq.Strings.String <> eqb_spec thm
+R2203:2210 Coq.Strings.String <> eqb_spec thm
+prf 2290:2315 <> l_find_right_most_weak_pre
+binder 2318:2318 <> A:35
+R2352:2365 CT.LinearContext <> linear_context def
+R2367:2367 CT.LinearContext <> A:35 var
+binder 2336:2341 <> Gamma1:36
+binder 2343:2348 <> Gamma2:37
+binder 2370:2370 <> a:38
+R2422:2429 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2415:2417 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2377:2393 CT.LinearContext <> l_find_right_most def
+R2414:2414 CT.LinearContext <> a:38 var
+R2402:2405 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R2396:2401 CT.LinearContext <> Gamma1:36 var
+R2406:2411 CT.LinearContext <> Gamma2:37 var
+R2418:2421 Coq.Init.Datatypes <> None constr
+R2456:2458 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2430:2446 CT.LinearContext <> l_find_right_most def
+R2455:2455 CT.LinearContext <> a:38 var
+R2448:2453 CT.LinearContext <> Gamma1:36 var
+R2459:2462 Coq.Init.Datatypes <> None constr
+R2556:2572 CT.LinearContext <> l_find_right_most def
+R2581:2584 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R2556:2572 CT.LinearContext <> l_find_right_most def
+R2581:2584 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R2633:2640 Coq.Strings.String <> eqb_spec thm
+R2633:2640 Coq.Strings.String <> eqb_spec thm
+R2707:2723 CT.LinearContext <> l_find_right_most def
+R2707:2723 CT.LinearContext <> l_find_right_most def
+prf 2813:2839 <> l_find_right_most_weak_post
+binder 2842:2842 <> A:39
+R2876:2889 CT.LinearContext <> linear_context def
+R2891:2891 CT.LinearContext <> A:39 var
+binder 2860:2865 <> Gamma1:40
+binder 2868:2873 <> Gamma2:41
+binder 2894:2894 <> a:42
+R2946:2953 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2939:2941 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2901:2917 CT.LinearContext <> l_find_right_most def
+R2938:2938 CT.LinearContext <> a:42 var
+R2926:2929 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R2920:2925 CT.LinearContext <> Gamma1:40 var
+R2930:2935 CT.LinearContext <> Gamma2:41 var
+R2942:2945 Coq.Init.Datatypes <> None constr
+R2980:2982 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2954:2970 CT.LinearContext <> l_find_right_most def
+R2979:2979 CT.LinearContext <> a:42 var
+R2972:2977 CT.LinearContext <> Gamma2:41 var
+R2983:2986 Coq.Init.Datatypes <> None constr
+R3080:3096 CT.LinearContext <> l_find_right_most def
+R3105:3108 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R3080:3096 CT.LinearContext <> l_find_right_most def
+R3105:3108 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+prf 3213:3239 <> l_find_right_most_weak_unit
+binder 3242:3242 <> A:43
+binder 3259:3259 <> x:44
+R3269:3269 CT.LinearContext <> A:43 var
+binder 3262:3266 <> tau_x:45
+binder 3272:3272 <> a:46
+R3323:3326 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3316:3318 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3279:3295 CT.LinearContext <> l_find_right_most def
+R3315:3315 CT.LinearContext <> a:46 var
+R3308:3309 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R3298:3298 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3300:3301 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3307:3307 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3299:3299 CT.LinearContext <> x:44 var
+R3302:3306 CT.LinearContext <> tau_x:45 var
+R3310:3312 Coq.Init.Datatypes <> nil constr
+R3319:3322 Coq.Init.Datatypes <> None constr
+R3328:3331 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R3327:3327 CT.LinearContext <> a:46 var
+R3332:3332 CT.LinearContext <> x:44 var
+R3387:3394 Coq.Strings.String <> eqb_spec thm
+R3387:3394 Coq.Strings.String <> eqb_spec thm
+prf 3494:3510 <> l_find_implies_in
+binder 3513:3513 <> A:47
+R3535:3548 CT.LinearContext <> linear_context def
+R3550:3550 CT.LinearContext <> A:47 var
+binder 3530:3532 <> ctx:48
+R3560:3565 Coq.Strings.String <> string ind
+binder 3554:3557 <> name:49
+R3574:3574 CT.LinearContext <> A:47 var
+binder 3569:3571 <> tau:50
+R3621:3630 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3610:3612 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3584:3600 CT.LinearContext <> l_find_right_most def
+R3606:3609 CT.LinearContext <> name:49 var
+R3602:3604 CT.LinearContext <> ctx:48 var
+R3613:3616 Coq.Init.Datatypes <> Some constr
+R3618:3620 CT.LinearContext <> tau:50 var
+R3631:3632 Coq.Lists.List <> In def
+R3646:3648 CT.LinearContext <> ctx:48 var
+R3634:3634 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3639:3640 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3644:3644 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3635:3638 CT.LinearContext <> name:49 var
+R3641:3643 CT.LinearContext <> tau:50 var
+R3756:3772 CT.LinearContext <> l_find_right_most def
+R3756:3772 CT.LinearContext <> l_find_right_most def
+R3830:3831 Coq.Lists.List <> In def
+R3833:3833 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3838:3839 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3843:3843 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3830:3831 Coq.Lists.List <> In def
+R3833:3833 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3838:3839 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3843:3843 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R3859:3865 Coq.Lists.List <> in_cons thm
+R3859:3865 Coq.Lists.List <> in_cons thm
+R3886:3893 Coq.Strings.String <> eqb_spec thm
+R3886:3893 Coq.Strings.String <> eqb_spec thm
+R3940:3944 Coq.Lists.List <> in_eq thm
+R3940:3944 Coq.Lists.List <> in_eq thm
+R3994:4001 Coq.Strings.String <> eqb_spec thm
+R3994:4001 Coq.Strings.String <> eqb_spec thm
+prf 4058:4088 <> l_find_right_most_some_spec_aux
+binder 4091:4091 <> A:51
+R4113:4116 Coq.Init.Datatypes <> list ind
+R4119:4122 Coq.Init.Datatypes <> prod ind
+R4131:4131 CT.LinearContext <> A:51 var
+R4124:4129 Coq.Strings.String <> string ind
+binder 4108:4110 <> ctx:52
+R4142:4147 Coq.Strings.String <> string ind
+binder 4136:4139 <> name:53
+R4156:4156 CT.LinearContext <> A:51 var
+binder 4151:4153 <> tau:54
+R4199:4205 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4270:4273 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4188:4190 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4162:4178 CT.LinearContext <> l_find_right_most def
+R4184:4187 CT.LinearContext <> name:53 var
+R4180:4182 CT.LinearContext <> ctx:52 var
+R4191:4194 Coq.Init.Datatypes <> Some constr
+R4196:4198 CT.LinearContext <> tau:54 var
+R4206:4212 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R4222:4229 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 4213:4216 <> ctx1:55
+binder 4218:4221 <> ctx2:56
+R4233:4235 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4230:4232 CT.LinearContext <> ctx:52 var
+R4240:4243 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R4236:4239 CT.LinearContext <> ctx1:55 var
+R4244:4244 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R4261:4265 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R4256:4257 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R4245:4245 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4250:4251 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4255:4255 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4246:4249 CT.LinearContext <> name:53 var
+R4252:4254 CT.LinearContext <> tau:54 var
+R4258:4260 Coq.Init.Datatypes <> nil constr
+R4266:4269 CT.LinearContext <> ctx2:56 var
+R4311:4327 CT.LinearContext <> l_find_implies_in thm
+R4311:4327 CT.LinearContext <> l_find_implies_in thm
+R4341:4348 Coq.Lists.List <> in_split thm
+R4341:4348 Coq.Lists.List <> in_split thm
+prf 4433:4457 <> l_find_right_most_last_eq
+binder 4460:4460 <> A:57
+R4482:4485 Coq.Init.Datatypes <> list ind
+R4488:4491 Coq.Init.Datatypes <> prod ind
+R4500:4500 CT.LinearContext <> A:57 var
+R4493:4498 Coq.Strings.String <> string ind
+binder 4477:4479 <> ctx:58
+binder 4504:4507 <> name:59
+binder 4509:4511 <> tau:60
+R4563:4565 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4518:4534 CT.LinearContext <> l_find_right_most def
+R4559:4562 CT.LinearContext <> name:59 var
+R4540:4543 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R4537:4539 CT.LinearContext <> ctx:58 var
+R4544:4544 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R4556:4556 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R4545:4545 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4550:4551 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4555:4555 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4546:4549 CT.LinearContext <> name:59 var
+R4552:4554 CT.LinearContext <> tau:60 var
+R4566:4569 Coq.Init.Datatypes <> Some constr
+R4571:4573 CT.LinearContext <> tau:60 var
+R4640:4647 Coq.Strings.String <> eqb_refl thm
+R4640:4647 Coq.Strings.String <> eqb_refl thm
+R4640:4647 Coq.Strings.String <> eqb_refl thm
+R4682:4689 Coq.Strings.String <> eqb_spec thm
+R4682:4689 Coq.Strings.String <> eqb_spec thm
+prf 4777:4807 <> l_find_right_most_last_neq_none
+binder 4810:4810 <> A:61
+R4832:4835 Coq.Init.Datatypes <> list ind
+R4838:4841 Coq.Init.Datatypes <> prod ind
+R4850:4850 CT.LinearContext <> A:61 var
+R4843:4848 Coq.Strings.String <> string ind
+binder 4827:4829 <> ctx:62
+binder 4854:4857 <> name:63
+binder 4859:4861 <> tau:64
+binder 4863:4863 <> a:65
+R4879:4886 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4874:4877 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R4870:4873 CT.LinearContext <> name:63 var
+R4878:4878 CT.LinearContext <> a:65 var
+R4936:4946 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R4929:4931 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4887:4903 CT.LinearContext <> l_find_right_most def
+R4928:4928 CT.LinearContext <> a:65 var
+R4909:4912 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R4906:4908 CT.LinearContext <> ctx:62 var
+R4913:4913 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R4925:4925 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R4914:4914 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4919:4920 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4924:4924 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4915:4918 CT.LinearContext <> name:63 var
+R4921:4923 CT.LinearContext <> tau:64 var
+R4932:4935 Coq.Init.Datatypes <> None constr
+R4970:4972 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4947:4963 CT.LinearContext <> l_find_right_most def
+R4969:4969 CT.LinearContext <> a:65 var
+R4965:4967 CT.LinearContext <> ctx:62 var
+R4973:4976 Coq.Init.Datatypes <> None constr
+R5066:5073 Coq.Strings.String <> eqb_spec thm
+R5066:5073 Coq.Strings.String <> eqb_spec thm
+R5171:5187 CT.LinearContext <> l_find_right_most def
+R5193:5196 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R5197:5197 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5209:5209 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5198:5198 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5203:5204 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5208:5208 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5171:5187 CT.LinearContext <> l_find_right_most def
+R5193:5196 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R5197:5197 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5209:5209 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5198:5198 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5203:5204 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5208:5208 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5257:5264 Coq.Strings.String <> eqb_spec thm
+R5257:5264 Coq.Strings.String <> eqb_spec thm
+R5318:5334 CT.LinearContext <> l_find_right_most def
+R5318:5334 CT.LinearContext <> l_find_right_most def
+R5397:5404 Coq.Strings.String <> eqb_spec thm
+R5397:5404 Coq.Strings.String <> eqb_spec thm
+R5487:5503 CT.LinearContext <> l_find_right_most def
+R5487:5503 CT.LinearContext <> l_find_right_most def
+R5554:5570 CT.LinearContext <> l_find_right_most def
+R5576:5579 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R5580:5580 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5592:5592 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5581:5581 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5586:5587 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5591:5591 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5554:5570 CT.LinearContext <> l_find_right_most def
+R5576:5579 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R5580:5580 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5592:5592 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5581:5581 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5586:5587 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5591:5591 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5629:5631 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5622:5625 Coq.Init.Datatypes <> Some constr
+R5632:5635 Coq.Init.Datatypes <> None constr
+R5629:5631 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5622:5625 Coq.Init.Datatypes <> Some constr
+R5632:5635 Coq.Init.Datatypes <> None constr
+prf 5670:5695 <> l_find_right_most_last_neq
+binder 5698:5698 <> A:66
+R5720:5723 Coq.Init.Datatypes <> list ind
+R5726:5729 Coq.Init.Datatypes <> prod ind
+R5738:5738 CT.LinearContext <> A:66 var
+R5731:5736 Coq.Strings.String <> string ind
+binder 5715:5717 <> ctx:67
+binder 5742:5745 <> name:68
+binder 5747:5749 <> tau:69
+binder 5751:5751 <> a:70
+binder 5753:5757 <> tau_a:71
+R5773:5780 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5768:5771 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R5764:5767 CT.LinearContext <> name:68 var
+R5772:5772 CT.LinearContext <> a:70 var
+R5836:5846 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R5823:5825 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5781:5797 CT.LinearContext <> l_find_right_most def
+R5822:5822 CT.LinearContext <> a:70 var
+R5803:5806 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R5800:5802 CT.LinearContext <> ctx:67 var
+R5807:5807 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5819:5819 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R5808:5808 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5813:5814 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5818:5818 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5809:5812 CT.LinearContext <> name:68 var
+R5815:5817 CT.LinearContext <> tau:69 var
+R5826:5829 Coq.Init.Datatypes <> Some constr
+R5831:5835 CT.LinearContext <> tau_a:71 var
+R5870:5872 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R5847:5863 CT.LinearContext <> l_find_right_most def
+R5869:5869 CT.LinearContext <> a:70 var
+R5865:5867 CT.LinearContext <> ctx:67 var
+R5873:5876 Coq.Init.Datatypes <> Some constr
+R5878:5882 CT.LinearContext <> tau_a:71 var
+R5970:5977 Coq.Strings.String <> eqb_spec thm
+R5970:5977 Coq.Strings.String <> eqb_spec thm
+R6089:6105 CT.LinearContext <> l_find_right_most def
+R6111:6114 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6115:6115 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6127:6127 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6116:6116 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6121:6122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6126:6126 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6089:6105 CT.LinearContext <> l_find_right_most def
+R6111:6114 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6115:6115 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6127:6127 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6116:6116 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6121:6122 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6126:6126 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6209:6216 Coq.Strings.String <> eqb_spec thm
+R6209:6216 Coq.Strings.String <> eqb_spec thm
+R6262:6287 CT.LinearContext <> l_find_right_most_weak_pre thm
+R6262:6287 CT.LinearContext <> l_find_right_most_weak_pre thm
+R6329:6336 Coq.Strings.String <> eqb_refl thm
+R6329:6336 Coq.Strings.String <> eqb_refl thm
+R6329:6336 Coq.Strings.String <> eqb_refl thm
+R6410:6426 CT.LinearContext <> l_find_right_most def
+R6410:6426 CT.LinearContext <> l_find_right_most def
+R6554:6556 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6512:6528 CT.LinearContext <> l_find_right_most def
+R6534:6537 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6538:6538 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6550:6550 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6539:6539 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6544:6545 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6549:6549 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6557:6560 Coq.Init.Datatypes <> None constr
+R6554:6556 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6512:6528 CT.LinearContext <> l_find_right_most def
+R6534:6537 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6538:6538 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6550:6550 Coq.Lists.List ListNotations ::list_scope:'['_x_']' not
+R6539:6539 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6544:6545 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6549:6549 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6557:6560 Coq.Init.Datatypes <> None constr
+R6572:6602 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R6572:6602 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R6572:6602 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R6572:6602 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R6641:6648 Coq.Strings.String <> eqb_spec thm
+R6641:6648 Coq.Strings.String <> eqb_spec thm
+prf 6677:6703 <> l_find_right_most_some_spec
+binder 6706:6706 <> A:72
+R6728:6731 Coq.Init.Datatypes <> list ind
+R6734:6737 Coq.Init.Datatypes <> prod ind
+R6746:6746 CT.LinearContext <> A:72 var
+R6739:6744 Coq.Strings.String <> string ind
+binder 6723:6725 <> ctx:73
+R6757:6762 Coq.Strings.String <> string ind
+binder 6751:6754 <> name:74
+R6771:6771 CT.LinearContext <> A:72 var
+binder 6766:6768 <> tau:75
+R6814:6820 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6923:6926 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6803:6805 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6777:6793 CT.LinearContext <> l_find_right_most def
+R6799:6802 CT.LinearContext <> name:74 var
+R6795:6797 CT.LinearContext <> ctx:73 var
+R6806:6809 Coq.Init.Datatypes <> Some constr
+R6811:6813 CT.LinearContext <> tau:75 var
+R6821:6827 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R6837:6844 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 6828:6831 <> ctx1:76
+binder 6833:6836 <> ctx2:77
+R6885:6888 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R6848:6850 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6845:6847 CT.LinearContext <> ctx:73 var
+R6855:6858 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6851:6854 CT.LinearContext <> ctx1:76 var
+R6859:6859 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6876:6880 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R6871:6872 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6860:6860 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6865:6866 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6870:6870 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6861:6864 CT.LinearContext <> name:74 var
+R6867:6869 CT.LinearContext <> tau:75 var
+R6873:6875 Coq.Init.Datatypes <> nil constr
+R6881:6884 CT.LinearContext <> ctx2:77 var
+R6916:6918 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R6889:6905 CT.LinearContext <> l_find_right_most def
+R6912:6915 CT.LinearContext <> name:74 var
+R6907:6910 CT.LinearContext <> ctx2:77 var
+R6919:6922 Coq.Init.Datatypes <> None constr
+R6955:6961 Coq.Lists.List <> rev_ind thm
+binder 6968:6970 <> ctx:78
+binder 6982:6985 <> name:79
+binder 6987:6989 <> tau:80
+R7051:7077 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7200:7223 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7040:7042 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7014:7030 CT.LinearContext <> l_find_right_most def
+R7036:7039 CT.LinearContext <> name:79 var
+R7032:7034 CT.LinearContext <> ctx:78 var
+R7043:7046 Coq.Init.Datatypes <> Some constr
+R7048:7050 CT.LinearContext <> tau:80 var
+R7078:7084 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R7094:7121 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 7085:7088 <> ctx1:81
+binder 7090:7093 <> ctx2:82
+R7162:7165 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7125:7127 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7122:7124 CT.LinearContext <> ctx:78 var
+R7132:7135 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7128:7131 CT.LinearContext <> ctx1:81 var
+R7136:7136 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7153:7157 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7148:7149 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7137:7137 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7142:7143 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7147:7147 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7138:7141 CT.LinearContext <> name:79 var
+R7144:7146 CT.LinearContext <> tau:80 var
+R7150:7152 Coq.Init.Datatypes <> nil constr
+R7158:7161 CT.LinearContext <> ctx2:82 var
+R7193:7195 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7166:7182 CT.LinearContext <> l_find_right_most def
+R7189:7192 CT.LinearContext <> name:79 var
+R7184:7187 CT.LinearContext <> ctx2:82 var
+R7196:7199 Coq.Init.Datatypes <> None constr
+R6955:6961 Coq.Lists.List <> rev_ind thm
+binder 6968:6970 <> ctx:83
+binder 6982:6985 <> name:84
+binder 6987:6989 <> tau:85
+R7051:7077 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7200:7223 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7040:7042 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7014:7030 CT.LinearContext <> l_find_right_most def
+R7036:7039 CT.LinearContext <> name:84 var
+R7032:7034 CT.LinearContext <> ctx:83 var
+R7043:7046 Coq.Init.Datatypes <> Some constr
+R7048:7050 CT.LinearContext <> tau:85 var
+R7078:7084 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R7094:7121 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 7085:7088 <> ctx1:86
+binder 7090:7093 <> ctx2:87
+R7162:7165 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7125:7127 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7122:7124 CT.LinearContext <> ctx:83 var
+R7132:7135 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7128:7131 CT.LinearContext <> ctx1:86 var
+R7136:7136 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7153:7157 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7148:7149 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7137:7137 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7142:7143 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7147:7147 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7138:7141 CT.LinearContext <> name:84 var
+R7144:7146 CT.LinearContext <> tau:85 var
+R7150:7152 Coq.Init.Datatypes <> nil constr
+R7158:7161 CT.LinearContext <> ctx2:87 var
+R7193:7195 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7166:7182 CT.LinearContext <> l_find_right_most def
+R7189:7192 CT.LinearContext <> name:84 var
+R7184:7187 CT.LinearContext <> ctx2:87 var
+R7196:7199 Coq.Init.Datatypes <> None constr
+R7342:7349 Coq.Strings.String <> eqb_spec thm
+R7342:7349 Coq.Strings.String <> eqb_spec thm
+R7385:7387 Coq.Init.Datatypes <> nil constr
+R7385:7387 Coq.Init.Datatypes <> nil constr
+R7407:7415 Coq.Lists.List <> app_nil_r thm
+R7407:7415 Coq.Lists.List <> app_nil_r thm
+R7407:7415 Coq.Lists.List <> app_nil_r thm
+R7426:7450 CT.LinearContext <> l_find_right_most_last_eq thm
+R7426:7450 CT.LinearContext <> l_find_right_most_last_eq thm
+R7426:7450 CT.LinearContext <> l_find_right_most_last_eq thm
+R7528:7530 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7502:7518 CT.LinearContext <> l_find_right_most def
+R7531:7534 Coq.Init.Datatypes <> Some constr
+R7528:7530 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7502:7518 CT.LinearContext <> l_find_right_most def
+R7531:7534 Coq.Init.Datatypes <> Some constr
+R7551:7576 CT.LinearContext <> l_find_right_most_last_neq thm
+R7551:7576 CT.LinearContext <> l_find_right_most_last_neq thm
+R7551:7576 CT.LinearContext <> l_find_right_most_last_neq thm
+R7551:7576 CT.LinearContext <> l_find_right_most_last_neq thm
+R7685:7689 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7705:7705 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7700:7701 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7690:7690 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7692:7693 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7699:7699 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7702:7704 Coq.Init.Datatypes <> nil constr
+R7685:7689 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7705:7705 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R7700:7701 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7690:7690 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7692:7693 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7699:7699 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7702:7704 Coq.Init.Datatypes <> nil constr
+R7751:7759 Coq.Lists.List <> app_assoc thm
+R7751:7759 Coq.Lists.List <> app_assoc thm
+R7751:7759 Coq.Lists.List <> app_assoc thm
+R7773:7781 Coq.Lists.List <> app_assoc thm
+R7773:7781 Coq.Lists.List <> app_assoc thm
+R7773:7781 Coq.Lists.List <> app_assoc thm
+R7800:7830 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R7800:7830 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R7800:7830 CT.LinearContext <> l_find_right_most_last_neq_none thm
+R7800:7830 CT.LinearContext <> l_find_right_most_last_neq_none thm
+prf 8545:8560 <> find_none_append
+binder 8563:8563 <> A:88
+binder 8580:8584 <> Gamma:89
+binder 8586:8586 <> a:90
+R8596:8596 CT.LinearContext <> A:88 var
+binder 8589:8593 <> tau_x:91
+binder 8599:8599 <> x:92
+R8638:8645 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8631:8633 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8606:8622 CT.LinearContext <> l_find_right_most def
+R8630:8630 CT.LinearContext <> a:90 var
+R8624:8628 CT.LinearContext <> Gamma:89 var
+R8634:8637 Coq.Init.Datatypes <> None constr
+R8652:8659 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8647:8650 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8646:8646 CT.LinearContext <> x:92 var
+R8651:8651 CT.LinearContext <> a:90 var
+R8707:8709 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8660:8676 CT.LinearContext <> l_find_right_most def
+R8706:8706 CT.LinearContext <> a:90 var
+R8684:8688 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8703:8703 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R8679:8683 CT.LinearContext <> Gamma:89 var
+R8698:8699 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R8689:8689 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8691:8691 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8697:8697 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R8690:8690 CT.LinearContext <> x:92 var
+R8692:8696 CT.LinearContext <> tau_x:91 var
+R8700:8702 Coq.Init.Datatypes <> nil constr
+R8710:8713 Coq.Init.Datatypes <> None constr
+R8786:8793 Coq.Strings.String <> eqb_spec thm
+R8786:8793 Coq.Strings.String <> eqb_spec thm
+R8882:8889 Coq.Strings.String <> eqb_spec thm
+R8882:8889 Coq.Strings.String <> eqb_spec thm
+R8932:8948 CT.LinearContext <> l_find_right_most def
+R8932:8948 CT.LinearContext <> l_find_right_most def
+R8981:8988 Coq.Strings.String <> eqb_refl thm
+R8981:8988 Coq.Strings.String <> eqb_refl thm
+R8981:8988 Coq.Strings.String <> eqb_refl thm

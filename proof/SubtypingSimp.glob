@@ -1,0 +1,165 @@
+DIGEST 23824134ace465691b161f49fd685391
+FPLF.SubtypingSimp
+R70:73 PLF.Maps <> <> lib
+R100:111 PLF.CoreLangSimp <> <> lib
+R138:157 PLF.NormalTypeSystemSimp <> <> lib
+R184:196 PLF.LinearContext <> <> lib
+R223:231 PLF.RfTypeDef <> <> lib
+R258:271 PLF.TypeClosedSimp <> <> lib
+R298:311 PLF.DenotationSimp <> <> lib
+R338:367 Coq.Logic.FunctionalExtensionality <> <> lib
+R394:413 Coq.Logic.ClassicalFacts <> <> lib
+R440:449 Coq.Lists.List <> <> lib
+R460:471 PLF.CoreLangSimp <> <> mod
+R481:493 PLF.LinearContext <> <> mod
+R503:516 PLF.TypeClosedSimp <> <> mod
+R526:539 PLF.DenotationSimp <> <> mod
+R549:561 Coq.Lists.List ListNotations <> mod
+ind 601:610 <> is_subtype
+constr 657:665 <> Sub_UBase
+constr 867:897 <> Sub_IndependArrow_IndependArrow
+constr 1093:1119 <> Sub_DependArrow_DependArrow
+R621:624 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R614:620 PLF.DenotationSimp <> context def
+R632:635 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R625:631 PLF.RfTypeDef <> underty ind
+R643:646 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R636:642 PLF.RfTypeDef <> underty ind
+binder 675:679 <> Gamma:3
+binder 681:681 <> T:4
+binder 683:686 <> phi1:5
+binder 688:691 <> phi2:6
+R698:698 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R801:809 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+binder 706:706 <> e:7
+R753:756 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R709:725 PLF.DenotationSimp <> tmR_in_ctx_all_st def
+R727:731 PLF.SubtypingSimp <> Gamma:3 var
+R734:738 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R740:742 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R747:749 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R739:739 PLF.SubtypingSimp <> T:4 var
+R743:746 PLF.SubtypingSimp <> phi1:5 var
+R752:752 PLF.SubtypingSimp <> e:7 var
+R757:773 PLF.DenotationSimp <> tmR_in_ctx_all_st def
+R775:779 PLF.SubtypingSimp <> Gamma:3 var
+R782:786 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R788:790 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R795:797 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R787:787 PLF.SubtypingSimp <> T:4 var
+R791:794 PLF.SubtypingSimp <> phi2:6 var
+R800:800 PLF.SubtypingSimp <> e:7 var
+R810:819 PLF.SubtypingSimp <> is_subtype:1 ind
+R847:851 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R853:855 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R860:862 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R852:852 PLF.SubtypingSimp <> T:4 var
+R856:859 PLF.SubtypingSimp <> phi2:6 var
+R828:832 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R834:836 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R841:843 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R833:833 PLF.SubtypingSimp <> T:4 var
+R837:840 PLF.SubtypingSimp <> phi1:5 var
+R821:825 PLF.SubtypingSimp <> Gamma:3 var
+binder 907:911 <> Gamma:8
+R927:933 PLF.RfTypeDef <> underty ind
+binder 914:918 <> tau11:9
+binder 920:924 <> tau21:10
+R950:956 PLF.RfTypeDef <> underty ind
+binder 937:941 <> tau12:11
+binder 943:947 <> tau22:12
+R992:999 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R964:973 PLF.SubtypingSimp <> is_subtype:1 ind
+R987:991 PLF.SubtypingSimp <> tau11:9 var
+R981:985 PLF.SubtypingSimp <> tau21:10 var
+R975:979 PLF.SubtypingSimp <> Gamma:8 var
+R1028:1035 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1000:1009 PLF.SubtypingSimp <> is_subtype:1 ind
+R1023:1027 PLF.SubtypingSimp <> tau22:12 var
+R1017:1021 PLF.SubtypingSimp <> tau12:11 var
+R1011:1015 PLF.SubtypingSimp <> Gamma:8 var
+R1036:1045 PLF.SubtypingSimp <> is_subtype:1 ind
+R1078:1083 PLF.RfTypeDef <> :::x_'u-->'_x not
+R1073:1077 PLF.SubtypingSimp <> tau21:10 var
+R1084:1088 PLF.SubtypingSimp <> tau22:12 var
+R1059:1064 PLF.RfTypeDef <> :::x_'u-->'_x not
+R1054:1058 PLF.SubtypingSimp <> tau11:9 var
+R1065:1069 PLF.SubtypingSimp <> tau12:11 var
+R1047:1051 PLF.SubtypingSimp <> Gamma:8 var
+binder 1129:1133 <> Gamma:13
+binder 1135:1135 <> T:14
+binder 1137:1137 <> x:15
+binder 1139:1143 <> phi11:16
+binder 1145:1149 <> phi21:17
+R1165:1171 PLF.RfTypeDef <> underty ind
+binder 1152:1156 <> tau12:18
+binder 1158:1162 <> tau22:19
+R1280:1287 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1224:1233 PLF.SubtypingSimp <> is_subtype:1 ind
+R1262:1266 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1268:1270 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1276:1278 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1267:1267 PLF.SubtypingSimp <> T:14 var
+R1271:1275 PLF.SubtypingSimp <> phi21:17 var
+R1242:1246 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1248:1250 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1256:1258 PLF.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R1247:1247 PLF.SubtypingSimp <> T:14 var
+R1251:1255 PLF.SubtypingSimp <> phi11:16 var
+R1235:1239 PLF.SubtypingSimp <> Gamma:13 var
+R1348:1355 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1288:1297 PLF.SubtypingSimp <> is_subtype:1 ind
+R1343:1347 PLF.SubtypingSimp <> tau22:19 var
+R1337:1341 PLF.SubtypingSimp <> tau12:18 var
+R1305:1309 PLF.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R1311:1316 PLF.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R1334:1334 PLF.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R1300:1304 PLF.SubtypingSimp <> Gamma:13 var
+R1310:1310 PLF.SubtypingSimp <> x:15 var
+R1317:1321 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1323:1325 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1331:1333 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1322:1322 PLF.SubtypingSimp <> T:14 var
+R1326:1330 PLF.SubtypingSimp <> phi21:17 var
+R1356:1365 PLF.SubtypingSimp <> is_subtype:1 ind
+R1411:1414 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R1432:1437 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R1410:1410 PLF.SubtypingSimp <> x:15 var
+R1415:1419 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1421:1423 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1429:1431 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1420:1420 PLF.SubtypingSimp <> T:14 var
+R1424:1428 PLF.SubtypingSimp <> phi21:17 var
+R1438:1442 PLF.SubtypingSimp <> tau22:19 var
+R1375:1378 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R1396:1401 PLF.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R1374:1374 PLF.SubtypingSimp <> x:15 var
+R1379:1383 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1385:1387 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1393:1395 PLF.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R1384:1384 PLF.SubtypingSimp <> T:14 var
+R1388:1392 PLF.SubtypingSimp <> phi11:16 var
+R1402:1406 PLF.SubtypingSimp <> tau12:18 var
+R1367:1371 PLF.SubtypingSimp <> Gamma:13 var
+R1486:1495 PLF.SubtypingSimp <> is_subtype ind
+not 1456:1456 <> :::x_'\C-'_x_'\<:'_x
+prf 1532:1546 <> is_subtype_spec
+binder 1556:1560 <> Gamma:20
+binder 1562:1563 <> t1:21
+binder 1565:1566 <> t2:22
+R1595:1603 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1674:1674 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1573:1582 PLF.SubtypingSimp <> is_subtype ind
+R1584:1588 PLF.SubtypingSimp <> Gamma:20 var
+R1590:1591 PLF.SubtypingSimp <> t1:21 var
+R1593:1594 PLF.SubtypingSimp <> t2:22 var
+binder 1611:1611 <> e:23
+R1642:1645 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1614:1630 PLF.DenotationSimp <> tmR_in_ctx_all_st def
+R1632:1636 PLF.SubtypingSimp <> Gamma:20 var
+R1638:1639 PLF.SubtypingSimp <> t1:21 var
+R1641:1641 PLF.SubtypingSimp <> e:23 var
+R1646:1662 PLF.DenotationSimp <> tmR_in_ctx_all_st def
+R1664:1668 PLF.SubtypingSimp <> Gamma:20 var
+R1670:1671 PLF.SubtypingSimp <> t2:22 var
+R1673:1673 PLF.SubtypingSimp <> e:23 var

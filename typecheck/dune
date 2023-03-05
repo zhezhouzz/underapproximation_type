@@ -4,24 +4,15 @@
  (wrapped true)
  (libraries utils languages core translate abstraction env)
  (modules
-   ; under/
-   litcheck
-   checkaux
-   param
-   ; ./
    opcheck
-   termcheck
    oversub
-   undersub
-   ; overcheck
+   termcheck
    undercheck
+   undersub
    undertycheck
-   ; overtycheck
-   ; dependentcheck
-   ; inv_check
-   underctx
-   ; persistence_check
-   ; reachability_check
+   checkaux
    dt_eq
-   ; well_found
+   litcheck
+   param
+   underctx
  ))

@@ -1,0 +1,1242 @@
+DIGEST 8307861b503cf48f77aa15033a143966
+FCT.CoreLang
+R69:72 CT.Maps <> <> lib
+R99:112 Coq.Arith.PeanoNat <> <> lib
+R139:158 Coq.Logic.ClassicalFacts <> <> lib
+R185:193 Coq.Logic.Classical <> <> lib
+def 208:215 <> relation
+binder 218:218 <> X:1
+R232:235 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R231:231 CT.CoreLang <> X:1 var
+R237:240 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R236:236 CT.CoreLang <> X:1 var
+def 258:270 <> deterministic
+binder 273:273 <> X:2
+R288:295 CT.CoreLang <> relation def
+R297:297 CT.CoreLang <> X:2 var
+binder 284:284 <> R:3
+R322:322 CT.CoreLang <> X:2 var
+binder 312:312 <> x:4
+binder 314:315 <> y1:5
+binder 317:318 <> y2:6
+R331:334 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R325:325 CT.CoreLang <> R:3 var
+R327:327 CT.CoreLang <> x:4 var
+R329:330 CT.CoreLang <> y1:5 var
+R341:344 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R335:335 CT.CoreLang <> R:3 var
+R337:337 CT.CoreLang <> x:4 var
+R339:340 CT.CoreLang <> y2:6 var
+R347:349 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R345:346 CT.CoreLang <> y1:5 var
+R350:351 CT.CoreLang <> y2:6 var
+ind 365:369 <> multi
+constr 419:428 <> multi_refl
+constr 464:473 <> multi_step
+binder 372:372 <> X:7
+R387:394 CT.CoreLang <> relation def
+R396:396 CT.CoreLang <> X:7 var
+binder 383:383 <> R:8
+R401:408 CT.CoreLang <> relation def
+R444:444 CT.CoreLang <> X:7 var
+binder 440:440 <> x:11
+R448:452 CT.CoreLang <> multi:9 ind
+R458:458 CT.CoreLang <> x:11 var
+R456:456 CT.CoreLang <> x:11 var
+R454:454 CT.CoreLang <> R:8 var
+R493:493 CT.CoreLang <> X:7 var
+binder 485:485 <> x:12
+binder 487:487 <> y:13
+binder 489:489 <> z:14
+R522:545 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R517:517 CT.CoreLang <> R:8 var
+R519:519 CT.CoreLang <> x:12 var
+R521:521 CT.CoreLang <> y:13 var
+R557:580 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R546:550 CT.CoreLang <> multi:9 ind
+R556:556 CT.CoreLang <> z:14 var
+R554:554 CT.CoreLang <> y:13 var
+R552:552 CT.CoreLang <> R:8 var
+R581:585 CT.CoreLang <> multi:9 ind
+R591:591 CT.CoreLang <> z:14 var
+R589:589 CT.CoreLang <> x:12 var
+R587:587 CT.CoreLang <> R:8 var
+R620:624 CT.CoreLang <> multi ind
+prf 643:649 <> multi_R
+binder 661:661 <> X:15
+R676:683 CT.CoreLang <> relation def
+R685:685 CT.CoreLang <> X:15 var
+binder 672:672 <> R:16
+R695:695 CT.CoreLang <> X:15 var
+binder 689:689 <> x:17
+binder 691:691 <> y:18
+R708:711 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R703:703 CT.CoreLang <> R:16 var
+R705:705 CT.CoreLang <> x:17 var
+R707:707 CT.CoreLang <> y:18 var
+R713:717 CT.CoreLang <> multi ind
+R719:719 CT.CoreLang <> R:16 var
+R722:722 CT.CoreLang <> x:17 var
+R724:724 CT.CoreLang <> y:18 var
+R762:771 CT.CoreLang <> multi_step constr
+R762:771 CT.CoreLang <> multi_step constr
+R796:805 CT.CoreLang <> multi_refl constr
+R796:805 CT.CoreLang <> multi_refl constr
+prf 823:833 <> multi_trans
+binder 847:847 <> X:19
+R862:869 CT.CoreLang <> relation def
+R871:871 CT.CoreLang <> X:19 var
+binder 858:858 <> R:20
+R883:883 CT.CoreLang <> X:19 var
+binder 875:875 <> x:21
+binder 877:877 <> y:22
+binder 879:879 <> z:23
+R904:914 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R893:897 CT.CoreLang <> multi ind
+R903:903 CT.CoreLang <> y:22 var
+R901:901 CT.CoreLang <> x:21 var
+R899:899 CT.CoreLang <> R:20 var
+R926:935 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R915:919 CT.CoreLang <> multi ind
+R925:925 CT.CoreLang <> z:23 var
+R923:923 CT.CoreLang <> y:22 var
+R921:921 CT.CoreLang <> R:20 var
+R936:940 CT.CoreLang <> multi ind
+R946:946 CT.CoreLang <> z:23 var
+R944:944 CT.CoreLang <> x:21 var
+R942:942 CT.CoreLang <> R:20 var
+R1065:1074 CT.CoreLang <> multi_step constr
+R1065:1074 CT.CoreLang <> multi_step constr
+def 1142:1152 <> normal_form
+binder 1155:1155 <> X:24
+R1184:1191 CT.CoreLang <> relation def
+R1193:1193 CT.CoreLang <> X:24 var
+binder 1180:1180 <> R:25
+R1201:1201 CT.CoreLang <> X:24 var
+binder 1197:1197 <> t:26
+R1216:1217 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1218:1224 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R1227:1228 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 1225:1226 <> t':27
+R1229:1229 CT.CoreLang <> R:25 var
+R1231:1231 CT.CoreLang <> t:26 var
+R1233:1234 CT.CoreLang <> t':27 var
+ind 1339:1345 <> base_ty
+constr 1359:1362 <> TNat
+constr 1378:1382 <> TBool
+R1368:1374 CT.CoreLang <> base_ty:28 ind
+R1387:1393 CT.CoreLang <> base_ty:28 ind
+ind 1407:1414 <> constant
+constr 1428:1432 <> cbool
+constr 1454:1457 <> cnat
+R1439:1442 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1435:1438 Coq.Init.Datatypes <> bool ind
+R1443:1450 CT.CoreLang <> constant:30 ind
+R1464:1467 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1461:1463 Coq.Init.Datatypes <> nat ind
+R1468:1475 CT.CoreLang <> constant:30 ind
+R1504:1511 CT.CoreLang <> constant ind
+prf 1527:1543 <> constant_eqb_spec
+R1560:1567 CT.CoreLang <> constant ind
+binder 1554:1554 <> c:32
+binder 1556:1557 <> c':33
+R1577:1580 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R1572:1574 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1571:1571 CT.CoreLang <> c:32 var
+R1575:1576 CT.CoreLang <> c':33 var
+R1582:1585 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R1581:1581 CT.CoreLang <> c:32 var
+R1586:1587 CT.CoreLang <> c':33 var
+R1842:1851 Coq.Arith.PeanoNat Nat eq_dec thm
+R1842:1851 Coq.Arith.PeanoNat Nat eq_dec thm
+ind 1923:1924 <> ty
+constr 1938:1942 <> TBase
+constr 1962:1967 <> TArrow
+R1953:1956 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1946:1952 CT.CoreLang <> base_ty ind
+R1957:1958 CT.CoreLang <> ty:34 ind
+R1973:1976 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1971:1972 CT.CoreLang <> ty:34 ind
+R1979:1982 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1977:1978 CT.CoreLang <> ty:34 ind
+R1983:1984 CT.CoreLang <> ty:34 ind
+R2013:2014 CT.CoreLang <> ty ind
+R2024:2054 CT.CoreLang <> TBase constr
+R2057:2090 CT.CoreLang <> cbool constr
+R2093:2124 CT.CoreLang <> cnat constr
+R2157:2162 CT.CoreLang <> TArrow constr
+not 2136:2136 <> :::x_'t-->'_x
+ind 2197:2200 <> biop
+constr 2214:2220 <> op_plus
+constr 2224:2228 <> op_eq
+constr 2232:2236 <> op_lt
+constr 2240:2248 <> op_rannat
+ind 2262:2264 <> cid
+constr 2277:2282 <> vconst
+constr 2303:2306 <> vvar
+R2293:2296 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2285:2292 CT.CoreLang <> constant ind
+R2297:2299 CT.CoreLang <> cid:38 ind
+R2315:2318 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2309:2314 Coq.Strings.String <> string ind
+R2319:2321 CT.CoreLang <> cid:38 ind
+R2350:2352 CT.CoreLang <> cid ind
+ind 2372:2376 <> value
+constr 2390:2394 <> vbiop
+constr 2413:2421 <> cid_value
+constr 2440:2443 <> vlam
+constr 2477:2480 <> vfix
+ind 2538:2539 <> tm
+constr 2553:2556 <> texn
+constr 2560:2565 <> tvalue
+constr 2582:2586 <> tlete
+constr 2616:2623 <> tletbiop
+constr 2673:2679 <> tletapp
+constr 2721:2727 <> tmatchb
+R2401:2404 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2397:2400 CT.CoreLang <> biop ind
+R2405:2409 CT.CoreLang <> value:40 ind
+R2428:2431 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2425:2427 CT.CoreLang <> cid ind
+R2432:2436 CT.CoreLang <> value:40 ind
+R2453:2456 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2447:2452 Coq.Strings.String <> string ind
+R2459:2462 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2457:2458 CT.CoreLang <> ty ind
+R2465:2468 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2463:2464 CT.CoreLang <> tm:41 ind
+R2469:2473 CT.CoreLang <> value:40 ind
+R2490:2493 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2484:2489 Coq.Strings.String <> string ind
+R2496:2499 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2494:2495 CT.CoreLang <> ty ind
+R2506:2509 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2500:2505 Coq.Strings.String <> string ind
+R2517:2520 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2510:2516 CT.CoreLang <> base_ty ind
+R2523:2526 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2521:2522 CT.CoreLang <> tm:41 ind
+R2527:2531 CT.CoreLang <> value:40 ind
+R2573:2576 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2568:2572 CT.CoreLang <> value:40 ind
+R2577:2578 CT.CoreLang <> tm:41 ind
+R2595:2598 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2589:2594 Coq.Strings.String <> string ind
+R2601:2604 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2599:2600 CT.CoreLang <> tm:41 ind
+R2607:2610 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2605:2606 CT.CoreLang <> tm:41 ind
+R2611:2612 CT.CoreLang <> tm:41 ind
+R2632:2635 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2626:2631 Coq.Strings.String <> string ind
+R2640:2643 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2636:2639 CT.CoreLang <> biop ind
+R2649:2652 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2644:2648 CT.CoreLang <> value:40 ind
+R2658:2661 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2653:2657 CT.CoreLang <> value:40 ind
+R2664:2667 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2662:2663 CT.CoreLang <> tm:41 ind
+R2668:2669 CT.CoreLang <> tm:41 ind
+R2688:2691 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2682:2687 Coq.Strings.String <> string ind
+R2697:2700 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2692:2696 CT.CoreLang <> value:40 ind
+R2706:2709 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2701:2705 CT.CoreLang <> value:40 ind
+R2712:2715 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2710:2711 CT.CoreLang <> tm:41 ind
+R2716:2717 CT.CoreLang <> tm:41 ind
+R2735:2738 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2730:2734 CT.CoreLang <> value:40 ind
+R2741:2744 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2739:2740 CT.CoreLang <> tm:41 ind
+R2747:2750 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2745:2746 CT.CoreLang <> tm:41 ind
+R2751:2752 CT.CoreLang <> tm:41 ind
+def 2763:2778 <> value_mutual_rec
+R2797:2801 CT.CoreLang <> value ind
+def 2822:2834 <> tm_mutual_rec
+R2853:2854 CT.CoreLang <> tm ind
+R2868:2901 CT.CoreLang <> cid_value constr
+R2904:2937 CT.CoreLang <> vconst constr
+R2940:2969 CT.CoreLang <> vvar constr
+R2972:3001 CT.CoreLang <> tvalue constr
+def 3016:3023 <> is_value
+R3029:3030 CT.CoreLang <> tm ind
+binder 3026:3026 <> e:44
+R3044:3044 CT.CoreLang <> e:44 var
+R3055:3060 CT.CoreLang <> tvalue constr
+R3067:3070 Coq.Init.Datatypes <> true constr
+R3081:3085 Coq.Init.Datatypes <> false constr
+prf 3101:3121 <> is_value_value_exists
+binder 3131:3131 <> e:46
+R3151:3154 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3144:3146 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3134:3141 CT.CoreLang <> is_value def
+R3143:3143 CT.CoreLang <> e:46 var
+R3147:3150 Coq.Init.Datatypes <> true constr
+R3155:3161 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3163:3164 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 3162:3162 <> v:47
+R3166:3168 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3165:3165 CT.CoreLang <> e:46 var
+R3169:3174 CT.CoreLang <> tvalue constr
+R3176:3176 CT.CoreLang <> v:47 var
+def 3261:3265 <> subst
+def 3862:3872 <> value_subst
+R3270:3275 Coq.Strings.String <> string ind
+binder 3268:3268 <> x:48
+R3281:3285 CT.CoreLang <> value ind
+binder 3279:3279 <> s:49
+R3291:3292 CT.CoreLang <> tm ind
+binder 3289:3289 <> t:50
+R3877:3882 Coq.Strings.String <> string ind
+binder 3875:3875 <> x:51
+R3888:3892 CT.CoreLang <> value ind
+binder 3886:3886 <> s:52
+R3898:3902 CT.CoreLang <> value ind
+binder 3896:3896 <> t:53
+R3297:3298 CT.CoreLang <> tm ind
+R3907:3911 CT.CoreLang <> value ind
+R3311:3311 CT.CoreLang <> t:50 var
+R3322:3325 CT.CoreLang <> texn constr
+R3330:3330 CT.CoreLang <> t:50 var
+R3336:3341 CT.CoreLang <> tvalue constr
+R3348:3353 CT.CoreLang <> tvalue constr
+R3356:3366 CT.CoreLang <> value_subst:55 def
+R3370:3370 CT.CoreLang <> s:49 var
+R3368:3368 CT.CoreLang <> x:48 var
+R3379:3383 CT.CoreLang <> tlete constr
+R3403:3407 CT.CoreLang <> tlete constr
+R3413:3417 CT.CoreLang <> subst:54 def
+R3421:3421 CT.CoreLang <> s:49 var
+R3419:3419 CT.CoreLang <> x:48 var
+R3431:3440 Coq.Strings.String <> eqb def
+R3442:3442 CT.CoreLang <> x:48 var
+R3461:3465 CT.CoreLang <> subst:54 def
+R3469:3469 CT.CoreLang <> s:49 var
+R3467:3467 CT.CoreLang <> x:48 var
+R3480:3487 CT.CoreLang <> tletbiop constr
+R3513:3520 CT.CoreLang <> tletbiop constr
+R3529:3539 CT.CoreLang <> value_subst:55 def
+R3543:3543 CT.CoreLang <> s:49 var
+R3541:3541 CT.CoreLang <> x:48 var
+R3550:3560 CT.CoreLang <> value_subst:55 def
+R3564:3564 CT.CoreLang <> s:49 var
+R3562:3562 CT.CoreLang <> x:48 var
+R3574:3583 Coq.Strings.String <> eqb def
+R3585:3585 CT.CoreLang <> x:48 var
+R3604:3608 CT.CoreLang <> subst:54 def
+R3612:3612 CT.CoreLang <> s:49 var
+R3610:3610 CT.CoreLang <> x:48 var
+R3623:3629 CT.CoreLang <> tletapp constr
+R3652:3658 CT.CoreLang <> tletapp constr
+R3664:3674 CT.CoreLang <> value_subst:55 def
+R3678:3678 CT.CoreLang <> s:49 var
+R3676:3676 CT.CoreLang <> x:48 var
+R3685:3695 CT.CoreLang <> value_subst:55 def
+R3699:3699 CT.CoreLang <> s:49 var
+R3697:3697 CT.CoreLang <> x:48 var
+R3723:3732 Coq.Strings.String <> eqb def
+R3734:3734 CT.CoreLang <> x:48 var
+R3753:3757 CT.CoreLang <> subst:54 def
+R3761:3761 CT.CoreLang <> s:49 var
+R3759:3759 CT.CoreLang <> x:48 var
+R3772:3778 CT.CoreLang <> tmatchb constr
+R3792:3798 CT.CoreLang <> tmatchb constr
+R3801:3811 CT.CoreLang <> value_subst:55 def
+R3815:3815 CT.CoreLang <> s:49 var
+R3813:3813 CT.CoreLang <> x:48 var
+R3822:3826 CT.CoreLang <> subst:54 def
+R3830:3830 CT.CoreLang <> s:49 var
+R3828:3828 CT.CoreLang <> x:48 var
+R3837:3841 CT.CoreLang <> subst:54 def
+R3845:3845 CT.CoreLang <> s:49 var
+R3843:3843 CT.CoreLang <> x:48 var
+R3929:3929 CT.CoreLang <> t:53 var
+R3945:3949 CT.CoreLang <> vbiop constr
+R3956:3956 CT.CoreLang <> t:53 var
+R3967:3972 CT.CoreLang <> vconst constr
+R3979:3979 CT.CoreLang <> t:53 var
+R3990:3993 CT.CoreLang <> vvar constr
+R4003:4012 Coq.Strings.String <> eqb def
+R4014:4014 CT.CoreLang <> x:51 var
+R4030:4030 CT.CoreLang <> t:53 var
+R4023:4023 CT.CoreLang <> s:52 var
+R4041:4044 CT.CoreLang <> vlam constr
+R4056:4059 CT.CoreLang <> vlam constr
+R4069:4078 Coq.Strings.String <> eqb def
+R4080:4080 CT.CoreLang <> x:51 var
+R4098:4102 CT.CoreLang <> subst:54 def
+R4106:4106 CT.CoreLang <> s:52 var
+R4104:4104 CT.CoreLang <> x:51 var
+R4123:4126 CT.CoreLang <> vfix constr
+R4158:4161 CT.CoreLang <> vfix constr
+R4196:4205 Coq.Strings.String <> eqb def
+R4207:4207 CT.CoreLang <> x:51 var
+R4245:4254 Coq.Strings.String <> eqb def
+R4256:4256 CT.CoreLang <> x:51 var
+R4297:4301 CT.CoreLang <> subst:54 def
+R4305:4305 CT.CoreLang <> s:52 var
+R4303:4303 CT.CoreLang <> x:51 var
+R4359:4363 CT.CoreLang <> subst def
+not 4334:4334 <> :::'['_x_':='_x_']'_x
+R4422:4432 CT.CoreLang <> value_subst def
+not 4396:4396 <> :::'['_x_':='_x_']v'_x
+R4482:4486 CT.CoreLang <> value ind
+R4520:4521 CT.CoreLang <> tm ind
+prf 4537:4558 <> subst_letapp_penetrate
+binder 4568:4568 <> a:58
+binder 4570:4572 <> c_a:59
+binder 4574:4574 <> x:60
+binder 4576:4577 <> v1:61
+binder 4579:4580 <> v2:62
+R4583:4583 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4612:4616 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4662:4662 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R4584:4584 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R4586:4589 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R4593:4594 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R4585:4585 CT.CoreLang <> a:58 var
+R4590:4592 CT.CoreLang <> c_a:59 var
+R4595:4601 CT.CoreLang <> tletapp constr
+R4603:4603 CT.CoreLang <> x:60 var
+R4605:4606 CT.CoreLang <> v1:61 var
+R4608:4609 CT.CoreLang <> v2:62 var
+R4611:4611 CT.CoreLang <> x:60 var
+R4617:4623 CT.CoreLang <> tletapp constr
+R4625:4625 CT.CoreLang <> x:60 var
+R4628:4628 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4630:4633 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4637:4639 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4629:4629 CT.CoreLang <> a:58 var
+R4634:4636 CT.CoreLang <> c_a:59 var
+R4640:4641 CT.CoreLang <> v1:61 var
+R4645:4645 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4647:4650 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4654:4656 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R4646:4646 CT.CoreLang <> a:58 var
+R4651:4653 CT.CoreLang <> c_a:59 var
+R4657:4658 CT.CoreLang <> v2:62 var
+R4661:4661 CT.CoreLang <> x:60 var
+R4701:4708 Coq.Strings.String <> eqb_spec thm
+R4701:4708 Coq.Strings.String <> eqb_spec thm
+R4805:4826 CT.CoreLang <> subst_letapp_penetrate thm
+ind 4846:4852 <> eval_op
+constr 4909:4920 <> eval_op_plus
+constr 4972:4981 <> eval_op_eq
+constr 5037:5046 <> eval_op_lt
+constr 5102:5115 <> eval_op_rannat
+R4859:4862 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4855:4858 CT.CoreLang <> biop ind
+R4871:4874 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4863:4870 CT.CoreLang <> constant ind
+R4883:4886 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4875:4882 CT.CoreLang <> constant ind
+R4895:4898 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4887:4894 CT.CoreLang <> constant ind
+R4936:4938 Coq.Init.Datatypes <> nat ind
+binder 4931:4931 <> a:65
+binder 4933:4933 <> b:66
+R4942:4948 CT.CoreLang <> eval_op:63 ind
+R4964:4966 Coq.Init.Peano <> ::nat_scope:x_'+'_x not
+R4963:4963 CT.CoreLang <> a:65 var
+R4967:4967 CT.CoreLang <> b:66 var
+R4960:4960 CT.CoreLang <> b:66 var
+R4958:4958 CT.CoreLang <> a:65 var
+R4950:4956 CT.CoreLang <> op_plus constr
+R4997:4999 Coq.Init.Datatypes <> nat ind
+binder 4992:4992 <> a:67
+binder 4994:4994 <> b:68
+R5003:5009 CT.CoreLang <> eval_op:63 ind
+R5022:5028 Coq.Arith.PeanoNat Nat eqb def
+R5030:5030 CT.CoreLang <> a:67 var
+R5032:5032 CT.CoreLang <> b:68 var
+R5019:5019 CT.CoreLang <> b:68 var
+R5017:5017 CT.CoreLang <> a:67 var
+R5011:5015 CT.CoreLang <> op_eq constr
+R5062:5064 Coq.Init.Datatypes <> nat ind
+binder 5057:5057 <> a:69
+binder 5059:5059 <> b:70
+R5068:5074 CT.CoreLang <> eval_op:63 ind
+R5087:5093 Coq.Arith.PeanoNat Nat ltb def
+R5095:5095 CT.CoreLang <> a:69 var
+R5097:5097 CT.CoreLang <> b:70 var
+R5084:5084 CT.CoreLang <> b:70 var
+R5082:5082 CT.CoreLang <> a:69 var
+R5076:5080 CT.CoreLang <> op_lt constr
+R5133:5135 Coq.Init.Datatypes <> nat ind
+binder 5126:5126 <> a:71
+binder 5128:5128 <> b:72
+binder 5130:5130 <> c:73
+R5139:5145 CT.CoreLang <> eval_op:63 ind
+R5161:5161 CT.CoreLang <> c:73 var
+R5159:5159 CT.CoreLang <> b:72 var
+R5157:5157 CT.CoreLang <> a:71 var
+R5147:5155 CT.CoreLang <> op_rannat constr
+R5190:5196 CT.CoreLang <> eval_op ind
+ind 5264:5267 <> step
+constr 5293:5300 <> ST_LetOp
+constr 5395:5402 <> ST_Lete1
+constr 5475:5482 <> ST_Lete2
+constr 5545:5556 <> ST_LetAppLam
+constr 5649:5660 <> ST_LetAppFix
+constr 5795:5808 <> ST_Matchb_true
+constr 5855:5869 <> ST_Matchb_false
+R5273:5276 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5271:5272 CT.CoreLang <> tm ind
+R5279:5282 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5277:5278 CT.CoreLang <> tm ind
+R5939:5942 CT.CoreLang <> step:75 ind
+binder 5310:5310 <> x:76
+binder 5312:5313 <> op:77
+binder 5315:5316 <> c1:78
+binder 5318:5319 <> c2:79
+binder 5321:5322 <> c3:80
+binder 5324:5324 <> e:81
+R5346:5349 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5327:5333 CT.CoreLang <> eval_op ind
+R5335:5336 CT.CoreLang <> op:77 var
+R5338:5339 CT.CoreLang <> c1:78 var
+R5341:5342 CT.CoreLang <> c2:79 var
+R5344:5345 CT.CoreLang <> c3:80 var
+R5350:5350 CT.CoreLang <> :::x_'-->'_x not
+R5372:5378 CT.CoreLang <> :::x_'-->'_x not
+R5391:5391 CT.CoreLang <> :::x_'-->'_x not
+R5351:5358 CT.CoreLang <> tletbiop constr
+R5360:5360 CT.CoreLang <> x:76 var
+R5362:5363 CT.CoreLang <> op:77 var
+R5365:5366 CT.CoreLang <> c1:78 var
+R5368:5369 CT.CoreLang <> c2:79 var
+R5371:5371 CT.CoreLang <> e:81 var
+R5379:5383 CT.CoreLang <> subst def
+R5385:5385 CT.CoreLang <> x:76 var
+R5387:5388 CT.CoreLang <> c3:80 var
+R5390:5390 CT.CoreLang <> e:81 var
+binder 5412:5412 <> x:82
+binder 5414:5415 <> e1:83
+binder 5417:5419 <> e1':84
+binder 5421:5421 <> e:85
+R5434:5437 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5426:5430 CT.CoreLang <> :::x_'-->'_x not
+R5424:5425 CT.CoreLang <> e1:83 var
+R5431:5433 CT.CoreLang <> e1':84 var
+R5438:5438 CT.CoreLang <> :::x_'-->'_x not
+R5451:5457 CT.CoreLang <> :::x_'-->'_x not
+R5471:5471 CT.CoreLang <> :::x_'-->'_x not
+R5439:5443 CT.CoreLang <> tlete constr
+R5445:5445 CT.CoreLang <> x:82 var
+R5447:5448 CT.CoreLang <> e1:83 var
+R5450:5450 CT.CoreLang <> e:85 var
+R5458:5462 CT.CoreLang <> tlete constr
+R5464:5464 CT.CoreLang <> x:82 var
+R5466:5468 CT.CoreLang <> e1':84 var
+R5470:5470 CT.CoreLang <> e:85 var
+binder 5492:5492 <> x:86
+binder 5494:5495 <> v1:87
+binder 5497:5497 <> e:88
+R5500:5500 CT.CoreLang <> :::x_'-->'_x not
+R5522:5528 CT.CoreLang <> :::x_'-->'_x not
+R5541:5541 CT.CoreLang <> :::x_'-->'_x not
+R5501:5505 CT.CoreLang <> tlete constr
+R5507:5507 CT.CoreLang <> x:86 var
+R5510:5515 CT.CoreLang <> tvalue constr
+R5517:5518 CT.CoreLang <> v1:87 var
+R5521:5521 CT.CoreLang <> e:88 var
+R5529:5533 CT.CoreLang <> subst def
+R5535:5535 CT.CoreLang <> x:86 var
+R5537:5538 CT.CoreLang <> v1:87 var
+R5540:5540 CT.CoreLang <> e:88 var
+binder 5566:5566 <> T:89
+binder 5568:5568 <> x:90
+binder 5570:5570 <> y:91
+binder 5572:5574 <> v_x:92
+binder 5576:5577 <> e1:93
+binder 5579:5579 <> e:94
+R5582:5582 CT.CoreLang <> :::x_'-->'_x not
+R5614:5619 CT.CoreLang <> :::x_'-->'_x not
+R5583:5589 CT.CoreLang <> tletapp constr
+R5591:5591 CT.CoreLang <> y:91 var
+R5595:5598 CT.CoreLang <> vlam constr
+R5600:5600 CT.CoreLang <> x:90 var
+R5602:5602 CT.CoreLang <> T:89 var
+R5604:5605 CT.CoreLang <> e1:93 var
+R5609:5611 CT.CoreLang <> v_x:92 var
+R5613:5613 CT.CoreLang <> e:94 var
+R5620:5624 CT.CoreLang <> tlete constr
+R5626:5626 CT.CoreLang <> y:91 var
+R5629:5633 CT.CoreLang <> subst def
+R5635:5635 CT.CoreLang <> x:90 var
+R5637:5639 CT.CoreLang <> v_x:92 var
+R5641:5642 CT.CoreLang <> e1:93 var
+R5645:5645 CT.CoreLang <> e:94 var
+binder 5670:5670 <> f:95
+binder 5672:5674 <> T_f:96
+binder 5676:5676 <> T:97
+binder 5678:5678 <> x:98
+binder 5680:5680 <> y:99
+binder 5682:5684 <> v_x:100
+binder 5686:5687 <> e1:101
+binder 5689:5689 <> e:102
+R5692:5692 CT.CoreLang <> :::x_'-->'_x not
+R5730:5735 CT.CoreLang <> :::x_'-->'_x not
+R5693:5699 CT.CoreLang <> tletapp constr
+R5701:5701 CT.CoreLang <> y:99 var
+R5705:5708 CT.CoreLang <> vfix constr
+R5710:5710 CT.CoreLang <> f:95 var
+R5712:5714 CT.CoreLang <> T_f:96 var
+R5716:5716 CT.CoreLang <> x:98 var
+R5718:5718 CT.CoreLang <> T:97 var
+R5720:5721 CT.CoreLang <> e1:101 var
+R5725:5727 CT.CoreLang <> v_x:100 var
+R5729:5729 CT.CoreLang <> e:102 var
+R5736:5740 CT.CoreLang <> tlete constr
+R5742:5742 CT.CoreLang <> y:99 var
+R5745:5749 CT.CoreLang <> subst def
+R5751:5751 CT.CoreLang <> f:95 var
+R5754:5757 CT.CoreLang <> vfix constr
+R5759:5759 CT.CoreLang <> f:95 var
+R5761:5763 CT.CoreLang <> T_f:96 var
+R5765:5765 CT.CoreLang <> x:98 var
+R5767:5767 CT.CoreLang <> T:97 var
+R5769:5770 CT.CoreLang <> e1:101 var
+R5774:5778 CT.CoreLang <> subst def
+R5780:5780 CT.CoreLang <> x:98 var
+R5782:5784 CT.CoreLang <> v_x:100 var
+R5786:5787 CT.CoreLang <> e1:101 var
+R5791:5791 CT.CoreLang <> e:102 var
+binder 5818:5819 <> e1:103
+binder 5821:5822 <> e2:104
+R5825:5825 CT.CoreLang <> :::x_'-->'_x not
+R5844:5849 CT.CoreLang <> :::x_'-->'_x not
+R5826:5832 CT.CoreLang <> tmatchb constr
+R5834:5837 Coq.Init.Datatypes <> true constr
+R5839:5840 CT.CoreLang <> e1:103 var
+R5842:5843 CT.CoreLang <> e2:104 var
+R5850:5851 CT.CoreLang <> e1:103 var
+binder 5879:5880 <> e1:105
+binder 5882:5883 <> e2:106
+R5886:5886 CT.CoreLang <> :::x_'-->'_x not
+R5906:5911 CT.CoreLang <> :::x_'-->'_x not
+R5887:5893 CT.CoreLang <> tmatchb constr
+R5895:5899 Coq.Init.Datatypes <> false constr
+R5901:5902 CT.CoreLang <> e1:105 var
+R5904:5905 CT.CoreLang <> e2:106 var
+R5912:5913 CT.CoreLang <> e2:106 var
+R5939:5942 CT.CoreLang <> step ind
+not 5921:5921 <> :::x_'-->'_x
+abbrev 5962:5970 <> multistep
+R5976:5980 CT.CoreLang <> multi ind
+R5982:5985 CT.CoreLang <> step ind
+R6017:6025 CT.CoreLang <> multistep abbrev
+not 5998:5998 <> :::x_'-->*'_x
+abbrev 6058:6073 <> step_normal_form
+R6079:6089 CT.CoreLang <> normal_form def
+R6091:6094 CT.CoreLang <> step ind
+prf 6105:6117 <> value__normal
+binder 6128:6128 <> v:107
+R6131:6146 CT.CoreLang <> step_normal_form abbrev
+R6149:6154 CT.CoreLang <> tvalue constr
+R6156:6156 CT.CoreLang <> v:107 var
+R6196:6206 CT.CoreLang <> normal_form def
+R6292:6295 CT.CoreLang <> step ind
+def 6356:6366 <> ty_of_const
+R6372:6379 CT.CoreLang <> constant ind
+binder 6369:6369 <> c:108
+R6383:6389 CT.CoreLang <> base_ty ind
+R6402:6402 CT.CoreLang <> c:108 var
+R6413:6416 CT.CoreLang <> cnat constr
+R6423:6426 CT.CoreLang <> TNat constr
+R6432:6436 CT.CoreLang <> cbool constr
+R6443:6447 CT.CoreLang <> TBool constr
+def 6468:6479 <> fst_ty_of_op
+R6486:6489 CT.CoreLang <> biop ind
+binder 6482:6483 <> op:110
+R6493:6499 CT.CoreLang <> base_ty ind
+R6512:6513 CT.CoreLang <> op:110 var
+R6524:6530 CT.CoreLang <> op_plus constr
+R6535:6538 CT.CoreLang <> TNat constr
+R6544:6548 CT.CoreLang <> op_eq constr
+R6553:6556 CT.CoreLang <> TNat constr
+R6562:6566 CT.CoreLang <> op_lt constr
+R6571:6574 CT.CoreLang <> TNat constr
+R6580:6588 CT.CoreLang <> op_rannat constr
+R6593:6596 CT.CoreLang <> TNat constr
+def 6617:6628 <> snd_ty_of_op
+R6635:6638 CT.CoreLang <> biop ind
+binder 6631:6632 <> op:112
+R6642:6648 CT.CoreLang <> base_ty ind
+R6661:6662 CT.CoreLang <> op:112 var
+R6673:6679 CT.CoreLang <> op_plus constr
+R6684:6687 CT.CoreLang <> TNat constr
+R6693:6697 CT.CoreLang <> op_eq constr
+R6702:6705 CT.CoreLang <> TNat constr
+R6711:6715 CT.CoreLang <> op_lt constr
+R6720:6723 CT.CoreLang <> TNat constr
+R6729:6737 CT.CoreLang <> op_rannat constr
+R6742:6745 CT.CoreLang <> TNat constr
+def 6766:6777 <> ret_ty_of_op
+R6784:6787 CT.CoreLang <> biop ind
+binder 6780:6781 <> op:114
+R6791:6797 CT.CoreLang <> base_ty ind
+R6810:6811 CT.CoreLang <> op:114 var
+R6822:6828 CT.CoreLang <> op_plus constr
+R6833:6836 CT.CoreLang <> TNat constr
+R6842:6846 CT.CoreLang <> op_eq constr
+R6851:6855 CT.CoreLang <> TBool constr
+R6861:6865 CT.CoreLang <> op_lt constr
+R6870:6874 CT.CoreLang <> TBool constr
+R6880:6888 CT.CoreLang <> op_rannat constr
+R6893:6896 CT.CoreLang <> TNat constr
+def 6917:6924 <> ty_of_op
+R6931:6934 CT.CoreLang <> biop ind
+binder 6927:6928 <> op:116
+R6938:6939 CT.CoreLang <> ty ind
+R6946:6946 CT.CoreLang <> :::x_'t-->'_x not
+R6962:6969 CT.CoreLang <> :::x_'t-->'_x not
+R7010:7010 CT.CoreLang <> :::x_'t-->'_x not
+R6947:6958 CT.CoreLang <> fst_ty_of_op def
+R6960:6961 CT.CoreLang <> op:116 var
+R6970:6970 CT.CoreLang <> :::x_'t-->'_x not
+R6986:6993 CT.CoreLang <> :::x_'t-->'_x not
+R7009:7009 CT.CoreLang <> :::x_'t-->'_x not
+R6971:6982 CT.CoreLang <> snd_ty_of_op def
+R6984:6985 CT.CoreLang <> op:116 var
+R6994:7005 CT.CoreLang <> ret_ty_of_op def
+R7007:7008 CT.CoreLang <> op:116 var
+prf 7020:7029 <> op_ty_spec
+binder 7039:7040 <> op:117
+R7054:7056 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7043:7050 CT.CoreLang <> ty_of_op def
+R7052:7053 CT.CoreLang <> op:117 var
+R7072:7078 CT.CoreLang <> :::x_'t-->'_x not
+R7115:7115 CT.CoreLang <> :::x_'t-->'_x not
+R7057:7068 CT.CoreLang <> fst_ty_of_op def
+R7070:7071 CT.CoreLang <> op:117 var
+R7094:7099 CT.CoreLang <> :::x_'t-->'_x not
+R7079:7090 CT.CoreLang <> snd_ty_of_op def
+R7092:7093 CT.CoreLang <> op:117 var
+R7100:7111 CT.CoreLang <> ret_ty_of_op def
+R7113:7114 CT.CoreLang <> op:117 var
+prf 7175:7190 <> op_fst_is_op_snd
+R7206:7209 CT.CoreLang <> biop ind
+binder 7202:7203 <> op:118
+R7228:7230 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7213:7224 CT.CoreLang <> fst_ty_of_op def
+R7226:7227 CT.CoreLang <> op:118 var
+R7231:7242 CT.CoreLang <> snd_ty_of_op def
+R7244:7245 CT.CoreLang <> op:118 var
+def 7365:7385 <> appear_free_in_tvalue
+def 7636:7653 <> appear_free_in_ttm
+R7391:7396 Coq.Strings.String <> string ind
+binder 7388:7389 <> id:119
+R7402:7406 CT.CoreLang <> value ind
+binder 7400:7400 <> v:120
+R7659:7664 Coq.Strings.String <> string ind
+binder 7656:7657 <> id:121
+R7670:7671 CT.CoreLang <> tm ind
+binder 7668:7668 <> e:122
+R7427:7427 CT.CoreLang <> v:120 var
+R7438:7443 CT.CoreLang <> vconst constr
+R7450:7454 Coq.Init.Logic <> False ind
+R7460:7464 CT.CoreLang <> vbiop constr
+R7471:7475 Coq.Init.Logic <> False ind
+R7481:7484 CT.CoreLang <> vvar constr
+R7492:7494 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R7495:7496 CT.CoreLang <> id:119 var
+R7502:7505 CT.CoreLang <> vlam constr
+R7525:7528 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7519:7522 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7523:7524 CT.CoreLang <> id:119 var
+R7529:7546 CT.CoreLang <> appear_free_in_ttm:124 def
+R7548:7549 CT.CoreLang <> id:119 var
+R7557:7560 CT.CoreLang <> vfix constr
+R7586:7589 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7580:7583 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7584:7585 CT.CoreLang <> id:119 var
+R7597:7600 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7591:7594 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7595:7596 CT.CoreLang <> id:119 var
+R7601:7618 CT.CoreLang <> appear_free_in_ttm:124 def
+R7620:7621 CT.CoreLang <> id:119 var
+R7697:7697 CT.CoreLang <> e:122 var
+R7713:7718 CT.CoreLang <> tvalue constr
+R7725:7745 CT.CoreLang <> appear_free_in_tvalue:123 def
+R7747:7748 CT.CoreLang <> id:121 var
+R7761:7765 CT.CoreLang <> tlete constr
+R7803:7807 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R7842:7842 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R7778:7795 CT.CoreLang <> appear_free_in_ttm:124 def
+R7797:7798 CT.CoreLang <> id:121 var
+R7815:7818 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7809:7812 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7813:7814 CT.CoreLang <> id:121 var
+R7819:7836 CT.CoreLang <> appear_free_in_ttm:124 def
+R7841:7841 CT.CoreLang <> e:122 var
+R7838:7839 CT.CoreLang <> id:121 var
+R7853:7860 CT.CoreLang <> tletbiop constr
+R7916:7919 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R7889:7909 CT.CoreLang <> appear_free_in_tvalue:123 def
+R7911:7912 CT.CoreLang <> id:121 var
+R7947:7951 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R7986:7986 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R7920:7940 CT.CoreLang <> appear_free_in_tvalue:123 def
+R7942:7943 CT.CoreLang <> id:121 var
+R7959:7962 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R7953:7956 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7957:7958 CT.CoreLang <> id:121 var
+R7963:7980 CT.CoreLang <> appear_free_in_ttm:124 def
+R7985:7985 CT.CoreLang <> e:122 var
+R7982:7983 CT.CoreLang <> id:121 var
+R7997:8003 CT.CoreLang <> tletapp constr
+R8056:8059 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8029:8049 CT.CoreLang <> appear_free_in_tvalue:123 def
+R8051:8052 CT.CoreLang <> id:121 var
+R8087:8091 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8126:8126 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8060:8080 CT.CoreLang <> appear_free_in_tvalue:123 def
+R8082:8083 CT.CoreLang <> id:121 var
+R8099:8102 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8093:8096 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8097:8098 CT.CoreLang <> id:121 var
+R8103:8120 CT.CoreLang <> appear_free_in_ttm:124 def
+R8125:8125 CT.CoreLang <> e:122 var
+R8122:8123 CT.CoreLang <> id:121 var
+R8137:8143 CT.CoreLang <> tmatchb constr
+R8193:8196 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8167:8187 CT.CoreLang <> appear_free_in_tvalue:123 def
+R8189:8190 CT.CoreLang <> id:121 var
+R8221:8224 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8197:8214 CT.CoreLang <> appear_free_in_ttm:124 def
+R8216:8217 CT.CoreLang <> id:121 var
+R8225:8242 CT.CoreLang <> appear_free_in_ttm:124 def
+R8244:8245 CT.CoreLang <> id:121 var
+R8267:8271 Coq.Init.Logic <> False ind
+R8315:8332 CT.CoreLang <> appear_free_in_ttm def
+not 8295:8295 <> :::x_'\FVtm'_x
+R8386:8406 CT.CoreLang <> appear_free_in_tvalue def
+not 8363:8363 <> :::x_'\FVvalue'_x
+prf 8435:8440 <> lemma1
+binder 8450:8450 <> x:127
+binder 8452:8452 <> t:128
+binder 8454:8454 <> s:129
+binder 8456:8457 <> t0:130
+R8499:8503 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8542:8542 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8462:8464 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8498:8498 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8474:8477 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8466:8472 CT.CoreLang <> :::x_'\FVtm'_x not
+R8465:8465 CT.CoreLang <> x:127 var
+R8473:8473 CT.CoreLang <> t:128 var
+R8484:8487 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8479:8482 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8478:8478 CT.CoreLang <> s:129 var
+R8483:8483 CT.CoreLang <> x:127 var
+R8489:8495 CT.CoreLang <> :::x_'\FVtm'_x not
+R8488:8488 CT.CoreLang <> x:127 var
+R8496:8497 CT.CoreLang <> t0:130 var
+R8515:8519 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8541:8541 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8504:8505 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8507:8513 CT.CoreLang <> :::x_'\FVtm'_x not
+R8506:8506 CT.CoreLang <> x:127 var
+R8514:8514 CT.CoreLang <> t:128 var
+R8525:8528 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8521:8523 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8520:8520 CT.CoreLang <> s:129 var
+R8524:8524 CT.CoreLang <> x:127 var
+R8529:8530 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8532:8538 CT.CoreLang <> :::x_'\FVtm'_x not
+R8531:8531 CT.CoreLang <> x:127 var
+R8539:8540 CT.CoreLang <> t0:130 var
+R8619:8625 Coq.Logic.Classical_Prop <> classic prfax
+R8629:8631 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8619:8625 Coq.Logic.Classical_Prop <> classic prfax
+R8629:8631 Coq.Init.Logic <> ::type_scope:x_'='_x not
+prf 8667:8672 <> lemma2
+binder 8682:8682 <> x:131
+binder 8684:8684 <> v:132
+binder 8686:8687 <> v0:133
+binder 8689:8689 <> s:134
+binder 8691:8691 <> t:135
+R8751:8755 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8813:8813 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8695:8697 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8750:8750 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8710:8713 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8699:8708 CT.CoreLang <> :::x_'\FVvalue'_x not
+R8698:8698 CT.CoreLang <> x:131 var
+R8709:8709 CT.CoreLang <> v:132 var
+R8727:8730 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8715:8724 CT.CoreLang <> :::x_'\FVvalue'_x not
+R8714:8714 CT.CoreLang <> x:131 var
+R8725:8726 CT.CoreLang <> v0:133 var
+R8737:8740 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8732:8735 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8731:8731 CT.CoreLang <> s:134 var
+R8736:8736 CT.CoreLang <> x:131 var
+R8742:8748 CT.CoreLang <> :::x_'\FVtm'_x not
+R8741:8741 CT.CoreLang <> x:131 var
+R8749:8749 CT.CoreLang <> t:135 var
+R8767:8770 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8756:8757 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8759:8765 CT.CoreLang <> :::x_'\FVtm'_x not
+R8758:8758 CT.CoreLang <> x:131 var
+R8766:8766 CT.CoreLang <> v:132 var
+R8787:8791 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8812:8812 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R8771:8773 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8775:8784 CT.CoreLang <> :::x_'\FVvalue'_x not
+R8774:8774 CT.CoreLang <> x:131 var
+R8785:8786 CT.CoreLang <> v0:133 var
+R8797:8800 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R8793:8795 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8792:8792 CT.CoreLang <> s:134 var
+R8796:8796 CT.CoreLang <> x:131 var
+R8801:8802 Coq.Init.Logic <> ::type_scope:'~'_x not
+R8804:8810 CT.CoreLang <> :::x_'\FVtm'_x not
+R8803:8803 CT.CoreLang <> x:131 var
+R8811:8811 CT.CoreLang <> t:135 var
+R8861:8867 Coq.Logic.Classical_Prop <> classic prfax
+R8871:8873 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8861:8867 Coq.Logic.Classical_Prop <> classic prfax
+R8871:8873 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8900:8906 Coq.Logic.Classical_Prop <> classic prfax
+R8910:8919 CT.CoreLang <> :::x_'\FVvalue'_x not
+R8900:8906 Coq.Logic.Classical_Prop <> classic prfax
+R8910:8919 CT.CoreLang <> :::x_'\FVvalue'_x not
+R8940:8946 Coq.Logic.Classical_Prop <> classic prfax
+R8950:8952 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R8940:8946 Coq.Logic.Classical_Prop <> classic prfax
+R8950:8952 Coq.Init.Logic <> ::type_scope:x_'='_x not
+prf 9015:9020 <> lemma3
+binder 9030:9030 <> x:136
+binder 9032:9032 <> v:137
+binder 9034:9034 <> t:138
+binder 9036:9037 <> t0:139
+R9084:9088 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9134:9134 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9041:9043 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9083:9083 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9056:9059 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R9045:9054 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9044:9044 CT.CoreLang <> x:136 var
+R9055:9055 CT.CoreLang <> v:137 var
+R9069:9072 Coq.Init.Logic <> ::type_scope:x_'\/'_x not
+R9061:9067 CT.CoreLang <> :::x_'\FVtm'_x not
+R9060:9060 CT.CoreLang <> x:136 var
+R9068:9068 CT.CoreLang <> t:138 var
+R9074:9080 CT.CoreLang <> :::x_'\FVtm'_x not
+R9073:9073 CT.CoreLang <> x:136 var
+R9081:9082 CT.CoreLang <> t0:139 var
+R9103:9106 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R9089:9090 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9092:9101 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9091:9091 CT.CoreLang <> x:136 var
+R9102:9102 CT.CoreLang <> v:137 var
+R9118:9121 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R9107:9108 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9110:9116 CT.CoreLang <> :::x_'\FVtm'_x not
+R9109:9109 CT.CoreLang <> x:136 var
+R9117:9117 CT.CoreLang <> t:138 var
+R9122:9123 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9125:9131 CT.CoreLang <> :::x_'\FVtm'_x not
+R9124:9124 CT.CoreLang <> x:136 var
+R9132:9133 CT.CoreLang <> t0:139 var
+R9182:9188 Coq.Logic.Classical_Prop <> classic prfax
+R9192:9201 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9182:9188 Coq.Logic.Classical_Prop <> classic prfax
+R9192:9201 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9228:9234 Coq.Logic.Classical_Prop <> classic prfax
+R9238:9244 CT.CoreLang <> :::x_'\FVtm'_x not
+R9228:9234 Coq.Logic.Classical_Prop <> classic prfax
+R9238:9244 CT.CoreLang <> :::x_'\FVtm'_x not
+R9262:9268 Coq.Logic.Classical_Prop <> classic prfax
+R9272:9278 CT.CoreLang <> :::x_'\FVtm'_x not
+R9262:9268 Coq.Logic.Classical_Prop <> classic prfax
+R9272:9278 CT.CoreLang <> :::x_'\FVtm'_x not
+prf 9299:9320 <> not_free_rewrite_value
+R9333:9337 CT.CoreLang <> value ind
+binder 9331:9331 <> e:140
+binder 9340:9340 <> x:141
+binder 9342:9342 <> v:142
+R9359:9362 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9345:9346 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9348:9357 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9347:9347 CT.CoreLang <> x:141 var
+R9358:9358 CT.CoreLang <> e:140 var
+R9374:9376 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9363:9363 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9365:9368 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9370:9372 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9364:9364 CT.CoreLang <> x:141 var
+R9369:9369 CT.CoreLang <> v:142 var
+R9373:9373 CT.CoreLang <> e:140 var
+R9377:9377 CT.CoreLang <> e:140 var
+R9418:9433 CT.CoreLang <> value_mutual_rec scheme
+binder 9451:9451 <> e:143
+binder 9463:9463 <> x:144
+binder 9465:9465 <> v:145
+R9495:9499 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9515:9515 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9468:9469 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9470:9490 CT.CoreLang <> appear_free_in_tvalue def
+R9492:9492 CT.CoreLang <> x:144 var
+R9494:9494 CT.CoreLang <> e:143 var
+R9511:9513 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9500:9500 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9502:9505 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9507:9509 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9501:9501 CT.CoreLang <> x:144 var
+R9506:9506 CT.CoreLang <> v:145 var
+R9510:9510 CT.CoreLang <> e:143 var
+R9514:9514 CT.CoreLang <> e:143 var
+binder 9534:9534 <> e:146
+binder 9546:9546 <> x:147
+binder 9548:9548 <> v:148
+R9575:9579 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9594:9594 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9551:9552 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9553:9570 CT.CoreLang <> appear_free_in_ttm def
+R9572:9572 CT.CoreLang <> x:147 var
+R9574:9574 CT.CoreLang <> e:146 var
+R9590:9592 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9580:9580 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9582:9585 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9587:9588 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9581:9581 CT.CoreLang <> x:147 var
+R9586:9586 CT.CoreLang <> v:148 var
+R9589:9589 CT.CoreLang <> e:146 var
+R9593:9593 CT.CoreLang <> e:146 var
+R9418:9433 CT.CoreLang <> value_mutual_rec scheme
+binder 9451:9451 <> e:149
+binder 9463:9463 <> x:150
+binder 9465:9465 <> v:151
+R9495:9499 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9515:9515 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9468:9469 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9470:9490 CT.CoreLang <> appear_free_in_tvalue def
+R9492:9492 CT.CoreLang <> x:150 var
+R9494:9494 CT.CoreLang <> e:149 var
+R9511:9513 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9500:9500 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9502:9505 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9507:9509 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R9501:9501 CT.CoreLang <> x:150 var
+R9506:9506 CT.CoreLang <> v:151 var
+R9510:9510 CT.CoreLang <> e:149 var
+R9514:9514 CT.CoreLang <> e:149 var
+binder 9534:9534 <> e:152
+binder 9546:9546 <> x:153
+binder 9548:9548 <> v:154
+R9575:9579 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9594:9594 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9551:9552 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9553:9570 CT.CoreLang <> appear_free_in_ttm def
+R9572:9572 CT.CoreLang <> x:153 var
+R9574:9574 CT.CoreLang <> e:152 var
+R9590:9592 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9580:9580 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9582:9585 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9587:9588 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9581:9581 CT.CoreLang <> x:153 var
+R9586:9586 CT.CoreLang <> v:154 var
+R9589:9589 CT.CoreLang <> e:152 var
+R9593:9593 CT.CoreLang <> e:152 var
+R9653:9660 Coq.Strings.String <> eqb_spec thm
+R9653:9660 Coq.Strings.String <> eqb_spec thm
+R9702:9709 Coq.Strings.String <> eqb_spec thm
+R9702:9709 Coq.Strings.String <> eqb_spec thm
+R9745:9747 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9734:9734 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9736:9739 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9741:9742 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9745:9747 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9734:9734 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9736:9739 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9741:9742 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9783:9790 Coq.Strings.String <> eqb_spec thm
+R9783:9790 Coq.Strings.String <> eqb_spec thm
+R9817:9824 Coq.Strings.String <> eqb_spec thm
+R9817:9824 Coq.Strings.String <> eqb_spec thm
+R9865:9867 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9854:9854 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9856:9859 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9861:9862 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9865:9867 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9854:9854 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9856:9859 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9861:9862 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9944:9949 CT.CoreLang <> lemma1 thm
+R9944:9949 CT.CoreLang <> lemma1 thm
+R9993:9995 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9983:9983 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9985:9988 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9990:9991 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9993:9995 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R9983:9983 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9985:9988 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R9990:9991 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10028:10035 Coq.Strings.String <> eqb_spec thm
+R10028:10035 Coq.Strings.String <> eqb_spec thm
+R10110:10112 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10099:10099 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10101:10104 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10106:10107 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10110:10112 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10099:10099 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10101:10104 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10106:10107 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10144:10149 CT.CoreLang <> lemma2 thm
+R10144:10149 CT.CoreLang <> lemma2 thm
+R10280:10287 Coq.Strings.String <> eqb_spec thm
+R10280:10287 Coq.Strings.String <> eqb_spec thm
+R10374:10379 CT.CoreLang <> lemma2 thm
+R10374:10379 CT.CoreLang <> lemma2 thm
+R10510:10517 Coq.Strings.String <> eqb_spec thm
+R10510:10517 Coq.Strings.String <> eqb_spec thm
+R10604:10609 CT.CoreLang <> lemma3 thm
+R10604:10609 CT.CoreLang <> lemma3 thm
+prf 10701:10716 <> not_free_rewrite
+binder 10726:10726 <> e:155
+binder 10728:10728 <> x:156
+binder 10730:10730 <> v:157
+R10744:10747 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10733:10734 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10736:10742 CT.CoreLang <> :::x_'\FVtm'_x not
+R10735:10735 CT.CoreLang <> x:156 var
+R10743:10743 CT.CoreLang <> e:155 var
+R10758:10760 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10748:10748 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10750:10753 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10755:10756 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10749:10749 CT.CoreLang <> x:156 var
+R10754:10754 CT.CoreLang <> v:157 var
+R10757:10757 CT.CoreLang <> e:155 var
+R10761:10761 CT.CoreLang <> e:155 var
+R10802:10814 CT.CoreLang <> tm_mutual_rec scheme
+binder 10832:10832 <> e:158
+binder 10844:10844 <> x:159
+binder 10846:10846 <> v:160
+R10876:10880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10896:10896 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10849:10850 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10851:10871 CT.CoreLang <> appear_free_in_tvalue def
+R10873:10873 CT.CoreLang <> x:159 var
+R10875:10875 CT.CoreLang <> e:158 var
+R10892:10894 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10881:10881 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10883:10886 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10888:10890 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10882:10882 CT.CoreLang <> x:159 var
+R10887:10887 CT.CoreLang <> v:160 var
+R10891:10891 CT.CoreLang <> e:158 var
+R10895:10895 CT.CoreLang <> e:158 var
+binder 10915:10915 <> e:161
+binder 10927:10927 <> x:162
+binder 10929:10929 <> v:163
+R10956:10960 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10975:10975 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10932:10933 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10934:10951 CT.CoreLang <> appear_free_in_ttm def
+R10953:10953 CT.CoreLang <> x:162 var
+R10955:10955 CT.CoreLang <> e:161 var
+R10971:10973 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10961:10961 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10963:10966 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10968:10969 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10962:10962 CT.CoreLang <> x:162 var
+R10967:10967 CT.CoreLang <> v:163 var
+R10970:10970 CT.CoreLang <> e:161 var
+R10974:10974 CT.CoreLang <> e:161 var
+R10802:10814 CT.CoreLang <> tm_mutual_rec scheme
+binder 10832:10832 <> e:164
+binder 10844:10844 <> x:165
+binder 10846:10846 <> v:166
+R10876:10880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10896:10896 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10849:10850 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10851:10871 CT.CoreLang <> appear_free_in_tvalue def
+R10873:10873 CT.CoreLang <> x:165 var
+R10875:10875 CT.CoreLang <> e:164 var
+R10892:10894 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10881:10881 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10883:10886 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10888:10890 CT.CoreLang <> :::'['_x_':='_x_']v'_x not
+R10882:10882 CT.CoreLang <> x:165 var
+R10887:10887 CT.CoreLang <> v:166 var
+R10891:10891 CT.CoreLang <> e:164 var
+R10895:10895 CT.CoreLang <> e:164 var
+binder 10915:10915 <> e:167
+binder 10927:10927 <> x:168
+binder 10929:10929 <> v:169
+R10956:10960 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10975:10975 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10932:10933 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10934:10951 CT.CoreLang <> appear_free_in_ttm def
+R10953:10953 CT.CoreLang <> x:168 var
+R10955:10955 CT.CoreLang <> e:167 var
+R10971:10973 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R10961:10961 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10963:10966 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10968:10969 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R10962:10962 CT.CoreLang <> x:168 var
+R10967:10967 CT.CoreLang <> v:169 var
+R10970:10970 CT.CoreLang <> e:167 var
+R10974:10974 CT.CoreLang <> e:167 var
+R11034:11041 Coq.Strings.String <> eqb_spec thm
+R11034:11041 Coq.Strings.String <> eqb_spec thm
+R11083:11090 Coq.Strings.String <> eqb_spec thm
+R11083:11090 Coq.Strings.String <> eqb_spec thm
+R11126:11128 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11115:11115 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11117:11120 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11122:11123 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11126:11128 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11115:11115 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11117:11120 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11122:11123 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11164:11171 Coq.Strings.String <> eqb_spec thm
+R11164:11171 Coq.Strings.String <> eqb_spec thm
+R11198:11205 Coq.Strings.String <> eqb_spec thm
+R11198:11205 Coq.Strings.String <> eqb_spec thm
+R11246:11248 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11235:11235 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11237:11240 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11242:11243 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11246:11248 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11235:11235 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11237:11240 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11242:11243 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11325:11330 CT.CoreLang <> lemma1 thm
+R11325:11330 CT.CoreLang <> lemma1 thm
+R11374:11376 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11364:11364 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11366:11369 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11371:11372 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11374:11376 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11364:11364 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11366:11369 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11371:11372 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11409:11416 Coq.Strings.String <> eqb_spec thm
+R11409:11416 Coq.Strings.String <> eqb_spec thm
+R11491:11493 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11480:11480 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11482:11485 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11487:11488 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11491:11493 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11480:11480 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11482:11485 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11487:11488 CT.CoreLang <> :::'['_x_':='_x_']'_x not
+R11525:11530 CT.CoreLang <> lemma2 thm
+R11525:11530 CT.CoreLang <> lemma2 thm
+R11661:11668 Coq.Strings.String <> eqb_spec thm
+R11661:11668 Coq.Strings.String <> eqb_spec thm
+R11755:11760 CT.CoreLang <> lemma2 thm
+R11755:11760 CT.CoreLang <> lemma2 thm
+R11891:11898 Coq.Strings.String <> eqb_spec thm
+R11891:11898 Coq.Strings.String <> eqb_spec thm
+R11985:11990 CT.CoreLang <> lemma3 thm
+R11985:11990 CT.CoreLang <> lemma3 thm

@@ -1,0 +1,2552 @@
+DIGEST 71f10dc1b7b322d356e3a19c7665b097
+FCT.TypeClosed
+R69:72 CT.Maps <> <> lib
+R98:105 CT.CoreLang <> <> lib
+R132:141 Coq.Lists.List <> <> lib
+R168:181 Coq.Strings.String <> <> lib
+R208:237 Coq.Logic.FunctionalExtensionality <> <> lib
+R264:283 Coq.Logic.ClassicalFacts <> <> lib
+R310:324 Coq.Logic.Classical <> <> lib
+R350:365 CT.NormalTypeSystem <> <> lib
+R391:399 CT.RfTypeDef <> <> lib
+R425:437 CT.LinearContext <> <> lib
+R463:467 CT.NoDup <> <> lib
+R477:481 CT.NoDup <> <> mod
+R491:492 CT.Ax <> <> mod
+R502:514 Coq.Lists.List ListNotations <> mod
+def 555:565 <> state_order
+R576:580 CT.RfTypeDef <> state def
+binder 568:569 <> st:1
+binder 571:573 <> st':2
+binder 594:594 <> x:3
+binder 596:598 <> c_x:4
+R616:619 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R605:607 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R601:602 CT.TypeClosed <> st:1 var
+R604:604 CT.TypeClosed <> x:3 var
+R608:611 Coq.Init.Datatypes <> Some constr
+R613:615 CT.TypeClosed <> c_x:4 var
+R625:627 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R620:622 CT.TypeClosed <> st':2 var
+R624:624 CT.TypeClosed <> x:3 var
+R628:631 Coq.Init.Datatypes <> Some constr
+R633:635 CT.TypeClosed <> c_x:4 var
+R670:680 CT.TypeClosed <> state_order def
+not 648:648 <> :::x_'<st<'_x
+prf 712:728 <> state_order_trans
+binder 738:740 <> st1:5
+binder 742:744 <> st2:6
+binder 746:748 <> st3:7
+R763:766 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R754:759 CT.TypeClosed <> :::x_'<st<'_x not
+R751:753 CT.TypeClosed <> st1:5 var
+R760:762 CT.TypeClosed <> st2:6 var
+R779:782 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R770:775 CT.TypeClosed <> :::x_'<st<'_x not
+R767:769 CT.TypeClosed <> st2:6 var
+R776:778 CT.TypeClosed <> st3:7 var
+R786:791 CT.TypeClosed <> :::x_'<st<'_x not
+R783:785 CT.TypeClosed <> st1:5 var
+R792:794 CT.TypeClosed <> st3:7 var
+R813:823 CT.TypeClosed <> state_order def
+def 904:932 <> closed_refinement_under_state
+R939:943 CT.RfTypeDef <> state def
+binder 935:936 <> st:8
+R952:961 CT.RfTypeDef <> refinement def
+binder 947:949 <> phi:9
+binder 982:982 <> x:10
+R996:999 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R989:991 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R985:986 CT.TypeClosed <> st:8 var
+R988:988 CT.TypeClosed <> x:10 var
+R992:995 Coq.Init.Datatypes <> None constr
+R1000:1001 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1002:1026 CT.RfTypeDef <> appear_free_in_refinement def
+R1028:1028 CT.TypeClosed <> x:10 var
+R1030:1032 CT.TypeClosed <> phi:9 var
+R1108:1136 CT.TypeClosed <> closed_refinement_under_state def
+def 1157:1164 <> empstate
+R1168:1172 CT.RfTypeDef <> state def
+R1177:1181 CT.Maps <> empty def
+prf 1191:1202 <> empstate_min
+binder 1212:1213 <> st:11
+R1224:1229 CT.TypeClosed <> :::x_'<st<'_x not
+R1216:1223 CT.TypeClosed <> empstate def
+R1230:1231 CT.TypeClosed <> st:11 var
+prf 1664:1668 <> ZNNPP
+binder 1679:1679 <> p:12
+R1692:1696 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R1687:1688 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1689:1690 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1691:1691 CT.TypeClosed <> p:12 var
+R1697:1697 CT.TypeClosed <> p:12 var
+R1741:1744 Coq.Logic.Classical_Prop <> NNPP thm
+R1741:1744 Coq.Logic.Classical_Prop <> NNPP thm
+prf 1794:1826 <> not_appear_free_in_refinement_alt
+R1835:1840 Coq.Strings.String <> string ind
+binder 1829:1832 <> name:13
+R1849:1858 CT.RfTypeDef <> refinement def
+binder 1844:1846 <> phi:14
+R1900:1905 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R1952:1952 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R1864:1865 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1866:1890 CT.RfTypeDef <> appear_free_in_refinement def
+R1892:1895 CT.TypeClosed <> name:13 var
+R1897:1899 CT.TypeClosed <> phi:14 var
+binder 1913:1914 <> st:15
+binder 1916:1917 <> c1:16
+R1926:1928 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1920:1922 CT.TypeClosed <> phi:14 var
+R1924:1925 CT.TypeClosed <> st:15 var
+R1929:1931 CT.TypeClosed <> phi:14 var
+R1934:1939 CT.Maps <> update def
+R1949:1950 CT.TypeClosed <> c1:16 var
+R1944:1947 CT.TypeClosed <> name:13 var
+R1941:1942 CT.TypeClosed <> st:15 var
+R1982:2006 CT.RfTypeDef <> appear_free_in_refinement def
+R2017:2021 CT.TypeClosed <> ZNNPP thm
+R2017:2021 CT.TypeClosed <> ZNNPP thm
+R2017:2021 CT.TypeClosed <> ZNNPP thm
+prf 2053:2081 <> constant_refinement_is_closed
+R2095:2102 CT.CoreLang <> constant ind
+binder 2092:2092 <> c:17
+R2111:2120 CT.RfTypeDef <> refinement def
+binder 2106:2108 <> phi:18
+R2128:2128 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2175:2180 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2223:2223 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2141:2145 CT.RfTypeDef <> state def
+binder 2136:2137 <> st:19
+R2154:2157 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2174:2174 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2148:2150 CT.TypeClosed <> phi:18 var
+R2152:2153 CT.TypeClosed <> st:19 var
+binder 2162:2163 <> c':20
+R2169:2171 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2168:2168 CT.TypeClosed <> c:17 var
+R2172:2173 CT.TypeClosed <> c':20 var
+R2181:2209 CT.TypeClosed <> closed_refinement_under_state def
+R2211:2218 CT.TypeClosed <> empstate def
+R2220:2222 CT.TypeClosed <> phi:18 var
+R2267:2299 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2267:2299 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2267:2299 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+prf 2350:2377 <> refinement_subst_c_closed_rf
+binder 2387:2388 <> x1:21
+binder 2390:2391 <> c2:22
+binder 2393:2395 <> phi:23
+R2444:2447 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2402:2430 CT.TypeClosed <> closed_refinement_under_state def
+R2432:2439 CT.TypeClosed <> empstate def
+R2441:2443 CT.TypeClosed <> phi:23 var
+R2451:2453 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2448:2450 CT.TypeClosed <> phi:23 var
+R2454:2471 CT.RfTypeDef <> refinement_subst_c def
+R2473:2474 CT.TypeClosed <> x1:21 var
+R2476:2477 CT.TypeClosed <> c2:22 var
+R2479:2481 CT.TypeClosed <> phi:23 var
+binder 2529:2529 <> x:24
+R2532:2533 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2534:2558 CT.RfTypeDef <> appear_free_in_refinement def
+R2560:2560 CT.TypeClosed <> x:24 var
+binder 2529:2529 <> x:25
+R2532:2533 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2534:2558 CT.RfTypeDef <> appear_free_in_refinement def
+R2560:2560 CT.TypeClosed <> x:25 var
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2585:2617 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R2635:2652 CT.RfTypeDef <> refinement_subst_c def
+R2663:2687 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+R2663:2687 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+def 2926:2937 <> phi_sat_tyst
+R2945:2954 CT.RfTypeDef <> refinement def
+binder 2940:2942 <> phi:26
+R2964:2970 CT.NoDup <> tystate def
+binder 2958:2961 <> tyst:27
+binder 2986:2986 <> x:28
+R3002:3005 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2995:2997 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2989:2992 CT.TypeClosed <> tyst:27 var
+R2994:2994 CT.TypeClosed <> x:28 var
+R2998:3001 Coq.Init.Datatypes <> None constr
+R3006:3007 Coq.Init.Logic <> ::type_scope:'~'_x not
+R3008:3032 CT.RfTypeDef <> appear_free_in_refinement def
+R3034:3034 CT.TypeClosed <> x:28 var
+R3036:3038 CT.TypeClosed <> phi:26 var
+def 3189:3195 <> lcontxt
+R3200:3213 CT.LinearContext <> linear_context def
+R3215:3225 CT.RfTypeDef <> overunderty ind
+ind 3239:3252 <> st_type_closed
+constr 3292:3311 <> st_type_closed_base1
+constr 3412:3431 <> st_type_closed_base2
+constr 3532:3550 <> st_type_closed_oarr
+constr 3808:3828 <> st_type_closed_arrarr
+R3263:3266 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3256:3262 CT.NoDup <> tystate def
+R3278:3281 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3267:3277 CT.RfTypeDef <> overunderty ind
+binder 3321:3324 <> tyst:31
+R3330:3336 CT.CoreLang <> base_ty ind
+binder 3327:3327 <> T:32
+binder 3339:3341 <> phi:33
+R3369:3372 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3348:3359 CT.TypeClosed <> phi_sat_tyst def
+R3361:3363 CT.TypeClosed <> phi:33 var
+R3365:3368 CT.TypeClosed <> tyst:31 var
+R3373:3386 CT.TypeClosed <> st_type_closed:29 ind
+R3394:3398 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3400:3402 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3406:3407 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3399:3399 CT.TypeClosed <> T:32 var
+R3403:3405 CT.TypeClosed <> phi:33 var
+R3388:3391 CT.TypeClosed <> tyst:31 var
+binder 3441:3444 <> tyst:34
+R3450:3456 CT.CoreLang <> base_ty ind
+binder 3447:3447 <> T:35
+binder 3459:3461 <> phi:36
+R3489:3492 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3468:3479 CT.TypeClosed <> phi_sat_tyst def
+R3481:3483 CT.TypeClosed <> phi:36 var
+R3485:3488 CT.TypeClosed <> tyst:34 var
+R3493:3506 CT.TypeClosed <> st_type_closed:29 ind
+R3514:3518 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3520:3522 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3526:3527 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R3519:3519 CT.TypeClosed <> T:35 var
+R3523:3525 CT.TypeClosed <> phi:36 var
+R3508:3511 CT.TypeClosed <> tyst:34 var
+binder 3560:3561 <> st:37
+binder 3563:3563 <> x:38
+binder 3565:3565 <> T:39
+binder 3567:3569 <> phi:40
+R3577:3583 CT.RfTypeDef <> underty ind
+binder 3572:3574 <> tau:41
+R3640:3672 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3591:3606 CT.RfTypeDef <> well_formed_type ind
+R3610:3614 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3629:3635 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3609:3609 CT.TypeClosed <> x:38 var
+R3615:3619 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3621:3623 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3627:3628 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3620:3620 CT.TypeClosed <> T:39 var
+R3624:3626 CT.TypeClosed <> phi:40 var
+R3636:3638 CT.TypeClosed <> tau:41 var
+R3707:3714 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3673:3686 CT.TypeClosed <> st_type_closed:29 ind
+R3692:3696 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3698:3700 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3704:3705 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3697:3697 CT.TypeClosed <> T:39 var
+R3701:3703 CT.TypeClosed <> phi:40 var
+R3688:3689 CT.TypeClosed <> st:37 var
+R3747:3754 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3715:3728 CT.TypeClosed <> st_type_closed:29 ind
+R3744:3746 CT.TypeClosed <> tau:41 var
+R3732:3736 CT.Maps <> :::x_'|->'_x_';'_x not
+R3738:3739 CT.Maps <> :::x_'|->'_x_';'_x not
+R3740:3741 CT.TypeClosed <> st:37 var
+R3731:3731 CT.TypeClosed <> x:38 var
+R3737:3737 CT.TypeClosed <> T:39 var
+R3755:3768 CT.TypeClosed <> st_type_closed:29 ind
+R3775:3779 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3794:3800 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R3774:3774 CT.TypeClosed <> x:38 var
+R3780:3784 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3786:3788 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3792:3793 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R3785:3785 CT.TypeClosed <> T:39 var
+R3789:3791 CT.TypeClosed <> phi:40 var
+R3801:3803 CT.TypeClosed <> tau:41 var
+R3770:3771 CT.TypeClosed <> st:37 var
+binder 3838:3839 <> st:42
+R3849:3855 CT.RfTypeDef <> underty ind
+binder 3842:3846 <> tau_x:43
+R3864:3870 CT.RfTypeDef <> underty ind
+binder 3859:3861 <> tau:44
+R3911:3918 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3878:3893 CT.RfTypeDef <> well_formed_type ind
+R3901:3906 CT.RfTypeDef <> :::x_'u-->'_x not
+R3896:3900 CT.TypeClosed <> tau_x:43 var
+R3907:3909 CT.TypeClosed <> tau:44 var
+R3942:3949 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3919:3932 CT.TypeClosed <> st_type_closed:29 ind
+R3937:3941 CT.TypeClosed <> tau_x:43 var
+R3934:3935 CT.TypeClosed <> st:42 var
+R3971:3978 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3950:3963 CT.TypeClosed <> st_type_closed:29 ind
+R3968:3970 CT.TypeClosed <> tau:44 var
+R3965:3966 CT.TypeClosed <> st:42 var
+R3979:3992 CT.TypeClosed <> st_type_closed:29 ind
+R4003:4008 CT.RfTypeDef <> :::x_'u-->'_x not
+R3998:4002 CT.TypeClosed <> tau_x:43 var
+R4009:4011 CT.TypeClosed <> tau:44 var
+R3994:3995 CT.TypeClosed <> st:42 var
+R4041:4054 CT.TypeClosed <> st_type_closed ind
+prf 4070:4108 <> st_type_closed_implies_well_formed_type
+binder 4120:4123 <> tyst:45
+binder 4125:4127 <> tau:46
+R4153:4156 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R4130:4143 CT.TypeClosed <> st_type_closed ind
+R4145:4148 CT.TypeClosed <> tyst:45 var
+R4150:4152 CT.TypeClosed <> tau:46 var
+R4157:4172 CT.RfTypeDef <> well_formed_type ind
+R4174:4176 CT.TypeClosed <> tau:46 var
+def 4307:4331 <> st_type_closed_in_ctx_aux
+R4340:4346 CT.NoDup <> tystate def
+binder 4334:4337 <> tyst:47
+R4357:4363 CT.TypeClosed <> lcontxt def
+binder 4350:4354 <> Gamma:48
+R4372:4382 CT.RfTypeDef <> overunderty ind
+binder 4367:4369 <> tau:49
+R4403:4407 CT.TypeClosed <> Gamma:48 var
+R4419:4421 Coq.Init.Datatypes <> nil constr
+R4426:4439 CT.TypeClosed <> st_type_closed ind
+R4441:4444 CT.TypeClosed <> tyst:47 var
+R4446:4448 CT.TypeClosed <> tau:49 var
+R4477:4480 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R4455:4455 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4457:4458 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4476:4476 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4459:4461 CT.RfTypeDef <> Oty constr
+R4464:4467 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R4469:4471 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R4473:4474 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R4511:4514 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R4489:4489 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4491:4492 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4510:4510 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4493:4495 CT.RfTypeDef <> Uty constr
+R4498:4501 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R4503:4505 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R4507:4508 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R4564:4588 CT.TypeClosed <> st_type_closed_in_ctx_aux:50 def
+R4614:4616 CT.TypeClosed <> tau:49 var
+R4608:4612 CT.TypeClosed <> Gamma:48 var
+R4591:4596 CT.Maps <> update def
+R4598:4601 CT.TypeClosed <> tyst:47 var
+R4564:4588 CT.TypeClosed <> st_type_closed_in_ctx_aux:50 def
+R4614:4616 CT.TypeClosed <> tau:49 var
+R4608:4612 CT.TypeClosed <> Gamma:48 var
+R4591:4596 CT.Maps <> update def
+R4598:4601 CT.TypeClosed <> tyst:47 var
+R4629:4632 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R4623:4623 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4625:4626 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4628:4628 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R4649:4673 CT.TypeClosed <> st_type_closed_in_ctx_aux:50 def
+R4686:4688 CT.TypeClosed <> tau:49 var
+R4680:4684 CT.TypeClosed <> Gamma:48 var
+R4675:4678 CT.TypeClosed <> tyst:47 var
+def 4709:4729 <> st_type_closed_in_ctx
+R4738:4744 CT.NoDup <> tystate def
+binder 4732:4735 <> tyst:52
+R4755:4761 CT.TypeClosed <> lcontxt def
+binder 4748:4752 <> Gamma:53
+R4770:4780 CT.RfTypeDef <> overunderty ind
+binder 4765:4767 <> tau:54
+R4835:4842 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R4795:4819 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R4821:4824 CT.TypeClosed <> tyst:52 var
+R4826:4830 CT.TypeClosed <> Gamma:53 var
+R4832:4834 CT.TypeClosed <> tau:54 var
+R4863:4866 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R4843:4858 CT.RfTypeDef <> well_formed_type ind
+R4860:4862 CT.TypeClosed <> tau:54 var
+R4867:4881 CT.NoDup <> type_ctx_no_dup ind
+R4883:4886 CT.TypeClosed <> tyst:52 var
+R4888:4892 CT.TypeClosed <> Gamma:53 var
+prf 4902:4926 <> st_type_closed_in_ctx_bot
+binder 4936:4936 <> T:55
+R4939:4959 CT.TypeClosed <> st_type_closed_in_ctx def
+R4961:4965 CT.Maps <> empty def
+R4967:4973 CT.LinearContext <> l_empty def
+R4976:4981 CT.RfTypeDef <> mk_bot def
+R4983:4983 CT.TypeClosed <> T:55 var
+R5085:5117 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R5085:5117 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R5085:5117 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+prf 5170:5215 <> st_type_closed_in_ctx_destruct_underbase_front
+binder 5226:5230 <> Gamma:56
+binder 5232:5235 <> tyst:57
+binder 5237:5237 <> x:58
+binder 5239:5239 <> T:59
+binder 5241:5243 <> phi:60
+binder 5245:5247 <> tau:61
+R5320:5327 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5254:5274 CT.TypeClosed <> st_type_closed_in_ctx def
+R5276:5279 CT.TypeClosed <> tyst:57 var
+R5306:5309 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R5282:5282 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5284:5285 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5305:5305 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5283:5283 CT.TypeClosed <> x:58 var
+R5286:5288 CT.RfTypeDef <> Uty constr
+R5291:5294 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R5296:5298 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R5302:5303 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R5295:5295 CT.TypeClosed <> T:59 var
+R5299:5301 CT.TypeClosed <> phi:60 var
+R5310:5314 CT.TypeClosed <> Gamma:56 var
+R5317:5319 CT.TypeClosed <> tau:61 var
+R5328:5348 CT.TypeClosed <> st_type_closed_in_ctx def
+R5352:5356 CT.Maps <> :::x_'|->'_x_';'_x not
+R5358:5359 CT.Maps <> :::x_'|->'_x_';'_x not
+R5360:5363 CT.TypeClosed <> tyst:57 var
+R5351:5351 CT.TypeClosed <> x:58 var
+R5357:5357 CT.TypeClosed <> T:59 var
+R5366:5370 CT.TypeClosed <> Gamma:56 var
+R5372:5374 CT.TypeClosed <> tau:61 var
+R5535:5546 CT.NoDup <> nodup_update thm
+R5535:5546 CT.NoDup <> nodup_update thm
+prf 5574:5618 <> st_type_closed_in_ctx_destruct_overbase_front
+binder 5629:5633 <> Gamma:62
+binder 5635:5638 <> tyst:63
+binder 5640:5640 <> x:64
+binder 5642:5642 <> T:65
+binder 5644:5646 <> phi:66
+binder 5648:5650 <> tau:67
+R5723:5730 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5657:5677 CT.TypeClosed <> st_type_closed_in_ctx def
+R5679:5682 CT.TypeClosed <> tyst:63 var
+R5709:5712 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R5685:5685 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5687:5688 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5708:5708 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R5686:5686 CT.TypeClosed <> x:64 var
+R5689:5691 CT.RfTypeDef <> Oty constr
+R5694:5697 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5699:5701 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5705:5706 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R5698:5698 CT.TypeClosed <> T:65 var
+R5702:5704 CT.TypeClosed <> phi:66 var
+R5713:5717 CT.TypeClosed <> Gamma:62 var
+R5720:5722 CT.TypeClosed <> tau:67 var
+R5731:5751 CT.TypeClosed <> st_type_closed_in_ctx def
+R5755:5759 CT.Maps <> :::x_'|->'_x_';'_x not
+R5761:5762 CT.Maps <> :::x_'|->'_x_';'_x not
+R5763:5766 CT.TypeClosed <> tyst:63 var
+R5754:5754 CT.TypeClosed <> x:64 var
+R5760:5760 CT.TypeClosed <> T:65 var
+R5769:5773 CT.TypeClosed <> Gamma:62 var
+R5775:5777 CT.TypeClosed <> tau:67 var
+R5938:5954 CT.NoDup <> nodup_update_over thm
+R5938:5954 CT.NoDup <> nodup_update_over thm
+prf 6056:6097 <> st_type_closed_in_ctx_destruct_arrar_front
+binder 6108:6112 <> Gamma:68
+binder 6114:6117 <> tyst:69
+binder 6119:6119 <> x:70
+binder 6121:6122 <> t1:71
+binder 6124:6125 <> t2:72
+binder 6127:6129 <> tau:73
+R6199:6206 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6136:6156 CT.TypeClosed <> st_type_closed_in_ctx def
+R6158:6161 CT.TypeClosed <> tyst:69 var
+R6185:6188 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6164:6164 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6166:6167 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6184:6184 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6165:6165 CT.TypeClosed <> x:70 var
+R6168:6170 CT.RfTypeDef <> Uty constr
+R6175:6180 CT.RfTypeDef <> :::x_'u-->'_x not
+R6173:6174 CT.TypeClosed <> t1:71 var
+R6181:6182 CT.TypeClosed <> t2:72 var
+R6189:6193 CT.TypeClosed <> Gamma:68 var
+R6196:6198 CT.TypeClosed <> tau:73 var
+R6207:6227 CT.TypeClosed <> st_type_closed_in_ctx def
+R6229:6232 CT.TypeClosed <> tyst:69 var
+R6234:6238 CT.TypeClosed <> Gamma:68 var
+R6240:6242 CT.TypeClosed <> tau:73 var
+prf 6410:6450 <> st_type_closed_in_ctx_destruct_oarr_front
+binder 6461:6465 <> Gamma:74
+binder 6467:6470 <> tyst:75
+binder 6472:6472 <> x:76
+binder 6474:6474 <> a:77
+binder 6476:6477 <> Ta:78
+binder 6479:6482 <> phia:79
+binder 6484:6485 <> t2:80
+binder 6487:6489 <> tau:81
+R6577:6584 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6496:6516 CT.TypeClosed <> st_type_closed_in_ctx def
+R6518:6521 CT.TypeClosed <> tyst:75 var
+R6563:6566 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6524:6524 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6526:6527 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6562:6562 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6525:6525 CT.TypeClosed <> x:76 var
+R6528:6530 CT.RfTypeDef <> Uty constr
+R6534:6537 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R6553:6558 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R6533:6533 CT.TypeClosed <> a:77 var
+R6538:6541 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6544:6546 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6551:6552 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R6542:6543 CT.TypeClosed <> Ta:78 var
+R6547:6550 CT.TypeClosed <> phia:79 var
+R6559:6560 CT.TypeClosed <> t2:80 var
+R6567:6571 CT.TypeClosed <> Gamma:74 var
+R6574:6576 CT.TypeClosed <> tau:81 var
+R6585:6605 CT.TypeClosed <> st_type_closed_in_ctx def
+R6607:6610 CT.TypeClosed <> tyst:75 var
+R6612:6616 CT.TypeClosed <> Gamma:74 var
+R6618:6620 CT.TypeClosed <> tau:81 var
+prf 6794:6828 <> st_type_closed_in_ctx_one_underbase
+binder 6838:6841 <> tyst:82
+binder 6843:6843 <> x:83
+binder 6845:6845 <> T:84
+binder 6847:6849 <> phi:85
+binder 6851:6854 <> phi0:86
+R6924:6931 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R6861:6881 CT.TypeClosed <> st_type_closed_in_ctx def
+R6883:6886 CT.TypeClosed <> tyst:82 var
+R6913:6914 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R6889:6889 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6891:6892 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6912:6912 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R6890:6890 CT.TypeClosed <> x:83 var
+R6893:6895 CT.RfTypeDef <> Uty constr
+R6898:6901 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6903:6905 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6909:6910 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R6902:6902 CT.TypeClosed <> T:84 var
+R6906:6908 CT.TypeClosed <> phi:85 var
+R6915:6917 Coq.Init.Datatypes <> nil constr
+R6920:6923 CT.TypeClosed <> phi0:86 var
+R6932:6952 CT.TypeClosed <> st_type_closed_in_ctx def
+R6956:6960 CT.Maps <> :::x_'|->'_x_';'_x not
+R6962:6963 CT.Maps <> :::x_'|->'_x_';'_x not
+R6964:6967 CT.TypeClosed <> tyst:82 var
+R6955:6955 CT.TypeClosed <> x:83 var
+R6961:6961 CT.TypeClosed <> T:84 var
+R6970:6971 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R6973:6976 CT.TypeClosed <> phi0:86 var
+prf 7199:7232 <> st_type_closed_in_ctx_one_overbase
+binder 7242:7245 <> tyst:87
+binder 7247:7247 <> x:88
+binder 7249:7249 <> T:89
+binder 7251:7253 <> phi:90
+binder 7255:7258 <> phi0:91
+R7328:7335 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7265:7285 CT.TypeClosed <> st_type_closed_in_ctx def
+R7287:7290 CT.TypeClosed <> tyst:87 var
+R7317:7318 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R7293:7293 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7295:7296 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7316:7316 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R7294:7294 CT.TypeClosed <> x:88 var
+R7297:7299 CT.RfTypeDef <> Oty constr
+R7302:7305 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R7307:7309 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R7313:7314 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R7306:7306 CT.TypeClosed <> T:89 var
+R7310:7312 CT.TypeClosed <> phi:90 var
+R7319:7321 Coq.Init.Datatypes <> nil constr
+R7324:7327 CT.TypeClosed <> phi0:91 var
+R7336:7356 CT.TypeClosed <> st_type_closed_in_ctx def
+R7360:7364 CT.Maps <> :::x_'|->'_x_';'_x not
+R7366:7367 CT.Maps <> :::x_'|->'_x_';'_x not
+R7368:7371 CT.TypeClosed <> tyst:87 var
+R7359:7359 CT.TypeClosed <> x:88 var
+R7365:7365 CT.TypeClosed <> T:89 var
+R7374:7375 Coq.Lists.List ListNotations ::list_scope:'['_']' not
+R7377:7380 CT.TypeClosed <> phi0:91 var
+prf 7603:7620 <> st_type_closed_add
+binder 7630:7630 <> s:92
+binder 7632:7633 <> T1:93
+binder 7635:7637 <> tau:94
+binder 7639:7640 <> st:95
+R7668:7675 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7647:7660 CT.TypeClosed <> st_type_closed ind
+R7662:7663 CT.TypeClosed <> st:95 var
+R7665:7667 CT.TypeClosed <> tau:94 var
+R7676:7689 CT.TypeClosed <> st_type_closed ind
+R7693:7697 CT.Maps <> :::x_'|->'_x_';'_x not
+R7700:7701 CT.Maps <> :::x_'|->'_x_';'_x not
+R7702:7703 CT.TypeClosed <> st:95 var
+R7692:7692 CT.TypeClosed <> s:92 var
+R7698:7699 CT.TypeClosed <> T1:93 var
+R7706:7708 CT.TypeClosed <> tau:94 var
+R7825:7832 Coq.Strings.String <> eqb_spec thm
+R7825:7832 Coq.Strings.String <> eqb_spec thm
+R7862:7870 CT.Maps <> update_eq thm
+R7862:7870 CT.Maps <> update_eq thm
+R7862:7870 CT.Maps <> update_eq thm
+R7905:7914 CT.Maps <> update_neq thm
+R7905:7914 CT.Maps <> update_neq thm
+R7905:7914 CT.Maps <> update_neq thm
+R7905:7914 CT.Maps <> update_neq thm
+R7982:7989 Coq.Strings.String <> eqb_spec thm
+R7982:7989 Coq.Strings.String <> eqb_spec thm
+R8019:8027 CT.Maps <> update_eq thm
+R8019:8027 CT.Maps <> update_eq thm
+R8019:8027 CT.Maps <> update_eq thm
+R8062:8071 CT.Maps <> update_neq thm
+R8062:8071 CT.Maps <> update_neq thm
+R8062:8071 CT.Maps <> update_neq thm
+R8062:8071 CT.Maps <> update_neq thm
+R8111:8118 Coq.Strings.String <> eqb_spec thm
+R8111:8118 Coq.Strings.String <> eqb_spec thm
+R8149:8161 CT.Maps <> update_shadow thm
+R8149:8161 CT.Maps <> update_shadow thm
+R8149:8161 CT.Maps <> update_shadow thm
+R8180:8193 CT.Maps <> update_permute thm
+R8180:8193 CT.Maps <> update_permute thm
+R8180:8193 CT.Maps <> update_permute thm
+R8180:8193 CT.Maps <> update_permute thm
+prf 10120:10165 <> st_type_closed_in_ctx_implies_well_formed_type
+binder 10177:10180 <> tyst:96
+binder 10182:10186 <> Gamma:97
+binder 10188:10190 <> tau:98
+R10229:10232 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10193:10213 CT.TypeClosed <> st_type_closed_in_ctx def
+R10215:10218 CT.TypeClosed <> tyst:96 var
+R10220:10224 CT.TypeClosed <> Gamma:97 var
+R10226:10228 CT.TypeClosed <> tau:98 var
+R10233:10248 CT.RfTypeDef <> well_formed_type ind
+R10250:10252 CT.TypeClosed <> tau:98 var
+prf 10458:10502 <> st_type_closed_in_ctx_implies_type_ctx_no_dup
+binder 10512:10513 <> st:99
+binder 10515:10519 <> Gamma:100
+binder 10521:10523 <> tau:101
+R10564:10567 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10530:10550 CT.TypeClosed <> st_type_closed_in_ctx def
+R10552:10553 CT.TypeClosed <> st:99 var
+R10555:10559 CT.TypeClosed <> Gamma:100 var
+R10561:10563 CT.TypeClosed <> tau:101 var
+R10568:10582 CT.NoDup <> type_ctx_no_dup ind
+R10584:10585 CT.TypeClosed <> st:99 var
+R10587:10591 CT.TypeClosed <> Gamma:100 var
+prf 10796:10831 <> st_type_closed_implies_over_not_free
+binder 10841:10841 <> x:102
+R10848:10857 CT.RfTypeDef <> overbasety ind
+binder 10844:10846 <> tau:103
+R10889:10896 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10865:10878 CT.TypeClosed <> st_type_closed ind
+R10880:10884 CT.Maps <> empty def
+R10886:10888 CT.TypeClosed <> tau:103 var
+R10897:10898 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10899:10923 CT.RfTypeDef <> appear_free_in_overbasety def
+R10925:10925 CT.TypeClosed <> x:102 var
+R10927:10929 CT.TypeClosed <> tau:103 var
+prf 11001:11031 <> st_type_closed_implies_not_free
+binder 11041:11041 <> x:104
+R11048:11054 CT.RfTypeDef <> underty ind
+binder 11044:11046 <> tau:105
+binder 11057:11058 <> st:106
+R11076:11083 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11069:11071 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11065:11066 CT.TypeClosed <> st:106 var
+R11068:11068 CT.TypeClosed <> x:104 var
+R11072:11075 Coq.Init.Datatypes <> None constr
+R11105:11112 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11084:11097 CT.TypeClosed <> st_type_closed ind
+R11099:11100 CT.TypeClosed <> st:106 var
+R11102:11104 CT.TypeClosed <> tau:105 var
+R11113:11114 Coq.Init.Logic <> ::type_scope:'~'_x not
+R11115:11136 CT.RfTypeDef <> appear_free_in_underty def
+R11138:11138 CT.TypeClosed <> x:104 var
+R11140:11142 CT.TypeClosed <> tau:105 var
+R11388:11397 CT.Maps <> update_neq thm
+R11388:11397 CT.Maps <> update_neq thm
+R11388:11397 CT.Maps <> update_neq thm
+R11388:11397 CT.Maps <> update_neq thm
+prf 11594:11639 <> st_type_closed_in_ctx_emp_implies_all_not_free
+binder 11649:11649 <> x:107
+binder 11651:11655 <> Gamma:108
+R11663:11669 CT.RfTypeDef <> underty ind
+binder 11658:11660 <> tau:109
+binder 11672:11673 <> st:110
+R11691:11698 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11684:11686 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11680:11681 CT.TypeClosed <> st:110 var
+R11683:11683 CT.TypeClosed <> x:107 var
+R11687:11690 Coq.Init.Datatypes <> None constr
+R11731:11738 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11724:11726 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R11699:11715 CT.LinearContext <> l_find_right_most def
+R11723:11723 CT.TypeClosed <> x:107 var
+R11717:11721 CT.TypeClosed <> Gamma:108 var
+R11727:11730 Coq.Init.Datatypes <> None constr
+R11773:11780 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11739:11759 CT.TypeClosed <> st_type_closed_in_ctx def
+R11761:11762 CT.TypeClosed <> st:110 var
+R11764:11768 CT.TypeClosed <> Gamma:108 var
+R11770:11772 CT.TypeClosed <> tau:109 var
+R11781:11782 Coq.Init.Logic <> ::type_scope:'~'_x not
+R11783:11804 CT.RfTypeDef <> appear_free_in_underty def
+R11806:11806 CT.TypeClosed <> x:107 var
+R11808:11810 CT.TypeClosed <> tau:109 var
+R11974:12019 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+R11974:12019 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+R12066:12075 CT.Maps <> update_neq thm
+R12066:12075 CT.Maps <> update_neq thm
+R12066:12075 CT.Maps <> update_neq thm
+R12066:12075 CT.Maps <> update_neq thm
+R12104:12144 CT.TypeClosed <> st_type_closed_in_ctx_destruct_oarr_front thm
+R12104:12144 CT.TypeClosed <> st_type_closed_in_ctx_destruct_oarr_front thm
+R12194:12222 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R12194:12222 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R12248:12289 CT.TypeClosed <> st_type_closed_in_ctx_destruct_arrar_front thm
+R12248:12289 CT.TypeClosed <> st_type_closed_in_ctx_destruct_arrar_front thm
+R12339:12367 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R12339:12367 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R12411:12455 CT.TypeClosed <> st_type_closed_in_ctx_destruct_overbase_front thm
+R12411:12455 CT.TypeClosed <> st_type_closed_in_ctx_destruct_overbase_front thm
+R12502:12511 CT.Maps <> update_neq thm
+R12502:12511 CT.Maps <> update_neq thm
+R12502:12511 CT.Maps <> update_neq thm
+R12502:12511 CT.Maps <> update_neq thm
+prf 12841:12881 <> st_type_closed_in_ctx_implies_head_unique
+binder 12891:12895 <> Gamma:111
+binder 12897:12898 <> st:112
+binder 12900:12900 <> s:113
+binder 12902:12906 <> tau_s:114
+binder 12908:12910 <> tau:115
+R12967:12974 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12917:12937 CT.TypeClosed <> st_type_closed_in_ctx def
+R12939:12940 CT.TypeClosed <> st:112 var
+R12953:12956 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R12943:12943 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R12945:12946 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R12952:12952 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R12944:12944 CT.TypeClosed <> s:113 var
+R12947:12951 CT.TypeClosed <> tau_s:114 var
+R12957:12961 CT.TypeClosed <> Gamma:111 var
+R12964:12966 CT.TypeClosed <> tau:115 var
+R13000:13002 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R12975:12991 CT.LinearContext <> l_find_right_most def
+R12999:12999 CT.TypeClosed <> s:113 var
+R12993:12997 CT.TypeClosed <> Gamma:111 var
+R13003:13006 Coq.Init.Datatypes <> None constr
+prf 13051:13080 <> st_type_closed_in_ctx_perm_aux
+binder 13090:13093 <> tyst:116
+binder 13095:13095 <> a:117
+binder 13097:13101 <> tau_a:118
+binder 13103:13103 <> b:119
+binder 13105:13109 <> tau_b:120
+binder 13111:13115 <> Gamma:121
+R13128:13136 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R13297:13297 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R13123:13126 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R13122:13122 CT.TypeClosed <> a:117 var
+R13127:13127 CT.TypeClosed <> b:119 var
+binder 13144:13146 <> tau:122
+R13215:13230 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R13149:13173 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R13175:13178 CT.TypeClosed <> tyst:116 var
+R13191:13192 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R13181:13181 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13183:13184 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13190:13190 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13182:13182 CT.TypeClosed <> a:117 var
+R13185:13189 CT.TypeClosed <> tau_a:118 var
+R13203:13204 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R13193:13193 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13195:13196 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13202:13202 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13194:13194 CT.TypeClosed <> b:119 var
+R13197:13201 CT.TypeClosed <> tau_b:120 var
+R13205:13209 CT.TypeClosed <> Gamma:121 var
+R13212:13214 CT.TypeClosed <> tau:122 var
+R13231:13255 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R13257:13260 CT.TypeClosed <> tyst:116 var
+R13273:13274 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R13263:13263 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13265:13266 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13272:13272 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13264:13264 CT.TypeClosed <> b:119 var
+R13267:13271 CT.TypeClosed <> tau_b:120 var
+R13285:13286 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R13275:13275 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13277:13278 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13284:13284 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R13276:13276 CT.TypeClosed <> a:117 var
+R13279:13283 CT.TypeClosed <> tau_a:118 var
+R13287:13291 CT.TypeClosed <> Gamma:121 var
+R13294:13296 CT.TypeClosed <> tau:122 var
+R13379:13390 CT.RfTypeDef <> destruct_tau thm
+R13410:13421 CT.RfTypeDef <> destruct_tau thm
+R13379:13390 CT.RfTypeDef <> destruct_tau thm
+R13410:13421 CT.RfTypeDef <> destruct_tau thm
+R13410:13421 CT.RfTypeDef <> destruct_tau thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13607:13620 CT.Maps <> update_permute thm
+R13809:13822 CT.Maps <> update_permute thm
+R13809:13822 CT.Maps <> update_permute thm
+R13809:13822 CT.Maps <> update_permute thm
+R13809:13822 CT.Maps <> update_permute thm
+R13809:13822 CT.Maps <> update_permute thm
+R14011:14024 CT.Maps <> update_permute thm
+R14011:14024 CT.Maps <> update_permute thm
+R14011:14024 CT.Maps <> update_permute thm
+R14011:14024 CT.Maps <> update_permute thm
+R14011:14024 CT.Maps <> update_permute thm
+prf 14237:14262 <> st_type_closed_in_ctx_perm
+binder 14272:14275 <> tyst:123
+binder 14277:14277 <> a:124
+binder 14279:14283 <> tau_a:125
+binder 14285:14285 <> b:126
+binder 14287:14291 <> tau_b:127
+binder 14293:14297 <> Gamma:128
+R14310:14318 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14471:14471 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14305:14308 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R14304:14304 CT.TypeClosed <> a:124 var
+R14309:14309 CT.TypeClosed <> b:126 var
+binder 14326:14328 <> tau:129
+R14393:14408 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R14331:14351 CT.TypeClosed <> st_type_closed_in_ctx def
+R14353:14356 CT.TypeClosed <> tyst:123 var
+R14369:14370 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14359:14359 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14361:14362 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14368:14368 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14360:14360 CT.TypeClosed <> a:124 var
+R14363:14367 CT.TypeClosed <> tau_a:125 var
+R14381:14382 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14371:14371 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14373:14374 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14380:14380 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14372:14372 CT.TypeClosed <> b:126 var
+R14375:14379 CT.TypeClosed <> tau_b:127 var
+R14383:14387 CT.TypeClosed <> Gamma:128 var
+R14390:14392 CT.TypeClosed <> tau:129 var
+R14409:14429 CT.TypeClosed <> st_type_closed_in_ctx def
+R14431:14434 CT.TypeClosed <> tyst:123 var
+R14447:14448 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14437:14437 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14439:14440 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14446:14446 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14438:14438 CT.TypeClosed <> b:126 var
+R14441:14445 CT.TypeClosed <> tau_b:127 var
+R14459:14460 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R14449:14449 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14451:14452 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14458:14458 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R14450:14450 CT.TypeClosed <> a:124 var
+R14453:14457 CT.TypeClosed <> tau_a:125 var
+R14461:14465 CT.TypeClosed <> Gamma:128 var
+R14468:14470 CT.TypeClosed <> tau:129 var
+R14579:14608 CT.TypeClosed <> st_type_closed_in_ctx_perm_aux thm
+R14579:14608 CT.TypeClosed <> st_type_closed_in_ctx_perm_aux thm
+R14645:14657 CT.NoDup <> nodup_permute thm
+R14645:14657 CT.NoDup <> nodup_permute thm
+prf 14958:14987 <> mk_eq_over_base_is_type_closed
+binder 14997:14997 <> x:130
+binder 14999:14999 <> T:131
+binder 15001:15003 <> phi:132
+R15006:15026 CT.TypeClosed <> st_type_closed_in_ctx def
+R15028:15032 CT.Maps <> empty def
+R15059:15060 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R15035:15035 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15037:15038 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15058:15058 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15036:15036 CT.TypeClosed <> x:130 var
+R15039:15041 CT.RfTypeDef <> Oty constr
+R15044:15047 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R15049:15051 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R15055:15056 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R15048:15048 CT.TypeClosed <> T:131 var
+R15052:15054 CT.TypeClosed <> phi:132 var
+R15061:15063 Coq.Init.Datatypes <> nil constr
+R15067:15075 CT.RfTypeDef <> mk_eq_var def
+R15077:15077 CT.TypeClosed <> T:131 var
+R15079:15079 CT.TypeClosed <> x:130 var
+R15150:15161 CT.TypeClosed <> phi_sat_tyst def
+R15194:15201 Coq.Strings.String <> eqb_spec thm
+R15194:15201 Coq.Strings.String <> eqb_spec thm
+R15227:15235 CT.Maps <> update_eq thm
+R15227:15235 CT.Maps <> update_eq thm
+R15227:15235 CT.Maps <> update_eq thm
+R15265:15289 CT.RfTypeDef <> appear_free_in_refinement def
+R15324:15333 CT.Maps <> update_neq thm
+R15324:15333 CT.Maps <> update_neq thm
+R15324:15333 CT.Maps <> update_neq thm
+R15324:15333 CT.Maps <> update_neq thm
+prf 15409:15439 <> mk_eq_under_base_is_type_closed
+binder 15449:15449 <> x:133
+binder 15451:15451 <> T:134
+binder 15453:15455 <> phi:135
+R15458:15478 CT.TypeClosed <> st_type_closed_in_ctx def
+R15480:15484 CT.Maps <> empty def
+R15511:15512 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R15487:15487 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15489:15490 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15510:15510 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R15488:15488 CT.TypeClosed <> x:133 var
+R15491:15493 CT.RfTypeDef <> Uty constr
+R15496:15499 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R15501:15503 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R15507:15508 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R15500:15500 CT.TypeClosed <> T:134 var
+R15504:15506 CT.TypeClosed <> phi:135 var
+R15513:15515 Coq.Init.Datatypes <> nil constr
+R15519:15527 CT.RfTypeDef <> mk_eq_var def
+R15529:15529 CT.TypeClosed <> T:134 var
+R15531:15531 CT.TypeClosed <> x:133 var
+R15602:15613 CT.TypeClosed <> phi_sat_tyst def
+R15646:15653 Coq.Strings.String <> eqb_spec thm
+R15646:15653 Coq.Strings.String <> eqb_spec thm
+R15679:15687 CT.Maps <> update_eq thm
+R15679:15687 CT.Maps <> update_eq thm
+R15679:15687 CT.Maps <> update_eq thm
+R15717:15741 CT.RfTypeDef <> appear_free_in_refinement def
+R15776:15785 CT.Maps <> update_neq thm
+R15776:15785 CT.Maps <> update_neq thm
+R15776:15785 CT.Maps <> update_neq thm
+R15776:15785 CT.Maps <> update_neq thm
+prf 15862:15880 <> mk_eq_constant_spec
+R15886:15893 CT.CoreLang <> constant ind
+binder 15883:15883 <> c:136
+R15903:15907 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R15916:15921 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R15898:15902 CT.Maps <> empty def
+R15908:15913 CT.CoreLang <> vconst constr
+R15915:15915 CT.TypeClosed <> c:136 var
+R15922:15925 CT.RfTypeDef <> :::'u\_'_x_'_/' not
+R15942:15944 CT.RfTypeDef <> :::'u\_'_x_'_/' not
+R15926:15939 CT.RfTypeDef <> mk_eq_constant def
+R15941:15941 CT.TypeClosed <> c:136 var
+prf 16021:16037 <> subst_constant_eq
+binder 16047:16047 <> x:137
+binder 16049:16051 <> c_x:138
+binder 16053:16053 <> c:139
+R16056:16056 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16091:16094 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16057:16060 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R16062:16067 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R16071:16074 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R16061:16061 CT.TypeClosed <> x:137 var
+R16068:16070 CT.TypeClosed <> c_x:138 var
+R16075:16088 CT.RfTypeDef <> mk_eq_constant def
+R16090:16090 CT.TypeClosed <> c:139 var
+R16095:16108 CT.RfTypeDef <> mk_eq_constant def
+R16110:16110 CT.TypeClosed <> c:139 var
+R16206:16209 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16249:16249 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16147:16150 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16152:16157 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16161:16165 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16205:16205 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16175:16179 CT.RfTypeDef <> state def
+R16187:16194 CT.CoreLang <> constant ind
+binder 16183:16183 <> v:140
+R16201:16203 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16200:16200 CT.TypeClosed <> v:140 var
+R16219:16223 CT.RfTypeDef <> state def
+R16231:16238 CT.CoreLang <> constant ind
+binder 16227:16227 <> v:141
+R16245:16247 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16244:16244 CT.TypeClosed <> v:141 var
+R16206:16209 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16249:16249 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16147:16150 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16152:16157 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16161:16165 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16205:16205 CT.RfTypeDef <> :::'<r['_x_'|c->'_x_']>'_x not
+R16175:16179 CT.RfTypeDef <> state def
+R16187:16194 CT.CoreLang <> constant ind
+binder 16183:16183 <> v:142
+R16201:16203 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16200:16200 CT.TypeClosed <> v:142 var
+R16219:16223 CT.RfTypeDef <> state def
+R16231:16238 CT.CoreLang <> constant ind
+binder 16227:16227 <> v:143
+R16245:16247 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R16244:16244 CT.TypeClosed <> v:143 var
+R16262:16279 CT.RfTypeDef <> refinement_subst_c def
+R16290:16314 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+R16290:16314 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+R16331:16355 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+R16331:16355 Coq.Logic.FunctionalExtensionality <> functional_extensionality thm
+prf 16402:16415 <> constant_is_wf
+binder 16425:16425 <> c:144
+R16428:16443 CT.RfTypeDef <> well_formed_type ind
+R16446:16459 CT.RfTypeDef <> mk_eq_constant def
+R16461:16461 CT.TypeClosed <> c:144 var
+prf 16625:16644 <> constant_eq_is_close
+binder 16654:16658 <> Gamma:145
+binder 16660:16661 <> st:146
+binder 16663:16663 <> c:147
+R16694:16701 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R16670:16684 CT.NoDup <> type_ctx_no_dup ind
+R16686:16687 CT.TypeClosed <> st:146 var
+R16689:16693 CT.TypeClosed <> Gamma:145 var
+R16702:16722 CT.TypeClosed <> st_type_closed_in_ctx def
+R16724:16725 CT.TypeClosed <> st:146 var
+R16727:16731 CT.TypeClosed <> Gamma:145 var
+R16734:16747 CT.RfTypeDef <> mk_eq_constant def
+R16749:16749 CT.TypeClosed <> c:147 var
+R16853:16885 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R16853:16885 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R16853:16885 CT.TypeClosed <> not_appear_free_in_refinement_alt thm
+R16991:17002 CT.NoDup <> nodup_update thm
+R16991:17002 CT.NoDup <> nodup_update thm
+R17047:17059 CT.NoDup <> nodup_dropfst thm
+R17047:17059 CT.NoDup <> nodup_dropfst thm
+R17118:17130 CT.NoDup <> nodup_dropfst thm
+R17118:17130 CT.NoDup <> nodup_dropfst thm
+R17204:17220 CT.NoDup <> nodup_update_over thm
+R17204:17220 CT.NoDup <> nodup_update_over thm
+prf 17413:17437 <> mk_eq_is_well_formed_type
+binder 17447:17447 <> T:148
+binder 17449:17449 <> x:149
+R17452:17467 CT.RfTypeDef <> well_formed_type ind
+R17470:17478 CT.RfTypeDef <> mk_eq_var def
+R17480:17480 CT.TypeClosed <> T:148 var
+R17482:17482 CT.TypeClosed <> x:149 var
+prf 17597:17629 <> st_type_closed_in_ctx_add_binding
+binder 17639:17639 <> s:150
+binder 17641:17641 <> T:151
+R17649:17659 CT.RfTypeDef <> overunderty ind
+binder 17644:17646 <> tau:152
+R17671:17677 CT.TypeClosed <> lcontxt def
+binder 17663:17668 <> Gamma2:153
+binder 17680:17681 <> st:154
+R17727:17734 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R17688:17712 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R17714:17715 CT.TypeClosed <> st:154 var
+R17717:17722 CT.TypeClosed <> Gamma2:153 var
+R17724:17726 CT.TypeClosed <> tau:152 var
+R17735:17759 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R17763:17767 CT.Maps <> :::x_'|->'_x_';'_x not
+R17769:17770 CT.Maps <> :::x_'|->'_x_';'_x not
+R17771:17772 CT.TypeClosed <> st:154 var
+R17762:17762 CT.TypeClosed <> s:150 var
+R17768:17768 CT.TypeClosed <> T:151 var
+R17775:17780 CT.TypeClosed <> Gamma2:153 var
+R17782:17784 CT.TypeClosed <> tau:152 var
+R17883:17900 CT.TypeClosed <> st_type_closed_add thm
+R17883:17900 CT.TypeClosed <> st_type_closed_add thm
+R17931:17942 CT.RfTypeDef <> destruct_tau thm
+R17931:17942 CT.RfTypeDef <> destruct_tau thm
+R18065:18072 Coq.Strings.String <> eqb_spec thm
+R18065:18072 Coq.Strings.String <> eqb_spec thm
+R18104:18116 CT.Maps <> update_shadow thm
+R18104:18116 CT.Maps <> update_shadow thm
+R18104:18116 CT.Maps <> update_shadow thm
+R18129:18142 CT.Maps <> update_permute thm
+R18129:18142 CT.Maps <> update_permute thm
+R18129:18142 CT.Maps <> update_permute thm
+R18129:18142 CT.Maps <> update_permute thm
+R18181:18188 Coq.Strings.String <> eqb_spec thm
+R18181:18188 Coq.Strings.String <> eqb_spec thm
+R18220:18232 CT.Maps <> update_shadow thm
+R18220:18232 CT.Maps <> update_shadow thm
+R18220:18232 CT.Maps <> update_shadow thm
+R18245:18258 CT.Maps <> update_permute thm
+R18245:18258 CT.Maps <> update_permute thm
+R18245:18258 CT.Maps <> update_permute thm
+R18245:18258 CT.Maps <> update_permute thm
+prf 18684:18707 <> type_closed_add_post_aux
+R18726:18732 CT.TypeClosed <> lcontxt def
+binder 18718:18723 <> Gamma2:155
+binder 18735:18736 <> st:156
+R18744:18754 CT.RfTypeDef <> overunderty ind
+binder 18739:18741 <> tau:157
+R18787:18790 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18762:18776 CT.NoDup <> type_ctx_no_dup ind
+R18778:18779 CT.TypeClosed <> st:156 var
+R18781:18786 CT.TypeClosed <> Gamma2:155 var
+R18812:18815 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R18791:18804 CT.TypeClosed <> st_type_closed ind
+R18806:18807 CT.TypeClosed <> st:156 var
+R18809:18811 CT.TypeClosed <> tau:157 var
+R18816:18840 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R18842:18843 CT.TypeClosed <> st:156 var
+R18845:18850 CT.TypeClosed <> Gamma2:155 var
+R18852:18854 CT.TypeClosed <> tau:157 var
+R18948:18959 CT.RfTypeDef <> destruct_tau thm
+R18948:18959 CT.RfTypeDef <> destruct_tau thm
+R19081:19113 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R19081:19113 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R19125:19152 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19125:19152 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19201:19233 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R19201:19233 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R19245:19272 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19245:19272 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19418:19445 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19418:19445 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19501:19528 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+R19501:19528 CT.NoDup <> type_ctx_no_dup_implies_tail thm
+prf 19555:19588 <> st_type_closed_in_ctx_aux_add_post
+R19614:19620 CT.TypeClosed <> lcontxt def
+binder 19599:19604 <> Gamma1:158
+binder 19606:19611 <> Gamma2:159
+binder 19623:19624 <> st:160
+R19632:19642 CT.RfTypeDef <> overunderty ind
+binder 19627:19629 <> tau:161
+R19687:19694 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R19650:19664 CT.NoDup <> type_ctx_no_dup ind
+R19666:19667 CT.TypeClosed <> st:160 var
+R19676:19679 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R19670:19675 CT.TypeClosed <> Gamma1:158 var
+R19680:19685 CT.TypeClosed <> Gamma2:159 var
+R19734:19737 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R19695:19719 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R19721:19722 CT.TypeClosed <> st:160 var
+R19724:19729 CT.TypeClosed <> Gamma1:158 var
+R19731:19733 CT.TypeClosed <> tau:161 var
+R19738:19762 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R19764:19765 CT.TypeClosed <> st:160 var
+R19774:19777 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R19768:19773 CT.TypeClosed <> Gamma1:158 var
+R19778:19783 CT.TypeClosed <> Gamma2:159 var
+R19786:19788 CT.TypeClosed <> tau:161 var
+R19869:19892 CT.TypeClosed <> type_closed_add_post_aux thm
+R19869:19892 CT.TypeClosed <> type_closed_add_post_aux thm
+R19923:19934 CT.RfTypeDef <> destruct_tau thm
+R19923:19934 CT.RfTypeDef <> destruct_tau thm
+R20105:20117 Coq.Lists.List <> app_comm_cons thm
+R20105:20117 Coq.Lists.List <> app_comm_cons thm
+R20105:20117 Coq.Lists.List <> app_comm_cons thm
+R20136:20152 CT.NoDup <> nodup_update_over thm
+R20136:20152 CT.NoDup <> nodup_update_over thm
+R20252:20264 Coq.Lists.List <> app_comm_cons thm
+R20252:20264 Coq.Lists.List <> app_comm_cons thm
+R20252:20264 Coq.Lists.List <> app_comm_cons thm
+R20283:20294 CT.NoDup <> nodup_update thm
+R20283:20294 CT.NoDup <> nodup_update thm
+R20485:20497 Coq.Lists.List <> app_comm_cons thm
+R20485:20497 Coq.Lists.List <> app_comm_cons thm
+R20485:20497 Coq.Lists.List <> app_comm_cons thm
+R20521:20535 CT.LinearContext <> app_one_is_cons thm
+R20521:20535 CT.LinearContext <> app_one_is_cons thm
+R20521:20535 CT.LinearContext <> app_one_is_cons thm
+R20554:20577 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R20554:20577 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R20678:20690 Coq.Lists.List <> app_comm_cons thm
+R20678:20690 Coq.Lists.List <> app_comm_cons thm
+R20678:20690 Coq.Lists.List <> app_comm_cons thm
+R20714:20728 CT.LinearContext <> app_one_is_cons thm
+R20714:20728 CT.LinearContext <> app_one_is_cons thm
+R20714:20728 CT.LinearContext <> app_one_is_cons thm
+R20747:20770 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R20747:20770 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+prf 20797:20816 <> type_closed_add_post
+R20842:20848 CT.TypeClosed <> lcontxt def
+binder 20827:20832 <> Gamma1:162
+binder 20834:20839 <> Gamma2:163
+binder 20851:20852 <> st:164
+R20860:20870 CT.RfTypeDef <> overunderty ind
+binder 20855:20857 <> tau:165
+R20915:20922 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R20878:20892 CT.NoDup <> type_ctx_no_dup ind
+R20894:20895 CT.TypeClosed <> st:164 var
+R20904:20907 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R20898:20903 CT.TypeClosed <> Gamma1:162 var
+R20908:20913 CT.TypeClosed <> Gamma2:163 var
+R20958:20961 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R20923:20943 CT.TypeClosed <> st_type_closed_in_ctx def
+R20945:20946 CT.TypeClosed <> st:164 var
+R20948:20953 CT.TypeClosed <> Gamma1:162 var
+R20955:20957 CT.TypeClosed <> tau:165 var
+R20962:20982 CT.TypeClosed <> st_type_closed_in_ctx def
+R20984:20985 CT.TypeClosed <> st:164 var
+R20994:20997 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R20988:20993 CT.TypeClosed <> Gamma1:162 var
+R20998:21003 CT.TypeClosed <> Gamma2:163 var
+R21006:21008 CT.TypeClosed <> tau:165 var
+R21089:21122 CT.TypeClosed <> st_type_closed_in_ctx_aux_add_post thm
+R21089:21122 CT.TypeClosed <> st_type_closed_in_ctx_aux_add_post thm
+prf 21139:21171 <> st_type_closed_in_ctx_aux_add_pre
+R21197:21203 CT.TypeClosed <> lcontxt def
+binder 21182:21187 <> Gamma1:166
+binder 21189:21194 <> Gamma2:167
+binder 21206:21207 <> st:168
+R21215:21225 CT.RfTypeDef <> overunderty ind
+binder 21210:21212 <> tau:169
+R21270:21277 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R21233:21247 CT.NoDup <> type_ctx_no_dup ind
+R21249:21250 CT.TypeClosed <> st:168 var
+R21259:21262 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R21253:21258 CT.TypeClosed <> Gamma1:166 var
+R21263:21268 CT.TypeClosed <> Gamma2:167 var
+R21317:21320 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R21278:21302 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R21304:21305 CT.TypeClosed <> st:168 var
+R21307:21312 CT.TypeClosed <> Gamma2:167 var
+R21314:21316 CT.TypeClosed <> tau:169 var
+R21321:21345 CT.TypeClosed <> st_type_closed_in_ctx_aux def
+R21347:21348 CT.TypeClosed <> st:168 var
+R21357:21360 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R21351:21356 CT.TypeClosed <> Gamma1:166 var
+R21361:21366 CT.TypeClosed <> Gamma2:167 var
+R21369:21371 CT.TypeClosed <> tau:169 var
+R21472:21483 CT.RfTypeDef <> destruct_tau thm
+R21472:21483 CT.RfTypeDef <> destruct_tau thm
+R21631:21663 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R21631:21663 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R21691:21703 Coq.Lists.List <> app_comm_cons thm
+R21691:21703 Coq.Lists.List <> app_comm_cons thm
+R21691:21703 Coq.Lists.List <> app_comm_cons thm
+R21727:21741 CT.LinearContext <> app_one_is_cons thm
+R21727:21741 CT.LinearContext <> app_one_is_cons thm
+R21727:21741 CT.LinearContext <> app_one_is_cons thm
+R21760:21783 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R21760:21783 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R21860:21892 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R21860:21892 CT.TypeClosed <> st_type_closed_in_ctx_add_binding thm
+R21920:21932 Coq.Lists.List <> app_comm_cons thm
+R21920:21932 Coq.Lists.List <> app_comm_cons thm
+R21920:21932 Coq.Lists.List <> app_comm_cons thm
+R21956:21970 CT.LinearContext <> app_one_is_cons thm
+R21956:21970 CT.LinearContext <> app_one_is_cons thm
+R21956:21970 CT.LinearContext <> app_one_is_cons thm
+R21989:22012 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R21989:22012 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R22202:22214 Coq.Lists.List <> app_comm_cons thm
+R22202:22214 Coq.Lists.List <> app_comm_cons thm
+R22202:22214 Coq.Lists.List <> app_comm_cons thm
+R22238:22252 CT.LinearContext <> app_one_is_cons thm
+R22238:22252 CT.LinearContext <> app_one_is_cons thm
+R22238:22252 CT.LinearContext <> app_one_is_cons thm
+R22271:22294 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R22271:22294 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R22394:22406 Coq.Lists.List <> app_comm_cons thm
+R22394:22406 Coq.Lists.List <> app_comm_cons thm
+R22394:22406 Coq.Lists.List <> app_comm_cons thm
+R22430:22444 CT.LinearContext <> app_one_is_cons thm
+R22430:22444 CT.LinearContext <> app_one_is_cons thm
+R22430:22444 CT.LinearContext <> app_one_is_cons thm
+R22463:22486 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R22463:22486 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+prf 22513:22531 <> type_closed_add_pre
+R22557:22563 CT.TypeClosed <> lcontxt def
+binder 22542:22547 <> Gamma1:170
+binder 22549:22554 <> Gamma2:171
+binder 22566:22567 <> st:172
+R22575:22585 CT.RfTypeDef <> overunderty ind
+binder 22570:22572 <> tau:173
+R22630:22637 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R22593:22607 CT.NoDup <> type_ctx_no_dup ind
+R22609:22610 CT.TypeClosed <> st:172 var
+R22619:22622 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R22613:22618 CT.TypeClosed <> Gamma1:170 var
+R22623:22628 CT.TypeClosed <> Gamma2:171 var
+R22673:22676 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R22638:22658 CT.TypeClosed <> st_type_closed_in_ctx def
+R22660:22661 CT.TypeClosed <> st:172 var
+R22663:22668 CT.TypeClosed <> Gamma2:171 var
+R22670:22672 CT.TypeClosed <> tau:173 var
+R22677:22697 CT.TypeClosed <> st_type_closed_in_ctx def
+R22699:22700 CT.TypeClosed <> st:172 var
+R22709:22712 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R22703:22708 CT.TypeClosed <> Gamma1:170 var
+R22713:22718 CT.TypeClosed <> Gamma2:171 var
+R22721:22723 CT.TypeClosed <> tau:173 var
+R22804:22836 CT.TypeClosed <> st_type_closed_in_ctx_aux_add_pre thm
+R22804:22836 CT.TypeClosed <> st_type_closed_in_ctx_aux_add_pre thm
+prf 22853:22887 <> st_type_closed_in_ctx_last_over_var
+binder 22897:22898 <> st:174
+binder 22900:22904 <> Gamma:175
+binder 22906:22906 <> x:176
+binder 22908:22908 <> T:177
+binder 22910:22912 <> phi:178
+R22980:22987 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R22919:22933 CT.NoDup <> type_ctx_no_dup ind
+R22935:22936 CT.TypeClosed <> st:174 var
+R22944:22948 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R22978:22978 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R22939:22943 CT.TypeClosed <> Gamma:175 var
+R22973:22974 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R22949:22949 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R22951:22952 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R22972:22972 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R22950:22950 CT.TypeClosed <> x:176 var
+R22953:22955 CT.RfTypeDef <> Oty constr
+R22958:22961 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R22963:22965 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R22969:22970 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R22962:22962 CT.TypeClosed <> T:177 var
+R22966:22968 CT.TypeClosed <> phi:178 var
+R22975:22977 Coq.Init.Datatypes <> nil constr
+R22988:23008 CT.TypeClosed <> st_type_closed_in_ctx def
+R23010:23011 CT.TypeClosed <> st:174 var
+R23019:23023 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23053:23053 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23014:23018 CT.TypeClosed <> Gamma:175 var
+R23048:23049 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23024:23024 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23026:23027 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23047:23047 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23025:23025 CT.TypeClosed <> x:176 var
+R23028:23030 CT.RfTypeDef <> Oty constr
+R23033:23036 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R23038:23040 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R23044:23045 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R23037:23037 CT.TypeClosed <> T:177 var
+R23041:23043 CT.TypeClosed <> phi:178 var
+R23050:23052 Coq.Init.Datatypes <> nil constr
+R23057:23065 CT.RfTypeDef <> mk_eq_var def
+R23067:23067 CT.TypeClosed <> T:177 var
+R23069:23069 CT.TypeClosed <> x:176 var
+R23107:23125 CT.TypeClosed <> type_closed_add_pre thm
+R23107:23125 CT.TypeClosed <> type_closed_add_pre thm
+R23169:23180 CT.TypeClosed <> phi_sat_tyst def
+R23213:23220 Coq.Strings.String <> eqb_spec thm
+R23213:23220 Coq.Strings.String <> eqb_spec thm
+R23246:23254 CT.Maps <> update_eq thm
+R23246:23254 CT.Maps <> update_eq thm
+R23246:23254 CT.Maps <> update_eq thm
+R23286:23310 CT.RfTypeDef <> appear_free_in_refinement def
+R23345:23354 CT.Maps <> update_neq thm
+R23345:23354 CT.Maps <> update_neq thm
+R23345:23354 CT.Maps <> update_neq thm
+R23345:23354 CT.Maps <> update_neq thm
+R23381:23404 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R23381:23404 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+prf 23426:23461 <> st_type_closed_in_ctx_last_under_var
+binder 23471:23472 <> st:179
+binder 23474:23478 <> Gamma:180
+binder 23480:23480 <> x:181
+binder 23482:23482 <> T:182
+binder 23484:23486 <> phi:183
+R23554:23561 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R23493:23507 CT.NoDup <> type_ctx_no_dup ind
+R23509:23510 CT.TypeClosed <> st:179 var
+R23518:23522 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23552:23552 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23513:23517 CT.TypeClosed <> Gamma:180 var
+R23547:23548 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23523:23523 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23525:23526 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23546:23546 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23524:23524 CT.TypeClosed <> x:181 var
+R23527:23529 CT.RfTypeDef <> Uty constr
+R23532:23535 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23537:23539 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23543:23544 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23536:23536 CT.TypeClosed <> T:182 var
+R23540:23542 CT.TypeClosed <> phi:183 var
+R23549:23551 Coq.Init.Datatypes <> nil constr
+R23562:23582 CT.TypeClosed <> st_type_closed_in_ctx def
+R23584:23585 CT.TypeClosed <> st:179 var
+R23593:23597 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23627:23627 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R23588:23592 CT.TypeClosed <> Gamma:180 var
+R23622:23623 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R23598:23598 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23600:23601 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23621:23621 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R23599:23599 CT.TypeClosed <> x:181 var
+R23602:23604 CT.RfTypeDef <> Uty constr
+R23607:23610 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23612:23614 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23618:23619 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R23611:23611 CT.TypeClosed <> T:182 var
+R23615:23617 CT.TypeClosed <> phi:183 var
+R23624:23626 Coq.Init.Datatypes <> nil constr
+R23631:23639 CT.RfTypeDef <> mk_eq_var def
+R23641:23641 CT.TypeClosed <> T:182 var
+R23643:23643 CT.TypeClosed <> x:181 var
+R23681:23699 CT.TypeClosed <> type_closed_add_pre thm
+R23681:23699 CT.TypeClosed <> type_closed_add_pre thm
+R23743:23754 CT.TypeClosed <> phi_sat_tyst def
+R23787:23794 Coq.Strings.String <> eqb_spec thm
+R23787:23794 Coq.Strings.String <> eqb_spec thm
+R23820:23828 CT.Maps <> update_eq thm
+R23820:23828 CT.Maps <> update_eq thm
+R23820:23828 CT.Maps <> update_eq thm
+R23860:23884 CT.RfTypeDef <> appear_free_in_refinement def
+R23919:23928 CT.Maps <> update_neq thm
+R23919:23928 CT.Maps <> update_neq thm
+R23919:23928 CT.Maps <> update_neq thm
+R23919:23928 CT.Maps <> update_neq thm
+R23955:23978 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+R23955:23978 CT.NoDup <> type_ctx_no_dup_ctx_post thm
+ind 25409:25426 <> st_type_closed_ctx
+constr 25461:25482 <> st_type_closed_ctx_nil
+constr 25524:25546 <> st_type_closed_ctx_cons
+R25436:25439 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R25429:25435 CT.NoDup <> tystate def
+R25447:25450 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R25440:25446 CT.TypeClosed <> lcontxt def
+binder 25492:25493 <> st:186
+R25496:25513 CT.TypeClosed <> st_type_closed_ctx:184 ind
+R25518:25520 Coq.Init.Datatypes <> nil constr
+R25515:25516 CT.TypeClosed <> st:186 var
+binder 25556:25557 <> st:187
+binder 25559:25559 <> x:188
+binder 25561:25565 <> tau_x:189
+binder 25567:25571 <> Gamma:190
+R25620:25627 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R25578:25592 CT.NoDup <> type_ctx_no_dup ind
+R25594:25595 CT.TypeClosed <> st:187 var
+R25603:25607 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R25609:25613 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R25598:25602 CT.TypeClosed <> Gamma:190 var
+R25608:25608 CT.TypeClosed <> x:188 var
+R25614:25618 CT.TypeClosed <> tau_x:189 var
+R25664:25671 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R25628:25648 CT.TypeClosed <> st_type_closed_in_ctx def
+R25650:25651 CT.TypeClosed <> st:187 var
+R25653:25657 CT.TypeClosed <> Gamma:190 var
+R25659:25663 CT.TypeClosed <> tau_x:189 var
+R25699:25706 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R25672:25689 CT.TypeClosed <> st_type_closed_ctx:184 ind
+R25694:25698 CT.TypeClosed <> Gamma:190 var
+R25691:25692 CT.TypeClosed <> st:187 var
+R25707:25724 CT.TypeClosed <> st_type_closed_ctx:184 ind
+R25735:25739 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R25741:25745 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R25730:25734 CT.TypeClosed <> Gamma:190 var
+R25740:25740 CT.TypeClosed <> x:188 var
+R25746:25750 CT.TypeClosed <> tau_x:189 var
+R25726:25727 CT.TypeClosed <> st:187 var
+R26035:26052 CT.TypeClosed <> st_type_closed_ctx ind
+prf 26068:26093 <> destructst_type_closed_ctx
+binder 26103:26104 <> st:191
+binder 26106:26106 <> x:192
+binder 26108:26112 <> tau_x:193
+binder 26114:26118 <> Gamma:194
+R26170:26177 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R26125:26142 CT.TypeClosed <> st_type_closed_ctx ind
+R26144:26145 CT.TypeClosed <> st:191 var
+R26153:26157 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R26159:26163 CT.LinearContext <> :::x_'<l>'_x_':l:'_x not
+R26148:26152 CT.TypeClosed <> Gamma:194 var
+R26158:26158 CT.TypeClosed <> x:192 var
+R26164:26168 CT.TypeClosed <> tau_x:193 var
+R26189:26198 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26182:26184 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26178:26179 CT.TypeClosed <> st:191 var
+R26181:26181 CT.TypeClosed <> x:192 var
+R26185:26188 Coq.Init.Datatypes <> None constr
+R26231:26240 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26224:26226 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26199:26215 CT.LinearContext <> l_find_right_most def
+R26223:26223 CT.TypeClosed <> x:192 var
+R26217:26221 CT.TypeClosed <> Gamma:194 var
+R26227:26230 Coq.Init.Datatypes <> None constr
+R26268:26277 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26241:26258 CT.TypeClosed <> st_type_closed_ctx ind
+R26260:26261 CT.TypeClosed <> st:191 var
+R26263:26267 CT.TypeClosed <> Gamma:194 var
+R26314:26323 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26278:26298 CT.TypeClosed <> st_type_closed_in_ctx def
+R26300:26301 CT.TypeClosed <> st:191 var
+R26303:26307 CT.TypeClosed <> Gamma:194 var
+R26309:26313 CT.TypeClosed <> tau_x:193 var
+R26324:26339 CT.RfTypeDef <> well_formed_type ind
+R26341:26345 CT.TypeClosed <> tau_x:193 var
+R26404:26417 CT.LinearContext <> app_one_eq_nil thm
+R26404:26417 CT.LinearContext <> app_one_eq_nil thm
+R26448:26459 Coq.Lists.List <> app_inj_tail thm
+R26448:26459 Coq.Lists.List <> app_inj_tail thm
+R26546:26584 CT.NoDup <> type_ctx_no_dup_cannot_find_last_in_nst thm
+R26546:26584 CT.NoDup <> type_ctx_no_dup_cannot_find_last_in_nst thm
+prf 26673:26710 <> st_type_closed_ctx_implies_head_closed
+binder 26720:26724 <> Gamma:195
+binder 26726:26729 <> tyst:196
+binder 26731:26731 <> x:197
+binder 26733:26737 <> tau_x:198
+R26787:26795 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R26889:26889 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R26744:26761 CT.TypeClosed <> st_type_closed_ctx ind
+R26763:26766 CT.TypeClosed <> tyst:196 var
+R26779:26780 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R26769:26769 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R26771:26772 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R26778:26778 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R26770:26770 CT.TypeClosed <> x:197 var
+R26773:26777 CT.TypeClosed <> tau_x:198 var
+R26781:26785 CT.TypeClosed <> Gamma:195 var
+R26809:26819 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26802:26804 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R26796:26799 CT.TypeClosed <> tyst:196 var
+R26801:26801 CT.TypeClosed <> x:197 var
+R26805:26808 Coq.Init.Datatypes <> None constr
+R26856:26866 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R26820:26840 CT.TypeClosed <> st_type_closed_in_ctx def
+R26842:26845 CT.TypeClosed <> tyst:196 var
+R26847:26849 Coq.Init.Datatypes <> nil constr
+R26851:26855 CT.TypeClosed <> tau_x:198 var
+R26867:26882 CT.RfTypeDef <> well_formed_type ind
+R26884:26888 CT.TypeClosed <> tau_x:198 var
+R26919:26925 Coq.Lists.List <> rev_ind thm
+binder 26932:26936 <> Gamma:199
+binder 26948:26951 <> tyst:200
+binder 26953:26953 <> x:201
+binder 26955:26959 <> tau_x:202
+R27027:27031 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R27251:27251 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R26984:27001 CT.TypeClosed <> st_type_closed_ctx ind
+R27003:27006 CT.TypeClosed <> tyst:200 var
+R27019:27020 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R27009:27009 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27011:27012 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27018:27018 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27010:27010 CT.TypeClosed <> x:201 var
+R27013:27017 CT.TypeClosed <> tau_x:202 var
+R27021:27025 CT.TypeClosed <> Gamma:199 var
+R27045:27118 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R27038:27040 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R27032:27035 CT.TypeClosed <> tyst:200 var
+R27037:27037 CT.TypeClosed <> x:201 var
+R27041:27044 Coq.Init.Datatypes <> None constr
+R27155:27228 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R27119:27139 CT.TypeClosed <> st_type_closed_in_ctx def
+R27141:27144 CT.TypeClosed <> tyst:200 var
+R27146:27148 Coq.Init.Datatypes <> nil constr
+R27150:27154 CT.TypeClosed <> tau_x:202 var
+R27229:27244 CT.RfTypeDef <> well_formed_type ind
+R27246:27250 CT.TypeClosed <> tau_x:202 var
+R26919:26925 Coq.Lists.List <> rev_ind thm
+binder 26932:26936 <> Gamma:203
+binder 26948:26951 <> tyst:204
+binder 26953:26953 <> x:205
+binder 26955:26959 <> tau_x:206
+R27027:27031 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R27251:27251 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R26984:27001 CT.TypeClosed <> st_type_closed_ctx ind
+R27003:27006 CT.TypeClosed <> tyst:204 var
+R27019:27020 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R27009:27009 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27011:27012 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27018:27018 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27010:27010 CT.TypeClosed <> x:205 var
+R27013:27017 CT.TypeClosed <> tau_x:206 var
+R27021:27025 CT.TypeClosed <> Gamma:203 var
+R27045:27118 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R27038:27040 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R27032:27035 CT.TypeClosed <> tyst:204 var
+R27037:27037 CT.TypeClosed <> x:205 var
+R27041:27044 Coq.Init.Datatypes <> None constr
+R27155:27228 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R27119:27139 CT.TypeClosed <> st_type_closed_in_ctx def
+R27141:27144 CT.TypeClosed <> tyst:204 var
+R27146:27148 Coq.Init.Datatypes <> nil constr
+R27150:27154 CT.TypeClosed <> tau_x:206 var
+R27229:27244 CT.RfTypeDef <> well_formed_type ind
+R27246:27250 CT.TypeClosed <> tau_x:206 var
+R27294:27302 Coq.Lists.List <> app_nil_l thm
+R27294:27302 Coq.Lists.List <> app_nil_l thm
+R27294:27302 Coq.Lists.List <> app_nil_l thm
+R27320:27345 CT.TypeClosed <> destructst_type_closed_ctx thm
+R27320:27345 CT.TypeClosed <> destructst_type_closed_ctx thm
+R27457:27469 Coq.Lists.List <> app_comm_cons thm
+R27457:27469 Coq.Lists.List <> app_comm_cons thm
+R27457:27469 Coq.Lists.List <> app_comm_cons thm
+R27483:27508 CT.TypeClosed <> destructst_type_closed_ctx thm
+R27483:27508 CT.TypeClosed <> destructst_type_closed_ctx thm
+prf 27570:27617 <> st_type_closed_ctx_implies_head_well_formed_type
+binder 27627:27630 <> tyst:207
+binder 27632:27632 <> x:208
+binder 27634:27638 <> tau_x:209
+binder 27640:27644 <> Gamma:210
+R27694:27697 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R27651:27668 CT.TypeClosed <> st_type_closed_ctx ind
+R27670:27673 CT.TypeClosed <> tyst:207 var
+R27686:27687 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R27676:27676 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27678:27679 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27685:27685 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R27677:27677 CT.TypeClosed <> x:208 var
+R27680:27684 CT.TypeClosed <> tau_x:209 var
+R27688:27692 CT.TypeClosed <> Gamma:210 var
+R27698:27713 CT.RfTypeDef <> well_formed_type ind
+R27715:27719 CT.TypeClosed <> tau_x:209 var
+R27758:27795 CT.TypeClosed <> st_type_closed_ctx_implies_head_closed thm
+R27758:27795 CT.TypeClosed <> st_type_closed_ctx_implies_head_closed thm
+prf 27926:27958 <> st_type_closed_ctx_destruct_front
+binder 27969:27973 <> Gamma:211
+binder 27975:27978 <> tyst:212
+binder 27980:27980 <> x:213
+binder 27982:27982 <> T:214
+binder 27984:27986 <> phi:215
+R28052:28059 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R27993:28010 CT.TypeClosed <> st_type_closed_ctx ind
+R28012:28015 CT.TypeClosed <> tyst:212 var
+R28042:28045 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R28018:28018 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28020:28021 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28041:28041 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28019:28019 CT.TypeClosed <> x:213 var
+R28022:28024 CT.RfTypeDef <> Uty constr
+R28027:28030 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28032:28034 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28038:28039 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28031:28031 CT.TypeClosed <> T:214 var
+R28035:28037 CT.TypeClosed <> phi:215 var
+R28046:28050 CT.TypeClosed <> Gamma:211 var
+R28060:28077 CT.TypeClosed <> st_type_closed_ctx ind
+R28081:28085 CT.Maps <> :::x_'|->'_x_';'_x not
+R28087:28088 CT.Maps <> :::x_'|->'_x_';'_x not
+R28089:28092 CT.TypeClosed <> tyst:212 var
+R28080:28080 CT.TypeClosed <> x:213 var
+R28086:28086 CT.TypeClosed <> T:214 var
+R28095:28099 CT.TypeClosed <> Gamma:211 var
+R28129:28135 Coq.Lists.List <> rev_ind thm
+binder 28142:28146 <> Gamma:216
+R28165:28171 CT.NoDup <> tystate def
+binder 28159:28162 <> tyst:217
+binder 28174:28174 <> x:218
+binder 28176:28176 <> T:219
+binder 28178:28180 <> phi:220
+R28265:28291 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R28206:28223 CT.TypeClosed <> st_type_closed_ctx ind
+R28225:28228 CT.TypeClosed <> tyst:217 var
+R28255:28258 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R28231:28231 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28233:28234 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28254:28254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28232:28232 CT.TypeClosed <> x:218 var
+R28235:28237 CT.RfTypeDef <> Uty constr
+R28240:28243 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28245:28247 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28251:28252 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28244:28244 CT.TypeClosed <> T:219 var
+R28248:28250 CT.TypeClosed <> phi:220 var
+R28259:28263 CT.TypeClosed <> Gamma:216 var
+R28292:28309 CT.TypeClosed <> st_type_closed_ctx ind
+R28313:28317 CT.Maps <> :::x_'|->'_x_';'_x not
+R28319:28320 CT.Maps <> :::x_'|->'_x_';'_x not
+R28321:28324 CT.TypeClosed <> tyst:217 var
+R28312:28312 CT.TypeClosed <> x:218 var
+R28318:28318 CT.TypeClosed <> T:219 var
+R28327:28331 CT.TypeClosed <> Gamma:216 var
+R28129:28135 Coq.Lists.List <> rev_ind thm
+binder 28142:28146 <> Gamma:221
+R28165:28171 CT.NoDup <> tystate def
+binder 28159:28162 <> tyst:222
+binder 28174:28174 <> x:223
+binder 28176:28176 <> T:224
+binder 28178:28180 <> phi:225
+R28265:28291 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R28206:28223 CT.TypeClosed <> st_type_closed_ctx ind
+R28225:28228 CT.TypeClosed <> tyst:222 var
+R28255:28258 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R28231:28231 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28233:28234 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28254:28254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28232:28232 CT.TypeClosed <> x:223 var
+R28235:28237 CT.RfTypeDef <> Uty constr
+R28240:28243 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28245:28247 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28251:28252 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28244:28244 CT.TypeClosed <> T:224 var
+R28248:28250 CT.TypeClosed <> phi:225 var
+R28259:28263 CT.TypeClosed <> Gamma:221 var
+R28292:28309 CT.TypeClosed <> st_type_closed_ctx ind
+R28313:28317 CT.Maps <> :::x_'|->'_x_';'_x not
+R28319:28320 CT.Maps <> :::x_'|->'_x_';'_x not
+R28321:28324 CT.TypeClosed <> tyst:222 var
+R28312:28312 CT.TypeClosed <> x:223 var
+R28318:28318 CT.TypeClosed <> T:224 var
+R28327:28331 CT.TypeClosed <> Gamma:221 var
+R28457:28469 Coq.Lists.List <> app_comm_cons thm
+R28457:28469 Coq.Lists.List <> app_comm_cons thm
+R28457:28469 Coq.Lists.List <> app_comm_cons thm
+R28493:28518 CT.TypeClosed <> destructst_type_closed_ctx thm
+R28493:28518 CT.TypeClosed <> destructst_type_closed_ctx thm
+R28601:28604 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R28601:28604 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R28713:28741 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R28713:28741 CT.LinearContext <> l_find_right_most_none_neq_tl thm
+R28769:28783 CT.NoDup <> type_ctx_no_dup ind
+R28814:28817 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R28790:28790 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28792:28793 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28813:28813 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28794:28796 CT.RfTypeDef <> Uty constr
+R28799:28802 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28804:28806 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28810:28811 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28769:28783 CT.NoDup <> type_ctx_no_dup ind
+R28814:28817 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R28790:28790 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28792:28793 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28813:28813 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R28794:28796 CT.RfTypeDef <> Uty constr
+R28799:28802 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28804:28806 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28810:28811 CT.RfTypeDef <> :::'[[v:'_x_'|'_x_']]' not
+R28841:28852 CT.NoDup <> nodup_update thm
+R28841:28852 CT.NoDup <> nodup_update thm
+R28868:28879 CT.NoDup <> nodup_append thm
+R28868:28879 CT.NoDup <> nodup_append thm
+R28898:28907 CT.Maps <> update_neq thm
+R28898:28907 CT.Maps <> update_neq thm
+R28898:28907 CT.Maps <> update_neq thm
+R28898:28907 CT.Maps <> update_neq thm
+R28944:28989 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+R28944:28989 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+R29007:29052 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+R29007:29052 CT.TypeClosed <> st_type_closed_in_ctx_destruct_underbase_front thm
+prf 29146:29187 <> st_type_closed_ctx_implies_type_ctx_no_dup
+binder 29197:29198 <> st:226
+binder 29200:29204 <> Gamma:227
+R29238:29241 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29211:29228 CT.TypeClosed <> st_type_closed_ctx ind
+R29230:29231 CT.TypeClosed <> st:226 var
+R29233:29237 CT.TypeClosed <> Gamma:227 var
+R29242:29256 CT.NoDup <> type_ctx_no_dup ind
+R29258:29259 CT.TypeClosed <> st:226 var
+R29261:29265 CT.TypeClosed <> Gamma:227 var
+prf 29397:29427 <> st_type_closed_in_ctx_drop_last
+binder 29437:29441 <> Gamma:228
+binder 29443:29444 <> st:229
+binder 29446:29446 <> x:230
+binder 29448:29452 <> tau_x:231
+binder 29454:29456 <> tau:232
+R29493:29500 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29463:29464 Coq.Init.Logic <> ::type_scope:'~'_x not
+R29465:29486 CT.RfTypeDef <> appear_free_in_underty def
+R29488:29488 CT.TypeClosed <> x:230 var
+R29490:29492 CT.TypeClosed <> tau:232 var
+R29558:29565 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29501:29521 CT.TypeClosed <> st_type_closed_in_ctx def
+R29523:29524 CT.TypeClosed <> st:229 var
+R29532:29536 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29552:29552 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29527:29531 CT.TypeClosed <> Gamma:228 var
+R29547:29548 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R29537:29537 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29539:29540 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29546:29546 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29538:29538 CT.TypeClosed <> x:230 var
+R29541:29545 CT.TypeClosed <> tau_x:231 var
+R29549:29551 Coq.Init.Datatypes <> nil constr
+R29555:29557 CT.TypeClosed <> tau:232 var
+R29566:29586 CT.TypeClosed <> st_type_closed_in_ctx def
+R29588:29589 CT.TypeClosed <> st:229 var
+R29591:29595 CT.TypeClosed <> Gamma:228 var
+R29597:29599 CT.TypeClosed <> tau:232 var
+R29629:29635 Coq.Lists.List <> rev_ind thm
+binder 29642:29646 <> Gamma:233
+binder 29658:29659 <> st:234
+binder 29661:29661 <> x:235
+binder 29663:29667 <> tau_x:236
+binder 29669:29671 <> tau:237
+R29726:29751 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29696:29697 Coq.Init.Logic <> ::type_scope:'~'_x not
+R29698:29719 CT.RfTypeDef <> appear_free_in_underty def
+R29721:29721 CT.TypeClosed <> x:235 var
+R29723:29725 CT.TypeClosed <> tau:237 var
+R29809:29834 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29752:29772 CT.TypeClosed <> st_type_closed_in_ctx def
+R29774:29775 CT.TypeClosed <> st:234 var
+R29783:29787 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29803:29803 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29778:29782 CT.TypeClosed <> Gamma:233 var
+R29798:29799 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R29788:29788 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29790:29791 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29797:29797 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29789:29789 CT.TypeClosed <> x:235 var
+R29792:29796 CT.TypeClosed <> tau_x:236 var
+R29800:29802 Coq.Init.Datatypes <> nil constr
+R29806:29808 CT.TypeClosed <> tau:237 var
+R29835:29855 CT.TypeClosed <> st_type_closed_in_ctx def
+R29857:29858 CT.TypeClosed <> st:234 var
+R29860:29864 CT.TypeClosed <> Gamma:233 var
+R29866:29868 CT.TypeClosed <> tau:237 var
+R29629:29635 Coq.Lists.List <> rev_ind thm
+binder 29642:29646 <> Gamma:238
+binder 29658:29659 <> st:239
+binder 29661:29661 <> x:240
+binder 29663:29667 <> tau_x:241
+binder 29669:29671 <> tau:242
+R29726:29751 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29696:29697 Coq.Init.Logic <> ::type_scope:'~'_x not
+R29698:29719 CT.RfTypeDef <> appear_free_in_underty def
+R29721:29721 CT.TypeClosed <> x:240 var
+R29723:29725 CT.TypeClosed <> tau:242 var
+R29809:29834 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R29752:29772 CT.TypeClosed <> st_type_closed_in_ctx def
+R29774:29775 CT.TypeClosed <> st:239 var
+R29783:29787 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29803:29803 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R29778:29782 CT.TypeClosed <> Gamma:238 var
+R29798:29799 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R29788:29788 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29790:29791 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29797:29797 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R29789:29789 CT.TypeClosed <> x:240 var
+R29792:29796 CT.TypeClosed <> tau_x:241 var
+R29800:29802 Coq.Init.Datatypes <> nil constr
+R29806:29808 CT.TypeClosed <> tau:242 var
+R29835:29855 CT.TypeClosed <> st_type_closed_in_ctx def
+R29857:29858 CT.TypeClosed <> st:239 var
+R29860:29864 CT.TypeClosed <> Gamma:238 var
+R29866:29868 CT.TypeClosed <> tau:242 var
+R29936:29944 Coq.Lists.List <> app_nil_l thm
+R29936:29944 Coq.Lists.List <> app_nil_l thm
+R29936:29944 Coq.Lists.List <> app_nil_l thm
+R30038:30070 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30038:30070 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30085:30113 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R30085:30113 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R30159:30191 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30159:30191 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30206:30234 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R30206:30234 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R30326:30340 CT.NoDup <> type_ctx_no_dup ind
+R30342:30346 CT.Maps <> empty def
+R30359:30360 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R30349:30349 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30351:30352 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30358:30358 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30361:30363 Coq.Init.Datatypes <> nil constr
+R30326:30340 CT.NoDup <> type_ctx_no_dup ind
+R30342:30346 CT.Maps <> empty def
+R30359:30360 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R30349:30349 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30351:30352 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30358:30358 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R30361:30363 Coq.Init.Datatypes <> nil constr
+R30393:30425 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30393:30425 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R30440:30468 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R30440:30468 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+prf 30500:30527 <> st_type_close_oarr_subst_ctx
+binder 30537:30541 <> Gamma:243
+binder 30543:30544 <> st:244
+binder 30546:30547 <> a0:245
+binder 30549:30549 <> T:246
+binder 30551:30553 <> phi:247
+binder 30555:30556 <> c2:248
+R30564:30570 CT.RfTypeDef <> underty ind
+binder 30559:30561 <> tau:249
+R30639:30646 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R30578:30598 CT.TypeClosed <> st_type_closed_in_ctx def
+R30600:30601 CT.TypeClosed <> st:244 var
+R30603:30607 CT.TypeClosed <> Gamma:243 var
+R30612:30615 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30629:30634 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30610:30611 CT.TypeClosed <> a0:245 var
+R30616:30619 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30621:30623 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30627:30628 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30620:30620 CT.TypeClosed <> T:246 var
+R30624:30626 CT.TypeClosed <> phi:247 var
+R30635:30637 CT.TypeClosed <> tau:249 var
+R30647:30667 CT.TypeClosed <> st_type_closed_in_ctx def
+R30669:30670 CT.TypeClosed <> st:244 var
+R30672:30676 CT.TypeClosed <> Gamma:243 var
+R30679:30682 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30685:30690 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30693:30696 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30683:30684 CT.TypeClosed <> a0:245 var
+R30691:30692 CT.TypeClosed <> c2:248 var
+R30697:30699 CT.TypeClosed <> tau:249 var
+R30730:30736 Coq.Lists.List <> rev_ind thm
+binder 30743:30747 <> Gamma:250
+binder 30759:30760 <> st:251
+binder 30762:30763 <> a0:252
+binder 30765:30765 <> T:253
+binder 30767:30769 <> phi:254
+binder 30771:30772 <> c2:255
+R30780:30786 CT.RfTypeDef <> underty ind
+binder 30775:30777 <> tau:256
+R30873:30880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R30812:30832 CT.TypeClosed <> st_type_closed_in_ctx def
+R30834:30835 CT.TypeClosed <> st:251 var
+R30837:30841 CT.TypeClosed <> Gamma:250 var
+R30846:30849 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30863:30868 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30844:30845 CT.TypeClosed <> a0:252 var
+R30850:30853 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30855:30857 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30861:30862 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30854:30854 CT.TypeClosed <> T:253 var
+R30858:30860 CT.TypeClosed <> phi:254 var
+R30869:30871 CT.TypeClosed <> tau:256 var
+R30881:30901 CT.TypeClosed <> st_type_closed_in_ctx def
+R30903:30904 CT.TypeClosed <> st:251 var
+R30906:30910 CT.TypeClosed <> Gamma:250 var
+R30913:30916 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30919:30924 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30927:30930 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30917:30918 CT.TypeClosed <> a0:252 var
+R30925:30926 CT.TypeClosed <> c2:255 var
+R30931:30933 CT.TypeClosed <> tau:256 var
+R30730:30736 Coq.Lists.List <> rev_ind thm
+binder 30743:30747 <> Gamma:257
+binder 30759:30760 <> st:258
+binder 30762:30763 <> a0:259
+binder 30765:30765 <> T:260
+binder 30767:30769 <> phi:261
+binder 30771:30772 <> c2:262
+R30780:30786 CT.RfTypeDef <> underty ind
+binder 30775:30777 <> tau:263
+R30873:30880 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R30812:30832 CT.TypeClosed <> st_type_closed_in_ctx def
+R30834:30835 CT.TypeClosed <> st:258 var
+R30837:30841 CT.TypeClosed <> Gamma:257 var
+R30846:30849 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30863:30868 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R30844:30845 CT.TypeClosed <> a0:259 var
+R30850:30853 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30855:30857 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30861:30862 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R30854:30854 CT.TypeClosed <> T:260 var
+R30858:30860 CT.TypeClosed <> phi:261 var
+R30869:30871 CT.TypeClosed <> tau:263 var
+R30881:30901 CT.TypeClosed <> st_type_closed_in_ctx def
+R30903:30904 CT.TypeClosed <> st:258 var
+R30906:30910 CT.TypeClosed <> Gamma:257 var
+R30913:30916 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30919:30924 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30927:30930 CT.RfTypeDef <> :::'<u['_x_'|c->'_x_']>'_x not
+R30917:30918 CT.TypeClosed <> a0:259 var
+R30925:30926 CT.TypeClosed <> c2:262 var
+R30931:30933 CT.TypeClosed <> tau:263 var
+R31017:31031 CT.NoDup <> type_ctx_no_dup ind
+R31033:31037 CT.Maps <> empty def
+R31053:31054 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31040:31040 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31042:31043 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31052:31052 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31044:31046 CT.RfTypeDef <> Uty constr
+R31055:31057 Coq.Init.Datatypes <> nil constr
+R31017:31031 CT.NoDup <> type_ctx_no_dup ind
+R31033:31037 CT.Maps <> empty def
+R31053:31054 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31040:31040 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31042:31043 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31052:31052 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31044:31046 CT.RfTypeDef <> Uty constr
+R31055:31057 Coq.Init.Datatypes <> nil constr
+R31087:31119 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31087:31119 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31134:31162 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R31134:31162 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R31259:31273 CT.NoDup <> type_ctx_no_dup ind
+R31275:31279 CT.Maps <> empty def
+R31292:31293 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31282:31282 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31284:31285 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31291:31291 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31294:31296 Coq.Init.Datatypes <> nil constr
+R31259:31273 CT.NoDup <> type_ctx_no_dup ind
+R31275:31279 CT.Maps <> empty def
+R31292:31293 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31282:31282 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31284:31285 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31291:31291 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31294:31296 Coq.Init.Datatypes <> nil constr
+R31326:31358 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31326:31358 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31372:31400 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R31372:31400 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+prf 31431:31466 <> st_type_closed_in_ctx_construct_oarr
+binder 31476:31477 <> st:264
+binder 31479:31483 <> Gamma:265
+R31489:31494 Coq.Strings.String <> string ind
+binder 31486:31486 <> a:266
+binder 31497:31498 <> Ta:267
+binder 31500:31503 <> phia:268
+R31510:31516 CT.RfTypeDef <> underty ind
+binder 31506:31507 <> t2:269
+R31573:31580 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R31524:31544 CT.TypeClosed <> st_type_closed_in_ctx def
+R31546:31547 CT.TypeClosed <> st:264 var
+R31549:31553 CT.TypeClosed <> Gamma:265 var
+R31556:31560 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31563:31565 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31570:31571 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31561:31562 CT.TypeClosed <> Ta:267 var
+R31566:31569 CT.TypeClosed <> phia:268 var
+R31654:31661 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R31581:31601 CT.TypeClosed <> st_type_closed_in_ctx def
+R31603:31604 CT.TypeClosed <> st:264 var
+R31612:31616 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R31649:31649 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R31607:31611 CT.TypeClosed <> Gamma:265 var
+R31644:31645 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31617:31617 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31619:31620 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31643:31643 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31618:31618 CT.TypeClosed <> a:266 var
+R31621:31623 CT.RfTypeDef <> Oty constr
+R31626:31630 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31633:31635 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31640:31641 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31631:31632 CT.TypeClosed <> Ta:267 var
+R31636:31639 CT.TypeClosed <> phia:268 var
+R31646:31648 Coq.Init.Datatypes <> nil constr
+R31652:31653 CT.TypeClosed <> t2:269 var
+R31662:31682 CT.TypeClosed <> st_type_closed_in_ctx def
+R31684:31685 CT.TypeClosed <> st:264 var
+R31687:31691 CT.TypeClosed <> Gamma:265 var
+R31695:31698 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R31715:31720 CT.RfTypeDef <> :::x_'o:'_x_'o-->'_x not
+R31694:31694 CT.TypeClosed <> a:266 var
+R31699:31703 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31706:31708 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31713:31714 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31704:31705 CT.TypeClosed <> Ta:267 var
+R31709:31712 CT.TypeClosed <> phia:268 var
+R31721:31722 CT.TypeClosed <> t2:269 var
+R31783:31797 CT.NoDup <> type_ctx_no_dup ind
+R31799:31803 CT.Maps <> empty def
+R31832:31833 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31806:31806 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31808:31809 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31831:31831 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31810:31812 CT.RfTypeDef <> Oty constr
+R31815:31818 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31821:31823 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31828:31829 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31834:31836 Coq.Init.Datatypes <> nil constr
+R31783:31797 CT.NoDup <> type_ctx_no_dup ind
+R31799:31803 CT.Maps <> empty def
+R31832:31833 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31806:31806 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31808:31809 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31831:31831 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31810:31812 CT.RfTypeDef <> Oty constr
+R31815:31818 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31821:31823 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31828:31829 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R31834:31836 Coq.Init.Datatypes <> nil constr
+R31866:31898 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31866:31898 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R31913:31941 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R31913:31941 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R31973:31987 CT.NoDup <> type_ctx_no_dup ind
+R31989:31993 CT.Maps <> empty def
+R32022:32023 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31996:31996 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31998:31999 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32021:32021 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32000:32002 CT.RfTypeDef <> Oty constr
+R32005:32008 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32011:32013 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32018:32019 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32024:32026 Coq.Init.Datatypes <> nil constr
+R31973:31987 CT.NoDup <> type_ctx_no_dup ind
+R31989:31993 CT.Maps <> empty def
+R32022:32023 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R31996:31996 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R31998:31999 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32021:32021 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32000:32002 CT.RfTypeDef <> Oty constr
+R32005:32008 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32011:32013 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32018:32019 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R32024:32026 Coq.Init.Datatypes <> nil constr
+R32056:32088 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R32056:32088 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R32103:32131 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R32103:32131 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+prf 32163:32194 <> st_type_close_arrarr_app_ctx_aux
+binder 32204:32208 <> Gamma:270
+binder 32210:32211 <> st:271
+binder 32213:32217 <> tau_x:272
+R32225:32231 CT.RfTypeDef <> underty ind
+binder 32220:32222 <> tau:273
+R32286:32294 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R32239:32259 CT.TypeClosed <> st_type_closed_in_ctx def
+R32261:32262 CT.TypeClosed <> st:271 var
+R32264:32268 CT.TypeClosed <> Gamma:270 var
+R32276:32281 CT.RfTypeDef <> :::x_'u-->'_x not
+R32271:32275 CT.TypeClosed <> tau_x:272 var
+R32282:32284 CT.TypeClosed <> tau:273 var
+R32331:32334 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R32295:32315 CT.TypeClosed <> st_type_closed_in_ctx def
+R32317:32318 CT.TypeClosed <> st:271 var
+R32320:32324 CT.TypeClosed <> Gamma:270 var
+R32326:32330 CT.TypeClosed <> tau_x:272 var
+R32335:32355 CT.TypeClosed <> st_type_closed_in_ctx def
+R32357:32358 CT.TypeClosed <> st:271 var
+R32360:32364 CT.TypeClosed <> Gamma:270 var
+R32366:32368 CT.TypeClosed <> tau:273 var
+R32398:32404 Coq.Lists.List <> rev_ind thm
+binder 32411:32415 <> Gamma:274
+binder 32427:32428 <> st:275
+binder 32430:32434 <> tau_x:276
+R32442:32448 CT.RfTypeDef <> underty ind
+binder 32437:32439 <> tau:277
+R32521:32529 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R32474:32494 CT.TypeClosed <> st_type_closed_in_ctx def
+R32496:32497 CT.TypeClosed <> st:275 var
+R32499:32503 CT.TypeClosed <> Gamma:274 var
+R32511:32516 CT.RfTypeDef <> :::x_'u-->'_x not
+R32506:32510 CT.TypeClosed <> tau_x:276 var
+R32517:32519 CT.TypeClosed <> tau:277 var
+R32566:32569 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R32530:32550 CT.TypeClosed <> st_type_closed_in_ctx def
+R32552:32553 CT.TypeClosed <> st:275 var
+R32555:32559 CT.TypeClosed <> Gamma:274 var
+R32561:32565 CT.TypeClosed <> tau_x:276 var
+R32570:32590 CT.TypeClosed <> st_type_closed_in_ctx def
+R32592:32593 CT.TypeClosed <> st:275 var
+R32595:32599 CT.TypeClosed <> Gamma:274 var
+R32601:32603 CT.TypeClosed <> tau:277 var
+R32398:32404 Coq.Lists.List <> rev_ind thm
+binder 32411:32415 <> Gamma:278
+binder 32427:32428 <> st:279
+binder 32430:32434 <> tau_x:280
+R32442:32448 CT.RfTypeDef <> underty ind
+binder 32437:32439 <> tau:281
+R32521:32529 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R32474:32494 CT.TypeClosed <> st_type_closed_in_ctx def
+R32496:32497 CT.TypeClosed <> st:279 var
+R32499:32503 CT.TypeClosed <> Gamma:278 var
+R32511:32516 CT.RfTypeDef <> :::x_'u-->'_x not
+R32506:32510 CT.TypeClosed <> tau_x:280 var
+R32517:32519 CT.TypeClosed <> tau:281 var
+R32566:32569 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R32530:32550 CT.TypeClosed <> st_type_closed_in_ctx def
+R32552:32553 CT.TypeClosed <> st:279 var
+R32555:32559 CT.TypeClosed <> Gamma:278 var
+R32561:32565 CT.TypeClosed <> tau_x:280 var
+R32570:32590 CT.TypeClosed <> st_type_closed_in_ctx def
+R32592:32593 CT.TypeClosed <> st:279 var
+R32595:32599 CT.TypeClosed <> Gamma:278 var
+R32601:32603 CT.TypeClosed <> tau:281 var
+R32687:32711 CT.Ax <> exists_not_free_var_in_tm prfax
+R32713:32716 CT.CoreLang <> texn constr
+R32687:32711 CT.Ax <> exists_not_free_var_in_tm prfax
+R32713:32716 CT.CoreLang <> texn constr
+R32732:32746 CT.NoDup <> type_ctx_no_dup ind
+R32748:32752 CT.Maps <> empty def
+R32769:32770 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R32755:32755 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32757:32758 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32768:32768 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32759:32761 CT.RfTypeDef <> Uty constr
+R32771:32773 Coq.Init.Datatypes <> nil constr
+R32732:32746 CT.NoDup <> type_ctx_no_dup ind
+R32748:32752 CT.Maps <> empty def
+R32769:32770 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R32755:32755 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32757:32758 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32768:32768 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R32759:32761 CT.RfTypeDef <> Uty constr
+R32771:32773 Coq.Init.Datatypes <> nil constr
+R32803:32835 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R32803:32835 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R32850:32878 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R32850:32878 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R32936:32960 CT.Ax <> exists_not_free_var_in_tm prfax
+R32962:32965 CT.CoreLang <> texn constr
+R32936:32960 CT.Ax <> exists_not_free_var_in_tm prfax
+R32962:32965 CT.CoreLang <> texn constr
+R32981:32995 CT.NoDup <> type_ctx_no_dup ind
+R32997:33001 CT.Maps <> empty def
+R33018:33019 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33004:33004 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33006:33007 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33017:33017 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33008:33010 CT.RfTypeDef <> Uty constr
+R33020:33022 Coq.Init.Datatypes <> nil constr
+R32981:32995 CT.NoDup <> type_ctx_no_dup ind
+R32997:33001 CT.Maps <> empty def
+R33018:33019 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33004:33004 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33006:33007 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33017:33017 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33008:33010 CT.RfTypeDef <> Uty constr
+R33020:33022 Coq.Init.Datatypes <> nil constr
+R33052:33084 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33052:33084 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33099:33127 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R33099:33127 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R33228:33242 CT.NoDup <> type_ctx_no_dup ind
+R33244:33248 CT.Maps <> empty def
+R33265:33266 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33251:33251 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33253:33254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33264:33264 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33255:33257 CT.RfTypeDef <> Uty constr
+R33267:33269 Coq.Init.Datatypes <> nil constr
+R33228:33242 CT.NoDup <> type_ctx_no_dup ind
+R33244:33248 CT.Maps <> empty def
+R33265:33266 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33251:33251 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33253:33254 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33264:33264 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33255:33257 CT.RfTypeDef <> Uty constr
+R33267:33269 Coq.Init.Datatypes <> nil constr
+R33299:33331 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33299:33331 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33345:33373 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R33345:33373 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R33404:33418 CT.NoDup <> type_ctx_no_dup ind
+R33420:33424 CT.Maps <> empty def
+R33441:33442 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33427:33427 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33429:33430 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33440:33440 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33431:33433 CT.RfTypeDef <> Uty constr
+R33443:33445 Coq.Init.Datatypes <> nil constr
+R33404:33418 CT.NoDup <> type_ctx_no_dup ind
+R33420:33424 CT.Maps <> empty def
+R33441:33442 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R33427:33427 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33429:33430 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33440:33440 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R33431:33433 CT.RfTypeDef <> Uty constr
+R33443:33445 Coq.Init.Datatypes <> nil constr
+R33475:33507 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33475:33507 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R33521:33549 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R33521:33549 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+prf 33580:33607 <> st_type_close_arrarr_app_ctx
+binder 33617:33621 <> Gamma:282
+R33627:33632 Coq.Strings.String <> string ind
+binder 33624:33624 <> x:283
+binder 33635:33636 <> st:284
+binder 33638:33642 <> tau_x:285
+R33650:33656 CT.RfTypeDef <> underty ind
+binder 33645:33647 <> tau:286
+R33711:33718 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R33664:33684 CT.TypeClosed <> st_type_closed_in_ctx def
+R33686:33687 CT.TypeClosed <> st:284 var
+R33689:33693 CT.TypeClosed <> Gamma:282 var
+R33701:33706 CT.RfTypeDef <> :::x_'u-->'_x not
+R33696:33700 CT.TypeClosed <> tau_x:285 var
+R33707:33709 CT.TypeClosed <> tau:286 var
+R33755:33758 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R33719:33739 CT.TypeClosed <> st_type_closed_in_ctx def
+R33741:33742 CT.TypeClosed <> st:284 var
+R33744:33748 CT.TypeClosed <> Gamma:282 var
+R33750:33754 CT.TypeClosed <> tau_x:285 var
+R33759:33779 CT.TypeClosed <> st_type_closed_in_ctx def
+R33781:33782 CT.TypeClosed <> st:284 var
+R33784:33788 CT.TypeClosed <> Gamma:282 var
+R33790:33792 CT.TypeClosed <> tau:286 var
+R33831:33862 CT.TypeClosed <> st_type_close_arrarr_app_ctx_aux thm
+R33831:33862 CT.TypeClosed <> st_type_close_arrarr_app_ctx_aux thm
+R33831:33862 CT.TypeClosed <> st_type_close_arrarr_app_ctx_aux thm
+prf 33884:33911 <> closed_ctx_implies_op_closed
+binder 33921:33925 <> Gamma:287
+binder 33927:33928 <> st:288
+binder 33930:33931 <> op:289
+R33941:33943 CT.CoreLang <> cid ind
+binder 33934:33935 <> c1:290
+binder 33937:33938 <> c2:291
+R33978:33985 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R33951:33968 CT.TypeClosed <> st_type_closed_ctx ind
+R33970:33971 CT.TypeClosed <> st:288 var
+R33973:33977 CT.TypeClosed <> Gamma:287 var
+R33986:34006 CT.TypeClosed <> st_type_closed_in_ctx def
+R34008:34009 CT.TypeClosed <> st:288 var
+R34011:34015 CT.TypeClosed <> Gamma:287 var
+R34018:34038 CT.RfTypeDef <> mk_op_retty_from_cids def
+R34040:34041 CT.TypeClosed <> op:289 var
+R34043:34044 CT.TypeClosed <> c1:290 var
+R34046:34047 CT.TypeClosed <> c2:291 var
+R34114:34138 CT.Ax <> exists_not_free_var_in_tm prfax
+R34114:34138 CT.Ax <> exists_not_free_var_in_tm prfax
+R34158:34172 CT.NoDup <> type_ctx_no_dup ind
+R34174:34178 CT.Maps <> empty def
+R34222:34223 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34181:34181 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34183:34184 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34221:34221 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34185:34187 CT.RfTypeDef <> Uty constr
+R34190:34210 CT.RfTypeDef <> mk_op_retty_from_cids def
+R34224:34226 Coq.Init.Datatypes <> nil constr
+R34158:34172 CT.NoDup <> type_ctx_no_dup ind
+R34174:34178 CT.Maps <> empty def
+R34222:34223 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34181:34181 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34183:34184 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34221:34221 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34185:34187 CT.RfTypeDef <> Uty constr
+R34190:34210 CT.RfTypeDef <> mk_op_retty_from_cids def
+R34224:34226 Coq.Init.Datatypes <> nil constr
+R34256:34288 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R34256:34288 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R34303:34331 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R34303:34331 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R34379:34403 CT.Ax <> exists_not_free_var_in_tm prfax
+R34379:34403 CT.Ax <> exists_not_free_var_in_tm prfax
+R34423:34437 CT.NoDup <> type_ctx_no_dup ind
+R34439:34443 CT.Maps <> empty def
+R34487:34488 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34446:34446 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34448:34449 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34486:34486 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34450:34452 CT.RfTypeDef <> Uty constr
+R34455:34475 CT.RfTypeDef <> mk_op_retty_from_cids def
+R34489:34491 Coq.Init.Datatypes <> nil constr
+R34423:34437 CT.NoDup <> type_ctx_no_dup ind
+R34439:34443 CT.Maps <> empty def
+R34487:34488 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34446:34446 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34448:34449 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34486:34486 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34450:34452 CT.RfTypeDef <> Uty constr
+R34455:34475 CT.RfTypeDef <> mk_op_retty_from_cids def
+R34489:34491 Coq.Init.Datatypes <> nil constr
+R34521:34553 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R34521:34553 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R34568:34596 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R34568:34596 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+prf 34628:34664 <> st_type_closed_ctx_fst_last_diff_name
+binder 34674:34675 <> st:292
+binder 34677:34677 <> a:293
+binder 34679:34683 <> tau_a:294
+binder 34685:34689 <> Gamma:295
+binder 34691:34691 <> b:296
+binder 34693:34697 <> tau_b:297
+R34766:34769 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R34704:34721 CT.TypeClosed <> st_type_closed_ctx ind
+R34723:34724 CT.TypeClosed <> st:292 var
+R34737:34738 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34727:34727 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34729:34730 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34736:34736 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34728:34728 CT.TypeClosed <> a:293 var
+R34731:34735 CT.TypeClosed <> tau_a:294 var
+R34744:34748 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R34764:34764 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R34739:34743 CT.TypeClosed <> Gamma:295 var
+R34759:34760 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R34749:34749 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34751:34752 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34758:34758 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R34750:34750 CT.TypeClosed <> b:296 var
+R34753:34757 CT.TypeClosed <> tau_b:297 var
+R34761:34763 Coq.Init.Datatypes <> nil constr
+R34771:34774 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R34770:34770 CT.TypeClosed <> a:293 var
+R34775:34775 CT.TypeClosed <> b:296 var
+R34813:34846 CT.NoDup <> type_ctx_no_dup_fst_last_diff_name thm
+R34813:34846 CT.NoDup <> type_ctx_no_dup_fst_last_diff_name thm
+prf 34863:34884 <> st_type_closed_ctx_pre
+binder 34894:34899 <> Gamma2:298
+binder 34901:34902 <> st:299
+binder 34904:34909 <> Gamma1:300
+R34956:34959 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R34916:34933 CT.TypeClosed <> st_type_closed_ctx ind
+R34935:34936 CT.TypeClosed <> st:299 var
+R34945:34948 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R34939:34944 CT.TypeClosed <> Gamma1:300 var
+R34949:34954 CT.TypeClosed <> Gamma2:298 var
+R34960:34977 CT.TypeClosed <> st_type_closed_ctx ind
+R34979:34980 CT.TypeClosed <> st:299 var
+R34982:34987 CT.TypeClosed <> Gamma1:300 var
+R35017:35023 Coq.Lists.List <> rev_ind thm
+binder 35030:35035 <> Gamma2:301
+binder 35047:35048 <> st:302
+binder 35050:35055 <> Gamma1:303
+R35120:35123 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R35080:35097 CT.TypeClosed <> st_type_closed_ctx ind
+R35099:35100 CT.TypeClosed <> st:302 var
+R35109:35112 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35103:35108 CT.TypeClosed <> Gamma1:303 var
+R35113:35118 CT.TypeClosed <> Gamma2:301 var
+R35124:35141 CT.TypeClosed <> st_type_closed_ctx ind
+R35143:35144 CT.TypeClosed <> st:302 var
+R35146:35151 CT.TypeClosed <> Gamma1:303 var
+R35017:35023 Coq.Lists.List <> rev_ind thm
+binder 35030:35035 <> Gamma2:304
+binder 35047:35048 <> st:305
+binder 35050:35055 <> Gamma1:306
+R35120:35123 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R35080:35097 CT.TypeClosed <> st_type_closed_ctx ind
+R35099:35100 CT.TypeClosed <> st:305 var
+R35109:35112 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35103:35108 CT.TypeClosed <> Gamma1:306 var
+R35113:35118 CT.TypeClosed <> Gamma2:304 var
+R35124:35141 CT.TypeClosed <> st_type_closed_ctx ind
+R35143:35144 CT.TypeClosed <> st:305 var
+R35146:35151 CT.TypeClosed <> Gamma1:306 var
+R35190:35198 Coq.Lists.List <> app_nil_r thm
+R35190:35198 Coq.Lists.List <> app_nil_r thm
+R35190:35198 Coq.Lists.List <> app_nil_r thm
+R35271:35279 Coq.Lists.List <> app_assoc thm
+R35271:35279 Coq.Lists.List <> app_assoc thm
+R35271:35279 Coq.Lists.List <> app_assoc thm
+R35297:35322 CT.TypeClosed <> destructst_type_closed_ctx thm
+R35297:35322 CT.TypeClosed <> destructst_type_closed_ctx thm
+prf 35394:35426 <> st_type_closed_in_ctx_last_samety
+binder 35436:35440 <> Gamma:307
+binder 35442:35443 <> st:308
+binder 35445:35445 <> x:309
+binder 35447:35447 <> T:310
+binder 35449:35452 <> phi1:311
+binder 35454:35457 <> phi2:312
+binder 35459:35461 <> tau:313
+R35540:35547 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R35468:35488 CT.TypeClosed <> st_type_closed_in_ctx def
+R35490:35491 CT.TypeClosed <> st:308 var
+R35499:35503 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35534:35534 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35494:35498 CT.TypeClosed <> Gamma:307 var
+R35529:35530 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35504:35504 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35506:35507 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35528:35528 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35505:35505 CT.TypeClosed <> x:309 var
+R35508:35510 CT.RfTypeDef <> Oty constr
+R35513:35516 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35518:35520 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35525:35526 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35517:35517 CT.TypeClosed <> T:310 var
+R35521:35524 CT.TypeClosed <> phi1:311 var
+R35531:35533 Coq.Init.Datatypes <> nil constr
+R35537:35539 CT.TypeClosed <> tau:313 var
+R35548:35568 CT.TypeClosed <> st_type_closed_in_ctx def
+R35570:35571 CT.TypeClosed <> st:308 var
+R35579:35583 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35614:35614 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35574:35578 CT.TypeClosed <> Gamma:307 var
+R35609:35610 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35584:35584 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35586:35587 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35608:35608 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35585:35585 CT.TypeClosed <> x:309 var
+R35588:35590 CT.RfTypeDef <> Oty constr
+R35593:35596 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35598:35600 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35605:35606 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35597:35597 CT.TypeClosed <> T:310 var
+R35601:35604 CT.TypeClosed <> phi2:312 var
+R35611:35613 Coq.Init.Datatypes <> nil constr
+R35617:35619 CT.TypeClosed <> tau:313 var
+R35649:35655 Coq.Lists.List <> rev_ind thm
+binder 35662:35666 <> Gamma:314
+binder 35678:35679 <> st:315
+binder 35681:35681 <> x:316
+binder 35683:35683 <> T:317
+binder 35685:35688 <> phi1:318
+binder 35690:35693 <> phi2:319
+binder 35695:35697 <> tau:320
+R35794:35801 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R35722:35742 CT.TypeClosed <> st_type_closed_in_ctx def
+R35744:35745 CT.TypeClosed <> st:315 var
+R35753:35757 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35788:35788 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35748:35752 CT.TypeClosed <> Gamma:314 var
+R35783:35784 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35758:35758 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35760:35761 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35782:35782 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35759:35759 CT.TypeClosed <> x:316 var
+R35762:35764 CT.RfTypeDef <> Oty constr
+R35767:35770 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35772:35774 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35779:35780 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35771:35771 CT.TypeClosed <> T:317 var
+R35775:35778 CT.TypeClosed <> phi1:318 var
+R35785:35787 Coq.Init.Datatypes <> nil constr
+R35791:35793 CT.TypeClosed <> tau:320 var
+R35802:35822 CT.TypeClosed <> st_type_closed_in_ctx def
+R35824:35825 CT.TypeClosed <> st:315 var
+R35833:35837 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35868:35868 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35828:35832 CT.TypeClosed <> Gamma:314 var
+R35863:35864 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35838:35838 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35840:35841 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35862:35862 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35839:35839 CT.TypeClosed <> x:316 var
+R35842:35844 CT.RfTypeDef <> Oty constr
+R35847:35850 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35852:35854 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35859:35860 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35851:35851 CT.TypeClosed <> T:317 var
+R35855:35858 CT.TypeClosed <> phi2:319 var
+R35865:35867 Coq.Init.Datatypes <> nil constr
+R35871:35873 CT.TypeClosed <> tau:320 var
+R35649:35655 Coq.Lists.List <> rev_ind thm
+binder 35662:35666 <> Gamma:321
+binder 35678:35679 <> st:322
+binder 35681:35681 <> x:323
+binder 35683:35683 <> T:324
+binder 35685:35688 <> phi1:325
+binder 35690:35693 <> phi2:326
+binder 35695:35697 <> tau:327
+R35794:35801 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R35722:35742 CT.TypeClosed <> st_type_closed_in_ctx def
+R35744:35745 CT.TypeClosed <> st:322 var
+R35753:35757 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35788:35788 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35748:35752 CT.TypeClosed <> Gamma:321 var
+R35783:35784 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35758:35758 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35760:35761 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35782:35782 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35759:35759 CT.TypeClosed <> x:323 var
+R35762:35764 CT.RfTypeDef <> Oty constr
+R35767:35770 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35772:35774 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35779:35780 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35771:35771 CT.TypeClosed <> T:324 var
+R35775:35778 CT.TypeClosed <> phi1:325 var
+R35785:35787 Coq.Init.Datatypes <> nil constr
+R35791:35793 CT.TypeClosed <> tau:327 var
+R35802:35822 CT.TypeClosed <> st_type_closed_in_ctx def
+R35824:35825 CT.TypeClosed <> st:322 var
+R35833:35837 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35868:35868 Coq.Init.Datatypes <> ::list_scope:x_'++'_x not
+R35828:35832 CT.TypeClosed <> Gamma:321 var
+R35863:35864 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R35838:35838 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35840:35841 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35862:35862 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R35839:35839 CT.TypeClosed <> x:323 var
+R35842:35844 CT.RfTypeDef <> Oty constr
+R35847:35850 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35852:35854 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35859:35860 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R35851:35851 CT.TypeClosed <> T:324 var
+R35855:35858 CT.TypeClosed <> phi2:326 var
+R35865:35867 Coq.Init.Datatypes <> nil constr
+R35871:35873 CT.TypeClosed <> tau:327 var
+R35898:35906 Coq.Lists.List <> app_nil_l thm
+R35898:35906 Coq.Lists.List <> app_nil_l thm
+R35898:35906 Coq.Lists.List <> app_nil_l thm
+R35924:35932 Coq.Lists.List <> app_nil_l thm
+R35924:35932 Coq.Lists.List <> app_nil_l thm
+R35924:35932 Coq.Lists.List <> app_nil_l thm
+R36019:36033 CT.NoDup <> type_ctx_no_dup ind
+R36035:36039 CT.Maps <> empty def
+R36068:36069 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R36042:36042 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36045:36046 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36067:36067 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36047:36049 CT.RfTypeDef <> Oty constr
+R36052:36055 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36057:36059 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36064:36065 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36070:36072 Coq.Init.Datatypes <> nil constr
+R36019:36033 CT.NoDup <> type_ctx_no_dup ind
+R36035:36039 CT.Maps <> empty def
+R36068:36069 Coq.Init.Datatypes <> ::list_scope:x_'::'_x not
+R36042:36042 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36045:36046 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36067:36067 Coq.Init.Datatypes <> ::core_scope:'('_x_','_x_','_'..'_','_x_')' not
+R36047:36049 CT.RfTypeDef <> Oty constr
+R36052:36055 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36057:36059 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36064:36065 CT.RfTypeDef <> :::'{{v:'_x_'|'_x_'}}' not
+R36070:36072 Coq.Init.Datatypes <> nil constr
+R36102:36134 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R36102:36134 CT.NoDup <> type_ctx_no_dup_implies_head_free thm
+R36149:36177 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+R36149:36177 CT.LinearContext <> l_find_right_most_none_neq_hd thm
+def 36430:36447 <> type_closed_in_ctx
+R36457:36463 CT.TypeClosed <> lcontxt def
+binder 36450:36454 <> Gamma:328
+R36472:36482 CT.RfTypeDef <> overunderty ind
+binder 36467:36469 <> tau:329
+R36487:36507 CT.TypeClosed <> st_type_closed_in_ctx def
+R36509:36513 CT.Maps <> empty def
+R36515:36519 CT.TypeClosed <> Gamma:328 var
+R36521:36523 CT.TypeClosed <> tau:329 var
+R36546:36563 CT.TypeClosed <> type_closed_in_ctx def

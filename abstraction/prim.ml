@@ -1,14 +1,14 @@
 open Sugar
 open Prim_map
 
-let init
-    (type_decls, normals, overs, unders, rev_unders, lemmas, functional_lemmas)
-    =
+let init_normal (type_decls, normals) =
   let nm = make_normal type_decls normals in
+  normal_m := Some nm
+
+let init_refinement (overs, unders, rev_unders, lemmas, functional_lemmas) =
   lemma_m := Some (make_lemmas lemmas);
   functional_lemma_m := Some (make_lemmas functional_lemmas);
-  normal_m := Some nm;
-  notation_m := Some (make_m nm overs unders rev_unders)
+  notation_m := Some (make_m (get_normal_m ()) overs unders rev_unders)
 
 let get_primitive_normal_ty name =
   let _, ty = get_by_name (get_normal_m ()) name in

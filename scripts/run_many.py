@@ -79,7 +79,7 @@ def run(dir_str):
         ifile = open (ithprogrfile, 'w')
         ifile.write(progi) 
         ifile.close()
-        cmd = cmd_prefix + ["under-type-check", meta_config_file,
+        cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                             # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
                             "{}/{}".format(dir_str, "_under.ml")]
@@ -167,7 +167,7 @@ if __name__ == '__main__':
         ifile = open (ithprogrfile, 'w')
         ifile.write(progi) 
         ifile.close()
-        cmd = cmd_prefix + ["under-type-check", meta_config_file,
+        cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                             # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
                             "{}/{}".format(dir_str, "_under.ml")]

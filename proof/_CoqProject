@@ -15,8 +15,15 @@ NormalTypeSystemSimp.v
 TermOrdering.v
 RfTypeDef.v
 NoDup.v
+<<<<<<< HEAD
 TypeClosedSimp.v
 DenotationSimp.v
+=======
+TermMeet.v
+TypeClosed.v
+Denotation.v
+WellFormed.v
+>>>>>>> beb65e3410d07f207f5b75a09a7428c146b4099f
 CtxErase.v
 DenotationAux.v
 TypeDisj.v

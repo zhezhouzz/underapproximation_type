@@ -1,0 +1,1939 @@
+DIGEST b060406827861743508ca5d1741bf9df
+FCT.Ax
+R69:72 CT.Maps <> <> lib
+R98:105 CT.CoreLang <> <> lib
+R131:146 CT.NormalTypeSystem <> <> lib
+R173:202 Coq.Logic.FunctionalExtensionality <> <> lib
+R229:248 Coq.Logic.ClassicalFacts <> <> lib
+R276:285 Coq.Lists.List <> <> lib
+R295:307 Coq.Lists.List ListNotations <> mod
+R317:332 CT.NormalTypeSystem <> <> mod
+def 347:359 <> state_permute
+binder 362:362 <> A:1
+R389:392 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R383:388 Coq.Strings.String <> string ind
+R393:398 Coq.Init.Datatypes <> option ind
+R400:400 CT.Ax <> A:1 var
+binder 379:380 <> st:2
+binder 403:403 <> x:3
+binder 405:405 <> y:4
+R414:414 CT.Ax <> A:1 var
+binder 408:408 <> a:5
+binder 410:411 <> a':6
+R422:422 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R444:448 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R470:470 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R424:428 CT.Maps <> :::x_'|->'_x_';'_x not
+R430:431 CT.Maps <> :::x_'|->'_x_';'_x not
+R433:437 CT.Maps <> :::x_'|->'_x_';'_x not
+R440:441 CT.Maps <> :::x_'|->'_x_';'_x not
+R442:443 CT.Ax <> st:2 var
+R432:432 CT.Ax <> y:4 var
+R438:439 CT.Ax <> a':6 var
+R423:423 CT.Ax <> x:3 var
+R429:429 CT.Ax <> a:5 var
+R450:454 CT.Maps <> :::x_'|->'_x_';'_x not
+R457:458 CT.Maps <> :::x_'|->'_x_';'_x not
+R460:464 CT.Maps <> :::x_'|->'_x_';'_x not
+R466:467 CT.Maps <> :::x_'|->'_x_';'_x not
+R468:469 CT.Ax <> st:2 var
+R459:459 CT.Ax <> x:3 var
+R465:465 CT.Ax <> a:5 var
+R449:449 CT.Ax <> y:4 var
+R455:456 CT.Ax <> a':6 var
+def 495:519 <> exists_not_free_var_in_tm
+binder 529:529 <> e:7
+R532:538 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R540:541 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 539:539 <> x:8
+R542:543 Coq.Init.Logic <> ::type_scope:'~'_x not
+R545:551 CT.CoreLang <> :::x_'\FVtm'_x not
+R544:544 CT.Ax <> x:8 var
+R552:552 CT.Ax <> e:7 var
+prf 572:591 <> term_has_no_free_var
+binder 601:601 <> e:9
+binder 603:603 <> x:10
+R606:607 Coq.Init.Logic <> ::type_scope:'~'_x not
+R609:615 CT.CoreLang <> :::x_'\FVtm'_x not
+R608:608 CT.Ax <> x:10 var
+R616:616 CT.Ax <> e:9 var
+prf 636:656 <> value_has_no_free_var
+binder 666:666 <> e:11
+binder 668:668 <> x:12
+R671:672 Coq.Init.Logic <> ::type_scope:'~'_x not
+R674:683 CT.CoreLang <> :::x_'\FVvalue'_x not
+R673:673 CT.Ax <> x:12 var
+R684:684 CT.Ax <> e:11 var
+R738:739 Coq.Init.Logic <> ::type_scope:'~'_x not
+R741:747 CT.CoreLang <> :::x_'\FVtm'_x not
+R738:739 Coq.Init.Logic <> ::type_scope:'~'_x not
+R741:747 CT.CoreLang <> :::x_'\FVtm'_x not
+R758:777 CT.Ax <> term_has_no_free_var prfax
+R758:777 CT.Ax <> term_has_no_free_var prfax
+prf 907:933 <> closed_term_has_no_free_var
+binder 943:943 <> e:13
+binder 945:945 <> x:14
+binder 947:947 <> T:15
+R968:971 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R955:959 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R961:966 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R950:954 CT.Maps <> empty def
+R960:960 CT.Ax <> e:13 var
+R967:967 CT.Ax <> T:15 var
+R972:973 Coq.Init.Logic <> ::type_scope:'~'_x not
+R975:981 CT.CoreLang <> :::x_'\FVtm'_x not
+R974:974 CT.Ax <> x:14 var
+R982:982 CT.Ax <> e:13 var
+prf 1027:1048 <> lete_preserve_not_free
+binder 1058:1058 <> e:16
+binder 1060:1060 <> x:17
+binder 1062:1062 <> a:18
+binder 1064:1066 <> e_a:19
+R1082:1085 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1069:1070 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1072:1078 CT.CoreLang <> :::x_'\FVtm'_x not
+R1071:1071 CT.Ax <> x:17 var
+R1079:1081 CT.Ax <> e_a:19 var
+R1097:1100 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1086:1087 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1089:1095 CT.CoreLang <> :::x_'\FVtm'_x not
+R1088:1088 CT.Ax <> x:17 var
+R1096:1096 CT.Ax <> e:16 var
+R1101:1102 Coq.Init.Logic <> ::type_scope:'~'_x not
+R1104:1110 CT.CoreLang <> :::x_'\FVtm'_x not
+R1103:1103 CT.Ax <> x:17 var
+R1111:1115 CT.CoreLang <> tlete constr
+R1117:1117 CT.Ax <> a:18 var
+R1119:1121 CT.Ax <> e_a:19 var
+R1123:1123 CT.Ax <> e:16 var
+def 1217:1227 <> const_order
+R1237:1244 CT.CoreLang <> constant ind
+binder 1230:1231 <> c1:20
+binder 1233:1234 <> c2:21
+R1265:1266 CT.Ax <> c1:20 var
+R1277:1281 CT.CoreLang <> cbool constr
+R1301:1302 CT.Ax <> c2:21 var
+R1317:1321 CT.CoreLang <> cbool constr
+R1346:1347 CT.Ax <> c1:20 var
+R1367:1370 Coq.Init.Datatypes <> true constr
+R1375:1379 Coq.Init.Logic <> False ind
+R1394:1398 Coq.Init.Datatypes <> false constr
+R1405:1407 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R1403:1404 CT.Ax <> c2:21 var
+R1408:1411 Coq.Init.Datatypes <> true constr
+R1437:1440 CT.CoreLang <> cnat constr
+R1447:1450 Coq.Init.Logic <> True ind
+R1466:1469 CT.CoreLang <> cnat constr
+R1489:1490 CT.Ax <> c2:21 var
+R1505:1509 CT.CoreLang <> cbool constr
+R1516:1520 Coq.Init.Logic <> False ind
+R1530:1533 CT.CoreLang <> cnat constr
+R1543:1545 Coq.Init.Peano <> ::nat_scope:x_'<'_x not
+R1541:1542 CT.Ax <> c1:20 var
+R1546:1547 CT.Ax <> c2:21 var
+prf 1594:1620 <> const_order_is_well_founded
+R1623:1634 Coq.Init.Wf <> well_founded def
+R1636:1646 CT.Ax <> const_order def
+prf 1681:1698 <> multi_preservation
+binder 1709:1709 <> t:26
+binder 1711:1712 <> t':27
+binder 1714:1714 <> T:28
+R1739:1743 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1726:1730 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1732:1737 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1721:1725 CT.Maps <> empty def
+R1731:1731 CT.Ax <> t:26 var
+R1738:1738 CT.Ax <> T:28 var
+R1753:1775 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1745:1750 CT.CoreLang <> :::x_'-->*'_x not
+R1744:1744 CT.Ax <> t:26 var
+R1751:1752 CT.Ax <> t':27 var
+R1781:1785 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1788:1793 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1776:1780 CT.Maps <> empty def
+R1786:1787 CT.Ax <> t':27 var
+R1794:1794 CT.Ax <> T:28 var
+prf 1834:1851 <> preservation_value
+binder 1862:1862 <> t:29
+R1868:1872 CT.CoreLang <> value ind
+binder 1865:1865 <> v:30
+binder 1875:1875 <> T:31
+R1900:1904 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1887:1891 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1893:1898 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R1882:1886 CT.Maps <> empty def
+R1892:1892 CT.Ax <> t:29 var
+R1899:1899 CT.Ax <> T:31 var
+R1913:1935 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R1906:1911 CT.CoreLang <> :::x_'-->*'_x not
+R1905:1905 CT.Ax <> t:29 var
+R1912:1912 CT.Ax <> v:30 var
+R1941:1945 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Vin'_x not
+R1947:1952 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Vin'_x not
+R1936:1940 CT.Maps <> empty def
+R1946:1946 CT.Ax <> v:30 var
+R1953:1953 CT.Ax <> T:31 var
+R1991:2008 CT.Ax <> multi_preservation prfax
+R1991:2008 CT.Ax <> multi_preservation prfax
+prf 2047:2055 <> ty_unique
+binder 2065:2069 <> Gamma:32
+binder 2071:2071 <> e:33
+binder 2073:2074 <> T1:34
+binder 2076:2077 <> T2:35
+R2103:2107 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2089:2093 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2095:2100 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2084:2088 CT.Ax <> Gamma:32 var
+R2094:2094 CT.Ax <> e:33 var
+R2101:2102 CT.Ax <> T1:34 var
+R2127:2130 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2113:2117 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2119:2124 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2108:2112 CT.Ax <> Gamma:32 var
+R2118:2118 CT.Ax <> e:33 var
+R2125:2126 CT.Ax <> T2:35 var
+R2133:2135 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2131:2132 CT.Ax <> T1:34 var
+R2136:2137 CT.Ax <> T2:35 var
+prf 2175:2203 <> empty_has_type_implies_closed
+binder 2213:2213 <> e:36
+binder 2215:2215 <> T:37
+R2236:2240 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2262:2262 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2223:2227 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2229:2234 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2218:2222 CT.Maps <> empty def
+R2228:2228 CT.Ax <> e:36 var
+R2235:2235 CT.Ax <> T:37 var
+binder 2248:2248 <> x:38
+R2251:2252 Coq.Init.Logic <> ::type_scope:'~'_x not
+R2254:2260 CT.CoreLang <> :::x_'\FVtm'_x not
+R2253:2253 CT.Ax <> x:38 var
+R2261:2261 CT.Ax <> e:36 var
+prf 2358:2375 <> let_reduction_spec
+binder 2385:2385 <> x:39
+binder 2387:2389 <> e_x:40
+binder 2391:2391 <> e:41
+R2397:2401 CT.CoreLang <> value ind
+binder 2394:2394 <> v:42
+R2429:2434 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2494:2494 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2422:2427 CT.CoreLang <> :::x_'-->*'_x not
+R2409:2413 CT.CoreLang <> tlete constr
+R2415:2415 CT.Ax <> x:39 var
+R2417:2419 CT.Ax <> e_x:40 var
+R2421:2421 CT.Ax <> e:41 var
+R2428:2428 CT.Ax <> v:42 var
+R2435:2442 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2453:2455 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2448:2452 CT.CoreLang <> value ind
+binder 2443:2445 <> v_x:43
+R2468:2471 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2459:2464 CT.CoreLang <> :::x_'-->*'_x not
+R2456:2458 CT.Ax <> e_x:40 var
+R2465:2467 CT.Ax <> v_x:43 var
+R2472:2472 CT.CoreLang <> :::x_'-->*'_x not
+R2486:2492 CT.CoreLang <> :::x_'-->*'_x not
+R2473:2477 CT.CoreLang <> subst def
+R2479:2479 CT.Ax <> x:39 var
+R2481:2483 CT.Ax <> v_x:43 var
+R2485:2485 CT.Ax <> e:41 var
+R2493:2493 CT.Ax <> v:42 var
+prf 2515:2535 <> letapp_reduction_spec
+binder 2545:2545 <> x:44
+R2551:2555 CT.CoreLang <> value ind
+binder 2548:2548 <> f:45
+R2564:2568 CT.CoreLang <> value ind
+binder 2559:2560 <> v1:46
+R2576:2580 CT.CoreLang <> value ind
+binder 2572:2572 <> v:47
+binder 2583:2583 <> e:48
+R2613:2622 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2713:2713 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2606:2611 CT.CoreLang <> :::x_'-->*'_x not
+R2590:2596 CT.CoreLang <> tletapp constr
+R2598:2598 CT.Ax <> x:44 var
+R2600:2600 CT.Ax <> f:45 var
+R2602:2603 CT.Ax <> v1:46 var
+R2605:2605 CT.Ax <> e:48 var
+R2612:2612 CT.Ax <> v:47 var
+R2623:2629 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R2641:2651 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 2630:2632 <> x_m:49
+binder 2634:2636 <> T_m:50
+binder 2638:2640 <> e_m:51
+R2672:2675 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R2653:2655 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R2652:2652 CT.Ax <> f:45 var
+R2656:2659 CT.CoreLang <> vlam constr
+R2661:2663 CT.Ax <> x_m:49 var
+R2665:2667 CT.Ax <> T_m:50 var
+R2669:2671 CT.Ax <> e_m:51 var
+R2676:2676 CT.CoreLang <> :::x_'-->*'_x not
+R2705:2711 CT.CoreLang <> :::x_'-->*'_x not
+R2677:2681 CT.CoreLang <> tlete constr
+R2683:2683 CT.Ax <> x:44 var
+R2686:2690 CT.CoreLang <> subst def
+R2692:2694 CT.Ax <> x_m:49 var
+R2696:2697 CT.Ax <> v1:46 var
+R2699:2701 CT.Ax <> e_m:51 var
+R2704:2704 CT.Ax <> e:48 var
+R2712:2712 CT.Ax <> v:47 var
+prf 2736:2761 <> reduction_eq_implies_ty_eq
+binder 2771:2772 <> e1:52
+binder 2774:2775 <> e2:53
+R2782:2782 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2825:2834 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2894:2894 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2794:2798 CT.CoreLang <> value ind
+binder 2791:2791 <> v:54
+R2811:2815 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2804:2809 CT.CoreLang <> :::x_'-->*'_x not
+R2802:2803 CT.Ax <> e1:52 var
+R2810:2810 CT.Ax <> v:54 var
+R2818:2823 CT.CoreLang <> :::x_'-->*'_x not
+R2816:2817 CT.Ax <> e2:53 var
+R2824:2824 CT.Ax <> v:54 var
+binder 2842:2846 <> Gamma:55
+binder 2848:2848 <> T:56
+R2870:2874 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2856:2860 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2863:2868 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2851:2855 CT.Ax <> Gamma:55 var
+R2861:2862 CT.Ax <> e1:52 var
+R2869:2869 CT.Ax <> T:56 var
+R2880:2884 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2887:2892 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R2875:2879 CT.Ax <> Gamma:55 var
+R2885:2886 CT.Ax <> e2:53 var
+R2893:2893 CT.Ax <> T:56 var
+prf 2914:2936 <> reduction_eq_implies_eq
+binder 2946:2947 <> e1:57
+binder 2949:2950 <> e2:58
+R2957:2957 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3000:3004 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R2969:2973 CT.CoreLang <> value ind
+binder 2966:2966 <> v:59
+R2986:2990 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R2979:2984 CT.CoreLang <> :::x_'-->*'_x not
+R2977:2978 CT.Ax <> e1:57 var
+R2985:2985 CT.Ax <> v:59 var
+R2993:2998 CT.CoreLang <> :::x_'-->*'_x not
+R2991:2992 CT.Ax <> e2:58 var
+R2999:2999 CT.Ax <> v:59 var
+R3007:3011 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R3005:3006 CT.Ax <> e1:57 var
+R3012:3013 CT.Ax <> e2:58 var
+R3012:3013 CT.Ax <> e2:58 var
+R3005:3006 CT.Ax <> e1:57 var
+R3096:3121 CT.Ax <> reduction_eq_implies_ty_eq prfax
+R3096:3121 CT.Ax <> reduction_eq_implies_ty_eq prfax
+R3178:3203 CT.Ax <> reduction_eq_implies_ty_eq prfax
+R3178:3203 CT.Ax <> reduction_eq_implies_ty_eq prfax
+prf 3220:3234 <> subst_letx_same
+binder 3244:3245 <> x1:60
+binder 3247:3248 <> v1:61
+binder 3250:3250 <> x:62
+R3255:3255 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3322:3325 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3262:3265 Coq.Strings.String <> ::string_scope:x_'=?'_x not
+R3260:3261 CT.Ax <> x1:60 var
+R3266:3266 CT.Ax <> x:62 var
+R3294:3297 Coq.Strings.String <> ::string_scope:x_'=?'_x not
+R3292:3293 CT.Ax <> x1:60 var
+R3298:3298 CT.Ax <> x:62 var
+R3321:3321 CT.Ax <> x:62 var
+R3313:3314 CT.Ax <> v1:61 var
+R3281:3281 CT.Ax <> x:62 var
+R3326:3326 CT.Ax <> x:62 var
+R3369:3376 Coq.Strings.String <> eqb_spec thm
+R3369:3376 Coq.Strings.String <> eqb_spec thm
+prf 3406:3432 <> value_only_reduce_to_itself
+R3449:3453 CT.CoreLang <> value ind
+binder 3443:3443 <> v:63
+binder 3445:3446 <> v':64
+R3470:3474 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R3462:3467 CT.CoreLang <> :::x_'-->*'_x not
+R3461:3461 CT.Ax <> v:63 var
+R3468:3469 CT.Ax <> v':64 var
+R3476:3478 Coq.Init.Logic <> ::type_scope:x_'='_x not
+R3475:3475 CT.Ax <> v:63 var
+R3479:3480 CT.Ax <> v':64 var
+prf 3594:3615 <> reduce_value_prop_same
+R3629:3633 CT.CoreLang <> value ind
+binder 3626:3626 <> v:65
+binder 3636:3636 <> P:66
+R3642:3642 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R3684:3689 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R3643:3650 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3662:3664 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R3657:3661 CT.CoreLang <> value ind
+binder 3651:3653 <> v_x:67
+R3675:3678 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R3666:3671 CT.CoreLang <> :::x_'-->*'_x not
+R3665:3665 CT.Ax <> v:65 var
+R3672:3674 CT.Ax <> v_x:67 var
+R3679:3679 CT.Ax <> P:66 var
+R3681:3683 CT.Ax <> v_x:67 var
+R3690:3690 CT.Ax <> P:66 var
+R3692:3692 CT.Ax <> v:65 var
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+R3749:3775 CT.Ax <> value_only_reduce_to_itself thm
+prf 3858:3876 <> eta_app_value_value
+binder 3886:3886 <> x:68
+R3896:3900 CT.CoreLang <> value ind
+binder 3889:3890 <> v1:69
+binder 3892:3893 <> v2:70
+binder 3903:3904 <> x1:71
+binder 3906:3907 <> x2:72
+R3922:3925 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3916:3919 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R3914:3915 CT.Ax <> x1:71 var
+R3920:3921 CT.Ax <> x2:72 var
+R3939:3946 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R3926:3927 Coq.Init.Logic <> ::type_scope:'~'_x not
+R3930:3936 CT.CoreLang <> :::x_'\FVtm'_x not
+R3928:3929 CT.Ax <> x1:71 var
+R3937:3938 CT.Ax <> v2:70 var
+R3964:3968 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R3947:3953 CT.CoreLang <> tletapp constr
+R3955:3955 CT.Ax <> x:68 var
+R3957:3958 CT.Ax <> v1:69 var
+R3960:3961 CT.Ax <> v2:70 var
+R3963:3963 CT.Ax <> x:68 var
+R3969:3973 CT.CoreLang <> tlete constr
+R3975:3976 CT.Ax <> x1:71 var
+R3978:3979 CT.Ax <> v1:69 var
+R3982:3986 CT.CoreLang <> tlete constr
+R3988:3989 CT.Ax <> x2:72 var
+R3991:3992 CT.Ax <> v2:70 var
+R3995:4001 CT.CoreLang <> tletapp constr
+R4003:4003 CT.Ax <> x:68 var
+R4005:4006 CT.Ax <> x1:71 var
+R4008:4009 CT.Ax <> x2:72 var
+R4011:4011 CT.Ax <> x:68 var
+R3969:3973 CT.CoreLang <> tlete constr
+R3975:3976 CT.Ax <> x1:71 var
+R3978:3979 CT.Ax <> v1:69 var
+R3982:3986 CT.CoreLang <> tlete constr
+R3988:3989 CT.Ax <> x2:72 var
+R3991:3992 CT.Ax <> v2:70 var
+R3995:4001 CT.CoreLang <> tletapp constr
+R4003:4003 CT.Ax <> x:68 var
+R4005:4006 CT.Ax <> x1:71 var
+R4008:4009 CT.Ax <> x2:72 var
+R4011:4011 CT.Ax <> x:68 var
+R3947:3953 CT.CoreLang <> tletapp constr
+R3955:3955 CT.Ax <> x:68 var
+R3957:3958 CT.Ax <> v1:69 var
+R3960:3961 CT.Ax <> v2:70 var
+R3963:3963 CT.Ax <> x:68 var
+R4050:4072 CT.Ax <> reduction_eq_implies_eq thm
+R4050:4072 CT.Ax <> reduction_eq_implies_eq thm
+R4106:4123 CT.Ax <> let_reduction_spec prfax
+R4106:4123 CT.Ax <> let_reduction_spec prfax
+R4106:4123 CT.Ax <> let_reduction_spec prfax
+R4134:4155 CT.Ax <> reduce_value_prop_same thm
+R4134:4155 CT.Ax <> reduce_value_prop_same thm
+R4134:4155 CT.Ax <> reduce_value_prop_same thm
+R4177:4198 CT.CoreLang <> not_free_rewrite_value thm
+R4177:4198 CT.CoreLang <> not_free_rewrite_value thm
+R4177:4198 CT.CoreLang <> not_free_rewrite_value thm
+R4177:4198 CT.CoreLang <> not_free_rewrite_value thm
+R4215:4232 CT.Ax <> let_reduction_spec prfax
+R4215:4232 CT.Ax <> let_reduction_spec prfax
+R4215:4232 CT.Ax <> let_reduction_spec prfax
+R4243:4264 CT.Ax <> reduce_value_prop_same thm
+R4243:4264 CT.Ax <> reduce_value_prop_same thm
+R4243:4264 CT.Ax <> reduce_value_prop_same thm
+R4278:4284 Coq.Strings.String <> eqb_neq thm
+R4278:4284 Coq.Strings.String <> eqb_neq thm
+R4278:4284 Coq.Strings.String <> eqb_neq thm
+R4311:4318 Coq.Strings.String <> eqb_refl thm
+R4311:4318 Coq.Strings.String <> eqb_refl thm
+R4311:4318 Coq.Strings.String <> eqb_refl thm
+R4340:4361 CT.CoreLang <> not_free_rewrite_value thm
+R4340:4361 CT.CoreLang <> not_free_rewrite_value thm
+R4340:4361 CT.CoreLang <> not_free_rewrite_value thm
+R4340:4361 CT.CoreLang <> not_free_rewrite_value thm
+R4374:4381 Coq.Strings.String <> eqb_refl thm
+R4374:4381 Coq.Strings.String <> eqb_refl thm
+R4374:4381 Coq.Strings.String <> eqb_refl thm
+R4398:4405 Coq.Strings.String <> eqb_spec thm
+R4424:4431 Coq.Strings.String <> eqb_spec thm
+R4398:4405 Coq.Strings.String <> eqb_spec thm
+R4424:4431 Coq.Strings.String <> eqb_spec thm
+R4424:4431 Coq.Strings.String <> eqb_spec thm
+R4473:4479 Coq.Strings.String <> eqb_neq thm
+R4473:4479 Coq.Strings.String <> eqb_neq thm
+R4473:4479 Coq.Strings.String <> eqb_neq thm
+R4519:4525 Coq.Strings.String <> eqb_neq thm
+R4519:4525 Coq.Strings.String <> eqb_neq thm
+R4519:4525 Coq.Strings.String <> eqb_neq thm
+R4560:4577 CT.Ax <> let_reduction_spec prfax
+R4560:4577 CT.Ax <> let_reduction_spec prfax
+R4560:4577 CT.Ax <> let_reduction_spec prfax
+R4594:4615 CT.Ax <> reduce_value_prop_same thm
+R4594:4615 CT.Ax <> reduce_value_prop_same thm
+R4594:4615 CT.Ax <> reduce_value_prop_same thm
+R4649:4670 CT.CoreLang <> not_free_rewrite_value thm
+R4649:4670 CT.CoreLang <> not_free_rewrite_value thm
+R4649:4670 CT.CoreLang <> not_free_rewrite_value thm
+R4649:4670 CT.CoreLang <> not_free_rewrite_value thm
+R4692:4698 Coq.Strings.String <> eqb_neq thm
+R4692:4698 Coq.Strings.String <> eqb_neq thm
+R4692:4698 Coq.Strings.String <> eqb_neq thm
+R4731:4738 Coq.Strings.String <> eqb_refl thm
+R4731:4738 Coq.Strings.String <> eqb_refl thm
+R4731:4738 Coq.Strings.String <> eqb_refl thm
+R4759:4776 CT.Ax <> let_reduction_spec prfax
+R4759:4776 CT.Ax <> let_reduction_spec prfax
+R4759:4776 CT.Ax <> let_reduction_spec prfax
+R4793:4814 CT.Ax <> reduce_value_prop_same thm
+R4793:4814 CT.Ax <> reduce_value_prop_same thm
+R4793:4814 CT.Ax <> reduce_value_prop_same thm
+R4848:4869 CT.CoreLang <> not_free_rewrite_value thm
+R4848:4869 CT.CoreLang <> not_free_rewrite_value thm
+R4848:4869 CT.CoreLang <> not_free_rewrite_value thm
+R4848:4869 CT.CoreLang <> not_free_rewrite_value thm
+R4888:4895 Coq.Strings.String <> eqb_refl thm
+R4888:4895 Coq.Strings.String <> eqb_refl thm
+R4888:4895 Coq.Strings.String <> eqb_refl thm
+R4918:4925 Coq.Strings.String <> eqb_spec thm
+R4944:4951 Coq.Strings.String <> eqb_spec thm
+R4918:4925 Coq.Strings.String <> eqb_spec thm
+R4944:4951 Coq.Strings.String <> eqb_spec thm
+R4944:4951 Coq.Strings.String <> eqb_spec thm
+R4999:5005 Coq.Strings.String <> eqb_neq thm
+R4999:5005 Coq.Strings.String <> eqb_neq thm
+R4999:5005 Coq.Strings.String <> eqb_neq thm
+R5051:5057 Coq.Strings.String <> eqb_neq thm
+R5051:5057 Coq.Strings.String <> eqb_neq thm
+R5051:5057 Coq.Strings.String <> eqb_neq thm
+prf 5340:5363 <> meet_of_two_terms_exists
+binder 5373:5374 <> e1:73
+binder 5376:5377 <> e2:74
+binder 5379:5379 <> T:75
+R5405:5408 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5391:5395 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5398:5403 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5386:5390 CT.Maps <> empty def
+R5396:5397 CT.Ax <> e1:73 var
+R5404:5404 CT.Ax <> T:75 var
+R5428:5436 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5521:5521 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5414:5418 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5421:5426 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5409:5413 CT.Maps <> empty def
+R5419:5420 CT.Ax <> e2:74 var
+R5427:5427 CT.Ax <> T:75 var
+R5437:5443 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R5446:5447 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+binder 5444:5445 <> e3:76
+R5448:5448 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5468:5473 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5520:5520 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5454:5458 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5461:5466 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R5449:5453 CT.Maps <> empty def
+R5459:5460 CT.Ax <> e3:76 var
+R5467:5467 CT.Ax <> T:75 var
+binder 5481:5481 <> c:77
+R5493:5497 Coq.Init.Logic <> ::type_scope:x_'<->'_x not
+R5486:5491 CT.CoreLang <> :::x_'-->*'_x not
+R5484:5485 CT.Ax <> e3:76 var
+R5492:5492 CT.Ax <> c:77 var
+R5507:5510 Coq.Init.Logic <> ::type_scope:x_'/\'_x not
+R5500:5505 CT.CoreLang <> :::x_'-->*'_x not
+R5498:5499 CT.Ax <> e1:73 var
+R5506:5506 CT.Ax <> c:77 var
+R5513:5518 CT.CoreLang <> :::x_'-->*'_x not
+R5511:5512 CT.Ax <> e2:74 var
+R5519:5519 CT.Ax <> c:77 var
+prf 5541:5553 <> eta_reduction
+binder 5563:5564 <> x1:78
+R5570:5574 CT.CoreLang <> value ind
+binder 5567:5567 <> f:79
+binder 5577:5578 <> x2:80
+R5584:5588 CT.CoreLang <> value ind
+binder 5581:5581 <> v:81
+R5611:5618 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R5596:5597 Coq.Init.Logic <> ::type_scope:'~'_x not
+R5600:5609 CT.CoreLang <> :::x_'\FVvalue'_x not
+R5598:5599 CT.Ax <> x1:78 var
+R5610:5610 CT.Ax <> v:81 var
+R5619:5619 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R5637:5643 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R5675:5675 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R5620:5626 CT.CoreLang <> tletapp constr
+R5628:5629 CT.Ax <> x2:80 var
+R5631:5631 CT.Ax <> f:79 var
+R5633:5633 CT.Ax <> v:81 var
+R5635:5636 CT.Ax <> x2:80 var
+R5644:5648 CT.CoreLang <> tlete constr
+R5650:5651 CT.Ax <> x1:78 var
+R5653:5653 CT.Ax <> f:79 var
+R5656:5662 CT.CoreLang <> tletapp constr
+R5664:5665 CT.Ax <> x2:80 var
+R5667:5668 CT.Ax <> x1:78 var
+R5670:5670 CT.Ax <> v:81 var
+R5672:5673 CT.Ax <> x2:80 var
+R5644:5648 CT.CoreLang <> tlete constr
+R5650:5651 CT.Ax <> x1:78 var
+R5653:5653 CT.Ax <> f:79 var
+R5656:5662 CT.CoreLang <> tletapp constr
+R5664:5665 CT.Ax <> x2:80 var
+R5667:5668 CT.Ax <> x1:78 var
+R5670:5670 CT.Ax <> v:81 var
+R5672:5673 CT.Ax <> x2:80 var
+R5620:5626 CT.CoreLang <> tletapp constr
+R5628:5629 CT.Ax <> x2:80 var
+R5631:5631 CT.Ax <> f:79 var
+R5633:5633 CT.Ax <> v:81 var
+R5635:5636 CT.Ax <> x2:80 var
+R5714:5736 CT.Ax <> reduction_eq_implies_eq thm
+R5714:5736 CT.Ax <> reduction_eq_implies_eq thm
+R5774:5791 CT.Ax <> let_reduction_spec prfax
+R5774:5791 CT.Ax <> let_reduction_spec prfax
+R5774:5791 CT.Ax <> let_reduction_spec prfax
+R5802:5823 CT.Ax <> reduce_value_prop_same thm
+R5802:5823 CT.Ax <> reduce_value_prop_same thm
+R5802:5823 CT.Ax <> reduce_value_prop_same thm
+R5847:5868 CT.CoreLang <> not_free_rewrite_value thm
+R5847:5868 CT.CoreLang <> not_free_rewrite_value thm
+R5847:5868 CT.CoreLang <> not_free_rewrite_value thm
+R5847:5868 CT.CoreLang <> not_free_rewrite_value thm
+R5887:5894 Coq.Strings.String <> eqb_refl thm
+R5887:5894 Coq.Strings.String <> eqb_refl thm
+R5887:5894 Coq.Strings.String <> eqb_refl thm
+R5913:5920 Coq.Strings.String <> eqb_spec thm
+R5913:5920 Coq.Strings.String <> eqb_spec thm
+R5971:5988 CT.Ax <> let_reduction_spec prfax
+R5971:5988 CT.Ax <> let_reduction_spec prfax
+R5971:5988 CT.Ax <> let_reduction_spec prfax
+R5999:6020 CT.Ax <> reduce_value_prop_same thm
+R5999:6020 CT.Ax <> reduce_value_prop_same thm
+R5999:6020 CT.Ax <> reduce_value_prop_same thm
+R6045:6066 CT.CoreLang <> not_free_rewrite_value thm
+R6045:6066 CT.CoreLang <> not_free_rewrite_value thm
+R6045:6066 CT.CoreLang <> not_free_rewrite_value thm
+R6045:6066 CT.CoreLang <> not_free_rewrite_value thm
+R6085:6092 Coq.Strings.String <> eqb_refl thm
+R6085:6092 Coq.Strings.String <> eqb_refl thm
+R6085:6092 Coq.Strings.String <> eqb_refl thm
+R6112:6119 Coq.Strings.String <> eqb_spec thm
+R6112:6119 Coq.Strings.String <> eqb_spec thm
+prf 6240:6274 <> eta_application_const_to_lete_const
+binder 6284:6285 <> x2:82
+binder 6287:6287 <> x:83
+binder 6289:6289 <> T:84
+binder 6291:6291 <> e:85
+R6299:6306 CT.CoreLang <> constant ind
+binder 6294:6296 <> c_x:86
+R6314:6314 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6328:6334 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6365:6365 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6315:6319 CT.CoreLang <> tlete constr
+R6321:6321 CT.Ax <> x:83 var
+R6323:6325 CT.Ax <> c_x:86 var
+R6327:6327 CT.Ax <> e:85 var
+R6335:6341 CT.CoreLang <> tletapp constr
+R6343:6344 CT.Ax <> x2:82 var
+R6347:6350 CT.CoreLang <> vlam constr
+R6352:6352 CT.Ax <> x:83 var
+R6354:6354 CT.Ax <> T:84 var
+R6356:6356 CT.Ax <> e:85 var
+R6359:6361 CT.Ax <> c_x:86 var
+R6363:6364 CT.Ax <> x2:82 var
+R6335:6341 CT.CoreLang <> tletapp constr
+R6343:6344 CT.Ax <> x2:82 var
+R6347:6350 CT.CoreLang <> vlam constr
+R6352:6352 CT.Ax <> x:83 var
+R6354:6354 CT.Ax <> T:84 var
+R6356:6356 CT.Ax <> e:85 var
+R6359:6361 CT.Ax <> c_x:86 var
+R6363:6364 CT.Ax <> x2:82 var
+R6315:6319 CT.CoreLang <> tlete constr
+R6321:6321 CT.Ax <> x:83 var
+R6323:6325 CT.Ax <> c_x:86 var
+R6327:6327 CT.Ax <> e:85 var
+R6404:6426 CT.Ax <> reduction_eq_implies_eq thm
+R6404:6426 CT.Ax <> reduction_eq_implies_eq thm
+R6464:6484 CT.Ax <> letapp_reduction_spec prfax
+R6464:6484 CT.Ax <> letapp_reduction_spec prfax
+R6464:6484 CT.Ax <> letapp_reduction_spec prfax
+R6604:6624 CT.Ax <> letapp_reduction_spec prfax
+R6604:6624 CT.Ax <> letapp_reduction_spec prfax
+R6604:6624 CT.Ax <> letapp_reduction_spec prfax
+prf 6670:6692 <> eta_lete_const_to_subst
+binder 6702:6702 <> x:87
+binder 6704:6704 <> e:88
+R6712:6719 CT.CoreLang <> constant ind
+binder 6707:6709 <> c_x:89
+R6727:6727 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6741:6747 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6761:6761 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R6728:6732 CT.CoreLang <> subst def
+R6734:6734 CT.Ax <> x:87 var
+R6736:6738 CT.Ax <> c_x:89 var
+R6740:6740 CT.Ax <> e:88 var
+R6748:6752 CT.CoreLang <> tlete constr
+R6754:6754 CT.Ax <> x:87 var
+R6756:6758 CT.Ax <> c_x:89 var
+R6760:6760 CT.Ax <> e:88 var
+R6748:6752 CT.CoreLang <> tlete constr
+R6754:6754 CT.Ax <> x:87 var
+R6756:6758 CT.Ax <> c_x:89 var
+R6760:6760 CT.Ax <> e:88 var
+R6728:6732 CT.CoreLang <> subst def
+R6734:6734 CT.Ax <> x:87 var
+R6736:6738 CT.Ax <> c_x:89 var
+R6740:6740 CT.Ax <> e:88 var
+R6800:6822 CT.Ax <> reduction_eq_implies_eq thm
+R6800:6822 CT.Ax <> reduction_eq_implies_eq thm
+R6860:6877 CT.Ax <> let_reduction_spec prfax
+R6860:6877 CT.Ax <> let_reduction_spec prfax
+R6860:6877 CT.Ax <> let_reduction_spec prfax
+R6888:6909 CT.Ax <> reduce_value_prop_same thm
+R6888:6909 CT.Ax <> reduce_value_prop_same thm
+R6888:6909 CT.Ax <> reduce_value_prop_same thm
+R6936:6953 CT.Ax <> let_reduction_spec prfax
+R6936:6953 CT.Ax <> let_reduction_spec prfax
+R6936:6953 CT.Ax <> let_reduction_spec prfax
+R6964:6985 CT.Ax <> reduce_value_prop_same thm
+R6964:6985 CT.Ax <> reduce_value_prop_same thm
+R6964:6985 CT.Ax <> reduce_value_prop_same thm
+prf 7015:7044 <> eta_lete_const_to_subst_in_lam
+binder 7054:7054 <> a:90
+binder 7056:7056 <> T:91
+binder 7058:7058 <> x:92
+binder 7060:7060 <> e:93
+R7068:7075 CT.CoreLang <> constant ind
+binder 7063:7065 <> c_x:94
+R7083:7083 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7108:7114 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7139:7139 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7084:7087 CT.CoreLang <> vlam constr
+R7089:7089 CT.Ax <> a:90 var
+R7091:7091 CT.Ax <> T:91 var
+R7094:7098 CT.CoreLang <> subst def
+R7100:7100 CT.Ax <> x:92 var
+R7102:7104 CT.Ax <> c_x:94 var
+R7106:7106 CT.Ax <> e:93 var
+R7115:7118 CT.CoreLang <> vlam constr
+R7120:7120 CT.Ax <> a:90 var
+R7122:7122 CT.Ax <> T:91 var
+R7125:7129 CT.CoreLang <> tlete constr
+R7131:7131 CT.Ax <> x:92 var
+R7133:7135 CT.Ax <> c_x:94 var
+R7137:7137 CT.Ax <> e:93 var
+R7115:7118 CT.CoreLang <> vlam constr
+R7120:7120 CT.Ax <> a:90 var
+R7122:7122 CT.Ax <> T:91 var
+R7125:7129 CT.CoreLang <> tlete constr
+R7131:7131 CT.Ax <> x:92 var
+R7133:7135 CT.Ax <> c_x:94 var
+R7137:7137 CT.Ax <> e:93 var
+R7084:7087 CT.CoreLang <> vlam constr
+R7089:7089 CT.Ax <> a:90 var
+R7091:7091 CT.Ax <> T:91 var
+R7094:7098 CT.CoreLang <> subst def
+R7100:7100 CT.Ax <> x:92 var
+R7102:7104 CT.Ax <> c_x:94 var
+R7106:7106 CT.Ax <> e:93 var
+prf 7159:7193 <> eta_closed_term_can_captured_by_lam
+binder 7203:7203 <> a:95
+binder 7205:7207 <> e_a:96
+binder 7209:7210 <> Ta:97
+binder 7212:7212 <> x:98
+binder 7214:7214 <> T:99
+binder 7216:7216 <> e:100
+R7244:7247 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7228:7232 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R7236:7241 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R7223:7227 CT.Maps <> empty def
+R7233:7235 CT.Ax <> e_a:96 var
+R7242:7243 CT.Ax <> Ta:97 var
+R7254:7261 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7249:7252 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7248:7248 CT.Ax <> a:95 var
+R7253:7253 CT.Ax <> x:98 var
+R7262:7262 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7287:7293 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7318:7318 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7263:7266 CT.CoreLang <> vlam constr
+R7268:7268 CT.Ax <> x:98 var
+R7270:7270 CT.Ax <> T:99 var
+R7273:7277 CT.CoreLang <> tlete constr
+R7279:7279 CT.Ax <> a:95 var
+R7281:7283 CT.Ax <> e_a:96 var
+R7285:7285 CT.Ax <> e:100 var
+R7294:7298 CT.CoreLang <> tlete constr
+R7300:7300 CT.Ax <> a:95 var
+R7302:7304 CT.Ax <> e_a:96 var
+R7307:7310 CT.CoreLang <> vlam constr
+R7312:7312 CT.Ax <> x:98 var
+R7314:7314 CT.Ax <> T:99 var
+R7316:7316 CT.Ax <> e:100 var
+R7294:7298 CT.CoreLang <> tlete constr
+R7300:7300 CT.Ax <> a:95 var
+R7302:7304 CT.Ax <> e_a:96 var
+R7307:7310 CT.CoreLang <> vlam constr
+R7312:7312 CT.Ax <> x:98 var
+R7314:7314 CT.Ax <> T:99 var
+R7316:7316 CT.Ax <> e:100 var
+R7263:7266 CT.CoreLang <> vlam constr
+R7268:7268 CT.Ax <> x:98 var
+R7270:7270 CT.Ax <> T:99 var
+R7273:7277 CT.CoreLang <> tlete constr
+R7279:7279 CT.Ax <> a:95 var
+R7281:7283 CT.Ax <> e_a:96 var
+R7285:7285 CT.Ax <> e:100 var
+prf 7338:7352 <> eta_matchb_true
+binder 7362:7363 <> e1:101
+binder 7365:7366 <> e2:102
+R7371:7376 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7395:7395 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7369:7370 CT.Ax <> e1:101 var
+R7377:7383 CT.CoreLang <> tmatchb constr
+R7385:7388 Coq.Init.Datatypes <> true constr
+R7390:7391 CT.Ax <> e1:101 var
+R7393:7394 CT.Ax <> e2:102 var
+R7377:7383 CT.CoreLang <> tmatchb constr
+R7385:7388 Coq.Init.Datatypes <> true constr
+R7390:7391 CT.Ax <> e1:101 var
+R7393:7394 CT.Ax <> e2:102 var
+R7369:7370 CT.Ax <> e1:101 var
+R7434:7456 CT.Ax <> reduction_eq_implies_eq thm
+R7434:7456 CT.Ax <> reduction_eq_implies_eq thm
+R7493:7502 CT.CoreLang <> multi_step constr
+R7493:7502 CT.CoreLang <> multi_step constr
+R7512:7525 CT.CoreLang <> ST_Matchb_true constr
+R7512:7525 CT.CoreLang <> ST_Matchb_true constr
+prf 7571:7586 <> eta_matchb_false
+binder 7596:7597 <> e1:103
+binder 7599:7600 <> e2:104
+R7605:7610 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7630:7630 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7603:7604 CT.Ax <> e2:104 var
+R7611:7617 CT.CoreLang <> tmatchb constr
+R7619:7623 Coq.Init.Datatypes <> false constr
+R7625:7626 CT.Ax <> e1:103 var
+R7628:7629 CT.Ax <> e2:104 var
+R7611:7617 CT.CoreLang <> tmatchb constr
+R7619:7623 Coq.Init.Datatypes <> false constr
+R7625:7626 CT.Ax <> e1:103 var
+R7628:7629 CT.Ax <> e2:104 var
+R7603:7604 CT.Ax <> e2:104 var
+R7669:7691 CT.Ax <> reduction_eq_implies_eq thm
+R7669:7691 CT.Ax <> reduction_eq_implies_eq thm
+R7728:7737 CT.CoreLang <> multi_step constr
+R7728:7737 CT.CoreLang <> multi_step constr
+prf 7757:7760 <> eta1
+binder 7770:7771 <> x1:105
+binder 7773:7773 <> x:106
+binder 7775:7775 <> T:107
+binder 7777:7777 <> e:108
+binder 7779:7780 <> x2:109
+R7787:7794 CT.CoreLang <> constant ind
+binder 7783:7785 <> c_x:110
+binder 7797:7798 <> x0:111
+R7812:7815 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7807:7809 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R7805:7806 CT.Ax <> x1:105 var
+R7810:7811 CT.Ax <> x2:109 var
+R7830:7837 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7816:7817 Coq.Init.Logic <> ::type_scope:'~'_x not
+R7820:7826 CT.CoreLang <> :::x_'\FVtm'_x not
+R7818:7819 CT.Ax <> x1:105 var
+R7827:7829 CT.Ax <> c_x:110 var
+R7838:7838 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7897:7903 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7917:7917 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R7839:7843 CT.CoreLang <> tlete constr
+R7845:7846 CT.Ax <> x1:105 var
+R7849:7852 CT.CoreLang <> vlam constr
+R7854:7854 CT.Ax <> x:106 var
+R7856:7856 CT.Ax <> T:107 var
+R7858:7858 CT.Ax <> e:108 var
+R7862:7866 CT.CoreLang <> tlete constr
+R7868:7869 CT.Ax <> x2:109 var
+R7871:7873 CT.Ax <> c_x:110 var
+R7876:7882 CT.CoreLang <> tletapp constr
+R7884:7885 CT.Ax <> x0:111 var
+R7887:7888 CT.Ax <> x1:105 var
+R7890:7891 CT.Ax <> x2:109 var
+R7893:7894 CT.Ax <> x0:111 var
+R7904:7908 CT.CoreLang <> tlete constr
+R7910:7910 CT.Ax <> x:106 var
+R7912:7914 CT.Ax <> c_x:110 var
+R7916:7916 CT.Ax <> e:108 var
+R7904:7908 CT.CoreLang <> tlete constr
+R7910:7910 CT.Ax <> x:106 var
+R7912:7914 CT.Ax <> c_x:110 var
+R7916:7916 CT.Ax <> e:108 var
+R7839:7843 CT.CoreLang <> tlete constr
+R7845:7846 CT.Ax <> x1:105 var
+R7849:7852 CT.CoreLang <> vlam constr
+R7854:7854 CT.Ax <> x:106 var
+R7856:7856 CT.Ax <> T:107 var
+R7858:7858 CT.Ax <> e:108 var
+R7862:7866 CT.CoreLang <> tlete constr
+R7868:7869 CT.Ax <> x2:109 var
+R7871:7873 CT.Ax <> c_x:110 var
+R7876:7882 CT.CoreLang <> tletapp constr
+R7884:7885 CT.Ax <> x0:111 var
+R7887:7888 CT.Ax <> x1:105 var
+R7890:7891 CT.Ax <> x2:109 var
+R7893:7894 CT.Ax <> x0:111 var
+prf 7937:7941 <> eta11
+binder 7951:7951 <> x:112
+binder 7953:7955 <> e_x:113
+binder 7957:7957 <> e:114
+binder 7959:7960 <> x1:115
+binder 7962:7963 <> x2:116
+binder 7965:7966 <> x0:117
+binder 7968:7969 <> T1:118
+binder 7971:7972 <> T2:119
+R7993:8000 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R7979:7980 Coq.Init.Logic <> ::type_scope:'~'_x not
+R7983:7989 CT.CoreLang <> :::x_'\FVtm'_x not
+R7981:7982 CT.Ax <> x1:115 var
+R7990:7992 CT.Ax <> e_x:113 var
+R8001:8001 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8015:8020 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8002:8006 CT.CoreLang <> tlete constr
+R8008:8008 CT.Ax <> x:112 var
+R8010:8012 CT.Ax <> e_x:113 var
+R8014:8014 CT.Ax <> e:114 var
+R8021:8025 CT.CoreLang <> tlete constr
+R8027:8028 CT.Ax <> x1:115 var
+R8031:8034 CT.CoreLang <> vlam constr
+R8036:8036 CT.Ax <> x:112 var
+R8041:8046 CT.CoreLang <> :::x_'t-->'_x not
+R8039:8040 CT.Ax <> T1:118 var
+R8047:8048 CT.Ax <> T2:119 var
+R8051:8051 CT.Ax <> e:114 var
+R8055:8059 CT.CoreLang <> tlete constr
+R8061:8062 CT.Ax <> x2:116 var
+R8064:8066 CT.Ax <> e_x:113 var
+R8069:8075 CT.CoreLang <> tletapp constr
+R8077:8078 CT.Ax <> x0:117 var
+R8080:8081 CT.Ax <> x1:115 var
+R8083:8084 CT.Ax <> x2:116 var
+R8086:8087 CT.Ax <> x0:117 var
+prf 8109:8112 <> eta2
+binder 8122:8123 <> e2:120
+R8130:8137 CT.CoreLang <> constant ind
+binder 8126:8127 <> c2:121
+binder 8140:8141 <> x1:122
+binder 8143:8144 <> e1:123
+binder 8146:8147 <> x2:124
+binder 8149:8149 <> x:125
+R8166:8173 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8158:8163 CT.CoreLang <> :::x_'-->*'_x not
+R8156:8157 CT.Ax <> e2:120 var
+R8164:8165 CT.Ax <> c2:121 var
+R8174:8174 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8220:8226 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8272:8272 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8175:8179 CT.CoreLang <> tlete constr
+R8181:8182 CT.Ax <> x1:122 var
+R8184:8185 CT.Ax <> e1:123 var
+R8188:8192 CT.CoreLang <> tlete constr
+R8194:8195 CT.Ax <> x2:124 var
+R8197:8198 CT.Ax <> c2:121 var
+R8201:8207 CT.CoreLang <> tletapp constr
+R8209:8209 CT.Ax <> x:125 var
+R8211:8212 CT.Ax <> x1:122 var
+R8214:8215 CT.Ax <> x2:124 var
+R8217:8217 CT.Ax <> x:125 var
+R8227:8231 CT.CoreLang <> tlete constr
+R8233:8234 CT.Ax <> x1:122 var
+R8236:8237 CT.Ax <> e1:123 var
+R8240:8244 CT.CoreLang <> tlete constr
+R8246:8247 CT.Ax <> x2:124 var
+R8249:8250 CT.Ax <> e2:120 var
+R8253:8259 CT.CoreLang <> tletapp constr
+R8261:8261 CT.Ax <> x:125 var
+R8263:8264 CT.Ax <> x1:122 var
+R8266:8267 CT.Ax <> x2:124 var
+R8269:8269 CT.Ax <> x:125 var
+prf 8292:8295 <> eta3
+binder 8305:8306 <> x1:126
+binder 8308:8308 <> a:127
+R8316:8317 CT.CoreLang <> tm ind
+binder 8311:8313 <> e_a:128
+binder 8320:8321 <> Ta:129
+binder 8323:8324 <> e1:130
+binder 8326:8327 <> x2:131
+binder 8329:8330 <> e2:132
+binder 8332:8332 <> x:133
+R8360:8367 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8344:8348 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R8352:8357 CT.NormalTypeSystem <> :::x_'\N-'_x_'\Tin'_x not
+R8339:8343 CT.Maps <> empty def
+R8349:8351 CT.Ax <> e_a:128 var
+R8358:8359 CT.Ax <> Ta:129 var
+R8368:8368 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R8428:8440 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R8514:8514 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R8369:8373 CT.CoreLang <> tlete constr
+R8375:8375 CT.Ax <> a:127 var
+R8377:8379 CT.Ax <> e_a:128 var
+R8382:8386 CT.CoreLang <> tlete constr
+R8388:8389 CT.Ax <> x1:126 var
+R8391:8392 CT.Ax <> e1:130 var
+R8395:8399 CT.CoreLang <> tlete constr
+R8401:8402 CT.Ax <> x2:131 var
+R8404:8405 CT.Ax <> e2:132 var
+R8408:8414 CT.CoreLang <> tletapp constr
+R8416:8416 CT.Ax <> x:133 var
+R8418:8419 CT.Ax <> x1:126 var
+R8421:8422 CT.Ax <> x2:131 var
+R8424:8424 CT.Ax <> x:133 var
+R8441:8445 CT.CoreLang <> tlete constr
+R8447:8448 CT.Ax <> x1:126 var
+R8451:8455 CT.CoreLang <> tlete constr
+R8457:8457 CT.Ax <> a:127 var
+R8459:8461 CT.Ax <> e_a:128 var
+R8463:8464 CT.Ax <> e1:130 var
+R8468:8472 CT.CoreLang <> tlete constr
+R8474:8475 CT.Ax <> x2:131 var
+R8478:8482 CT.CoreLang <> tlete constr
+R8484:8484 CT.Ax <> a:127 var
+R8486:8488 CT.Ax <> e_a:128 var
+R8490:8491 CT.Ax <> e2:132 var
+R8495:8501 CT.CoreLang <> tletapp constr
+R8503:8503 CT.Ax <> x:133 var
+R8505:8506 CT.Ax <> x1:126 var
+R8508:8509 CT.Ax <> x2:131 var
+R8511:8511 CT.Ax <> x:133 var
+R8441:8445 CT.CoreLang <> tlete constr
+R8447:8448 CT.Ax <> x1:126 var
+R8451:8455 CT.CoreLang <> tlete constr
+R8457:8457 CT.Ax <> a:127 var
+R8459:8461 CT.Ax <> e_a:128 var
+R8463:8464 CT.Ax <> e1:130 var
+R8468:8472 CT.CoreLang <> tlete constr
+R8474:8475 CT.Ax <> x2:131 var
+R8478:8482 CT.CoreLang <> tlete constr
+R8484:8484 CT.Ax <> a:127 var
+R8486:8488 CT.Ax <> e_a:128 var
+R8490:8491 CT.Ax <> e2:132 var
+R8495:8501 CT.CoreLang <> tletapp constr
+R8503:8503 CT.Ax <> x:133 var
+R8505:8506 CT.Ax <> x1:126 var
+R8508:8509 CT.Ax <> x2:131 var
+R8511:8511 CT.Ax <> x:133 var
+R8369:8373 CT.CoreLang <> tlete constr
+R8375:8375 CT.Ax <> a:127 var
+R8377:8379 CT.Ax <> e_a:128 var
+R8382:8386 CT.CoreLang <> tlete constr
+R8388:8389 CT.Ax <> x1:126 var
+R8391:8392 CT.Ax <> e1:130 var
+R8395:8399 CT.CoreLang <> tlete constr
+R8401:8402 CT.Ax <> x2:131 var
+R8404:8405 CT.Ax <> e2:132 var
+R8408:8414 CT.CoreLang <> tletapp constr
+R8416:8416 CT.Ax <> x:133 var
+R8418:8419 CT.Ax <> x1:126 var
+R8421:8422 CT.Ax <> x2:131 var
+R8424:8424 CT.Ax <> x:133 var
+prf 8534:8551 <> eta_subst_in_const
+binder 8561:8561 <> a:134
+binder 8563:8565 <> e_x:135
+R8571:8578 CT.CoreLang <> constant ind
+binder 8568:8568 <> c:136
+R8582:8582 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R8596:8601 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R8583:8587 CT.CoreLang <> tlete constr
+R8589:8589 CT.Ax <> a:134 var
+R8591:8593 CT.Ax <> e_x:135 var
+R8595:8595 CT.Ax <> c:136 var
+R8602:8602 CT.Ax <> c:136 var
+R8602:8602 CT.Ax <> c:136 var
+R8583:8587 CT.CoreLang <> tlete constr
+R8589:8589 CT.Ax <> a:134 var
+R8591:8593 CT.Ax <> e_x:135 var
+R8595:8595 CT.Ax <> c:136 var
+prf 8622:8639 <> eta_snd_let_reduce
+binder 8649:8650 <> x1:137
+binder 8652:8653 <> e1:138
+binder 8655:8656 <> x2:139
+binder 8658:8659 <> e2:140
+binder 8661:8661 <> x:141
+R8668:8675 CT.CoreLang <> constant ind
+binder 8664:8665 <> c2:142
+R8693:8700 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8685:8690 CT.CoreLang <> :::x_'-->*'_x not
+R8683:8684 CT.Ax <> e2:140 var
+R8691:8692 CT.Ax <> c2:142 var
+R8701:8701 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8747:8753 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8799:8799 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8702:8706 CT.CoreLang <> tlete constr
+R8708:8709 CT.Ax <> x1:137 var
+R8711:8712 CT.Ax <> e1:138 var
+R8715:8719 CT.CoreLang <> tlete constr
+R8721:8722 CT.Ax <> x2:139 var
+R8724:8725 CT.Ax <> c2:142 var
+R8728:8734 CT.CoreLang <> tletapp constr
+R8736:8736 CT.Ax <> x:141 var
+R8738:8739 CT.Ax <> x1:137 var
+R8741:8742 CT.Ax <> x2:139 var
+R8744:8744 CT.Ax <> x:141 var
+R8754:8758 CT.CoreLang <> tlete constr
+R8760:8761 CT.Ax <> x1:137 var
+R8763:8764 CT.Ax <> e1:138 var
+R8767:8771 CT.CoreLang <> tlete constr
+R8773:8774 CT.Ax <> x2:139 var
+R8776:8777 CT.Ax <> e2:140 var
+R8780:8786 CT.CoreLang <> tletapp constr
+R8788:8788 CT.Ax <> x:141 var
+R8790:8791 CT.Ax <> x1:137 var
+R8793:8794 CT.Ax <> x2:139 var
+R8796:8796 CT.Ax <> x:141 var
+prf 8819:8822 <> eta4
+binder 8832:8833 <> x1:143
+R8840:8844 CT.CoreLang <> value ind
+binder 8836:8837 <> v1:144
+binder 8847:8848 <> x2:145
+R8855:8862 CT.CoreLang <> constant ind
+binder 8851:8852 <> c2:146
+binder 8865:8865 <> x:147
+R8880:8887 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R8874:8877 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R8872:8873 CT.Ax <> x1:143 var
+R8878:8879 CT.Ax <> x2:145 var
+R8933:8937 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R8888:8892 CT.CoreLang <> tlete constr
+R8894:8895 CT.Ax <> x1:143 var
+R8897:8898 CT.Ax <> v1:144 var
+R8901:8905 CT.CoreLang <> tlete constr
+R8907:8908 CT.Ax <> x2:145 var
+R8910:8911 CT.Ax <> c2:146 var
+R8914:8920 CT.CoreLang <> tletapp constr
+R8922:8922 CT.Ax <> x:147 var
+R8924:8925 CT.Ax <> x1:143 var
+R8927:8928 CT.Ax <> x2:145 var
+R8930:8930 CT.Ax <> x:147 var
+R8938:8944 CT.CoreLang <> tletapp constr
+R8946:8946 CT.Ax <> x:147 var
+R8948:8949 CT.Ax <> v1:144 var
+R8951:8952 CT.Ax <> c2:146 var
+R8954:8954 CT.Ax <> x:147 var
+prf 8974:8977 <> eta5
+binder 8987:8988 <> x1:148
+R8995:8999 CT.CoreLang <> value ind
+binder 8991:8992 <> v1:149
+binder 9002:9003 <> x2:150
+R9011:9016 Coq.Strings.String <> string ind
+binder 9006:9008 <> id2:151
+binder 9019:9019 <> x:152
+R9034:9037 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9028:9031 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R9026:9027 CT.Ax <> x1:148 var
+R9032:9033 CT.Ax <> x2:150 var
+R9055:9062 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9038:9039 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9042:9051 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9040:9041 CT.Ax <> x1:148 var
+R9052:9054 CT.Ax <> id2:151 var
+R9063:9063 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9110:9115 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9064:9068 CT.CoreLang <> tlete constr
+R9070:9071 CT.Ax <> x1:148 var
+R9073:9074 CT.Ax <> v1:149 var
+R9077:9081 CT.CoreLang <> tlete constr
+R9083:9084 CT.Ax <> x2:150 var
+R9086:9088 CT.Ax <> id2:151 var
+R9091:9097 CT.CoreLang <> tletapp constr
+R9099:9099 CT.Ax <> x:152 var
+R9101:9102 CT.Ax <> x1:148 var
+R9104:9105 CT.Ax <> x2:150 var
+R9107:9107 CT.Ax <> x:152 var
+R9116:9122 CT.CoreLang <> tletapp constr
+R9124:9124 CT.Ax <> x:152 var
+R9126:9127 CT.Ax <> v1:149 var
+R9129:9131 CT.Ax <> id2:151 var
+R9133:9133 CT.Ax <> x:152 var
+prf 9153:9156 <> eta6
+binder 9166:9167 <> x1:153
+R9177:9181 CT.CoreLang <> value ind
+binder 9170:9171 <> v1:154
+binder 9173:9174 <> v2:155
+binder 9184:9185 <> x2:156
+binder 9187:9187 <> x:157
+R9210:9217 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9194:9195 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9198:9207 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9196:9197 CT.Ax <> x1:153 var
+R9208:9209 CT.Ax <> v2:155 var
+R9263:9267 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9218:9222 CT.CoreLang <> tlete constr
+R9224:9225 CT.Ax <> x1:153 var
+R9227:9228 CT.Ax <> v1:154 var
+R9231:9235 CT.CoreLang <> tlete constr
+R9237:9238 CT.Ax <> x2:156 var
+R9240:9241 CT.Ax <> v2:155 var
+R9244:9250 CT.CoreLang <> tletapp constr
+R9252:9252 CT.Ax <> x:157 var
+R9254:9255 CT.Ax <> x1:153 var
+R9257:9258 CT.Ax <> x2:156 var
+R9260:9260 CT.Ax <> x:157 var
+R9268:9274 CT.CoreLang <> tletapp constr
+R9276:9276 CT.Ax <> x:157 var
+R9278:9279 CT.Ax <> v1:154 var
+R9281:9282 CT.Ax <> v2:155 var
+R9284:9284 CT.Ax <> x:157 var
+prf 9304:9307 <> eta7
+binder 9317:9317 <> x:158
+binder 9319:9320 <> v1:159
+binder 9322:9323 <> v2:160
+binder 9325:9325 <> e:161
+R9328:9328 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9358:9364 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9382:9382 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9329:9333 CT.CoreLang <> tlete constr
+R9335:9335 CT.Ax <> x:158 var
+R9338:9344 CT.CoreLang <> tletapp constr
+R9346:9346 CT.Ax <> x:158 var
+R9348:9349 CT.Ax <> v1:159 var
+R9351:9352 CT.Ax <> v2:160 var
+R9354:9354 CT.Ax <> x:158 var
+R9357:9357 CT.Ax <> e:161 var
+R9365:9371 CT.CoreLang <> tletapp constr
+R9373:9373 CT.Ax <> x:158 var
+R9375:9376 CT.Ax <> v1:159 var
+R9378:9379 CT.Ax <> v2:160 var
+R9381:9381 CT.Ax <> e:161 var
+R9365:9371 CT.CoreLang <> tletapp constr
+R9373:9373 CT.Ax <> x:158 var
+R9375:9376 CT.Ax <> v1:159 var
+R9378:9379 CT.Ax <> v2:160 var
+R9381:9381 CT.Ax <> e:161 var
+R9329:9333 CT.CoreLang <> tlete constr
+R9335:9335 CT.Ax <> x:158 var
+R9338:9344 CT.CoreLang <> tletapp constr
+R9346:9346 CT.Ax <> x:158 var
+R9348:9349 CT.Ax <> v1:159 var
+R9351:9352 CT.Ax <> v2:160 var
+R9354:9354 CT.Ax <> x:158 var
+R9357:9357 CT.Ax <> e:161 var
+prf 9402:9405 <> eta8
+binder 9415:9415 <> x:162
+binder 9417:9418 <> op:163
+binder 9420:9421 <> v1:164
+binder 9423:9424 <> v2:165
+binder 9426:9426 <> e:166
+R9429:9429 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9463:9469 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9491:9491 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R9430:9434 CT.CoreLang <> tlete constr
+R9436:9436 CT.Ax <> x:162 var
+R9439:9446 CT.CoreLang <> tletbiop constr
+R9448:9448 CT.Ax <> x:162 var
+R9450:9451 CT.Ax <> op:163 var
+R9453:9454 CT.Ax <> v1:164 var
+R9456:9457 CT.Ax <> v2:165 var
+R9459:9459 CT.Ax <> x:162 var
+R9462:9462 CT.Ax <> e:166 var
+R9470:9477 CT.CoreLang <> tletbiop constr
+R9479:9479 CT.Ax <> x:162 var
+R9481:9482 CT.Ax <> op:163 var
+R9484:9485 CT.Ax <> v1:164 var
+R9487:9488 CT.Ax <> v2:165 var
+R9490:9490 CT.Ax <> e:166 var
+R9470:9477 CT.CoreLang <> tletbiop constr
+R9479:9479 CT.Ax <> x:162 var
+R9481:9482 CT.Ax <> op:163 var
+R9484:9485 CT.Ax <> v1:164 var
+R9487:9488 CT.Ax <> v2:165 var
+R9490:9490 CT.Ax <> e:166 var
+R9430:9434 CT.CoreLang <> tlete constr
+R9436:9436 CT.Ax <> x:162 var
+R9439:9446 CT.CoreLang <> tletbiop constr
+R9448:9448 CT.Ax <> x:162 var
+R9450:9451 CT.Ax <> op:163 var
+R9453:9454 CT.Ax <> v1:164 var
+R9456:9457 CT.Ax <> v2:165 var
+R9459:9459 CT.Ax <> x:162 var
+R9462:9462 CT.Ax <> e:166 var
+prf 9511:9516 <> eta_op
+binder 9526:9527 <> x1:167
+binder 9529:9530 <> e1:168
+binder 9532:9533 <> x2:169
+binder 9535:9536 <> e2:170
+binder 9538:9538 <> x:171
+binder 9540:9541 <> op:172
+R9551:9558 CT.CoreLang <> constant ind
+binder 9544:9545 <> c1:173
+binder 9547:9548 <> c2:174
+R9576:9579 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9568:9573 CT.CoreLang <> :::x_'-->*'_x not
+R9566:9567 CT.Ax <> e1:168 var
+R9574:9575 CT.Ax <> c1:173 var
+R9590:9597 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9582:9587 CT.CoreLang <> :::x_'-->*'_x not
+R9580:9581 CT.Ax <> e2:170 var
+R9588:9589 CT.Ax <> c2:174 var
+R9598:9598 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9620:9625 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9599:9606 CT.CoreLang <> tletbiop constr
+R9608:9608 CT.Ax <> x:171 var
+R9610:9611 CT.Ax <> op:172 var
+R9613:9614 CT.Ax <> c1:173 var
+R9616:9617 CT.Ax <> c2:174 var
+R9619:9619 CT.Ax <> x:171 var
+R9626:9630 CT.CoreLang <> tlete constr
+R9632:9633 CT.Ax <> x1:167 var
+R9635:9636 CT.Ax <> e1:168 var
+R9639:9643 CT.CoreLang <> tlete constr
+R9645:9646 CT.Ax <> x2:169 var
+R9648:9649 CT.Ax <> e2:170 var
+R9652:9659 CT.CoreLang <> tletbiop constr
+R9661:9661 CT.Ax <> x:171 var
+R9663:9664 CT.Ax <> op:172 var
+R9666:9667 CT.Ax <> x1:167 var
+R9669:9670 CT.Ax <> x2:169 var
+R9672:9672 CT.Ax <> x:171 var
+prf 9694:9697 <> eta9
+binder 9707:9708 <> x1:175
+binder 9710:9710 <> a:176
+R9718:9719 CT.CoreLang <> tm ind
+binder 9713:9715 <> c_a:177
+binder 9722:9723 <> e1:178
+binder 9725:9726 <> x2:179
+binder 9728:9729 <> e2:180
+binder 9731:9731 <> x:181
+binder 9733:9734 <> op:182
+R9741:9741 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9819:9831 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9895:9895 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9742:9746 CT.CoreLang <> tlete constr
+R9748:9749 CT.Ax <> x1:175 var
+R9752:9756 CT.CoreLang <> tlete constr
+R9758:9758 CT.Ax <> a:176 var
+R9760:9762 CT.Ax <> c_a:177 var
+R9764:9765 CT.Ax <> e1:178 var
+R9769:9773 CT.CoreLang <> tlete constr
+R9775:9776 CT.Ax <> x2:179 var
+R9779:9783 CT.CoreLang <> tlete constr
+R9785:9785 CT.Ax <> a:176 var
+R9787:9789 CT.Ax <> c_a:177 var
+R9791:9792 CT.Ax <> e2:180 var
+R9796:9803 CT.CoreLang <> tletbiop constr
+R9805:9805 CT.Ax <> x:181 var
+R9807:9808 CT.Ax <> op:182 var
+R9810:9811 CT.Ax <> x1:175 var
+R9813:9814 CT.Ax <> x2:179 var
+R9816:9816 CT.Ax <> x:181 var
+R9832:9836 CT.CoreLang <> tlete constr
+R9838:9838 CT.Ax <> a:176 var
+R9840:9842 CT.Ax <> c_a:177 var
+R9845:9849 CT.CoreLang <> tlete constr
+R9851:9852 CT.Ax <> x1:175 var
+R9854:9855 CT.Ax <> e1:178 var
+R9858:9862 CT.CoreLang <> tlete constr
+R9864:9865 CT.Ax <> x2:179 var
+R9867:9868 CT.Ax <> e2:180 var
+R9871:9878 CT.CoreLang <> tletbiop constr
+R9880:9880 CT.Ax <> x:181 var
+R9882:9883 CT.Ax <> op:182 var
+R9885:9886 CT.Ax <> x1:175 var
+R9888:9889 CT.Ax <> x2:179 var
+R9891:9891 CT.Ax <> x:181 var
+prf 9915:9919 <> eta10
+binder 9929:9930 <> op:183
+binder 9932:9933 <> x1:184
+R9945:9947 CT.CoreLang <> cid ind
+binder 9936:9938 <> id1:185
+binder 9940:9942 <> id2:186
+binder 9950:9951 <> x2:187
+binder 9953:9953 <> x:188
+R9968:9971 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9962:9965 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R9960:9961 CT.Ax <> x1:184 var
+R9966:9967 CT.Ax <> x2:187 var
+R9989:9996 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R9972:9973 Coq.Init.Logic <> ::type_scope:'~'_x not
+R9976:9985 CT.CoreLang <> :::x_'\FVvalue'_x not
+R9974:9975 CT.Ax <> x1:184 var
+R9986:9988 CT.Ax <> id2:186 var
+R9997:9997 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10049:10055 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10079:10079 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R9998:10002 CT.CoreLang <> tlete constr
+R10004:10005 CT.Ax <> x1:184 var
+R10007:10009 CT.Ax <> id1:185 var
+R10012:10016 CT.CoreLang <> tlete constr
+R10018:10019 CT.Ax <> x2:187 var
+R10021:10023 CT.Ax <> id2:186 var
+R10026:10033 CT.CoreLang <> tletbiop constr
+R10035:10035 CT.Ax <> x:188 var
+R10037:10038 CT.Ax <> op:183 var
+R10040:10041 CT.Ax <> x1:184 var
+R10043:10044 CT.Ax <> x2:187 var
+R10046:10046 CT.Ax <> x:188 var
+R10056:10063 CT.CoreLang <> tletbiop constr
+R10065:10065 CT.Ax <> x:188 var
+R10067:10068 CT.Ax <> op:183 var
+R10070:10072 CT.Ax <> id1:185 var
+R10074:10076 CT.Ax <> id2:186 var
+R10078:10078 CT.Ax <> x:188 var
+prf 10099:10119 <> eta_drop_lete_not_bot
+binder 10129:10129 <> x:189
+binder 10131:10134 <> e_x0:190
+binder 10136:10136 <> e:191
+R10143:10143 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10178:10186 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10144:10150 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R10164:10165 Coq.Init.Logic <> ::type_scope:'exists'_x_'..'_x_','_x not
+R10156:10163 CT.CoreLang <> constant ind
+binder 10151:10152 <> c0:192
+R10170:10175 CT.CoreLang <> :::x_'-->*'_x not
+R10166:10169 CT.Ax <> e_x0:190 var
+R10176:10177 CT.Ax <> c0:192 var
+R10198:10205 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10187:10188 Coq.Init.Logic <> ::type_scope:'~'_x not
+R10190:10196 CT.CoreLang <> :::x_'\FVtm'_x not
+R10189:10189 CT.Ax <> x:189 var
+R10197:10197 CT.Ax <> e:191 var
+R10206:10206 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R10221:10226 CT.NormalTypeSystem <> :::x_'<=<'_x not
+R10207:10211 CT.CoreLang <> tlete constr
+R10213:10213 CT.Ax <> x:189 var
+R10215:10218 CT.Ax <> e_x0:190 var
+R10220:10220 CT.Ax <> e:191 var
+R10227:10227 CT.Ax <> e:191 var
+R10227:10227 CT.Ax <> e:191 var
+R10207:10211 CT.CoreLang <> tlete constr
+R10213:10213 CT.Ax <> x:189 var
+R10215:10218 CT.Ax <> e_x0:190 var
+R10220:10220 CT.Ax <> e:191 var
+prf 10247:10258 <> eta_lete_neq
+binder 10268:10268 <> x:193
+binder 10270:10270 <> a:194
+binder 10272:10274 <> c_x:195
+binder 10276:10278 <> e_x:196
+binder 10280:10280 <> e:197
+R10293:10300 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R10288:10291 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R10287:10287 CT.Ax <> a:194 var
+R10292:10292 CT.Ax <> x:193 var
+R10342:10346 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10301:10305 CT.CoreLang <> tlete constr
+R10307:10307 CT.Ax <> x:193 var
+R10310:10314 CT.CoreLang <> tlete constr
+R10316:10316 CT.Ax <> a:194 var
+R10318:10320 CT.Ax <> c_x:195 var
+R10322:10324 CT.Ax <> e_x:196 var
+R10328:10332 CT.CoreLang <> tlete constr
+R10334:10334 CT.Ax <> a:194 var
+R10336:10338 CT.Ax <> c_x:195 var
+R10340:10340 CT.Ax <> e:197 var
+R10347:10351 CT.CoreLang <> tlete constr
+R10353:10353 CT.Ax <> a:194 var
+R10355:10357 CT.Ax <> c_x:195 var
+R10360:10364 CT.CoreLang <> tlete constr
+R10366:10366 CT.Ax <> x:193 var
+R10368:10370 CT.Ax <> e_x:196 var
+R10372:10372 CT.Ax <> e:197 var
+prf 10393:10400 <> eta_fix1
+binder 10410:10411 <> x1:198
+binder 10413:10413 <> f:199
+R10419:10425 CT.CoreLang <> base_ty ind
+binder 10416:10416 <> T:200
+binder 10428:10430 <> tau:201
+binder 10432:10432 <> x:202
+binder 10434:10434 <> e:203
+binder 10436:10437 <> x2:204
+R10446:10453 CT.CoreLang <> constant ind
+binder 10440:10443 <> c_x':205
+binder 10456:10457 <> x0:206
+R10464:10464 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10509:10515 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10590:10590 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10465:10471 CT.CoreLang <> tletapp constr
+R10473:10473 CT.Ax <> x:202 var
+R10476:10479 CT.CoreLang <> vfix constr
+R10481:10481 CT.Ax <> f:199 var
+R10485:10490 CT.CoreLang <> :::x_'t-->'_x not
+R10484:10484 CT.Ax <> T:200 var
+R10491:10493 CT.Ax <> tau:201 var
+R10496:10496 CT.Ax <> x:202 var
+R10498:10498 CT.Ax <> T:200 var
+R10500:10500 CT.Ax <> e:203 var
+R10503:10506 CT.Ax <> c_x':205 var
+R10508:10508 CT.Ax <> x:202 var
+R10516:10520 CT.CoreLang <> tlete constr
+R10522:10523 CT.Ax <> x1:198 var
+R10526:10529 CT.CoreLang <> vfix constr
+R10531:10531 CT.Ax <> f:199 var
+R10535:10540 CT.CoreLang <> :::x_'t-->'_x not
+R10534:10534 CT.Ax <> T:200 var
+R10541:10543 CT.Ax <> tau:201 var
+R10546:10546 CT.Ax <> x:202 var
+R10548:10548 CT.Ax <> T:200 var
+R10550:10550 CT.Ax <> e:203 var
+R10554:10558 CT.CoreLang <> tlete constr
+R10560:10561 CT.Ax <> x2:204 var
+R10563:10566 CT.Ax <> c_x':205 var
+R10569:10575 CT.CoreLang <> tletapp constr
+R10577:10578 CT.Ax <> x0:206 var
+R10580:10581 CT.Ax <> x1:198 var
+R10583:10584 CT.Ax <> x2:204 var
+R10586:10587 CT.Ax <> x0:206 var
+prf 10610:10617 <> eta_fix2
+binder 10627:10628 <> x1:207
+binder 10630:10630 <> f:208
+R10636:10642 CT.CoreLang <> base_ty ind
+binder 10633:10633 <> T:209
+binder 10645:10647 <> tau:210
+binder 10649:10649 <> x:211
+binder 10651:10651 <> e:212
+binder 10653:10654 <> x2:213
+R10662:10669 CT.CoreLang <> constant ind
+binder 10657:10659 <> c_x:214
+R10792:10806 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10677:10681 CT.CoreLang <> tlete constr
+R10683:10684 CT.Ax <> x1:207 var
+R10687:10690 CT.CoreLang <> vlam constr
+R10692:10692 CT.Ax <> f:208 var
+R10696:10701 CT.CoreLang <> :::x_'t-->'_x not
+R10695:10695 CT.Ax <> T:209 var
+R10702:10704 CT.Ax <> tau:210 var
+R10708:10712 CT.CoreLang <> tlete constr
+R10714:10714 CT.Ax <> x:211 var
+R10716:10718 CT.Ax <> c_x:214 var
+R10720:10720 CT.Ax <> e:212 var
+R10735:10739 CT.CoreLang <> tlete constr
+R10741:10742 CT.Ax <> x2:213 var
+R10745:10748 CT.CoreLang <> vfix constr
+R10750:10750 CT.Ax <> f:208 var
+R10754:10759 CT.CoreLang <> :::x_'t-->'_x not
+R10753:10753 CT.Ax <> T:209 var
+R10760:10762 CT.Ax <> tau:210 var
+R10765:10765 CT.Ax <> x:211 var
+R10767:10767 CT.Ax <> T:209 var
+R10769:10769 CT.Ax <> e:212 var
+R10773:10779 CT.CoreLang <> tletapp constr
+R10781:10781 CT.Ax <> x:211 var
+R10783:10784 CT.Ax <> x1:207 var
+R10786:10787 CT.Ax <> x2:213 var
+R10789:10789 CT.Ax <> x:211 var
+R10807:10813 CT.CoreLang <> tletapp constr
+R10815:10815 CT.Ax <> x:211 var
+R10818:10821 CT.CoreLang <> vfix constr
+R10823:10823 CT.Ax <> f:208 var
+R10827:10832 CT.CoreLang <> :::x_'t-->'_x not
+R10826:10826 CT.Ax <> T:209 var
+R10833:10835 CT.Ax <> tau:210 var
+R10838:10838 CT.Ax <> x:211 var
+R10840:10840 CT.Ax <> T:209 var
+R10842:10842 CT.Ax <> e:212 var
+R10845:10847 CT.Ax <> c_x:214 var
+R10849:10849 CT.Ax <> x:211 var
+prf 10869:10876 <> eta_fix3
+binder 10886:10887 <> x1:215
+binder 10889:10889 <> f:216
+R10895:10901 CT.CoreLang <> base_ty ind
+binder 10892:10892 <> T:217
+binder 10904:10906 <> tau:218
+binder 10908:10908 <> x:219
+binder 10910:10910 <> e:220
+binder 10912:10913 <> x2:221
+R10922:10929 CT.CoreLang <> constant ind
+binder 10916:10919 <> c_x':222
+R11016:11030 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R10937:10941 CT.CoreLang <> tlete constr
+R10943:10944 CT.Ax <> x1:215 var
+R10947:10950 CT.CoreLang <> vlam constr
+R10952:10952 CT.Ax <> x:219 var
+R10954:10954 CT.Ax <> T:217 var
+R10957:10960 CT.CoreLang <> vlam constr
+R10962:10962 CT.Ax <> f:216 var
+R10966:10971 CT.CoreLang <> :::x_'t-->'_x not
+R10965:10965 CT.Ax <> T:217 var
+R10972:10974 CT.Ax <> tau:218 var
+R10977:10977 CT.Ax <> e:220 var
+R10982:10986 CT.CoreLang <> tlete constr
+R10988:10989 CT.Ax <> x2:221 var
+R10991:10994 CT.Ax <> c_x':222 var
+R10997:11003 CT.CoreLang <> tletapp constr
+R11005:11005 CT.Ax <> x:219 var
+R11007:11008 CT.Ax <> x1:215 var
+R11010:11011 CT.Ax <> x2:221 var
+R11013:11013 CT.Ax <> x:219 var
+R11031:11034 CT.CoreLang <> vlam constr
+R11036:11036 CT.Ax <> f:216 var
+R11040:11045 CT.CoreLang <> :::x_'t-->'_x not
+R11039:11039 CT.Ax <> T:217 var
+R11046:11048 CT.Ax <> tau:218 var
+R11052:11056 CT.CoreLang <> tlete constr
+R11058:11058 CT.Ax <> x:219 var
+R11060:11063 CT.Ax <> c_x':222 var
+R11065:11065 CT.Ax <> e:220 var
+prf 11086:11093 <> eta_fix4
+binder 11103:11103 <> a:223
+binder 11105:11105 <> f:224
+R11112:11118 CT.CoreLang <> base_ty ind
+binder 11108:11109 <> Tx:225
+binder 11121:11123 <> tau:226
+binder 11125:11125 <> x:227
+binder 11127:11127 <> e:228
+R11135:11142 CT.CoreLang <> constant ind
+binder 11130:11132 <> c_x:229
+R11198:11202 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11150:11154 CT.CoreLang <> tlete constr
+R11156:11156 CT.Ax <> a:223 var
+R11158:11160 CT.Ax <> c_x:229 var
+R11163:11166 CT.CoreLang <> vlam constr
+R11168:11168 CT.Ax <> x:227 var
+R11170:11171 CT.Ax <> Tx:225 var
+R11174:11177 CT.CoreLang <> vlam constr
+R11179:11179 CT.Ax <> f:224 var
+R11184:11189 CT.CoreLang <> :::x_'t-->'_x not
+R11182:11183 CT.Ax <> Tx:225 var
+R11190:11192 CT.Ax <> tau:226 var
+R11195:11195 CT.Ax <> e:228 var
+R11203:11206 CT.CoreLang <> vlam constr
+R11208:11208 CT.Ax <> x:227 var
+R11210:11211 CT.Ax <> Tx:225 var
+R11214:11217 CT.CoreLang <> vlam constr
+R11219:11219 CT.Ax <> f:224 var
+R11224:11229 CT.CoreLang <> :::x_'t-->'_x not
+R11222:11223 CT.Ax <> Tx:225 var
+R11230:11232 CT.Ax <> tau:226 var
+R11236:11240 CT.CoreLang <> tlete constr
+R11242:11242 CT.Ax <> a:223 var
+R11244:11246 CT.Ax <> c_x:229 var
+R11248:11248 CT.Ax <> e:228 var
+prf 11270:11277 <> eta_fix5
+binder 11287:11287 <> a:230
+binder 11289:11289 <> f:231
+R11296:11302 CT.CoreLang <> base_ty ind
+binder 11292:11293 <> Tx:232
+binder 11305:11307 <> tau:233
+binder 11309:11309 <> x:234
+binder 11311:11311 <> e:235
+R11319:11326 CT.CoreLang <> constant ind
+binder 11314:11316 <> c_x:236
+R11375:11379 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11334:11337 CT.CoreLang <> vfix constr
+R11339:11339 CT.Ax <> f:231 var
+R11344:11349 CT.CoreLang <> :::x_'t-->'_x not
+R11342:11343 CT.Ax <> Tx:232 var
+R11350:11352 CT.Ax <> tau:233 var
+R11355:11355 CT.Ax <> x:234 var
+R11357:11358 CT.Ax <> Tx:232 var
+R11361:11365 CT.CoreLang <> tlete constr
+R11367:11367 CT.Ax <> a:230 var
+R11369:11371 CT.Ax <> c_x:236 var
+R11373:11373 CT.Ax <> e:235 var
+R11380:11384 CT.CoreLang <> tlete constr
+R11386:11386 CT.Ax <> a:230 var
+R11388:11390 CT.Ax <> c_x:236 var
+R11393:11396 CT.CoreLang <> vfix constr
+R11398:11398 CT.Ax <> f:231 var
+R11403:11408 CT.CoreLang <> :::x_'t-->'_x not
+R11401:11402 CT.Ax <> Tx:232 var
+R11409:11411 CT.Ax <> tau:233 var
+R11414:11414 CT.Ax <> x:234 var
+R11416:11417 CT.Ax <> Tx:232 var
+R11419:11419 CT.Ax <> e:235 var
+prf 11440:11447 <> eta_fix6
+binder 11457:11457 <> a:237
+binder 11459:11459 <> f:238
+R11466:11472 CT.CoreLang <> base_ty ind
+binder 11462:11463 <> Tx:239
+binder 11475:11477 <> tau:240
+binder 11479:11479 <> x:241
+binder 11481:11481 <> e:242
+binder 11483:11485 <> e_x:243
+R11540:11544 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11492:11496 CT.CoreLang <> tlete constr
+R11498:11498 CT.Ax <> a:237 var
+R11500:11502 CT.Ax <> e_x:243 var
+R11505:11508 CT.CoreLang <> vlam constr
+R11510:11510 CT.Ax <> x:241 var
+R11512:11513 CT.Ax <> Tx:239 var
+R11516:11519 CT.CoreLang <> vlam constr
+R11521:11521 CT.Ax <> f:238 var
+R11526:11531 CT.CoreLang <> :::x_'t-->'_x not
+R11524:11525 CT.Ax <> Tx:239 var
+R11532:11534 CT.Ax <> tau:240 var
+R11537:11537 CT.Ax <> e:242 var
+R11545:11548 CT.CoreLang <> vlam constr
+R11550:11550 CT.Ax <> x:241 var
+R11552:11553 CT.Ax <> Tx:239 var
+R11556:11559 CT.CoreLang <> vlam constr
+R11561:11561 CT.Ax <> f:238 var
+R11566:11571 CT.CoreLang <> :::x_'t-->'_x not
+R11564:11565 CT.Ax <> Tx:239 var
+R11572:11574 CT.Ax <> tau:240 var
+R11578:11582 CT.CoreLang <> tlete constr
+R11584:11584 CT.Ax <> a:237 var
+R11586:11588 CT.Ax <> e_x:243 var
+R11590:11590 CT.Ax <> e:242 var
+prf 11612:11619 <> eta_fix7
+binder 11629:11629 <> a:244
+binder 11631:11631 <> f:245
+R11638:11644 CT.CoreLang <> base_ty ind
+binder 11634:11635 <> Tx:246
+binder 11647:11649 <> tau:247
+binder 11651:11651 <> x:248
+binder 11653:11653 <> e:249
+R11661:11662 CT.CoreLang <> tm ind
+binder 11656:11658 <> e_x:250
+R11711:11715 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11670:11673 CT.CoreLang <> vfix constr
+R11675:11675 CT.Ax <> f:245 var
+R11680:11685 CT.CoreLang <> :::x_'t-->'_x not
+R11678:11679 CT.Ax <> Tx:246 var
+R11686:11688 CT.Ax <> tau:247 var
+R11691:11691 CT.Ax <> x:248 var
+R11693:11694 CT.Ax <> Tx:246 var
+R11697:11701 CT.CoreLang <> tlete constr
+R11703:11703 CT.Ax <> a:244 var
+R11705:11707 CT.Ax <> e_x:250 var
+R11709:11709 CT.Ax <> e:249 var
+R11716:11720 CT.CoreLang <> tlete constr
+R11722:11722 CT.Ax <> a:244 var
+R11724:11726 CT.Ax <> e_x:250 var
+R11729:11732 CT.CoreLang <> vfix constr
+R11734:11734 CT.Ax <> f:245 var
+R11739:11744 CT.CoreLang <> :::x_'t-->'_x not
+R11737:11738 CT.Ax <> Tx:246 var
+R11745:11747 CT.Ax <> tau:247 var
+R11750:11750 CT.Ax <> x:248 var
+R11752:11753 CT.Ax <> Tx:246 var
+R11755:11755 CT.Ax <> e:249 var
+prf 11776:11784 <> eta_self1
+binder 11794:11795 <> x1:251
+binder 11797:11797 <> e:252
+binder 11799:11800 <> e':253
+binder 11802:11803 <> x2:254
+R11811:11812 CT.CoreLang <> tm ind
+binder 11806:11808 <> c_x:255
+binder 11815:11815 <> x:256
+R11830:11837 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R11823:11827 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11822:11822 CT.Ax <> e:252 var
+R11828:11829 CT.Ax <> e':253 var
+R11883:11887 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R11838:11842 CT.CoreLang <> tlete constr
+R11844:11845 CT.Ax <> x1:251 var
+R11847:11847 CT.Ax <> e:252 var
+R11850:11854 CT.CoreLang <> tlete constr
+R11856:11857 CT.Ax <> x2:254 var
+R11859:11861 CT.Ax <> c_x:255 var
+R11864:11870 CT.CoreLang <> tletapp constr
+R11872:11872 CT.Ax <> x:256 var
+R11874:11875 CT.Ax <> x1:251 var
+R11877:11878 CT.Ax <> x2:254 var
+R11880:11880 CT.Ax <> x:256 var
+R11888:11892 CT.CoreLang <> tlete constr
+R11894:11895 CT.Ax <> x1:251 var
+R11897:11898 CT.Ax <> e':253 var
+R11901:11905 CT.CoreLang <> tlete constr
+R11907:11908 CT.Ax <> x2:254 var
+R11910:11912 CT.Ax <> c_x:255 var
+R11915:11921 CT.CoreLang <> tletapp constr
+R11923:11923 CT.Ax <> x:256 var
+R11925:11926 CT.Ax <> x1:251 var
+R11928:11929 CT.Ax <> x2:254 var
+R11931:11931 CT.Ax <> x:256 var
+prf 11953:11969 <> eta_op_reducetion
+binder 11979:11980 <> op:257
+binder 11982:11984 <> c_a:258
+binder 11986:11988 <> c_b:259
+binder 11990:11994 <> c_res:260
+binder 11996:11996 <> x:261
+binder 11998:11999 <> x0:262
+binder 12001:12002 <> x1:263
+binder 12004:12005 <> x2:264
+binder 12007:12008 <> x3:265
+binder 12010:12011 <> x4:266
+R12042:12049 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12018:12024 CT.CoreLang <> eval_op ind
+R12026:12027 CT.Ax <> op:257 var
+R12029:12031 CT.Ax <> c_a:258 var
+R12033:12035 CT.Ax <> c_b:259 var
+R12037:12041 CT.Ax <> c_res:260 var
+R12152:12157 CT.CoreLang <> :::x_'-->*'_x not
+R12050:12054 CT.CoreLang <> tlete constr
+R12056:12057 CT.Ax <> x0:262 var
+R12060:12064 CT.CoreLang <> tlete constr
+R12066:12067 CT.Ax <> x1:263 var
+R12070:12074 CT.CoreLang <> vbiop constr
+R12076:12077 CT.Ax <> op:257 var
+R12081:12085 CT.CoreLang <> tlete constr
+R12087:12088 CT.Ax <> x2:264 var
+R12090:12092 CT.Ax <> c_a:258 var
+R12095:12101 CT.CoreLang <> tletapp constr
+R12103:12103 CT.Ax <> x:261 var
+R12105:12106 CT.Ax <> x1:263 var
+R12108:12109 CT.Ax <> x2:264 var
+R12111:12111 CT.Ax <> x:261 var
+R12117:12121 CT.CoreLang <> tlete constr
+R12123:12124 CT.Ax <> x3:265 var
+R12126:12128 CT.Ax <> c_b:259 var
+R12131:12137 CT.CoreLang <> tletapp constr
+R12139:12140 CT.Ax <> x4:266 var
+R12142:12143 CT.Ax <> x0:262 var
+R12145:12146 CT.Ax <> x3:265 var
+R12148:12149 CT.Ax <> x4:266 var
+R12158:12162 CT.Ax <> c_res:260 var
+prf 12182:12190 <> eta_self2
+binder 12200:12200 <> x:267
+binder 12202:12204 <> c_x:268
+binder 12206:12206 <> e:269
+binder 12208:12209 <> e':270
+R12224:12231 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12217:12221 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12216:12216 CT.Ax <> e:269 var
+R12222:12223 CT.Ax <> e':270 var
+R12245:12249 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12232:12236 CT.CoreLang <> tlete constr
+R12238:12238 CT.Ax <> x:267 var
+R12240:12242 CT.Ax <> c_x:268 var
+R12244:12244 CT.Ax <> e:269 var
+R12250:12254 CT.CoreLang <> tlete constr
+R12256:12256 CT.Ax <> x:267 var
+R12258:12260 CT.Ax <> c_x:268 var
+R12262:12263 CT.Ax <> e':270 var
+prf 12283:12288 <> eta_a3
+binder 12298:12299 <> id:271
+R12307:12314 CT.CoreLang <> constant ind
+binder 12302:12304 <> c_x:272
+binder 12317:12318 <> e1:273
+binder 12320:12321 <> e2:274
+R12358:12362 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12326:12330 CT.CoreLang <> tlete constr
+R12332:12333 CT.Ax <> id:271 var
+R12335:12337 CT.Ax <> c_x:272 var
+R12340:12346 CT.CoreLang <> tmatchb constr
+R12348:12350 CT.Ax <> c_x:272 var
+R12352:12353 CT.Ax <> e1:273 var
+R12355:12356 CT.Ax <> e2:274 var
+R12363:12367 CT.CoreLang <> tlete constr
+R12369:12370 CT.Ax <> id:271 var
+R12372:12374 CT.Ax <> c_x:272 var
+R12377:12383 CT.CoreLang <> tmatchb constr
+R12385:12386 CT.Ax <> id:271 var
+R12388:12389 CT.Ax <> e1:273 var
+R12391:12392 CT.Ax <> e2:274 var
+prf 12413:12418 <> eta_a4
+binder 12428:12429 <> id:275
+binder 12431:12431 <> a:276
+R12439:12440 CT.CoreLang <> tm ind
+binder 12434:12436 <> c_x:277
+R12455:12458 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12450:12453 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R12448:12449 CT.Ax <> id:275 var
+R12454:12454 CT.Ax <> a:276 var
+R12473:12477 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12459:12463 CT.CoreLang <> tlete constr
+R12465:12465 CT.Ax <> a:276 var
+R12467:12469 CT.Ax <> c_x:277 var
+R12471:12472 CT.Ax <> id:275 var
+R12478:12479 CT.Ax <> id:275 var
+prf 12499:12508 <> eta_match1
+binder 12518:12518 <> a:278
+binder 12520:12522 <> c_x:279
+R12528:12535 CT.CoreLang <> constant ind
+binder 12525:12525 <> c:280
+binder 12538:12539 <> e1:281
+binder 12541:12542 <> e2:282
+R12578:12582 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12549:12553 CT.CoreLang <> tlete constr
+R12555:12555 CT.Ax <> a:278 var
+R12557:12559 CT.Ax <> c_x:279 var
+R12562:12568 CT.CoreLang <> tmatchb constr
+R12570:12570 CT.Ax <> c:280 var
+R12572:12573 CT.Ax <> e1:281 var
+R12575:12576 CT.Ax <> e2:282 var
+R12583:12589 CT.CoreLang <> tmatchb constr
+R12591:12591 CT.Ax <> c:280 var
+R12594:12598 CT.CoreLang <> tlete constr
+R12600:12600 CT.Ax <> a:278 var
+R12602:12604 CT.Ax <> c_x:279 var
+R12606:12607 CT.Ax <> e1:281 var
+R12611:12615 CT.CoreLang <> tlete constr
+R12617:12617 CT.Ax <> a:278 var
+R12619:12621 CT.Ax <> c_x:279 var
+R12623:12624 CT.Ax <> e2:282 var
+prf 12645:12654 <> eta_match2
+R12671:12676 Coq.Strings.String <> string ind
+binder 12665:12665 <> a:283
+binder 12667:12668 <> id:284
+R12685:12686 CT.CoreLang <> tm ind
+binder 12680:12682 <> c_x:285
+binder 12689:12690 <> e1:286
+binder 12692:12693 <> e2:287
+R12707:12714 Coq.Init.Logic <> ::type_scope:x_'->'_x not
+R12702:12705 Coq.Init.Logic <> ::type_scope:x_'<>'_x not
+R12700:12701 CT.Ax <> id:284 var
+R12706:12706 CT.Ax <> a:283 var
+R12759:12763 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12715:12721 CT.CoreLang <> tmatchb constr
+R12723:12724 CT.Ax <> id:284 var
+R12727:12731 CT.CoreLang <> tlete constr
+R12733:12733 CT.Ax <> a:283 var
+R12735:12737 CT.Ax <> c_x:285 var
+R12739:12740 CT.Ax <> e1:286 var
+R12744:12748 CT.CoreLang <> tlete constr
+R12750:12750 CT.Ax <> a:283 var
+R12752:12754 CT.Ax <> c_x:285 var
+R12756:12757 CT.Ax <> e2:287 var
+R12764:12768 CT.CoreLang <> tlete constr
+R12770:12770 CT.Ax <> a:283 var
+R12772:12774 CT.Ax <> c_x:285 var
+R12777:12783 CT.CoreLang <> tmatchb constr
+R12785:12786 CT.Ax <> id:284 var
+R12788:12789 CT.Ax <> e1:286 var
+R12791:12792 CT.Ax <> e2:287 var
+prf 12813:12822 <> eta_match3
+R12837:12842 Coq.Strings.String <> string ind
+binder 12833:12834 <> id:288
+R12849:12856 CT.CoreLang <> constant ind
+binder 12846:12846 <> c:289
+R12865:12866 CT.CoreLang <> tm ind
+binder 12860:12862 <> e_x:290
+binder 12869:12870 <> e1:291
+binder 12872:12873 <> e2:292
+R12910:12914 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12880:12884 CT.CoreLang <> tlete constr
+R12886:12887 CT.Ax <> id:288 var
+R12889:12891 CT.Ax <> e_x:290 var
+R12894:12900 CT.CoreLang <> tmatchb constr
+R12902:12902 CT.Ax <> c:289 var
+R12904:12905 CT.Ax <> e1:291 var
+R12907:12908 CT.Ax <> e2:292 var
+R12915:12919 CT.CoreLang <> tlete constr
+R12921:12922 CT.Ax <> id:288 var
+R12924:12926 CT.Ax <> e_x:290 var
+R12929:12935 CT.CoreLang <> tmatchb constr
+R12937:12938 CT.Ax <> id:288 var
+R12940:12941 CT.Ax <> e1:291 var
+R12943:12944 CT.Ax <> e2:292 var
+prf 12965:12970 <> eta_a2
+binder 12980:12981 <> id:293
+binder 12983:12985 <> c_x:294
+R13003:13007 CT.NormalTypeSystem <> :::x_'<-<'_x not
+R12988:12992 CT.CoreLang <> tlete constr
+R12994:12995 CT.Ax <> id:293 var
+R12997:12999 CT.Ax <> c_x:294 var
+R13001:13002 CT.Ax <> id:293 var
+R13008:13010 CT.Ax <> c_x:294 var
