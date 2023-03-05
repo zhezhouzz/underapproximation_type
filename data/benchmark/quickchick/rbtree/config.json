@@ -1,0 +1,21 @@
+<<<<<<< HEAD
+{
+    "mode": "debug",
+    "logfile": ".log",
+    "all_mps": [
+        "numblack", "hdcolor", "noredred"
+    ],
+    "measure": "numblack",
+    "prim_path": {
+        "overp": "data/prim/over.ml",
+        "underp": "data/benchmark/under_rbtree.ml",
+        "rev_underp": "data/benchmark/rev_under.ml",
+        "normalp": "data/prim/normal.mli",
+        "type_decls": "data/typedecs.ml",
+        "lemmas": "data/benchmark/lemmas.ml",
+        "functional_lemmas": "data/benchmark/functional_lemmas.ml"
+    }
+}
+=======
+{"method_predicates": ["numblack", "hdcolor", "noredred"], "measure": "numblack", "underp": "data/benchmark/under_numblack.ml"}
+>>>>>>> beb65e3410d07f207f5b75a09a7428c146b4099f

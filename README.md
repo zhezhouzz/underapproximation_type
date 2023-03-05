@@ -225,6 +225,7 @@ The first half of this section describes installation and use of **Poirot**, an 
 
 ```
 # python3 scripts/get_table1.py
+# python3 scripts/get_table2.py
 ```
 
 when add the `verbose` flag, the script will print commands of each benchmark.
