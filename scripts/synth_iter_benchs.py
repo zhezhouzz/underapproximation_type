@@ -6,12 +6,12 @@ import json
 meta_config_file = "meta-config.json"
 
 names = [
-    #"UniqueList",
-     "SizedList",
-     "SortedList",
-     "SizedTree",
-     "SizedBST"
-    ]
+    # "UniqueList",
+    "SizedList",
+    "SortedList",
+    "SizedTree",
+    "SizedBST"
+]
 
 
 def get_info_from_name(tab, name):
