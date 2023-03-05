@@ -326,7 +326,10 @@ where the `METHOD_PREDICATE` is the method predcicates introduced in the first l
 
 Currently, the `OCAML_TYPE` supported by the **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
 
-The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. We use the let binding to represent the argument type and use the body of the let expression to represent the return type.
+The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. Precisely,
++ the overapproximate refinement type `{v:b | φ}` in the paper is defined as `OVER_APPR_BASE_RTY`.
++ the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
++ the function type is defined as let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the agrument type following the constraints in the paper (line `422` to `426`).
 
 
 ### Running Coq Proofs
