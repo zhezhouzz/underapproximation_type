@@ -4,6 +4,16 @@ open Op
 module Type = Normalty.Ast.T
 
 let typed_prim_of_string ctx = function
+  | "+::" ->
+      (* let () = Printf.printf "here! here!\n" in *)
+      let x = DtConstructor "Ucons" in
+      let res = S.find_opt x ctx in
+      (* let () = *)
+      (*   match res with *)
+      (*   | None -> Printf.printf "find nothing\n" *)
+      (*   | Some _ -> Printf.printf "%s:\n" (t_to_string_for_load x) *)
+      (* in *)
+      (x, res)
   | "[]" ->
       let x = DtConstructor "nil" in
       (x, S.find_opt x ctx)
@@ -36,7 +46,8 @@ let make_normal type_decls (normals : (string * NT.t) list) =
     List.fold_left
       (fun m (name, ty) ->
         match name with
-        | "nil" | "cons" | "tt" -> S.add (DtConstructor name) ty m
+        | "nil" | "cons" | "tt" | "unil" | "ucons" ->
+            S.add (DtConstructor name) ty m
         | name -> (
             match op_of_alias_opt name with
             | Some op -> S.add (PrimOp op) ty m
@@ -139,5 +150,5 @@ let get_by_name m name =
   match typed_prim_of_string m name with
   | _, None ->
       (* let () = layout_m m in *)
-      _failatwith __FILE__ __LINE__ @@ spf "cannot find prim %s" name
+      _failatwith __FILE__ __LINE__ @@ spf "cannot find prim '%s'" name
   | prim, Some x -> (prim, x)
