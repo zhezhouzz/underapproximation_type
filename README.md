@@ -68,6 +68,27 @@ The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_
 
     $ cd coq_proof && make
 
+### Artifact Structure
+
+This section gives a brief overview of the files in this artifact.
+
+* `abstraction/`: the abstract domain built from the method predicates.
+* `ast/` and `language/`: the AST of the languages used in **Poirot**.
+* `autoverificaiton/`: the Z3 (SMT solver) wrapper.
+* `bin/main.ml`: the main entry point of **Poirot**.
+* `config/`: the configuration files.
+* `coq_proof/`: the Coq proofs of our core language **λ<sup>TG</sup>**.
+* `data/`: the predefined types and the benchmark input files. Typically the input source files have name `prog.ml`, and the refinement type files have name `_under.ml`.
+* `driver`: the IO of **Poirot**.
+* `env/`: the univerail environment of **Poirot** which is load from the configuration files.
+* `frontend/`: the **Poirot** parser, a modified OCaml parser.
+* `meta-config.json`: the main configuration file, the details can be found in [Configuration of Poirot](#configuration-of-poirot).
+* `scripts/`: various Python scripts for collecting and displaying experimental results.
+* `translate/`: normalization procedure that normalize the code into the Monadic Normal Form (a variant of the A-Normal form).
+* `typecheck/`: type check.
+  + `typecheck/termcheck.ml`: basic type inference and check.
+  + `typecheck/undercheck.ml`: refinement type check.
+
 ## Step-by-Step Instructions
 
 In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
@@ -313,3 +334,4 @@ The defintion of the coverage type is consistent of the Figure 3 (line `359`), w
 The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof` directory. These proofs may be executed by running `make`, which may take about `10` min.
 
 ### Proof Readme of **λ<sup>TG</sup>**
+
