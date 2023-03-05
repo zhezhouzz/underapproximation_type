@@ -6,7 +6,7 @@ import shutil
 verbose = True
 
 cmd_prefix = ["dune", "exec", "--", "bin/main.exe"]
-
+meta_config_file = "meta-config.json"
 workdir = ""
 
 def invoc_cmd(cmd, output_file):
@@ -79,8 +79,8 @@ def run(dir_str):
         ifile = open (ithprogrfile, 'w')
         ifile.write(progi) 
         ifile.close()
-        cmd = cmd_prefix + ["test", "under-type-check",
-                            "{}/{}".format(dir_str, "config.json"),
+        cmd = cmd_prefix + ["under-type-check", meta_config_file,
+                            # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
                             "{}/{}".format(dir_str, "_under.ml")]
         invoc_cmd(cmd, ithoutputfile)
@@ -167,8 +167,8 @@ if __name__ == '__main__':
         ifile = open (ithprogrfile, 'w')
         ifile.write(progi) 
         ifile.close()
-        cmd = cmd_prefix + ["test", "under-type-check",
-                            "{}/{}".format(dir_str, "config.json"),
+        cmd = cmd_prefix + ["under-type-check", meta_config_file,
+                            # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
                             "{}/{}".format(dir_str, "_under.ml")]
         invoc_cmd(cmd, ithoutputfile)

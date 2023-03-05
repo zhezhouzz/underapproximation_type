@@ -6,11 +6,11 @@ import json
 meta_config_file = "meta-config.json"
 
 names = [
-    "UniqueList",
-    "SizedList",
-    "SortedList",
-    "SizedTree",
-    "SizedBST"
+    #"UniqueList",
+    # "SizedList",
+     "SortedList",
+    # "SizedTree",
+    # "SizedBST"
     ]
 
 

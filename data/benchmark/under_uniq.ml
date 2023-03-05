@@ -12,3 +12,10 @@ let[@library] ucons =
      implies (u == s + 1) (len v u) && implies (mem v u) (u == h)
     : [%v: int ulist])
     [@under]
+  
+  let[@library] gt_eq_int_gen =
+  let x  = (true : [%v: int]) [@over] = in
+  (true : [%v: int])
+  [@under]
+
+
