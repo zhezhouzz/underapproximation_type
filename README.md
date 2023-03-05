@@ -101,9 +101,10 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
     $ python3 scripts/get_table1.py
 
-The following scripts run the benchmark suite displayed in Table 2 of the paper:
+The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60 mins. It runs Poirot for the programs synthesized using Cobalt[1] deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
+
 
 The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
 
@@ -127,7 +128,7 @@ dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/st
 
 ### STLC Benchmark
 
-The STLC is a new benchmarks suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a details explaination in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Beside the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library function in the QuickChick.
+The STLC is a new benchmarks suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a details explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library function in the QuickChick.
 
 The expected expiroment result is shown in the following table. The meaning of the table is the same with the Table 1 in the paper (see "benchmarks" paragraph from line `822`), where we use "▲" indicates these functions are from the STLC benchmark.
 

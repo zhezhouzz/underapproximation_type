@@ -23,7 +23,7 @@ then
 else 
  ( subs  x0 )  :: []
 (* Program Failed *) 
-(let rec goal    (size : int)  (x0 : int) : (int list) = 
+let rec goal    (size : int)  (x0 : int) : (int list) = 
  if (  ( sizecheck  size )  ) 
 then 
  [] 
