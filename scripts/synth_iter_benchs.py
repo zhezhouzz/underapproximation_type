@@ -7,10 +7,10 @@ meta_config_file = "meta-config.json"
 
 names = [
     "UniqueList",
-    # "SizedList",
-    #  "SortedList",
-    # "SizedTree",
-    # "SizedBST"
+    "SizedList",
+    "SortedList",
+    "SizedTree",
+    "SizedBST"
 ]
 
 
