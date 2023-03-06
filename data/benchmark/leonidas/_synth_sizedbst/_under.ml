@@ -38,6 +38,8 @@ let[@library] d1 = (true : [%v: int]) [@under]
 
 let[@library] n = (true : [%v: int]) [@under]
 
+let[@library] root = (true : [%v: int]) [@under]
+
 let goal =
   (* let (d : [%over: int]) = (0 <= v : [%v: int]) in
   let (s0 : [%over: int]) = (d <= v : [%v: int]) in
