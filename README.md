@@ -80,6 +80,9 @@ This section gives a brief overview of the files in this artifact.
 * `bin/main.ml`: the main entry point of **Poirot**.
 * `config/`: the configuration files.
 * `coq_proof/`: the Coq proofs of our core language **λ<sup>TG</sup>**.
+* `doc/`: our submitted papers.
+  + `poirot.pdf`: the original paper.
+  + `poirot-SM.pdf`: the supplemental materials.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by thier `SOURCE`. Typically the input source files have name `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files have name `data/benchmark/SOURCE/NAME/_under.ml`.
@@ -405,6 +408,8 @@ Our formalization takes inspiration and ideas from the following work, though do
 | Type denotation under context | At the beginning of page 13 (line `594` to `597`)                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
 | Soundness theorem             | Theorem 4.2                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
 
+> Readers can find the supplemental materials in `doc/poirot-SM.pdf`.
+
 #### Differences Between Paper and Artifact
 
 - Our formalization only has two base types: nat and bool.
@@ -450,6 +455,7 @@ else let m = n - 1 in e2
   + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
   + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we ommit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless repsentation).
 - In the formalization, our coverage typing rules additionally require that the all branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mentioned it in the original paper, however, we will fix it in the second round submission.
+- To the sake of convenience of proof, we split a single typing rules into different cases (then we can prove these cases separately dyring the induction proof). For exmaple, the rule `TLetE` in the figure 13 (in the supplementary materials) is split as `UT_Lete_base` and `UT_Lete_arr` in our proof.
 
 ## Appendix: Building Cobalt from Source (Optional)
 
