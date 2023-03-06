@@ -14,6 +14,13 @@ Import BasicTypingProp.
 Import OperationalSemantics.
 Import OperationalSemanticsProp.
 
+(** * We define some syntax sugar in this file:
+    - nat_gen
+    - bool_gen
+    - non-der choice
+    - meet operator
+ *)
+
 Definition mk_app e1 e2 :=
   tlete e1 (tlete e2 (tletapp (vbvar 1) (vbvar 0) (vbvar 0))).
 
@@ -61,8 +68,7 @@ Fixpoint ty_inhabitant (t: ty): value :=
   | T1 ⤍ T2 => vlam T1 (ty_inhabitant T2)
   end.
 
-(* lc property *)
-
+(** lc property *)
 Lemma body_vbvar_zero: body (vbvar 0).
 Proof.
   econstructor. instantiate (1:= ∅). simpl; auto.
@@ -164,8 +170,7 @@ Qed.
 
 Global Hint Resolve lc_ty_inhabitant: core.
 
-(* step property *)
-
+(** step property *)
 Lemma mk_app_step: forall e1 e1' e2,
     lc e2 ->
     e1 ↪ e1' -> mk_app e1 e2 ↪ mk_app e1' e2.
@@ -219,24 +224,6 @@ Proof.
     + econstructor. instantiate (1:= (tmatchb (vbvar 0) e1 e2) ^t^ false).
       step_solver1. step_solver1.
 Qed.
-
-(* Lemma mk_app_step2: forall (v1: value) e2 e2', *)
-(*     lc v1 -> *)
-(*     e2 ↪ e2' -> mk_app v1 e2 ↪ mk_app v1 e2'. *)
-(* Proof. *)
-(*   unfold mk_app; intros. *)
-(*   econstructor; auto. apply mk_app_body; auto. *)
-(* Qed. *)
-
-(* Lemma mk_app_multistep2: forall e1 e1' e2, *)
-(*     lc e2 -> *)
-(*     e1 ↪* e1' -> mk_app e1 e2 ↪* mk_app e1' e2. *)
-(* Proof. *)
-(*   intros. generalize dependent e2. *)
-(*   induction H0; intros. *)
-(*   - constructor; auto. apply mk_app_lc; auto. *)
-(*   - eapply multistep_trans; eauto. apply multistep_R. eapply mk_app_step1; eauto. *)
-(* Qed. *)
 
 Lemma matchb_spec: forall (cond: bool) (e1 e2: tm) (v:value),
     (tmatchb cond e1 e2) ↪* v -> (cond = true /\ e1 ↪* v) \/ (cond = false /\ e2 ↪* v).
@@ -295,8 +282,7 @@ Proof.
     simpl in H5. rewrite <- meet_nat_condition_spec in H5. mydestr; subst. split; auto.
 Qed.
 
-(* basic typing *)
-
+(** basic typing *)
 Lemma ty_inhabitant_typable: forall Γ T, ok Γ -> Γ ⊢t (ty_inhabitant T) ⋮v T.
 Proof.
   induction T; simpl; intros; auto.

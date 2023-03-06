@@ -11,6 +11,7 @@ Import Tactics.
 Import NamelessTactics.
 Import OperationalSemantics.
 
+(** the step-indexed small step operational semantics *)
 Inductive multistep_length : tm -> tm -> nat -> Prop :=
 | multistep_length_refl : forall (x : tm),
     lc x ->
@@ -69,7 +70,7 @@ Theorem multistep_length_trans :
 Proof.
   intros.
   induction H.
-    - (* multistep_refl *) simpl. assumption.
+    - simpl. assumption.
     - rewrite PeanoNat.Nat.add_succ_l. econstructor; eauto.
 Qed.
 
@@ -138,23 +139,6 @@ Proof.
   - left. eexists; eauto.
   - right. eexists; eauto.
 Qed.
-
-(* Lemma letapp_reduction_spec_: forall n T1 e1 (v2 : value) (v : value) e, *)
-(*     tletapp v1 v2 e ↪{n} v <-> *)
-(*       (exists n' (v_x:value), n = S n' /\ *)
-(*           tletapp v1 v2 (vbvar 0) ↪{1} v_x /\ tlet () e ^t^ v_x ↪{n'} v). *)
-(* Proof. *)
-(*   split; intros. *)
-(*   - destruct n; invclear H. invclear H1. *)
-(*     + exists n. repeat split; auto; step_length_regular_solver1. invclear H. *)
-(*     destruct (letapp_reduction_spec_aux v1 v2 _ _ H1); repeat destruct_hyp_conj; subst; invclear H1. *)
-(*     + left. repeat eexists; eauto. *)
-(*     + right. repeat eexists; eauto. *)
-(*   - repeat destruct_hyp_conj; subst. *)
-(*     destruct H3; repeat destruct_hyp_conj; subst. *)
-(*     + econstructor; eauto. econstructor; eauto; lc_solver. *)
-(*     + econstructor; eauto. econstructor; eauto; lc_solver. *)
-(* Qed. *)
 
 Lemma letapp_reduction_spec: forall n (v1 v2 : value) (v : value) e,
     tletapp v1 v2 e ↪{n} v <->

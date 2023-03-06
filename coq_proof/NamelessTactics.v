@@ -333,6 +333,7 @@ Qed.
 From Coq Require Import Logic.FunctionalExtensionality.
 From Coq Require Import Logic.PropExtensionality.
 
+(** Prop Extensionality *)
 Lemma prop_ex3 {A B C: Type}: forall (P Q: A -> B -> C -> Prop), (forall a b c, P a b c <-> Q a b c) -> P = Q.
 Proof.
   do 3 (intros; apply functional_extensionality).

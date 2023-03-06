@@ -4,7 +4,7 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
+From CT Require Import RefinementType.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
 
@@ -17,7 +17,7 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
+Import RefinementType.
 
 Lemma dom_insert_simp: forall (a: atom) (c_x: constant) (st: state),
     (dom aset (<[a:=c_x]> st)) = {[a]} ∪ dom aset st.
@@ -286,24 +286,6 @@ Proof.
   invclear H; auto. apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver.
 Qed.
 
-(* Lemma ok_dctx_shift_is_arr: forall d a r Γ, *)
-(*     is_arr r -> ok_dctx d ((a, r) :: Γ) -> ok_dctx ({[a]} ∪ d) Γ. *)
-(* Proof. *)
-(*   intros. *)
-(*   invclear H0; auto. *)
-(*   assert (ctxdom Γ ∩ d ≡ ∅). { apply ok_dctx_regular2 in H9; mydestr; auto. } *)
-(*   apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver. *)
-(* Qed. *)
-
-(* Lemma ok_dctx_shift_not_is_arr: forall d a r Γ, *)
-(*     ~ is_arr r -> ok_dctx d ((a, r) :: Γ) -> ok_dctx ({[a]} ∪ d) Γ. *)
-(* Proof. *)
-(*   intros. *)
-(*   invclear H0; auto. *)
-(*   assert (ctxdom Γ ∩ d ≡ ∅). { apply ok_dctx_regular2 in H9; mydestr; auto. } *)
-(*   apply ok_dctx_trans with (d1:=d); eauto. fast_set_solver. set_solver. *)
-(* Qed. *)
-
 Ltac ok_dctx_solver1 :=
   match goal with
   | [H1: ok_dctx ?d1 ?τ, H2: ok_dctx ?d2 ?τ |- ok_dctx ?d3 ?τ ] =>
@@ -362,16 +344,6 @@ Ltac refinement_set_simp :=
     | [H: ok_dctx _ _ |- _ ⊆ _ ] => apply ok_dctx_regular2 in H; mydestr
     | [H: ok ((_, _) :: _) |- _ ⊆ _ ] => rewrite ok_pre_destruct in H; mydestr
     end.
-
-(* Lemma cl_dctx_trans: forall Γ d1 d2, d1 ⊆ d2 -> ctxdom Γ ∩ d2 ≡ ∅ -> cl_dctx d1 Γ -> cl_dctx d2 Γ. *)
-(* Proof. *)
-(*   induction Γ; intros; auto; mydestr. *)
-(*   - constructor. *)
-(*   - invclear H1. constructor; eauto. ok_dctx_solver. *)
-(*     apply (IHΓ ({[a]} ∪ d1)); eauto. fast_set_solver. *)
-(*     refinement_set_simp; my_set_solver. *)
-(*     closed_rty_solver. *)
-(* Qed. *)
 
 Lemma ctx_erase_perserve_ctxdom: forall Γ, ctxdom ⌊ Γ ⌋* = ctxdom Γ.
 Proof.

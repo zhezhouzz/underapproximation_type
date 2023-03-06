@@ -4,12 +4,12 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
-From CT Require Import RefinementDenotationTac.
-From CT Require Import RefinementDenotationProp.
-From CT Require Import WFDenotation.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
+From CT Require Import RefinementTypeDenotationTac.
+From CT Require Import RefinementTypeDenotationProp.
+From CT Require Import WFCtxDenotation.
 
 Import Atom.
 Import CoreLang.
@@ -21,12 +21,12 @@ Import OperationalSemanticsProp.
 Import BasicTyping.
 Import TermOrdering.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
-Import RefinementDenotationProp.
-Import WFDenotation.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
+Import RefinementTypeDenotationProp.
+Import WFCtxDenotation.
 
 Lemma wf_ctxrR_iff_wf_ctxrR_not_terr: forall (Γ: listctx rty) st, wf_ctxrR st Γ <-> wf_ctxrR_not_terr st Γ.
 Proof.
@@ -44,7 +44,6 @@ Proof.
       eexists; split; eauto. intros. rewrite <- IHΓ; eauto. erewrite state_insert_closed_value_arr; eauto.
       refinement_solver.
   - invclear H. constructor; auto. intros. rewrite IHΓ; auto.
-    (* destruct (decide (is_arr τ_x)); auto_ty_exfalso. *)
     + mydestr.
       assert (∀ e_wf : tm, ({0;b∅;st}⟦[v:b|n|d|ϕ]⟧) e_wf → ∃ v_wf : value, e_wf ↪* v_wf) as Hv.
       intros. eapply not_rR_inhabitant_err_implies_halt in H1; eauto; refinement_solver.

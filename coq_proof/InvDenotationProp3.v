@@ -5,13 +5,14 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
-From CT Require Import RefinementDenotationTac.
-From CT Require Import RefinementDenotationProp.
-From CT Require Import RDInv.
-From CT Require Import RDInv2.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
+From CT Require Import RefinementTypeDenotationTac.
+From CT Require Import RefinementTypeDenotationProp.
+From CT Require Import InvDenotation.
+From CT Require Import InvDenotationProp1.
+From CT Require Import InvDenotationProp2.
 From CT Require Import TermOrdering.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
@@ -26,17 +27,18 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
-Import RefinementDenotationProp.
-Import WFDenotation.
-Import WFDenotationTac.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
+Import RefinementTypeDenotationProp.
+Import WFCtxDenotation.
+Import WFCtxDenotationProp.
 Import NamelessTactics.
 Import TermOrdering.
-Import RDInv.
-Import RDInv2.
+Import InvDenotation.
+Import InvDenotationProp1.
+Import InvDenotationProp2.
 
 Global Hint Resolve mk_eq_constant_is_not_overbasety: core.
 Global Hint Resolve mk_eq_var_is_not_overbasety: core.
@@ -160,108 +162,6 @@ Proof.
   lc_simpl4. simpl in H5.
   apply basic_typing_weaken_tm_post; auto; listctx_set_solver.
 Qed.
-
-(* Definition tm_to_value (Tx: ty) (e:tm): value := vlam Tx (mk_app e (vbvar 1)). *)
-
-(* Lemma tm_to_value_typable: forall Γ e Tx T, *)
-(*     Γ ⊢t e ⋮t Tx ⤍ T -> Γ ⊢t (tm_to_value Tx e) ⋮v Tx ⤍ T. *)
-(* Proof. *)
-(*   unfold tm_to_value. intros. *)
-(*   auto_exists_L. intros. unfold mk_app. *)
-(*   apply mk_app_typable with (T1:=Tx); fold _open_tm. *)
-(*   - lc_simpl. basic_typing_solver. *)
-(*   - dec_solver1. basic_typing_vfavr_solver. *)
-(* Qed. *)
-
-(* Global Hint Resolve tm_to_value_typable: core. *)
-
-(* Lemma termR_tm_to_value: forall Γ e (v: value) Tx T, *)
-(*     Γ ⊢t e ⋮t Tx ⤍ T -> Γ ⊢t v ⋮v Tx -> *)
-(*     (mk_app e v) <-<{Γ; T} (tletapp (tm_to_value Tx e) v (vbvar 0)). *)
-(* Proof. *)
-(*   intros. *)
-(*   assert (Γ ⊢t tletapp (tm_to_value Tx e) v (vbvar 0) ⋮t T) as HT. *)
-(*   { auto_pose_fv x. eapply tletapp_typable with (x:=x); eauto. fast_set_solver. *)
-(*     simpl. basic_typing_vfavr_solver. } *)
-(*   constructor; auto. *)
-(*   - eapply mk_app_typable; eauto. *)
-(*   - unfold termRraw. intros Γv; intros. *)
-(*     unfold tm_to_value. reduction_simpl1. *)
-(*     rewrite letapp_step_spec; repeat split; auto. *)
-(*     { assert (lc (tm_to_value Tx e)). basic_typing_solver. *)
-(*       eapply instantiation_implies_value_msubst_lc in H3; eauto. *)
-(*       unfold tm_to_value in H3. msubst_simpl; auto. } *)
-(*     reduction_solver1. *)
-(*     left. do 2 eexists; split; eauto. *)
-(*     setoid_rewrite <- tm_open_then_msubst_k; eauto. *)
-(*     rewrite mk_app_open; basic_typing_solver. *)
-(*     rewrite lete_step_spec. split; auto. exists v0. split; auto. simpl. *)
-(*     apply multistep_refl. op_solver1. *)
-(* Qed. *)
-
-(* Lemma termR_tm_to_value': forall Γ e (v: value) Tx T, *)
-(*     Γ ⊢t e ⋮t Tx ⤍ T -> Γ ⊢t v ⋮v Tx -> *)
-(*     (tletapp (tm_to_value Tx e) v (vbvar 0)) <-<{Γ; T} (mk_app e v). *)
-(* Proof. *)
-(*   intros. *)
-(*   assert (Γ ⊢t tletapp (tm_to_value Tx e) v (vbvar 0) ⋮t T) as HT. *)
-(*   { auto_pose_fv x. eapply tletapp_typable with (x:=x); eauto. fast_set_solver. *)
-(*     simpl. basic_typing_vfavr_solver. } *)
-(*   constructor; auto. *)
-(*   - eapply mk_app_typable; eauto. *)
-(*   - unfold termRraw. intros Γv; intros. *)
-(*     unfold tm_to_value in H2. reduction_simpl1. *)
-(*     rewrite letapp_step_spec in H2; mydestr. destruct H5; mydestr; invclear H5. *)
-(*     setoid_rewrite <- tm_open_then_msubst_k in H6; eauto. *)
-(*     rewrite mk_app_open in H6; basic_typing_solver. *)
-(*     eapply lete_0_reduce_to_self_aux'; eauto. msubst_simpl; auto. *)
-(* Qed. *)
-
-(* Lemma termR_tm_to_value_mk_app: forall Γ e (v: value) Tx T, *)
-(*     Γ ⊢t e ⋮t Tx ⤍ T -> Γ ⊢t v ⋮v Tx -> *)
-(*     (mk_app e v) <-<{Γ; T} (mk_app (tm_to_value Tx e) v). *)
-(* Proof. *)
-(*   intros. *)
-(*   apply termR_trans_better with (tletapp (tm_to_value Tx e) v (vbvar 0)). *)
-(*   - eapply termR_tm_to_value; auto. *)
-(*   - eapply mk_app_v_v_reduce_to_letapp'; eauto. *)
-(* Qed. *)
-
-(* Lemma termR_tm_to_value_mk_app': forall Γ e (v: value) Tx T, *)
-(*     Γ ⊢t e ⋮t Tx ⤍ T -> Γ ⊢t v ⋮v Tx -> *)
-(*     (mk_app (tm_to_value Tx e) v) <-<{Γ; T} (mk_app e v). *)
-(* Proof. *)
-(*   intros. *)
-(*   apply termR_trans_better with (tletapp (tm_to_value Tx e) v (vbvar 0)). *)
-(*   - eapply mk_app_v_v_reduce_to_letapp; eauto. *)
-(*   - eapply termR_tm_to_value'; auto. *)
-(* Qed. *)
-
-(* Definition arg_ty (τ: rty): ty := *)
-(*   match τ with *)
-(*   | -:{v: b | n | d | ϕ}⤑ τ_x => b *)
-(*   | τ1 ⤑ τ_x => ⌊ τ1 ⌋ *)
-(*   | _ => ⌊ τ ⌋ *)
-(*   end. *)
-
-(* Lemma rR_is_arr_refine: forall m bst st τ_x e, *)
-(*     is_arr τ_x -> *)
-(*     {m;bst;st}⟦τ_x⟧ e -> *)
-(*     {m;bst;st}⟦τ_x⟧ (tm_to_value (arg_ty τ_x) e). *)
-(* Proof. *)
-(*   intros. destruct τ_x; auto_ty_exfalso. *)
-(*   - invclear H0; mydestr. *)
-(*     constructor; auto. denotation_simp. constructor; auto. *)
-(*     intros. apply H2 in H4; auto. *)
-(*     eapply termR_perserve_rR; eauto; refinement_solver. *)
-(*     apply termR_tm_to_value_mk_app; auto. *)
-(*   - invclear H0; mydestr. *)
-(*     constructor; auto. denotation_simp. constructor; auto. *)
-(*     eexists (tm_to_value (arg_ty (τ_x1 ⤑ τ_x2)) e). split; auto. admit. *)
-(*     intros. auto_under v_x. *)
-(*     eapply termR_perserve_rR; eauto; refinement_solver. *)
-(*     apply termR_tm_to_value_mk_app; auto. refinement_solver. *)
-(* Qed. *)
 
 Lemma rR_letapp_base': forall τ_x τ st x (v1 v2: value) (e: tm) b n d ϕ,
     x ∉ fv_tm e ∪ rty_fv τ ->

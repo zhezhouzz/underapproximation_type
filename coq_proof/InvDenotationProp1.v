@@ -5,12 +5,13 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
-From CT Require Import RefinementDenotationTac.
-From CT Require Import RefinementDenotationProp.
-From CT Require Import WFDenotationTac.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
+From CT Require Import RefinementTypeDenotationTac.
+From CT Require Import RefinementTypeDenotationProp.
+From CT Require Import WFCtxDenotationProp.
+From CT Require Import InvDenotation.
 From CT Require Import TermOrdering.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
@@ -25,15 +26,16 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
-Import RefinementDenotationProp.
-Import WFDenotation.
-Import WFDenotationTac.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
+Import RefinementTypeDenotationProp.
+Import WFCtxDenotation.
+Import WFCtxDenotationProp.
 Import NamelessTactics.
 Import TermOrdering.
+Import InvDenotation.
 
 Global Hint Resolve mk_eq_constant_is_not_overbasety: core.
 Global Hint Resolve mk_eq_var_is_not_overbasety: core.
@@ -44,34 +46,6 @@ Global Hint Resolve ctxrR_tlete_drop_halt_lhs: core.
 Global Hint Resolve rR_implies_reduction_no_free: core.
 Global Hint Resolve is_arr_implies_not_overbasety: core.
 Global Hint Resolve under_not_overbasety: core.
-
-Inductive inv_ctxrR: state -> listctx rty -> rty -> tm -> Prop :=
-| inv_ctxrR_nil: forall st τ e, { st }⟦ τ ⟧ e -> inv_ctxrR st [] τ e
-| inv_ctxrR_cons_over: forall st (x: atom) B n d ϕ Γ τ (e: tm),
-    closed_rty 0 ({[x]} ∪ ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
-    ok_dctx (dom _ st) ((x, {v: B | n | d | ϕ}) :: Γ) ->
-    ((x, TBase B) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
-     (forall (c_x: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_x ->
-                         inv_ctxrR (<[ x := c_x ]> st) Γ τ ({x := c_x}t e)) ->
-     inv_ctxrR st ((x, {v: B | n | d | ϕ}) :: Γ) τ e
-| inv_ctxrR_cons_under_base: forall st (x: atom) b n d ϕ τ Γ e,
-    closed_rty 0 ({[x]} ∪ ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
-    ok_dctx (dom _ st) ((x, [v: b | n | d | ϕ]) :: Γ) ->
-    ((x, TBase b ) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
-    (* (forall e_wf, {st}⟦ [v: b | n | d | ϕ] ⟧ e_wf -> (exists (v_wf: value), e_wf ↪* v_wf)) -> *)
-     (exists e_x_hat, {st}⟦ [v: b | n | d | ϕ] ⟧ e_x_hat /\
-                   (∀ (v_x: value), e_x_hat ↪* v_x ->
-                                       inv_ctxrR ({ x ↦ v_x } st) Γ τ ({x := v_x}t e))) ->
-     inv_ctxrR st ((x, [v: b | n | d | ϕ]) :: Γ) τ e
-| inv_ctxrR_cons_under_arr: forall st (x: atom) τ_x τ Γ e,
-    is_arr τ_x ->
-    closed_rty 0 (ctxdom ⦑Γ⦒ ∪ (dom _ st)) τ ->
-    ok_dctx (dom _ st) ((x, τ_x) :: Γ) ->
-    ((x, ⌊τ_x⌋ ) :: (⌊Γ⌋*)) ⊢t e ⋮t ⌊τ⌋ ->
-     (forall (v_x: value), {st}⟦ τ_x ⟧ v_x -> inv_ctxrR st Γ τ ({x := v_x}t e)) ->
-     inv_ctxrR st ((x, τ_x) :: Γ) τ e.
-
-Notation " '⅋{' st '}⟦' τ '⟧{' Γ '}' " := (inv_ctxrR st Γ τ) (at level 20, format "⅋{ st }⟦ τ ⟧{ Γ }", st constr, τ constr, Γ constr).
 
 Ltac RD_simp2 :=
   repeat
@@ -135,7 +109,6 @@ Proof.
   - constructor; auto. denotation_simp. eapply tlete_apply_typable_aux3; eauto; refinement_solver7.
     intros. auto_under e_x. RD_simp2.
     lc_simpl3. eapply termR_perserve_rR; eauto; refinement_solver.
-    (* admit. *)
     apply termR_let_one_step_from_basic_type'. basic_typing_solver. fast_set_solver.
     eapply tlete_apply_typable_aux; eauto; refinement_solver.
   - constructor; auto. denotation_simp. eapply tlete_apply_typable_aux4; eauto; refinement_solver7.
@@ -233,19 +206,6 @@ Ltac inv_rd_solver1 :=
   | [H: ?Γ ⊢t ?e ⋮t ?T |- ?x ∉ fv_tm ?e] => eapply tyable_implies_fresh_tm in H; eauto
   end;
   inv_rd_simpl1.
-
-(* Lemma ok_dctx_state_subst_implies_rty_subst_eq: forall Γ (a: atom) (L: aset) x b n d ϕ k (c_x: constant), *)
-(*     ok_dctx ({[a]} ∪ L) [(x, {k ~r> c_x} [v:b|n|d|ϕ])] -> *)
-(*     ok_dctx ({[a]} ∪ L) (Γ ++ [(x, ({k ~r> a} [v:b|n|d|ϕ]))]). *)
-(* Proof. *)
-(*   induction Γ; simpl; intros. *)
-(*   - invclear H; auto_ty_exfalso. constructor; auto. *)
-(*     invclear H4. constructor; auto. *)
-(*     + invclear H. constructor; auto. invclear H4. constructor; auto. *)
-(*       unfold not_fv_in_refinement; intros. unfold not_fv_in_refinement in H. *)
-(*       unfold refinement_open. unfold refinement_open in H. *)
-(*       destruct (m !! a); destruct (m' !! a). *)
-(*       apply H, *)
 
 Lemma state_subst_implies_rty_subst_inv_ctxrR_all_v_to_c
     : ∀ (a: atom) (Γ : list (atom * rty)) st (c_x : constant) (x : atom)
