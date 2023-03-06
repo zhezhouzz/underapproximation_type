@@ -28,10 +28,8 @@ directory containing the Dockerfile and tell Docker to build:
 
     $ docker build . --tag poirot23/poirot:pldi-2023
 
-This step may take a long time (about `30` min).
-
-**Resource Requirements:** Although our tool **Poirot** and the Coq formalization doesn't have large memory usage, building the docker image needs more than `32GB` RAM available. This memory usage requirement comes from the then installation of the SMT solver `z3` (https://github.com/Z3Prover/z3).
-The memory error can be fixed by increasing the memory limit in Docker; you can find instructions for doing so on Mac here: (https://docs.docker.com/desktop/settings/mac/#resources), for Windows here: (https://docs.docker.com/desktop/settings/windows/#resources), and for Linux here: (https://docs.docker.com/desktop/settings/linux/#resources). The pre-built docker image is built on a Linux machine having Intel i7-8700 CPU @ 3.20GHz with `64GB` of RAM.
+**Resource Requirements:** Although our tool **Poirot** and the Coq formalization doesn't have large memory usage, building the docker image needs more than `32GB` RAM available. This memory usage requirement comes from the then installation of the SMT solver `z3` (https://github.com/Z3Prover/z3). When the RAM limit of the Docker (by default, it is `8GB` on Mac, no limit on Linux machine) is lower than `32GB`, the installation of `z3` will be killed and the `docker build` will fail.
+The memory error can be fixed by increasing the RAM limit in Docker; you can find instructions for doing so on Mac here: (https://docs.docker.com/desktop/settings/mac/#resources), for Windows here: (https://docs.docker.com/desktop/settings/windows/#resources), and for Linux here: (https://docs.docker.com/desktop/settings/linux/#resources). The pre-built docker image is built on a Linux machine having Intel i7-8700 CPU @ 3.20GHz with `64GB` of RAM, it took `30` min to build.
 
 ### Running the Docker Image
 
@@ -68,6 +66,10 @@ The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_
 
     $ cd coq_proof && make
 
+## Step-by-Step Instructions
+
+In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
+
 ### Artifact Structure
 
 This section gives a brief overview of the files in this artifact.
@@ -78,7 +80,10 @@ This section gives a brief overview of the files in this artifact.
 * `bin/main.ml`: the main entry point of **Poirot**.
 * `config/`: the configuration files.
 * `coq_proof/`: the Coq proofs of our core language **λ<sup>TG</sup>**.
-* `data/`: the predefined types and the benchmark input files. Typically the input source files have name `prog.ml`, and the refinement type files have name `_under.ml`.
+* `data/`: the predefined types and the benchmark input files.
+  + `data/predefined/`: the predefined types.
+  + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by thier `SOURCE`. Typically the input source files have name `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files have name `data/benchmark/SOURCE/NAME/_under.ml`.
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that have name with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by Cobalt.
 * `driver`: the IO of **Poirot**.
 * `env/`: the univerail environment of **Poirot** which is load from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
@@ -89,10 +94,6 @@ This section gives a brief overview of the files in this artifact.
   + `typecheck/termcheck.ml`: basic type inference and check.
   + `typecheck/undercheck.ml`: refinement type check.
 
-## Step-by-Step Instructions
-
-In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
-
 ### Running Benchmarks of Poirot
 
 ##### Comprehensive Scripts
@@ -101,10 +102,9 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
     $ python3 scripts/get_table1.py
 
-The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60 mins. It runs Poirot for the programs synthesized using Cobalt[1] deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using [Cobalt](https://dl.acm.org/doi/abs/10.1145/3563310) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
-
 
 The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
 
@@ -327,7 +327,10 @@ where the `METHOD_PREDICATE` is the method predcicates introduced in the first l
 
 Currently, the `OCAML_TYPE` supported by the **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
 
-The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. We use the let binding to represent the argument type and use the body of the let expression to represent the return type.
+The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. Precisely,
++ the overapproximate refinement type `{v:b | φ}` in the paper is defined as `OVER_APPR_BASE_RTY`.
++ the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
++ the function type is defined as let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the agrument type following the constraints in the paper (line `422` to `426`).
 
 
 ### Running Coq Proofs

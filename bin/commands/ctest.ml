@@ -67,6 +67,41 @@ let parse_to_anormal =
 
 type format = Raw | Typed | MonadicNormalForm
 
+let split_source_code_ source_file outputdir =
+  let open Languages in
+  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  List.iteri code ~f:(fun idx context ->
+      let path = Printf.sprintf "%s/%i" outputdir idx in
+      let () =
+        match Sys_unix.file_exists path with
+        | `Yes -> ()
+        | `No -> Core_unix.mkdir path
+        | `Unknown -> failwith "Unknown dir"
+      in
+      let oc = Out_channel.create (Printf.sprintf "%s/prog.ml" path) in
+      Printf.fprintf oc "%s\n"
+        (Ocaml_parser.Pprintast.string_of_structure [ context ]);
+      Out_channel.close oc)
+
+let split_source_code =
+  Command.basic ~summary:"split a OCaml source code file into files"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source_code_file" %: regular_file) in
+      fun () ->
+        let path =
+          let tmp = String.split_on_chars source_file ~on:[ '/' ] in
+          let path =
+            match List.rev tmp with
+            | [] -> ""
+            | _ :: tmp ->
+                Zzdatatype.Datatype.List.split_by "/" (fun x -> x)
+                @@ List.rev tmp
+          in
+          path
+        in
+        (* let () = Printf.printf "path: %s\n" path in *)
+        split_source_code_ source_file path)
+
 let print_source_code meta_config_file source_file refine_file format () =
   let () = Env.load_meta meta_config_file in
   let () = Config.load_normal () in
@@ -341,6 +376,7 @@ let test =
       ("print-coverage-types", print_coverage_types);
       ("coverage-type-check", under_type_check);
       ("print-source-code", print_source_code);
+      ("split-source-code", split_source_code);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]
