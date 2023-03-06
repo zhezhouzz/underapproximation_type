@@ -82,7 +82,7 @@ This section gives a brief overview of the files in this artifact.
 * `coq_proof/`: the Coq proofs of our core language **λ<sup>TG</sup>**.
 * `doc/`: our submitted papers.
   + `poirot.pdf`: the original submission.
-  + `poirot-full-version.pdf`: the original submission with supplemental materials.
+  + `poirot-SM.pdf`: the supplemental materials.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by their `SOURCE`. Typically the input source files are named `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files are named `data/benchmark/SOURCE/NAME/_under.ml`.
@@ -408,7 +408,7 @@ Our formalization takes inspiration and ideas from the following work, though do
 | Type denotation under context | At the beginning of page 13 (line `594` to `597`)                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
 | Soundness theorem             | Theorem 4.2                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
 
-> Readers can find the supplemental materials in `doc/poirot-full-version.pdf`.
+> Readers can find the supplemental materials in `doc/poirot-SM.pdf`.
 
 #### Differences Between Paper and Artifact
 
