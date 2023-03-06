@@ -22,12 +22,14 @@ def show_data(data):
 
 if __name__ == '__main__':
     
-    benchmark_table = synth_iter_benchs.init ()
+    benchmark_table, resfile = synth_iter_benchs.init ()
     data = []
     
     for name in synth_iter_benchs.names:
         # get the spath for the benchmark name from the benchmark_table
         spath = synth_iter_benchs.get_info_from_name (benchmark_table, name)
+        if os.path.exists(resfile):
+            os.remove(resfile)
         total, numberrejected, numbersuccess = run_many.run(spath)
         res = [name, total, numberrejected, numbersuccess] #sizedTree #Total #Complete
         data.append(res)
