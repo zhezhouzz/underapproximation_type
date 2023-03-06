@@ -4,5 +4,5 @@ let rec goal (s0 : int) =
    else
      if bool_gen ()
      then Node (s0, (goal (subs s0)), (goal (subs s0)))
-     else ((Node (int_gen ())), (goal (subs s0)), (goal (subs s0))) : 
+     else Node ((int_gen ()), (goal (subs s0)), (goal (subs s0))) : 
   int tree)

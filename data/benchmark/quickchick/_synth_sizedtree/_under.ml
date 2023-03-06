@@ -23,7 +23,7 @@ let[@library] s =
    (true : [%v: int]) [@under]  
 
 let goal =
-  let s = (0 <= v : [%v: int]) [@over] in
-  (fun (u : [%forall: int]) -> implies (len v u) (0 <= u && u <= s)
+  let s0 = (0 <= v : [%v: int]) [@over] in
+  (fun (u : [%forall: int]) -> implies (len v u) (0 <= u && u <= s0)
     : [%v: int tree])
     [@under]

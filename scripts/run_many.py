@@ -39,56 +39,20 @@ def invoc_cmd(cmd, output_file):
 
 def run(dir_str):
     resfile = ".result"
-    progfile = "{}/{}".format(dir_str, "prog.ml") 
-    inputdir = "{}/{}".format(dir_str, "inputs")
-    outputdir = "{}/{}".format(dir_str, "outputs")
-
-    if os.path.exists(outputdir):
-        shutil.rmtree(outputdir)
-        os.makedirs(outputdir)
-    else:
-        os.makedirs(outputdir)
-
-    if os.path.exists(inputdir):
-        shutil.rmtree(inputdir)
-        os.makedirs(inputdir)
-    else:
-        os.makedirs(inputdir)
-        
-        
-    programs = [] 
-    result = [] #[Total, #Complte]
-    print(progfile)
-    with open(progfile) as file:
-        prog = ""
-        progbegin = False 
-        for line in file:
-            if (line.strip () == "(*generated using Cobalt *)"): 
-                continue
-            elif ((" Program " in line.strip()) and (not progbegin)):  
-                # print("Begin recording")
-                progbegin = True
-                prog = prog+"\n"+line.strip()
-            elif ((" Program " in line.strip()) and (progbegin)):  
-                programs.append(prog); 
-                prog = line.strip()
-            
-            elif (line.strip() == ''):
-                continue   
-            else: 
-                prog = prog+'\n'+line.strip()
-                # print(line.rstrip())
-        programs.append(prog)    
+    subdirs = []
+    for file in os.listdir(dir_str):
+        d = os.path.join(dir_str, file)
+        if (file == "inputs" or file == "outputs"):
+            continue
+        else:
+            if os.path.isdir(d):
+                subdirs.append(d) 
+                print(d)
     i, successful, failed = 0,0,0
-    for progi in programs:
-        i = i+1
-        print (progi)
-        # ithprogrfile =  "{}/{}/{}".format(dir_str, "prog"+(str(i))+".ml") 
-        ithprogrfile =  "{}/{}".format(inputdir, "prog"+(str(i))+".ml") 
-        ithoutputfile = "{}/{}".format(outputdir, "prog"+(str(i))+".res")
-        ifile = open (ithprogrfile, 'w')
-        ifile.write(progi) 
-        ifile.close()
+    for diri in subdirs:
+        ithprogrfile =  "{}/{}".format(diri, "prog.ml") 
+        # ithoutputfile = "{}/{}".format(outputdir, "prog"+(str(i))+".res")
+        print ("Running Poirot on "+ithprogrfile)
         cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                             # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
@@ -97,10 +61,10 @@ def run(dir_str):
         invoc_cmd(cmd, None)
         res = parse_stat (resfile)
         if res[0] == "true":
-            successful + 1
+            successful = successful + 1
         else:
             failed = failed + 1
-        
+        i = i+1
     print ("Total "+str(i))
     print ("Rejected "+str(failed))
     print ("Succeeded "+str(successful))
