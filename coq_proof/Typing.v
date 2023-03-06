@@ -88,6 +88,7 @@ Proof.
   apply well_formed_regular in H3. mydestr; auto.
 Qed.
 
+(** Disjunction *)
 Definition disjunction (Γ: listctx rty) (τ1 τ2 τ3: rty) :=
   forall e, (⅋{∅}⟦ τ1 ⟧{ Γ } e) /\ (⅋{∅}⟦ τ2 ⟧{ Γ } e) <-> (⅋{∅}⟦ τ3 ⟧{ Γ } e).
 
@@ -141,8 +142,8 @@ Proof.
   eapply ctxrR2_implies_inv_ctxrR in H; eauto.
 Qed.
 
-Reserved Notation "Γ '⊢' τ '⋮t' T" (at level 20).
-Reserved Notation "Γ '⊢' τ '⋮v' T"  (at level 20).
+Reserved Notation "Γ '⊢' e '⋮t' τ" (at level 20).
+Reserved Notation "Γ '⊢' e '⋮v' τ"  (at level 20).
 
 (** Typing *)
 Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
@@ -195,7 +196,7 @@ with value_under_type_check : listctx rty -> tm -> rty -> Prop :=
     Γ ⊢ (vlam b (vlam (b ⤍ ⌊ τ ⌋) e)) ⋮v (-:{v: b | 0 | d | ϕ}⤑ (-:{v: b | 1 | d | ≻≻ ϕ}⤑ τ) ⤑ τ) ->
     Γ ⊢ (vfix (b ⤍ ⌊ τ ⌋) (vlam b e)) ⋮v (-:{v: b | 0 | d | ϕ}⤑ τ)
 where
-"Γ '⊢' τ '⋮t' T" := (term_under_type_check Γ τ T) and "Γ '⊢' τ '⋮v' T" := (value_under_type_check Γ τ T).
+"Γ '⊢' e '⋮t' τ" := (term_under_type_check Γ e τ) and "Γ '⊢' e '⋮v' τ" := (value_under_type_check Γ e τ).
 
 Scheme value_under_type_check_rec := Induction for value_under_type_check Sort Prop
     with term_under_type_check_rec := Induction for term_under_type_check Sort Prop.

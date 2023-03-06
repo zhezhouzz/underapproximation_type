@@ -332,10 +332,104 @@ The defintion of the coverage type is consistent of the Figure 3 (line `359`), w
 + the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
 + the function type is defined as let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the agrument type following the constraints in the paper (line `422` to `426`).
 
-
-### Running Coq Proofs
-
-The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof` directory. These proofs may be executed by running `make`, which may take about `10` min.
-
 ### Proof Readme of **λ<sup>TG</sup>**
 
+#### Proof File Structures
+
+The files are structured as follows:
++ Definitions and proofs of our core language **λ<sup>TG</sup>** that are independent of **Poirot***'s type system.
+  - `Atom.v`: Definitions and notations of atoms (variables) in **λ<sup>TG</sup>**.
+  - `Tactics.v`: Some auxiliary tactics.
+  - `CoreLang.v`: Definitions and notations of **λ<sup>TG</sup>**.
+  - `NamelessTactics.v`: Auxiliary tactics for the locally nameless representation.
+  - `CoreLangProp.v`: Lemmas for our core language **λ<sup>TG</sup>**..
+  - `OperationalSemantics.v`: Definitions and notations of the small-step operational semantics of **λ<sup>TG</sup>**..
+  - `OperationalSemanticsProp.v`: Lemmas for the small-step operational semantics of **λ<sup>TG</sup>**..
+  - `ListCtx.v`: Definitions and notations for reasoning about polymorphic contexts.
+  - `BasicTyping.v`: Definitions and notations for the basic typing.
+  - `BasicTypingProp.v`: Lemmas for the basic typing rules.
+  - `SyntaxSugar.v`: Definitions and notations of the syntax sugar.
+  - `TermOrdering.v`: Auxiliary definitions and notations of the partial order relation over terms.
+  - `RefinementType.v`: Definitions and notations of coverage types.
+  - `RefinementTypeTac.v`: Auxiliary tactics for coverage types.
+  - `RefinementTypeDenotation.v`: Definitions and notations of the type denotation (without type context).
+  - `RefinementTypeDenotationTac.v`: Auxiliary tactics for the type denotation (without type context).
+  - `RefinementTypeDenotationProp.v`: Lemmas for the type denotation (without type context).
+  - `WFCtxDenotation.v`: Auxiliary definitions and notations of the denotation of well-formed type context.
+  - `WFCtxDenotationProp.v`: Lemmas for the denotation of well-formed type context.
+  - `InvDenotation.v`: Auxiliary definitions and notations of the invariant denotation.
+  - `InvDenotationProp1.v` ... `InvDenotationProp4.v`: Lemmas fpr the invariant denotation.
+  - `CtxDenotation.v`: Definitions and notations of the type denotation under type context.
+  - `CtxDenotationProp.v`: Lemmas for the type denotation under type context.
+  - `Typing.v`: Definitions and notations used in the typing rules.
+  - `Soundness.v`: Statement and proof of the soundness theorem.
+
+#### Compilation and Dependencies
+
+The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof` directory.
+
+    $ cd coq_proof
+
+The project is organized by the coq make file `_CoqProject`, which may be executed by running `make` (about `10` min).
+
+    $ make
+
+Our formalization is tested against `Coq 8.14.1`. We also rely on the library `coq-stdpp 1.7.0`.
+
+Our formalization takes inspiration and ideas from the following work, though does not directly depend on them:
+- [Software Foundations](https://softwarefoundations.cis.upenn.edu/): a lot of our formalization is inspired by the style used in Software Foundations.
+- [The Locally Nameless Representation](https://chargueraud.org/research/2009/ln/main.pdf): we use locally nameless representation for variable bindings.
+
+#### Paper-to-artifact Correspondence
+
+
+| Definition/Theorems           | Paper                                                                   | Definition                                                                                                                 | Notation                        |
+|-------------------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|---------------------------------|
+| Syntax                        | Figure 3                                                                | mutual recursive defined as `value` and `tm` in file `CoreLang.v` (line `42`)                                              |                                 |
+| Operational semantics         | Figure 11 (supplementary materials)                                     | `step` in file `OperationalSemantics.v` (line `23`)                                                                        | `e ↪ e'`                        |
+| Basic typing rules            | Figure 12 (supplementary materials)                                     | mutual recursive definition of `tm_has_type` and `value_hsa_type` in file `BasicTyping.v` (line `56`)                      | `Γ ⊢t e ⋮t T` and `Γ ⊢t v ⋮v T` |
+| Well-formedness typing rules  | Figure 4                                                                | `wf_typing` in file `Typing` (line `44`)                                                                                   | `Γ ⊢WF τ`                       |
+| Subtyping rules               | Figure 4                                                                | `subtyping` in file `Typing` (line `97`)                                                                                   | `Γ ⊢ τ1 ⪡ τ2`                   |
+| Disjunction typing rules      | Figure 4                                                                | `disjunction` in file `Typing` (line `92`)                                                                                 | `Γ ⊢ τ1 ⩔ τ2 ⩵ τ3`              |
+| Selected typing rules         | Figure 5 (Figure 13 in supplementary materials shows full set of rules) | given by the mutually inductive types `value_under_type_check` and `term_under_type_check` in file `Typing.v` (line `149`) | `Γ ⊢ e ⋮t τ` and `Γ ⊢ v ⋮v τ`   |
+| Type denotation               | At the beginning of Section 4.1 (line `573` to `576`)                   | `rR` in file `RefinementTypeDenotation.v` (line `23`)                                                                      | `{ n; bst; st }⟦ τ ⟧`           |
+| Type denotation under context | At the beginning of page 13 (line `594` to `597`)                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
+| Soundness theorem             | Theorem 4.2                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
+
+#### Differences Between Paper and Artifact
+
+- Our formalization only has two base types: nat and bool,
+- Our formalization only have four operators: `+`, `==`, `<`, `nat_gen`. Other operators shown in the paper can be implemented in terms of these. E.g., the minus operator can be defined as:
+
+```
+let minus (x: nat) (y: nat) =
+    let (diff: nat) = nat_gen () in
+    if x + diff == y then diff else err
+```
+
+In addition, to simplify the syntax, all operators take two input arguments; e.g., the random nat generator takes two arbitrary numbers as input.
+- In the formalization, to simplify the syntax, pattern-matching can only pattern match against Boolean variables. Pattern matching over natural numbers
+
+```
+match n with
+| 0 -> e1
+| S m -> e2
+```
+
+is implemented as follows:
+
+```
+if n == 0 then e1
+else let m = n - 1 in e2
+```
+
+- We assume all input programs are alpha-converted, such that all variables have unique names.
+- We use the [locally nameless representation](https://chargueraud.org/research/2009/ln/main.pdf) in all terms, values, refinement, and type context, thus the definition looks slight different from the definition shown in the paper.
+- We encode the propositions in the refinement type as Coq propositions. In order to capture the the free variables and the bound variables (see locally nameless repsentation), all proposition will constructed with
+  + a set of atoms (variables) `d`, which is the of the free variables in the proposition.
+  + a natrual number `n`, which indicate the upper bound of the bound variables.
+- Following the encoding above, for example, the base coverage type `[v:b | φ]` will be encoded as `[v:b | n | d | φ]`.
+- The substitution of refinement types are formalized into states (a mapping from varaibles to values), helping to eliminate termination checks of the fixpoint function in Coq when we define the logical relation. Precisely
+  + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
+  + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we ommit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless repsentation).
+- In the formalization, our coverage typing rules additionally require that the all branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mentioned it in the original paper, however, we will fix it in the second round submission.
