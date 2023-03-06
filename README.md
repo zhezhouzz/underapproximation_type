@@ -1,6 +1,6 @@
 # Artifact Guide: Covering All the Bases: Type-based Verification of Test Input Generators
 
-This is the accompanying artifact for the PLDI 2023 submission *Covering All the Bases: Type-based Verification of Test Input Generators* by Zhou et al. This artifact consists of both the OCaml impelementation (**Poirot**) and the Coq formalization of the type system or our core language **λ<sup>TG</sup>** introduced in the paper.
+This is the accompanying artifact for the PLDI 2023 submission *Covering All the Bases: Type-based Verification of Test Input Generators* by Zhou et al. This artifact consists of both the OCaml impelementation (**Poirot**) and the Coq formalization of the type system of our core language **λ<sup>TG</sup>** introduced in the paper.
 
 ## Getting Started Guide
 
@@ -28,16 +28,16 @@ directory containing the Dockerfile and tell Docker to build:
 
     $ docker build . --tag poirot23/poirot:pldi-2023
 
-**Resource Requirements:** Although our tool **Poirot** and the Coq formalization doesn't have large memory usage, building the docker image needs more than `32GB` RAM available. This memory usage requirement comes from the then installation of the SMT solver `z3` (https://github.com/Z3Prover/z3). When the RAM limit of the Docker (by default, it is `8GB` on Mac, no limit on Linux machine) is lower than `32GB`, the installation of `z3` will be killed and the `docker build` will fail.
+**Resource Requirements:** Although our tool **Poirot** and the Coq formalization doesn't have large memory usage, building the docker image needs more than `32GB` RAM available. This memory usage requirement comes from the installation of the SMT solver `z3` (https://github.com/Z3Prover/z3). When the RAM limit of Docker (by default, it is `8GB` on Mac, no limit on Linux machine) is lower than `32GB`, the installation of `z3` will be killed and the `docker build` will fail.
 The memory error can be fixed by increasing the RAM limit in Docker; you can find instructions for doing so on Mac here: (https://docs.docker.com/desktop/settings/mac/#resources), for Windows here: (https://docs.docker.com/desktop/settings/windows/#resources), and for Linux here: (https://docs.docker.com/desktop/settings/linux/#resources). The pre-built docker image is built on a Linux machine having Intel i7-8700 CPU @ 3.20GHz with `64GB` of RAM, it took `30` min to build.
 
 ### Running the Docker Image
 
-To launch a shell in the Docker image, say:
+To launch a shell in the Docker image:
 
     $ docker run -it -m="8g" poirot23/poirot:pldi-2023
 
-To compile **Poirot**, say:
+To compile **Poirot**:
 
     $ dune build && cp _build/default/bin/main.exe main.exe
 
@@ -62,13 +62,13 @@ Types to Check:
 
 ### Coq proofs in the Docker Image
 
-The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof` directory. These proofs may be executed by running `make`, which may take about `10` min.
+The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof/` directory. These proofs may be executed by running `make`, which may take about `10` min.
 
     $ cd coq_proof && make
 
 ## Step-by-Step Instructions
 
-In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of the refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
+In this section, we provides the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes installation and use of **Poirot**, an OCaml impelementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
 
 ### Artifact Structure
 
@@ -85,21 +85,21 @@ This section gives a brief overview of the files in this artifact.
   + `poirot-full-version.pdf`: the original submission with supplemental materials.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
-  + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by thier `SOURCE`. Typically the input source files have name `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files have name `data/benchmark/SOURCE/NAME/_under.ml`.
-  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that have name with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [Cobalt](#cobalt-synthesizer).
-* `driver`: the IO of **Poirot**.
-* `env/`: the univerail environment of **Poirot** which is load from the configuration files.
+  + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by their `SOURCE`. Typically the input source files are named `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files are named `data/benchmark/SOURCE/NAME/_under.ml`.
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [Cobalt](#cobalt-synthesizer).
+* `driver/`: the IO of **Poirot**.
+* `env/`: the universal environment of **Poirot** which is loaded from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
 * `meta-config.json`: the main configuration file, the details can be found in [Configuration of Poirot](#configuration-of-poirot).
 * `scripts/`: various Python scripts for collecting and displaying experimental results.
-* `translate/`: normalization procedure that normalize the code into the Monadic Normal Form (a variant of the A-Normal form).
+* `translate/`: the normalization procedure that normalizes the code into the Monadic Normal Form (a variant of the A-Normal form).
 * `typecheck/`: type check.
   + `typecheck/termcheck.ml`: basic type inference and check.
   + `typecheck/undercheck.ml`: refinement type check.
 
 ### Running Benchmarks of Poirot
 
-In this section, we discuss the scripts that displayes the tables in the paper.
+In this section, we discuss the scripts that displays the tables in the paper.
 
 ##### Comprehensive Scripts
 
@@ -107,22 +107,22 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
     $ python3 scripts/get_table1.py
 
-> Notice: in order to solve the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unsued quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns would slight different from the table shown in the paper. The execution time `total (avg. time)(s)` may also be various depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
+> Notice: in order to solve the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will differ slightly from the table shown in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
 
-The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
 
-> Notice: the synthesizer uses random choices internally while synthesizing these programs, therefore the programs synthesized in each run of the synthesizer are different and may vary *minutely* in numbers. This may cause *minute* differences in the table generated by the above script from what is reported in the paper. However, in each case, the numbers generated will be close and corroborate our claims in the paper that *the space of the complete generators is significantly smaller than the space of the safe generators.* (line `914`)
+> Notice: the synthesizer uses random choices internally while synthesizing these programs, therefore the programs synthesized in each run of the synthesizer may differ and may vary *minutely* in numbers. This may cause *minute* differences in the table generated by the above script from what is reported in the paper. However, in each case, the numbers generated will be close and corroborate our claims in the paper that *the space of the complete generators is significantly smaller than the space of the safe generators.* (line `914`)
 
 
-The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
+The following scripts run the `STLC` benchmark suite that is asked for by the reviewers, it will take about `200` seconds. The details about these new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
 
     $ python3 scripts/run_stlc.py
 
 ##### Detailed Steps
 
-By add command line argument `verbose`, the all scripts above will show the actual command sent to **Poirot** on each benchmark. For example, by runing:
+By add commanding the line argument `verbose`, all of the scripts above will show the actual command sent to **Poirot** on each benchmark. For example, by runing:
 
     $ python3 scripts/get_table1.py verbose
 
@@ -136,13 +136,13 @@ dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/qu
 ...
 ```
 
-Readers can try these commands which will take shorter time.
+Readers can try these commands which will take a shorter amount of time.
 
 ### STLC Benchmark
 
-The STLC is a new benchmarks suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a details explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library function in the QuickChick.
+The STLC is a new benchmark suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a detailed explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library functions in the QuickChick.
 
-The expected expiroment result is shown in the following table. The meaning of the table is the same with the Table 1 in the paper (see "benchmarks" paragraph from line `822`), where we use "▲" indicates these functions are from the STLC benchmark.
+The expected experimental result is shown in the following table. The meaning of the table is the same as with Table 1 in the paper (see "benchmarks" paragraph from line `822`), where "▲" indicates these functions are from the STLC benchmark.
 
 |                        | #Branch   | #LocalVar   | #MP   | #Query   | (max. #∀,#∃)   | total (avg. time)(s)   |
 |------------------------|-----------|-------------|-------|----------|----------------|------------------------|
@@ -184,7 +184,7 @@ Types to Check:
 
 ```
 
-+ Print the source code from the given file in given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
++ Print the source code from the given file in a given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
 
 ```
 $ ./main.exe print-source-code [raw | typed | mnf] <config_file> <source_code_file> <refinement_type_file>
@@ -222,7 +222,7 @@ int -> int list)
 
 ```
 
-+ Type check the given source code is type safe with respect to the given refinement type (line `810` in the paper):
++ Type check will check that the given source code is type safe with respect to the given refinement type (line `810` in the paper):
 
 ```
 $ ./main.exe coverage-type-check <config_file> <source_code_file> <refinement_type_file>
@@ -244,7 +244,7 @@ The result of type check is saved in the file `.result` by default. The first wo
 true & sized_list_gen & $4$ & $12$ & $2$ & $11$ & $(7, 9)$ & $0.38(0.03)$
 ```
 
-You can also turn on the `debug_info.show_typing` in the configuration file (`meta-config.json`) to show the each step of type check. The details about the configuration file is the section [Configuration of Poirot](#configuration-of-poirot).
+You can also turn on `debug_info.show_typing` in the configuration file (`meta-config.json`) to show each step of type check. The details about the configuration file is in section [Configuration of Poirot](#configuration-of-poirot).
 
 ```
 ...
@@ -258,7 +258,7 @@ Task 1, type check succeeded
 
 ##### Configuration of Poirot
 
-All commnads of **Poirot** will take a universial configuration file (`meta-config.json`) in JSON format as its first argument. Precisely, the JSON file
+All commands of **Poirot** will take a universal configuration file (`meta-config.json`) in JSON format as its first argument. Precisely, the JSON file
 outputs results in JSON format to some output directory.
 - the `debug_info` field controls the debug information output. Precisely, we have the following options:
   + if the `show_preprocess` field is true, **Poirot** will print the preprocess result (line `811` in the paper). It will print the given source code, type code, and the code in Monadic Normal Form.
@@ -275,20 +275,20 @@ range of datatypes(line `813` to `815` in the paper).
 
 ##### Input File Formats
 
-The source code file expected by **Poirot** is simply a OCaml functions listing. Currently, **Poirot** handles only a subset of OCaml, it does not handle features involving references and effects, parametric polymorphism, or concurrency. Additionally, all functions should be annotated with precise input and output type; all left-hand-side variable in the let binding should be annotated with its precise type.
+The source code file expected by **Poirot** is simply an OCaml functions listing. Currently, **Poirot** handles only a subset of OCaml, it does not handle features involving references and effects, parametric polymorphism, or concurrency. Additionally, all functions should be annotated with precise input and output type; all left-hand-side variables in a let binding should be annotated with its precise type.
 
-The refinement type file expected by **Poirot** is also a OCaml source code file with specially formatted:
+The refinement type file expected by **Poirot** is also an OCaml source code file which is specially formatted:
 
 ```c
 (* The method predicates used in the current benchmark *)
 external method_predicates : t = "NAME" "NAME" "NAME" ...
 
-(* The refinement type of the library function NAME, which doesn't need to be type check *)
+(* The refinement type of the library function NAME, which doesn't need to be type checked *)
 let[@library] NAME = UNDER_APPR_RTY
 
 ...
 
-(* The refinement type of the function NAME, which needs to be type check *)
+(* The refinement type of the function NAME, which needs to be type checked *)
 let NAME = UNDER_APPR_RTY
 
 ...
@@ -296,9 +296,9 @@ let NAME = UNDER_APPR_RTY
 
 where `NAME` is simply a string.
 
-The method predicates are predefined uninterrupted functions that capture non-trivial datatype shape properties (see line `815` to `821` in the paper). The semantics of the method predicates are define in the file `data/predefined/axioms_of_predicates.ml`.
+The method predicates are predefined uninterpreted functions that capture non-trivial datatype shape properties (see line `815` to `821` in the paper). The semantics of the method predicates are define in the file `data/predefined/axioms_of_predicates.ml`.
 
-The syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonyms of coverage type) is similar with the OCaml let expression but with [attributes](https://v2.ocaml.org/manual/attributes.html):
+The syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonym of coverage type) is similar to the OCaml let expression but with [attributes](https://v2.ocaml.org/manual/attributes.html):
 
 ```c
 VAR := string
@@ -335,14 +335,14 @@ UNDER_APPR_RTY :=
 | "let VAR = UNDER_APPR_BASE_RTY in UNDER_APPR_RTY"
 
 ```
-where the `METHOD_PREDICATE` is the method predcicates introduced in the first line of the file; the quantifers in the first-order logic (FOL) proposition `PROP` is typed (`TYPED_QUANTIFIER`).
+where the `METHOD_PREDICATE` is the method predicates introduced in the first line of the file; the quantifers in the first-order logic (FOL) proposition `PROP` is typed (`TYPED_QUANTIFIER`).
 
-Currently, the `OCAML_TYPE` supported by the **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
+Currently, the `OCAML_TYPE` supported by **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
 
-The defintion of the coverage type is consistent of the Figure 3 (line `359`), which consists of both "overapproximated-style" refinement type and the "overapproximated-style" refinement type. Precisely,
+The definition of the coverage type is consistent with Figure 3 (line `359`), which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,
 + the overapproximate refinement type `{v:b | φ}` in the paper is defined as `OVER_APPR_BASE_RTY`.
 + the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
-+ the function type is defined as let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the agrument type following the constraints in the paper (line `422` to `426`).
++ the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the arguement type following the constraints in the paper (line `422` to `426`).
 
 ### Proof Readme of **λ<sup>TG</sup>**
 
@@ -370,7 +370,7 @@ The files are structured as follows:
   - `WFCtxDenotation.v`: Auxiliary definitions and notations of the denotation of well-formed type context.
   - `WFCtxDenotationProp.v`: Lemmas for the denotation of well-formed type context.
   - `InvDenotation.v`: Auxiliary definitions and notations of the invariant denotation.
-  - `InvDenotationProp1.v` ... `InvDenotationProp4.v`: Lemmas fpr the invariant denotation.
+  - `InvDenotationProp1.v` ... `InvDenotationProp4.v`: Lemmas for the invariant denotation.
   - `CtxDenotation.v`: Definitions and notations of the type denotation under type context.
   - `CtxDenotationProp.v`: Lemmas for the type denotation under type context.
   - `Typing.v`: Definitions and notations used in the typing rules.
@@ -390,7 +390,7 @@ Our formalization is tested against `Coq 8.14.1`. We also rely on the library `c
 
 Our formalization takes inspiration and ideas from the following work, though does not directly depend on them:
 - [Software Foundations](https://softwarefoundations.cis.upenn.edu/): a lot of our formalization is inspired by the style used in Software Foundations.
-- [The Locally Nameless Representation](https://chargueraud.org/research/2009/ln/main.pdf): we use locally nameless representation for variable bindings.
+- [The Locally Nameless Representation](https://chargueraud.org/research/2009/ln/main.pdf): we use the locally nameless representation for variable bindings.
 
 #### Paper-to-artifact Correspondence
 
@@ -413,7 +413,7 @@ Our formalization takes inspiration and ideas from the following work, though do
 #### Differences Between Paper and Artifact
 
 - Our formalization only has two base types: nat and bool.
-- To simplify the syntax, our formalization don't treat the operators (e.g. `+`) as value (line `349` in the paper). Alternately, we can define the operators as value using lambda functions. For example, the value `+` can be defined as
+- To simplify the syntax, our formalization don't treat the operators (e.g. `+`) as values (line `349` in the paper). Alternately, we can define the operators as values using lambda functions. For example, the value `+` can be defined as
 
 ```
 fun (x: nat) (y: nat) =
@@ -421,7 +421,7 @@ fun (x: nat) (y: nat) =
     res
 ```
 
-- Our formalization only have four operators: `+`, `==`, `<`, `nat_gen`. Other operators shown in the paper can be implemented in terms of these. E.g., the minus operator can be defined as:
+- Our formalization only has four operators: `+`, `==`, `<`, `nat_gen`. Other operators shown in the paper can be implemented in terms of these. E.g., the minus operator can be defined as:
 
 ```
 let minus (x: nat) (y: nat) =
@@ -446,28 +446,28 @@ else let m = n - 1 in e2
 ```
 
 - We assume all input programs are alpha-converted, such that all variables have unique names.
-- We use the [locally nameless representation](https://chargueraud.org/research/2009/ln/main.pdf) in all terms, values, refinement, and type context, thus the definition looks slight different from the definition shown in the paper.
-- We encode the propositions in the refinement type as Coq propositions. In order to capture the the free variables and the bound variables (see locally nameless repsentation), all proposition will constructed with
-  + a set of atoms (variables) `d`, which is the of the free variables in the proposition.
-  + a natrual number `n`, which indicate the upper bound of the bound variables.
+- We use the [locally nameless representation](https://chargueraud.org/research/2009/ln/main.pdf) in all terms, values, refinement, and type context, thus the definitions looks slight different from the definitions shown in the paper.
+- We encode the propositions in the refinement type as Coq propositions. In order to capture the free variables and the bound variables (see locally nameless repsentation), all proposition will be constructed with
+  + a set of atoms (variables) `d`, which are the free variables in the proposition.
+  + a natural number `n`, which indicates the upper bound of the bound variables.
 - Following the encoding above, for example, the base coverage type `[v:b | φ]` will be encoded as `[v:b | n | d | φ]`.
 - The substitution of refinement types are formalized into states (a mapping from varaibles to values), helping to eliminate termination checks of the fixpoint function in Coq when we define the logical relation. Precisely
   + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
-  + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we ommit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless repsentation).
-- In the formalization, our coverage typing rules additionally require that the all branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mentioned it in the original paper, however, we will fix it in the second round submission.
-- To the sake of convenience of proof, we split a single typing rules into different cases (then we can prove these cases separately dyring the induction proof). For exmaple, the rule `TLetE` in the figure 13 (in the supplementary materials) is split as `UT_Lete_base` and `UT_Lete_arr` in our proof.
+  + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we omit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless repsentation).
+- In the formalization, our coverage typing rules additionally require that all the branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mention it in the original paper, however, we will fix it in the second round submission.
+- For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule `TLetE` in the figure 13 (in the supplementary materials) is split into `UT_Lete_base` and `UT_Lete_arr` in our proof.
 
 ## Appendix: Building Cobalt from Source (Optional)
 
 ### Cobalt Synthesizer
 
-[Cobalt](https://github.com/aegis-iisc/propsynth.git) (based on the [paper](https://dl.acm.org/doi/abs/10.1145/3563310)) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length `k` and given nested depth. Unfortunately, the depedencies (e.g., the version of the OCaml and z3) of `Cobalt` is conflit with **Poirot**, thus we put the synthesized results (see `data/` feild in the section [Artifact Structure](#artifact-structure)) instead of the synthesizer into the docker.
+[Cobalt](https://github.com/aegis-iisc/propsynth.git) (based on the [paper](https://dl.acm.org/doi/abs/10.1145/3563310)) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length `k` and given nested depth. Unfortunately, the depedencies (e.g., the version of the OCaml and z3) of `Cobalt` is in conflict with **Poirot**, thus we put the synthesized results (see `data/` field in the section [Artifact Structure](#artifact-structure)) instead of the synthesizer into the dockerfile.
 
-**This step is optional:** although the program synthesis is not the claims in the our paper, we still provide instructions to reproduce these synthesized programs for the readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.
+**This step is optional:** although the program synthesis is not one of the claims in our paper, we still provide instructions to reproduce these synthesized programs for the readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.
 
 ### Prerequisites
 
-To build Cobalt following dependencies must be installed:
+To build Cobalt, the following dependencies must be installed:
 
 *  [OCaml]() (Version >= 4.03)
 
@@ -518,7 +518,7 @@ $ apt-get install python3
 
 ### Building Cobalt
 
-After all the dependencies are installed, Cobalt can be directly built using *ocamlbuild* using the script `build.sh` in the project root directory.
+After all the dependencies are installed, Cobalt can be directly built using *ocamlbuild* with the script `build.sh` in the project root directory.
 
 ```
 
@@ -537,13 +537,13 @@ $ ./effsynth.native [-cdcl] [-bi] [-k] [-nested] <path_to_specfile>
 $ ./effsynth.native -cdcl -bi -k 3  tests_specsynth/ulist_quant.spec
 
 ```
- This should produce a list of synthesized programs in
+ This should produce a list of synthesized programs in the
 `output/tests_specsynth/ulist_quant.spec` directory.
 
 ### Generating Poirot benchmarks:
-The 5 benchmarks in `Table2` in **Poirot** are in `test_specsynth/Poirot_benchmaks` directory.
+The 5 benchmarks in `Table2` in **Poirot** are in the `test_specsynth/Poirot_benchmaks` directory.
 
-Run the following command to generate the programs used in Poirot for UniqueList:
+Run the following command to generate the programs used in **Poirot** for UniqueList:
 
 ```
 $ ./effsynth.native -cdcl -bi -k 3 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spc
