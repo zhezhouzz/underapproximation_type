@@ -15,7 +15,9 @@ Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
 
-(* state works like vfvar *)
+(** * We define the coverage refinement type in locally nameless style. *)
+
+(** state works like vfvar *)
 Definition state := amap constant.
 
 Lemma empty_map_dom_is_empty: dom aset (∅ : state) = ∅.
@@ -25,7 +27,7 @@ Proof. fast_set_solver. Qed.
 Instance state_stale : @Stale aset state := dom aset.
 Arguments state_stale /.
 
-(* bstate works like vfbar, which is a finite map with a bound. *)
+(** bstate works like vfbar, which is a finite map with a bound. *)
 Definition bstate := nat -> constant.
 
 Definition bstate_insert (k: nat) (c: constant) (bst: bstate) := fun i => if decide (i = k) then c else bst i.
@@ -40,11 +42,11 @@ Notation " '<b[↦' c ']>' " := (bstate_push c) (at level 5, right associativity
 
 Definition ty_of_state (st: state) : amap base_ty := ty_of_const <$> st.
 
-(* In order to defined the type denotation (logical relation) which is a recursive function, we should make sure the refinement type is structurally decreasing, which means we cannot do substution (or open, close) over the refinement types. Thus we lift all substition (open, close) into states: bstate is for bound variables, state is for free variables. *)
+(** In order to defined the type denotation (logical relation) which is a recursive function, we should make sure the refinement type is structurally decreasing, which means we cannot do substution (or open, close) over the refinement types. Thus we lift all substition (open, close) into states: bstate is for bound variables, state is for free variables. *)
 Definition refinement : Type := bstate -> state -> constant -> Prop.
 
-(* n is the upper bound of indices that are allowed to be accessed; doesn't mean all idices appear in the refinement. *)
-(* d is a finite set of free variables that are allowed to be accessed; doesn't mean all free variables appear in the refinement. *)
+(** n is the upper bound of indices that are allowed to be accessed; doesn't mean all idices appear in the refinement. *)
+(** d is a finite set of free variables that are allowed to be accessed; doesn't mean all free variables appear in the refinement. *)
 Inductive rty : Type :=
 | BaseOver (B: base_ty) (n: nat) (d: aset) (ϕ: refinement)
 | BaseUnder (B: base_ty) (n: nat) (d: aset) (ϕ: refinement)
@@ -60,8 +62,7 @@ Notation "'{v:' B '|' n '|' d '|' ϕ '}'" :=
 Notation "'-:{v:' B '|' n '|' d '|' ϕ '}' '⤑' τ" := (DependArrow B n d ϕ τ) (at level 80, right associativity, B constr, ϕ constr, τ constr).
 Notation " τ1 '⤑' τ2 " := (IndependArrow τ1 τ2) (at level 80, right associativity, τ1 constr, τ2 constr).
 
-(* free variables *)
-
+(** free variables *)
 Fixpoint rty_fv τ : aset :=
   match τ with
   | {v: _ | _ | d | _ } => d
@@ -74,8 +75,7 @@ Fixpoint rty_fv τ : aset :=
 Instance rty_stale : @Stale aset rty := rty_fv.
 Arguments rty_stale /.
 
-(* open; here we still open to a value *)
-
+(** open; here we still open to a value *)
 Definition refinement_open (k: nat) (s: value) (ϕ: refinement) : refinement :=
   fun bst st v => ϕ (match s with
                   | vfvar x =>
@@ -111,18 +111,17 @@ Notation "'{' k '~r>' s '}' e" := (rty_open k s e) (at level 20, k constr).
 
 Notation "e '^r^' s" := (rty_open 0 s e) (at level 20).
 
-(* subst *)
-
-(* The refinement type only works for the value with the base type (constants), thus the subst over lambda terms doesn't (shouldn't) works; and we should never update a non-lc term (e.g., vbvar _). *)
-(* The subst should guarantee: *)
-(* 1. the variable x1 is not in in the current state. *)
-(* 2. if the value v2 is a free variable x2, it should be in the current state, but not used in the further refinements. *)
+(** subst *)
+(** The refinement type only works for the value with the base type (constants), thus the subst over lambda terms doesn't (shouldn't) works; and we should never update a non-lc term (e.g., vbvar _). *)
+(** The subst should guarantee: *)
+(** 1. the variable x1 is not in in the current state. *)
+(** 2. if the value v2 is a free variable x2, it should be in the current state, but not used in the further refinements. *)
 
 Definition state_insert_value: atom -> value -> state -> state :=
   fun x1 v2 st => match v2 with
                | vfvar x2 =>
                    match st !! x2 with
-                   | None => st (* this case should never happen *)
+                   | None => st (** this case should never happen *)
                    | Some c2 => <[x1 := c2]> st
                    end
                | vconst c2 => (<[x1 := c2]> st)
@@ -186,8 +185,7 @@ Fixpoint rty_subst (x: atom) (s: value) (τ: rty) : rty :=
 
 Notation "'{' x ':=' s '}r'" := (rty_subst x s) (at level 20, format "{ x := s }r", x constr).
 
-(* well formed, locally closed, closed with state *)
-
+(** well formed, locally closed, closed with state *)
 Definition not_fv_in_refinement (d: aset) (ϕ: refinement) :=
   forall (m m': state),
     (forall (x: atom), x ∈ d -> m !! x = m' !! x) ->
@@ -338,8 +336,7 @@ Qed.
 Definition ctx_closed_rty (d: aset) (Γ: listctx rty) :=
   forall Γ1 (x: atom) (τ: rty) Γ2, Γ = Γ1 ++ [(x, τ)] ++ Γ2 -> closed_rty 0 (ctxdom ⦑ Γ1 ⦒  ∪ d) τ.
 
-(* Erase *)
-
+(** Erase *)
 Fixpoint rty_erase ut : ty :=
   match ut with
   | {v: T | _ | _ | _ } => T
@@ -357,8 +354,7 @@ Definition ctx_erase := listctx_fmap rty_erase.
 
 Notation " '⌊' Γ '⌋*' " := (ctx_erase Γ) (at level 5, format "⌊ Γ ⌋*", Γ constr).
 
-(* Ty Function *)
-
+(** Ty Function *)
 Definition mk_eq_constant c := [v: ty_of_const c | 0 | ∅ | fun _ _ v => v = c ].
 Definition mk_under_bot ty := [v: ty | 0 | ∅ | fun _ _ _ => False ].
 Definition mk_under_top ty := [v: ty | 0 | ∅ | fun _ _ _ => True ].

@@ -5,9 +5,9 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
 From CT Require Import TermOrdering.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
@@ -21,9 +21,9 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
 Import TermOrdering.
 
 Lemma refinement_exclude_const: forall b (ϕ: refinement),
@@ -281,14 +281,6 @@ Ltac refinement_solver0 :=
 
 Global Hint Constructors lc_rty_idx: core.
 
-(* Ltac lia_dec_solver := *)
-(*   repeat match goal with *)
-(*     | [H: context [ decide (?a = ?b) ] |- _ ] => *)
-(*         (assert (a = b) as Htmp by lia; rewrite (decide_True _ _ Htmp) in H; try clear Htmp) || *)
-(*           (assert (a <> b) as Htmp by lia; rewrite (decide_False _ _ Htmp) in H; try clear Htmp) *)
-(*     end. *)
-
-
 Ltac dec_solver3 :=
   try auto_exfalso;
   match goal with
@@ -471,50 +463,6 @@ Ltac refinement_solver7 :=
           eapply not_overbasety_subst_excluded_forward; eauto
       end || refinement_solver0).
 
-(* Ltac refinement_solver3 := *)
-(*   repeat (match goal with *)
-(*           | [H: closed_rty _ _ _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto *)
-(*           | [H: closed_rty _ _ ?τ |- valid_rty ?τ] => invclear H; mydestr; eauto *)
-(*           | [H: valid_rty _ |- wf_r _ _ _ ] => invclear H; mydestr; eauto *)
-(*           | [H: ok_dctx _ ((?z, _) :: _) |- ?z ∉ _ ] => invclear H; auto *)
-(*           | [H: not_overbasety ?τ |- not_overbasety (({ _ := _}r) ?τ)] => *)
-(*               eapply not_overbasety_subst_excluded_forward; eauto *)
-(*           | [|- valid_rty (({ _ := _ }r) _)] => eapply valid_rty_subst_excluded_forward; eauto *)
-(*           | [|- lc_rty_idx _ (({ _ := _ }r) _)] => eapply lc_rty_idx_subst_excluded_forward; eauto *)
-(*           | [|- rty_fv (({ _ := _ }r) _) ⊆ _] => eapply rty_fv_subst_excluded_forward; eauto *)
-(*           end || refinement_solver2). *)
-
-(* Ltac refinement_solver4 := *)
-(*   repeat (match goal with *)
-(*           | [H: ({_;_;_}⟦_⟧ _) |- _ ⊢t ?v ⋮v _ ] => apply rR_regular1 in H; mydestr *)
-(*           | [H: closed_rty _ _ _ |- lc_rty_idx _ _] => invclear H; mydestr; auto *)
-(*           | [H: closed_rty _ _ _ |- context [rty_fv _]] => invclear H; mydestr; auto *)
-(*           end || refinement_solver3). *)
-
-(* Ltac refinement_solver5 := *)
-(*   (match goal with *)
-(*    | [H: ({_;_;_}⟦ ?τ ⟧) _ |- valid_rty ?τ] => apply rR_regular1 in H; mydestr; refinement_solver4 *)
-(*    | [H: ({_;_;_}⟦?τ⟧) _ |- _ ∉ rty_fv ?τ ] => apply rR_regular1 in H; mydestr; refinement_solver4 *)
-(*    end || refinement_solver4). *)
-
-(* Ltac refinement_solver6 := *)
-(*   match goal with *)
-(*   | [H: is_arr ?τ_x |- ok_dctx _ ((_, ?τ_x) :: _)] => *)
-(*       apply ok_dctx_cons_arr; refinement_solver5 *)
-(*   | [|- ok_dctx _ ((_, {v:_|_|_|_}) :: _)] => constructor; refinement_solver5 *)
-(*   | [|- ok_dctx _ ((_, [v:_|_|_|_]) :: _)] => constructor; refinement_solver5 *)
-(*   | [H: [] ⊢t ?v ⋮v _ |- closed_value ?v] => eapply tyable_implies_closed_value in H; eauto *)
-(*   | [H: [] ⊢t ?v ⋮t _ |- closed_tm ?v] => eapply tyable_implies_closed_tm in H; eauto *)
-(*   | [H: ({_}⟦ ?τ ⟧{ _ }) terr |- valid_rty ?τ ] => apply ctxrR_regular in H; mydestr; refinement_solver5 *)
-(*   end || refinement_solver5. *)
-
-(* Ltac refinement_solver7 := *)
-(*   listctx_set_simpl4; *)
-(*   match goal with *)
-(*   | [H: {_;_;_}⟦_⟧ ?e |- _ ∉ fv_tm ?e] => *)
-(*       apply rR_regular1 in H; mydestr; basic_typing_solver *)
-(*   end || refinement_solver6. *)
-
 Ltac denotation_simp3 :=
   denotation_simp1;
   repeat match goal with
@@ -526,15 +474,6 @@ Ltac denotation_simp3 :=
     | [H: [] ⊢t ?v ⋮v (TBase _) |- _ ] => invclear H; denotation_simp1
     | [H: [v: _ |_|_|_] = [v:_|_|_|_] |- _ ] => invclear H
     end.
-
-(* Ltac denotation_simp3 := *)
-(*   repeat match goal with *)
-(*     | [H: ({_}⟦[v:?b|_|_|_]⟧) ?ee, H': ?ee ↪* (tvalue ?v), H'': [] ⊢t ?v ⋮v (TBase ?b) |- _ ] => fail 1 *)
-(*     | [H: ({_}⟦[v:?b|_|_|_]⟧) ?ee, H': ?ee ↪* (tvalue ?v) |- _ ] => assert ([] ⊢t v ⋮v b) by refinement_solver7 *)
-(*     | [H: ({_;_;_}⟦[v:?b|_|_|_]⟧) ?ee, H'': [] ⊢t ?ee ⋮t (TBase ?b) |- _ ] => fail 1 *)
-(*     | [H: ({_;_;_}⟦[v:?b|_|_|_]⟧) ?ee |- _ ] => assert ([] ⊢t ee ⋮t b) by refinement_solver7 *)
-(*     end; *)
-(*   denotation_simp2. *)
 
 Ltac denotation_simp := denotation_simp3.
 
@@ -941,20 +880,6 @@ Ltac auto_ty_exfalso4 :=
       rewrite <- H' in Htmp; auto_ty_exfalso2
   end || auto_ty_exfalso3.
 
-(* Ltac auto_ty_exfalso5 := *)
-(*   match goal with *)
-(*   | [H: is_arr ?τ, H': ~ is_arr ({?k ~r> ?v} ?τ) |- _ ] => *)
-(*       assert (is_arr ({k ~r> v} τ)) by eauto; exfalso; auto *)
-(*   | [H: ~ is_arr ?τ, H': is_arr ({?k ~r> ?v} ?τ) |- _ ] => *)
-(*       assert (is_arr τ) by eauto; exfalso; auto *)
-(*   | [H: is_arr ?τ_x, H': {v:_|_|_|_} = {?k ~r> ?v2} ?τ_x |- _ ] => *)
-(*       assert (is_arr ({k ~r> v2} τ_x)) as Htmp by eauto; *)
-(*       rewrite <- H' in Htmp; auto_ty_exfalso2 *)
-(*   | [H: is_arr ?τ_x, H': [v:_|_|_|_] = {?k ~r> ?v2} ?τ_x |- _ ] => *)
-(*       assert (is_arr ({k ~r> v2} τ_x)) as Htmp by eauto; *)
-(*       rewrite <- H' in Htmp; auto_ty_exfalso2 *)
-(*   end. *)
-
 Ltac auto_ty_exfalso := auto_ty_exfalso4.
 
 Lemma over_inhabitant_only_constant: forall (u: value) st b n d ϕ,
@@ -1226,27 +1151,8 @@ Proof.
     neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros.
     apply H3 in H5; auto. exfalso_apply H2.
   - left. intros. simpl in H1; mydestr. eexists; eauto.
-    (* destruct (classic (({n0;bst;st}⟦-:{v: B | n | d | ϕ}⤑ τ⟧) terr)); auto. left; intros. *)
-    (* neg_apply H1. invclear H2; mydestr. do 2 (split; auto). intros. *)
-    (* apply H4 in H6; auto. eapply termR_perserve_rR; eauto. *)
-    (* eapply mk_app_perserve_termR; eauto. *)
-    (* apply stuck_tm_termR_terr; auto. *)
   - left. intros. simpl in H0; mydestr. eexists; eauto.
-    (* destruct (classic ( ({n0;bst;st}⟦(-:{v: B | n | d | ϕ}⤑ τ1) ⤑ τ2⟧) terr)); auto. left; intros. *)
-    (* neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros. *)
-    (* assert ([] ⊢t v_x ⋮v B ⤍ ⌊τ1⌋) by refinement_solver. *)
-    (* apply H3 in H4; auto. *)
-    (* eapply termR_perserve_rR; eauto. *)
-    (* eapply mk_app_perserve_termR; eauto. *)
-    (* apply stuck_tm_termR_terr; auto. *)
   - left. intros. simpl in H0; mydestr. eexists; eauto.
-    (* destruct (classic ( {n;bst;st}⟦(τ11 ⤑ τ12) ⤑ τ2⟧ terr )); auto. left; intros. *)
-    (* neg_apply H0. invclear H1; mydestr. do 2 (split; auto). intros. *)
-    (* assert ([] ⊢t v_x ⋮v ⌊τ11 ⤑ τ12⌋) by refinement_solver. *)
-    (* apply H3 in H4; auto. *)
-    (* eapply termR_perserve_rR; eauto. *)
-    (* eapply mk_app_perserve_termR; eauto. *)
-    (* apply stuck_tm_termR_terr; auto. *)
 Qed.
 
 Lemma not_rR_inhabitant_err_implies_halt: forall τ n bst st,
@@ -1310,10 +1216,6 @@ Proof.
     + eexists; split; eauto. apply multistep_refl.
       assert (lc (random_inhabitant (τ1 ⤑ τ2))); auto.
       intros.
-      (* assert (closed_rty n (dom aset st) τ1) by refinement_solver4. *)
-      (* assert (closed_rty n (dom aset st) τ2) by refinement_solver7. *)
-      (* assert (not_overbasety τ1) by (invclear H0; invclear H3; simpl; auto). *)
-      (* assert (not_overbasety τ2) by (invclear H0; invclear H2; simpl; auto). *)
       apply IHτ1 with (bst:=bst) in H; auto.
       apply IHτ2 with (bst:=bst) in H0; auto.
       apply termR_perserve_rR with (e:= tlete v_x (random_inhabitant τ2)); refinement_solver7.
@@ -1324,8 +1226,7 @@ Qed.
 
 Global Hint Resolve terr_is_not_inhabitant_of_overbase: core.
 
-(* term meet *)
-
+(** term meet *)
 Lemma rR_tmeet_when_both: forall n bst st b n1 d ϕ e1 e2,
     ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e1 -> ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) e2 ->
     ({n;bst;st}⟦ [v:b|n1|d|ϕ] ⟧) (e1 ⊗{ b } e2).
@@ -1446,7 +1347,6 @@ Ltac auto_under_specialize e :=
 Ltac auto_under_reduction_specialize :=
   repeat match goal with
     | [H: forall v, ?e ↪* (tvalue _) → _, H': ?e ↪* (tvalue _) |- _ ] => specialize (H  _ H')
-    (* | [H: forall v, ?e ↪* (tvalue _) → _, H': ?e ↪* (tvalue _) |- _ ] => specialize (H  _ H') *)
     end.
 
 Ltac auto_under e :=

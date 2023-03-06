@@ -4,9 +4,9 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
 
 Import Atom.
 Import CoreLang.
@@ -17,12 +17,11 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
 
-(* Ctx Denotation: *)
-
+(** Type denotation under type context *)
 Inductive ctxrR: state -> listctx rty -> rty -> tm -> Prop :=
 | ctxrR_nil: forall st τ e, { st }⟦ τ ⟧ e -> ctxrR st [] τ e
 | ctxrR_cons_over: forall st (x: atom) b n d ϕ Γ τ (e: tm),
@@ -94,6 +93,7 @@ Proof.
 Qed.
 
 
+(** Subtype denotation under type context *)
 Inductive ctxrR2: state -> listctx rty -> rty -> rty -> Prop :=
 | ctxrR2_nil: forall st τ1 τ2,
     closed_rty 0 (dom _ st) τ1 -> closed_rty 0 (dom _ st) τ2 ->

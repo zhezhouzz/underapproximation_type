@@ -5,12 +5,12 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotationProp.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotationProp.
 From CT Require Import CtxDenotation.
 From CT Require Import TermOrdering.
-From CT Require Import RDInv5.
+From CT Require Import InvDenotationProp4.
 From Coq Require Import Logic.ClassicalFacts.
 From Coq Require Import Classical.
 
@@ -23,19 +23,20 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
-Import RefinementDenotationProp.
-Import WFDenotation.
-Import WFDenotationTac.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
+Import RefinementTypeDenotationProp.
+Import WFCtxDenotation.
+Import WFCtxDenotationProp.
 Import CtxDenotation.
 Import TermOrdering.
-Import RDInv.
-Import RDInv2.
-Import RDInv3.
-Import RDInv5.
+Import InvDenotation.
+Import InvDenotationProp1.
+Import InvDenotationProp2.
+Import InvDenotationProp3.
+Import InvDenotationProp4.
 
 Lemma ctxrR_empty_iff_rR: forall st τ e, ({st}⟦τ⟧{ [] }) e <-> {st}⟦τ⟧ e.
 Proof.
@@ -180,6 +181,25 @@ Proof.
   apply H24 in H14.
   eapply rR_push_to_subst'; eauto. fast_set_solver. auto_dclosed_rty.
 Qed.
+
+Lemma inv_ctxrR2_arrarr_rR: forall x st τ11 τ12 τ21 τ22,
+    x ∉ stale τ11 ∪ stale τ12 ∪ stale τ21 ∪ stale τ22 ->
+    closed_rty 0 (dom _ st) (τ11 ⤑ τ12) ->
+    closed_rty 0 (dom _ st) (τ21 ⤑ τ22) ->
+    {st}⟦τ21⟧⊆⟦τ11⟧{ [] } ->
+    {st}⟦τ12⟧⊆⟦τ22⟧{[] } ->
+    is_arr τ21 -> is_arr τ11 ->
+    {st}⟦τ11 ⤑ τ12⟧⊆⟦τ21 ⤑ τ22⟧{ [] }.
+Proof.
+  intros. invclear H2. invclear H3; try auto_ty_exfalso.
+  constructor; auto.
+  { inv_rd_simpl0. rewrite H8; rewrite H11; auto. }
+  intros. simpl in H3; mydestr.
+  constructor; auto.
+  { inv_rd_simpl0. rewrite H8; rewrite <- H11; auto. }
+  constructor; auto. exists x0. split; auto.
+Qed.
+
 
 Lemma ctxrR2_implies_erase_eq: forall Γ st τ1 τ2,
   {st}⟦ τ1 ⟧⊆⟦ τ2 ⟧{Γ} -> ⌊ τ1 ⌋ = ⌊ τ2 ⌋.
@@ -357,6 +377,49 @@ Proof.
       assert (∃ v : value, ({0;b∅;st}⟦r⟧) v ∧ x1 ↪* v) by (apply rR_arr_halt; auto).
       mydestr. assert ([] ⊢t x2 ⋮v ⌊ r ⌋ ). refinement_solver.
       eapply H5 in H15; eauto. denotation_simp. }
+    exists x0. split; auto. intros. auto_under e_x.
+    assert ([] ⊢t v_x ⋮v ⌊ r ⌋ ). refinement_solver. denotation_simp.
+    apply IHΓ with (x:=x); try fast_set_solver.
+Qed.
+
+Lemma inv_ctxrR2_arrarr: forall Γ x st τ11 τ12 τ21 τ22,
+    x ∉ stale τ11 ∪ stale τ12 ∪ stale τ21 ∪ stale τ22 ∪ stale Γ ->
+    closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ dom _ st) (τ11 ⤑ τ12) ->
+    closed_rty 0 (ctxdom ⦑ Γ ⦒ ∪ dom _ st) (τ21 ⤑ τ22) ->
+    {st}⟦τ21⟧⊆⟦τ11⟧{Γ} ->
+    {st}⟦τ12⟧⊆⟦τ22⟧{Γ} ->
+    is_arr τ21 -> is_arr τ11 ->
+    {st}⟦τ11 ⤑ τ12⟧⊆⟦τ21 ⤑ τ22⟧{Γ}.
+Proof.
+  induction Γ; intros.
+  { listctx_set_simpl.
+    apply inv_ctxrR2_arrarr_rR with (x:=x); eauto; try fast_set_solver; closed_rty_solver. }
+  mydestr.
+  assert (⌊ τ11 ⤑ τ12 ⌋ = ⌊ τ21 ⤑ τ22 ⌋) as HTeq.
+  { simpl. apply ctxrR2_implies_erase_eq in H2. apply ctxrR2_implies_erase_eq in H3.
+    rewrite H2. rewrite H3. auto. }
+  (* simpl in H0. simpl in H1. *)
+  (* rewrite decide_True in H0; auto. *)
+  (* constructor; auto. admit. admit. *)
+  invclear H2; invclear H3; try auto_ty_exfalso.
+  - assert (closed_rty 0 ({[a]} ∪ ctxdom ⦑Γ⦒ ∪ dom aset st) (τ11 ⤑ τ12)) as CT1.
+    { rewrite closed_rty_destruct_arrarr. split; auto. split; auto. split; auto. refinement_solver. }
+    assert (closed_rty 0 ({[a]} ∪ ctxdom ⦑Γ⦒ ∪ dom aset st) (τ21 ⤑ τ22)) as CT2.
+    { rewrite closed_rty_destruct_arrarr. split; auto. split; auto. split; auto. refinement_solver. }
+    simpl in H0. simpl in H1.
+    constructor; auto.
+    intros. auto_under c_x.
+    apply IHΓ with (x:=x); try fast_set_solver; try closed_rty_solver.
+  - constructor; auto. mydestr. auto_meet_exists HE. dsimp1.
+    apply IHΓ with (x:=x); auto. fast_set_solver. closed_rty_solver. closed_rty_solver.
+    + auto_meet_reduce. auto_under e_x; auto.
+    + auto_meet_reduce. auto_under e_x; auto.
+  - inv_rd_simpl1. constructor; auto. mydestr.
+    assert ({st}⟦τ21⟧⊆⟦τ11⟧{Γ}).
+    { auto_under x1.
+      assert (∃ v : value, ({0;b∅;st}⟦r⟧) v ∧ x1 ↪* v) by (apply rR_arr_halt; auto).
+      mydestr. assert ([] ⊢t x2 ⋮v ⌊ r ⌋ ). refinement_solver.
+      eapply H7 in H17; eauto. denotation_simp. }
     exists x0. split; auto. intros. auto_under e_x.
     assert ([] ⊢t v_x ⋮v ⌊ r ⌋ ). refinement_solver. denotation_simp.
     apply IHΓ with (x:=x); try fast_set_solver.

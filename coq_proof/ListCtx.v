@@ -7,7 +7,6 @@ Import Tactics.
 Import NamelessTactics.
 Import List.
 
-(* more app lemmas *)
 Lemma app_one_eq_nil {A: Type}: forall (x: atom) (tau:A) Γ, ~ ([] = Γ ++ [(x, tau)]).
 Proof.
   intros. intro H. symmetry in H. apply app_eq_nil in H. destruct H. inversion H0.
@@ -44,8 +43,9 @@ Ltac list_app_simpl :=
     | [ |- context [(_ ++ _) ++ _]] => rewrite <- app_assoc
     end; auto.
 
-(* list context definition *)
-
+(** * Type Context Definition *)
+(** Both basic typing and refinement typing shares this polymorphic context. *)
+(** We use list instead of set since the type context in the refinement typing has dependency. *)
 Definition listctx (A: Type) := list (atom * A).
 
 Fixpoint ctxdom {A: Type} (Γ: listctx A) : aset :=
@@ -64,8 +64,7 @@ Proof.
   auto_destruct_pair. rewrite IHΓ1. my_set_solver.
 Qed.
 
-(* ok definition *)
-
+(** Definition of non-duplicate. *)
 Inductive ok {A: Type} : (listctx A) -> Prop :=
 | ok_nil: ok nil
 | ok_cons: forall Γ (x: atom) (t: A), ok Γ -> x ∉ ctxdom Γ -> ok (Γ ++ [(x, t)]).
@@ -97,16 +96,14 @@ Proof.
       rewrite app_comm_cons. constructor; auto. apply H; auto. split; auto. my_set_solver. my_set_solver.
 Qed.
 
-(* another ok definition *)
-
+(** another ok definition *)
 Inductive ok_forward {A: Type} : (listctx A) -> Prop :=
 | ok_nil_forward: ok_forward nil
 | ok_cons_forward: forall Γ (x: atom) (t: A), ok_forward Γ -> x ∉ ctxdom Γ -> ok_forward ((x, t) :: Γ).
 
 Global Hint Constructors ok_forward: core.
 
-(* two definitions is equal *)
-
+(** two definitions is equal *)
 Lemma ok_iff_of_ok_forward {A: Type}: forall (Γ: listctx A), ok Γ <-> ok_forward Γ.
 Proof.
   split.
@@ -135,8 +132,7 @@ Proof.
     inversion H; subst. auto.
 Qed.
 
-(* ctxfind *)
-
+(** ctxfind *)
 Fixpoint ctxfind {A: Type} (Γ: listctx A) (x: atom): option A :=
   match Γ with
   | [] => None
@@ -170,8 +166,6 @@ Ltac listctx_set_simpl' :=
     | [H: ctxfind _ _ = Some _ |- _ ⊆ _ ] => apply ctxfind_some_implies_in_dom in H
     | [H: ctxfind _ _ = Some _ |- _ ∉ _ ] => apply ctxfind_some_implies_in_dom in H
     | [H: ctxfind _ _ = Some _ |- _ ∈ _ ] => apply ctxfind_some_implies_in_dom in H
-    (* | [H: ctxfind _ _ = Some _ |- (_: atom) = _ ] => apply ctxfind_some_implies_in_dom in H *)
-    (* | [H: ctxfind _ _ = Some _ |- (_: atom) <> _ ] => apply ctxfind_some_implies_in_dom in H *)
     | [H: ctxfind _ _ = None |- _ ] => rewrite ctxfind_none_iff_not_in_dom in H
     | [H: context [ctxdom (_ ++ _)] |- _ ] =>
         rewrite ctxdom_app_union in H; simpl in H

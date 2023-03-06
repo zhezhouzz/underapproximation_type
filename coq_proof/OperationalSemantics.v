@@ -19,6 +19,7 @@ Global Hint Constructors eval_op: core.
 
 Reserved Notation "t1 '↪' t2" (at level 60).
 
+(** the small step operational semantics *)
 Inductive step : tm -> tm -> Prop :=
 | ST_LetOp: forall op (c1 c2 c3: constant) e,
     body e ->

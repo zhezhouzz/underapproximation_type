@@ -30,10 +30,11 @@ Import RefinementTypeTac.
 Import RefinementTypeDenotation.
 Import RefinementTypeDenotationTac.
 Import RefinementTypeDenotationProp.
-Import WFDenotation.
-Import WFDenotationProp.
+Import WFCtxDenotation.
+Import WFCtxDenotationProp.
 Import NamelessTactics.
 Import TermOrdering.
+Import InvDenotation.
 Import InvDenotationProp1.
 
 Global Hint Resolve mk_eq_constant_is_not_overbasety: core.

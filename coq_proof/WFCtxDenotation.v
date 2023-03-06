@@ -4,10 +4,10 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
-From CT Require Import RefinementDenotation.
-From CT Require Import RefinementDenotationTac.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
+From CT Require Import RefinementTypeDenotation.
+From CT Require Import RefinementTypeDenotationTac.
 
 Import Atom.
 Import CoreLang.
@@ -18,13 +18,12 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
 
-(* two definition of the well-foundness *)
-
+(* two denotation of the well-found type context *)
 Inductive wf_ctxrR_not_terr: state -> listctx rty -> Prop :=
 | wf_ctxrR_nil_not_terr: forall st, wf_ctxrR_not_terr st []
 | ctxrR_cons_over_not_terr: forall st (x: atom) B n d ϕ Γ,
@@ -53,7 +52,6 @@ Inductive wf_ctxrR: state -> listctx rty -> Prop :=
 | wf_ctxrR_nil: forall st, wf_ctxrR st []
 | wf_ctxrR_cons_over: forall st (x: atom) B n d ϕ Γ,
     ok_dctx (dom _ st) ((x, {v: B | n | d | ϕ}) :: Γ) ->
-    (* (exists (c_wf: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_wf) -> *)
     (forall (c_x: constant), {st}⟦ {v: B | n | d | ϕ} ⟧ c_x ->
                         wf_ctxrR (<[ x := c_x ]> st) Γ) ->
     wf_ctxrR st ((x, {v: B | n | d | ϕ}) :: Γ)

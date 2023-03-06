@@ -1,9 +1,11 @@
 From stdpp Require Import stringmap mapset.
 
+(** We use the string as variables in the core langauge *)
 Definition atom := string.
 Definition amap := stringmap.
 Definition aset := stringset.
 
+(** The Stale will gather all free variables in type context, values, terms... *)
 Class Stale {D} A := stale : A -> D.
 
 Definition fv_of_set (s: aset): atom := fresh_string_of_set "x" s.

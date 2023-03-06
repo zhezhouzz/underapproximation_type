@@ -3,6 +3,7 @@ From stdpp Require Export prelude fin_maps fin_map_dom.
 
 Import Atom.
 
+(** * Some tactics in the file is inspired by OADT: https://github.com/ccyip/oadt *)
 (** * Fold over hypotheses *)
 
 Ltac revert_all :=

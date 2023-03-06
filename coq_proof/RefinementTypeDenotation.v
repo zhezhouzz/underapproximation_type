@@ -4,8 +4,8 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementTac.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeTac.
 
 Import Atom.
 Import CoreLang.
@@ -16,11 +16,10 @@ Import OperationalSemantics.
 Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
-Import Refinement.
-Import RefinementTac.
+Import RefinementType.
+Import RefinementTypeTac.
 
-(* Denotation: *)
-
+(** Type Denotation: *)
 Fixpoint rR (n: nat) (bst: bstate) (st: state) (τ: rty) (e: tm) : Prop :=
   [] ⊢t e ⋮t ⌊ τ ⌋ /\ closed_rty n (dom _ st) τ /\
     match τ with
@@ -103,8 +102,6 @@ Notation " '{' n ';' bst ';' st '}⟦' τ '⟧' " :=
   (rR n bst st τ) (at level 20, format "{ n ; bst ; st }⟦ τ ⟧", bst constr, st constr, τ constr).
 Notation " '{' st '}⟦' τ '⟧' " := (fun e => rR 0 b∅ st τ e) (at level 20, format "{ st }⟦ τ ⟧", st constr, τ constr).
 Notation " '⟦' τ '⟧' " := (fun e => rR 0 b∅ ∅ τ e) (at level 20, format "⟦ τ ⟧", τ constr).
-
-(* regular of the denation *)
 
 Lemma rR_regular1:
   forall τ n bst st e, { n; bst; st }⟦ τ ⟧ e -> closed_rty n (dom _ st) τ /\ [] ⊢t e ⋮t ⌊ τ ⌋.

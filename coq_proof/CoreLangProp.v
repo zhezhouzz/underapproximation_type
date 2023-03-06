@@ -7,6 +7,7 @@ From CT Require Import NamelessTactics.
 Import CoreLang.
 Import NamelessTactics.
 
+(** * Most of lemmas in this file is inspired by Arthur Chargu´eraud's paper "The Locally Nameless Representation" : https://chargueraud.org/research/2009/ln/main.pdf *)
 Lemma constant_eqb_spec: forall (c c': constant), c = c' \/ c <> c'.
 Proof with eauto.
   destruct c, c'...
@@ -14,8 +15,6 @@ Proof with eauto.
   - destruct (Nat.eq_dec n n0); firstorder.
     right. intro HH. inversion HH...
 Qed.
-
-(* properties *)
 
 Ltac specialize_L :=
   match goal with
@@ -123,120 +122,12 @@ Proof with eauto.
   - assert (x <> atom) by my_set_solver. rewrite decide_False...
 Qed.
 
-(* Fixpoint lc_at_value (k : nat) (v : value): Prop := *)
-(*   match v with *)
-(*   | vbiop _ => True *)
-(*   | vconst _ => True *)
-(*   | vfvar _ => True *)
-(*   | vbvar n => n < k *)
-(*   | vlam T e => lc_at_tm (S k) e *)
-(*   | vfix Tf e => lc_at_tm (S k) e *)
-(*   end *)
-(* with lc_at_tm (k : nat) (e : tm): Prop := *)
-(*        match e with *)
-(*        | terr => True *)
-(*        | tvalue v => lc_at_value k v *)
-(*        | tlete e1 e2 => lc_at_tm k e1 /\ lc_at_tm (S k) e2 *)
-(*        | tletapp v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm (S k) e *)
-(*        | tletbiop op v1 v2 e => lc_at_value k v1 /\ lc_at_value k v2 /\ lc_at_tm (S k) e *)
-(*        | tmatchb v e1 e2 => lc_at_value k v /\ lc_at_tm k e1 /\ lc_at_tm k e2 *)
-(*        end. *)
-
 Ltac ex_specialize_L :=
   match goal with
   | [ H : ex (fun (L: aset) => _) |- _] => destruct H; specialize_L
   end.
 
-(* Definition lc_implies_lc_at_tm: forall e, lc e -> lc_at_tm 0 e. *)
-(* Proof with auto. *)
-(*   intros. induction H; simpl; repeat split; auto. *)
-(*   - rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve. *)
-(*   - rewrite lc_at_eq_cofinite_tm. auto_exists_L_and_solve. *)
-(*   - split. *)
-(* Qed. *)
-
-(* Lemma lc_at_eq_cofinite_tm: forall e k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)). *)
-(* Proof with auto. *)
-(*   apply (tm_mutual_rec *)
-(*            (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e))) *)
-(*            (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)))); *)
-(*     simpl; split; intros; auto; *)
-(*     try eempty_aset; *)
-(*     try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve). *)
-(*   - destruct (Nat.eq_dec k bn). *)
-(*     + subst. exists ∅... intros. rewrite decide_True... simpl... *)
-(*     + exists ∅... intros. rewrite decide_False... simpl. lia. *)
-(*   - ex_specialize_L. *)
-(*     destruct (Nat.eq_dec k bn). *)
-(*     + subst. rewrite decide_True in H... *)
-(*     + rewrite decide_False in H... *)
-(* Qed. *)
-
-(* Lemma lc_at_eq_cofinite_value: forall e k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e)). *)
-(* Proof with auto. *)
-(*   apply (value_mutual_rec *)
-(*            (fun (e: value) => forall k, lc_at_value (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_value k ({k ~v> x} e))) *)
-(*            (fun (e: tm) => forall k, lc_at_tm (S k) e <-> (exists (L:aset), forall (x: atom), x ∉ L -> lc_at_tm k ({k ~t> x} e)))); *)
-(*     simpl; split; intros; auto; *)
-(*     try eempty_aset; *)
-(*     try (repeat lc_at_tm_rewrite; auto_exists_L_and_solve). *)
-(*   - destruct (Nat.eq_dec k bn). *)
-(*     + subst. exists ∅... intros. rewrite decide_True... simpl... *)
-(*     + exists ∅... intros. rewrite decide_False... simpl. lia. *)
-(*   - ex_specialize_L. *)
-(*     destruct (Nat.eq_dec k bn). *)
-(*     + subst. rewrite decide_True in H... *)
-(*     + rewrite decide_False in H... *)
-(* Qed. *)
-
-(* Lemma open_rec_lc_tm_aux: forall (v: value) (u: tm) (k: nat), lc_at_tm k u -> {k ~t> v} u = u. *)
-(* Proof with eauto. *)
-(*   intro v. *)
-(*   apply (tm_mutual_rec *)
-(*            (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u) *)
-(*            (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros; *)
-(*     try repeat rewrite_by_fol; auto. *)
-(*   - rewrite decide_False... lia. *)
-(* Qed. *)
-
-(* Lemma open_rec_lc_value_aux: forall (v: value) (u: value) (k: nat), lc_at_value k u -> {k ~v> v} u = u. *)
-(* Proof with eauto. *)
-(*   intro v. *)
-(*   apply (value_mutual_rec *)
-(*            (fun (u: value) => forall (k: nat), lc_at_value k u -> {k ~v> v} u = u) *)
-(*            (fun (u: tm) => forall (k: nat), lc_at_tm k u -> {k ~t> v} u = u)); simpl; auto; intros; *)
-(*     try repeat rewrite_by_fol; auto. *)
-(*   - rewrite decide_False... lia. *)
-(* Qed. *)
-
-(* Ltac ltac_lc_at_tm_order := *)
-(*   match goal with *)
-(*   | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ (S ?k') _] => *)
-(*       specialize (H (S k) (S k')); apply H; auto; lia *)
-(*   | [H : forall k k', _ -> _ -> _, H': ?k <= ?k' |- _ ?k' _] => *)
-(*       specialize (H k k'); apply H; auto; lia *)
-(*   | _ => auto; lia *)
-(*   end. *)
-
-(* Lemma lc_at_tm_order: forall u k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u. *)
-(* Proof with auto. *)
-(*   apply (tm_mutual_rec *)
-(*            (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u) *)
-(*            (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u)); *)
-(*     simpl; intros; auto; *)
-(*     try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order. *)
-(* Qed. *)
-
-(* Lemma lc_at_value_order: forall u k k', k <= k' -> lc_at_value k u -> lc_at_value k' u. *)
-(* Proof with auto. *)
-(*   apply (value_mutual_rec *)
-(*            (fun (u: value) => forall k k', k <= k' -> lc_at_value k u -> lc_at_value k' u) *)
-(*            (fun (u: tm) => forall k k', k <= k' -> lc_at_tm k u -> lc_at_tm k' u)); *)
-(*     simpl; intros; auto; *)
-(*     try repeat destruct_hyp_conj; repeat split; ltac_lc_at_tm_order. *)
-(* Qed. *)
-
-(* There is a typo in the paper *)
+(** There is a typo in the paper *)
 Lemma fact1_tm: forall u v (e: tm) i j,
     i <> j -> {i ~t> u} ({j ~t> v} e) = {j ~t> v} e -> {i ~t> u} e = e.
 Proof with auto.

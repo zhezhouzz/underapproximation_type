@@ -4,7 +4,6 @@ From CT Require Import ListCtx.
 From CT Require Import BasicTyping.
 From CT Require Import OperationalSemantics.
 
-
 Import Atom.
 Import CoreLang.
 Import Tactics.
@@ -12,8 +11,6 @@ Import NamelessTactics.
 Import ListCtx.
 Import BasicTyping.
 Import OperationalSemantics.
-
-(* weakening *)
 
 Ltac sv :=
   match goal with
@@ -88,8 +85,6 @@ Proof.
   intros. rewrite <- (app_nil_l Γ3) in H0. rewrite <- (app_nil_l (Γ1 ++ Γ3)).
   apply basic_typing_weaken_tm; auto.
 Qed.
-
-(* subst *)
 
 Ltac basic_typing_solver1 :=
   step_regular_simp;
@@ -230,16 +225,6 @@ Proof.
   repeat destruct_hyp_conj; subst. repeat split; auto.
 Qed.
 
-(* Lemma eval_op_preservation: forall Γ op c1 c2 c3 (T1 T2 T3: base_ty), *)
-(*     eval_op op c1 c2 c3 -> *)
-(*     ty_of_op op = T1 ⤍ T2 ⤍ T3 -> *)
-(*     Γ ⊢t c1 ⋮v T1 /\ Γ ⊢t c2 ⋮v T2 /\ Γ ⊢t c3 ⋮v T3. *)
-(* Proof. *)
-(*   intros. *)
-(*   inversion H0; subst. *)
-(*   eapply eval_op_preservation_aux; eauto. *)
-(* Qed. *)
-
 Ltac basic_typing_simpl1 :=
   step_regular_simp;
   basic_typing_regular_simp;
@@ -292,7 +277,7 @@ Ltac perservation_aux a Ha Tx :=
       try basic_typing_solver2
   end.
 
-(* perservation *)
+(** perservation *)
 Lemma preservation: forall Γ T (e e': tm), e ↪ e' -> Γ ⊢t e ⋮t T -> Γ ⊢t e' ⋮t T.
 Proof.
   intros. generalize dependent e'.
@@ -313,8 +298,7 @@ Proof.
     rewrite open_subst_same_value in H4; auto. set_solver.
 Qed.
 
-(* multi preservation *)
-
+(** multi preservation *)
 Lemma multi_preservation: forall Γ T (e e': tm), e ↪* e' -> Γ ⊢t e ⋮t T -> Γ ⊢t e' ⋮t T.
 Proof.
   intros.
@@ -328,8 +312,7 @@ Proof.
   eapply multi_preservation in H0; eauto. inversion H0; subst; auto.
 Qed.
 
-(* Facts *)
-
+(** some facts *)
 Lemma empty_basic_typing_eval_op_result_exists: forall (op:biop) (v1 v2: value) (T1 T2 Tx: base_ty),
     ty_of_op op = T1 ⤍ T2 ⤍ Tx -> [] ⊢t v2 ⋮v T2 -> [] ⊢t v1 ⋮v T1 ->
     exists (c1 c2 c3: constant), v1 = c1 /\ v2 = c2 /\ eval_op op c1 c2 c3 /\ [] ⊢t c3 ⋮v Tx.
@@ -347,8 +330,7 @@ Proof.
   - exists x2, x1, 0. repeat split; auto. econstructor; auto.
 Qed.
 
-(* Ltacs *)
-
+(** tactics *)
 Ltac op_simpl :=
   basic_typing_simpl1;
   repeat match goal with
@@ -363,8 +345,6 @@ Ltac op_solver :=
   auto;
   repeat match goal with
     | [H: _ ⊢t ?e ⋮t _ |- lc ?e ] => apply basic_typing_regular_tm in H; destruct H; auto
-    (* | [H: basicR _ ?e |- lc ?e ] => apply basicR_typable_empty in H; auto *)
-    (* | [H: basicR _ ?e |- [] ⊢t ?e ⋮t _ ] => apply basicR_typable_empty in H; eauto *)
     | [H: _ ↪ ?e |- lc ?e] => apply multi_step_regular2 in H; auto
     | [H: ?Γ ⊢t ?e ⋮t ?T |- (?Γ ++ _) ⊢t ?e ⋮t _] => apply basic_typing_weaken_tm_pre; eauto
     | [H: ?Γ ⊢t _ ⋮t _ |- ok _ ] => apply basic_typing_regular_tm in H; destruct H
@@ -378,7 +358,6 @@ Ltac basic_typing_vfavr_solver_slow :=
   | [|- ctxfind _ _ = Some _ ] => repeat var_dec_solver
   | [|- [(_, _); (_, _)] ⊢t (vfvar ?x) ⋮v _ ] => constructor; basic_typing_vfavr_solver_slow
   | [|- [(_, _); (_, _); (_, _)] ⊢t (vfvar ?x) ⋮v _ ] => constructor
-                                                       (* ; basic_typing_vfavr_solver *)
   | [|- [(_, _)] ⊢t (vfvar ?x) ⋮v _ ] => constructor; basic_typing_vfavr_solver_slow
   | [|- (_ ++ _) ⊢t (tvalue (vfvar ?x)) ⋮t _] => econstructor; op_simpl
   | [|- (_ ++ _) ⊢t (vfvar ?x) ⋮v _] =>
@@ -450,22 +429,6 @@ Ltac basic_typing_vfavr_solver :=
   | [|- (_ ++ _) ⊢t (vfvar ?x) ⋮v _] =>
       apply basic_typing_weaken_value_post; eauto; basic_typing_vfavr_solver
   end.
-
-(* Lemma basic_typing_subst_value_post: forall Γ1 z u U (v: value) T, *)
-(*     ((z, U) :: Γ1) ⊢t v ⋮v T -> [] ⊢t u ⋮v U -> Γ1 ⊢t {z := u}v v ⋮v T. *)
-(* Proof. *)
-(*   intros. *)
-(*   assert (([] ++ [(z, U)] ++ Γ1) ⊢t v ⋮v T) by listctx_set_simpl. *)
-(*   apply (basic_typing_subst_value [] z u) in H1; listctx_set_simpl. *)
-(* Qed. *)
-
-(* Lemma basic_typing_subst_tm_post: forall Γ1 z u U (v: tm) T, *)
-(*     ((z, U) :: Γ1) ⊢t v ⋮t T -> [] ⊢t u ⋮v U -> Γ1 ⊢t {z := u}t v ⋮t T. *)
-(* Proof. *)
-(*   intros. *)
-(*   assert (([] ++ [(z, U)] ++ Γ1) ⊢t v ⋮t T) by listctx_set_simpl. *)
-(*   apply (basic_typing_subst_tm [] z u) in H1; listctx_set_simpl. *)
-(* Qed. *)
 
 Ltac basic_typing_solver3 :=
   match goal with

@@ -17,6 +17,8 @@ Import BasicTyping.
 Import ListCtx.
 Import SyntaxSugar.
 
+(** * We define a patial order over the well-typed terms which is derived from the values they can reduced to. It works similar with the "instantiation" in the proof of the normalization of STLC: https://softwarefoundations.cis.upenn.edu/plf-current/Norm.html#instantiation However, our language has randomness, thus a term can reduce to multiple vaules, thus we build a patial order relation. *)
+
 Definition env := listctx value.
 Fixpoint tm_msubst (ss:env) (t:tm) : tm :=
   match ss with
@@ -385,8 +387,6 @@ Lemma termRraw_emp: forall e e' T,
 Proof.
   intros. unfold termRraw in H1. specialize (H1 [] v).
   rewrite tm_msubst_closed in H1; basic_typing_solver3.
-  (* rewrite tm_msubst_closed in H1; basic_typing_solver3. *)
-  (* apply H1; eauto. constructor. *)
 Qed.
 
 Definition value_inhabitant_oracle (T: ty) : value :=

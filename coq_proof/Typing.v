@@ -4,15 +4,16 @@ From CT Require Import CoreLangProp.
 From CT Require Import OperationalSemanticsProp.
 From CT Require Import BasicTypingProp.
 From CT Require Import SyntaxSugar.
-From CT Require Import Refinement.
-From CT Require Import RefinementDenotation.
-From CT Require Import RefinementDenotationTac.
-From CT Require Import RefinementDenotationProp.
-From CT Require Import RDInv.
-From CT Require Import RDInv2.
-From CT Require Import RDInv3.
-From CT Require Import RDInv5.
-From CT Require Import CtxDenotationTac.
+From CT Require Import RefinementType.
+From CT Require Import RefinementTypeDenotation.
+From CT Require Import RefinementTypeDenotationTac.
+From CT Require Import RefinementTypeDenotationProp.
+From CT Require Import InvDenotation.
+From CT Require Import InvDenotationProp1.
+From CT Require Import InvDenotationProp2.
+From CT Require Import InvDenotationProp3.
+From CT Require Import InvDenotationProp4.
+From CT Require Import CtxDenotationProp.
 
 Import Atom.
 Import CoreLang.
@@ -24,30 +25,67 @@ Import OperationalSemanticsProp.
 Import BasicTyping.
 Import SyntaxSugar.
 Import TermOrdering.
-Import Refinement.
-Import RefinementTac.
-Import RefinementDenotation.
-Import RefinementDenotationTac.
-Import RefinementDenotationProp.
-Import WFDenotation.
-Import WFDenotationTac.
-Import RDInv.
-Import RDInv2.
-Import RDInv3.
-Import RDInv5.
+Import RefinementType.
+Import RefinementTypeTac.
+Import RefinementTypeDenotation.
+Import RefinementTypeDenotationTac.
+Import RefinementTypeDenotationProp.
+Import WFCtxDenotation.
+Import WFCtxDenotationProp.
+Import InvDenotation.
+Import InvDenotationProp1.
+Import InvDenotationProp2.
+Import InvDenotationProp3.
+Import InvDenotationProp4.
 Import CtxDenotation.
-Import CtxDenotationTac.
+Import CtxDenotationProp.
 
-Definition wf (Γ: listctx rty) (τ: rty) :=
-  wf_ctxrR_not_terr ∅ Γ /\ closed_rty 0 (ctxdom ⦑Γ⦒ ) τ /\ not_overbasety τ.
+(** Well-formedness *)
+Inductive wf_typing: listctx rty -> rty -> Prop :=
+| wf_typing_under_base: forall Γ b n d ϕ, wf_ctxrR_not_terr ∅ Γ -> closed_rty 0 (ctxdom ⦑Γ⦒ ) [v: b | n | d | ϕ] -> wf_typing Γ [v: b | n | d | ϕ]
+| wf_typing_oarr: forall Γ b n d ϕ τ (L: aset),
+    (forall x, x ∉ L -> wf_typing (Γ ++ [(x, [v: b | n | d | ϕ])]) (τ ^r^ x)) ->
+    closed_rty 0 (ctxdom ⦑Γ⦒ ) (-:{v: b | n | d | ϕ }⤑ τ) ->
+    wf_typing Γ (-:{v: b | n | d | ϕ }⤑ τ)
+| wf_typing_arrarr: forall Γ τ1 τ2,
+    is_arr τ1 ->
+    wf_typing Γ τ1 -> wf_typing Γ τ2 ->
+    closed_rty 0 (ctxdom ⦑Γ⦒ ) (τ1 ⤑ τ2) ->
+    wf_typing Γ (τ1 ⤑ τ2).
 
-Notation " Γ '⊢WF' τ " := (wf Γ τ) (at level 20, τ constr, Γ constr).
+Notation " Γ '⊢WF' τ " := (wf_typing Γ τ) (at level 20, τ constr, Γ constr).
+
+Lemma wf_typing_implies_wf_ctxrR_not_terr (Γ: listctx rty) (τ: rty): Γ ⊢WF τ -> wf_ctxrR_not_terr ∅ Γ.
+Proof.
+  intros. induction H; auto. specialize_L.
+  rewrite <- wf_ctxrR_iff_wf_ctxrR_not_terr. rewrite <- wf_ctxrR_iff_wf_ctxrR_not_terr in H0.
+  apply wf_ctxrR_weaken in H0; auto.
+Qed.
+
+Lemma wf_typing_implies_not_overbasety (Γ: listctx rty) (τ: rty): Γ ⊢WF τ -> not_overbasety τ.
+Proof.
+  intros. induction H; simpl; auto.
+Qed.
+
+Lemma wf_typing_implies_closed_rty (Γ: listctx rty) (τ: rty): Γ ⊢WF τ -> closed_rty 0 (ctxdom ⦑Γ⦒ ) τ.
+Proof.
+  intros. induction H; auto.
+Qed.
 
 Lemma well_formed_regular: forall Γ τ,
   Γ ⊢WF τ -> wf_ctxrR ∅ Γ /\ closed_rty 0 (ctxdom ⦑Γ⦒ ) τ /\ not_overbasety τ.
 Proof.
-  intros. destruct H. setoid_rewrite wf_ctxrR_iff_wf_ctxrR_not_terr.
-  split; auto.
+    intros. split. eapply wf_typing_implies_wf_ctxrR_not_terr in H; eauto.
+    rewrite wf_ctxrR_iff_wf_ctxrR_not_terr; auto.
+    split. apply wf_typing_implies_closed_rty; auto. eapply  wf_typing_implies_not_overbasety; eauto.
+Qed.
+
+Lemma wf_typing_implies_last_wf_ctxrR (Γ: listctx rty) b n d ϕ (τ: rty):
+  wf_typing Γ (-:{v: b | n | d | ϕ }⤑ τ) ->
+  (exists (L: aset), forall x, x ∉ L -> wf_ctxrR ∅ (Γ ++ [(x, [v:b|n|d|ϕ])])).
+Proof.
+  intros. invclear H. exists L. intros. specialize_with x.
+  apply well_formed_regular in H3. mydestr; auto.
 Qed.
 
 Definition disjunction (Γ: listctx rty) (τ1 τ2 τ3: rty) :=
@@ -55,8 +93,7 @@ Definition disjunction (Γ: listctx rty) (τ1 τ2 τ3: rty) :=
 
 Notation " Γ '⊢' τ1 '⩔' τ2 '⩵' τ3 " := (disjunction Γ τ1 τ2 τ3) (at level 20, τ1 constr, τ2 constr, τ3 constr, Γ constr).
 
-(* Subtyping *)
-
+(** Subtyping *)
 Inductive subtyping: listctx rty -> rty -> rty -> Prop :=
 | subtyping_ubase: forall Γ b n d ϕ1 ϕ2,
     {∅}⟦ [v: b | n | d | ϕ1 ] ⟧⊆⟦ [v: b | n | d | ϕ2 ] ⟧{ Γ } ->
@@ -69,7 +106,14 @@ Inductive subtyping: listctx rty -> rty -> rty -> Prop :=
     (forall x, x ∉ L -> subtyping (Γ ++ [(x, {v: b | n | d | ϕ2 })]) (τ1 ^r^ x) (τ2 ^r^ x)) ->
     closed_rty 0 (ctxdom ⦑ Γ ⦒) (-:{v: b | n | d | ϕ1 }⤑ τ1) ->
     closed_rty 0 (ctxdom ⦑ Γ ⦒) (-:{v: b | n | d | ϕ2 }⤑ τ2) ->
-    subtyping Γ (-:{v: b | n | d | ϕ1 }⤑ τ1) (-:{v: b | n | d | ϕ2 }⤑ τ2).
+    subtyping Γ (-:{v: b | n | d | ϕ1 }⤑ τ1) (-:{v: b | n | d | ϕ2 }⤑ τ2)
+| subtyping_arrarr: forall Γ τ11 τ12 τ21 τ22,
+    is_arr τ21 -> is_arr τ11 ->
+    subtyping Γ τ21 τ11 ->
+    subtyping Γ τ12 τ22 ->
+    closed_rty 0 (ctxdom ⦑ Γ ⦒) (τ11 ⤑ τ12) ->
+    closed_rty 0 (ctxdom ⦑ Γ ⦒) (τ21 ⤑ τ22) ->
+    subtyping Γ (τ11 ⤑ τ12) (τ21 ⤑ τ22).
 
 Notation " Γ '⊢' τ1 '⪡' τ2 " := (subtyping Γ τ1 τ2) (at level 20, τ1 constr, τ2 constr, Γ constr).
 
@@ -86,6 +130,9 @@ Proof.
   - auto_pose_fv x. repeat specialize_with x.
     apply inv_ctxrR2_oarr with (x:=x); eauto. fast_set_solver. closed_rty_solver.
     closed_rty_solver.
+  - auto_pose_fv x. repeat specialize_with x.
+    apply inv_ctxrR2_arrarr with (x:=x); eauto. fast_set_solver. closed_rty_solver.
+    closed_rty_solver.
 Qed.
 
 Definition subtyping_spec: forall Γ τ1 τ2, Γ ⊢ τ1 ⪡ τ2 -> (forall e, ⅋{∅}⟦ τ1 ⟧{ Γ } e -> ⅋{∅}⟦ τ2 ⟧{ Γ } e).
@@ -97,6 +144,7 @@ Qed.
 Reserved Notation "Γ '⊢' τ '⋮t' T" (at level 20).
 Reserved Notation "Γ '⊢' τ '⋮v' T"  (at level 20).
 
+(** Typing *)
 Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
 | UT_Value: forall Γ v τ, Γ ⊢ v ⋮v τ -> Γ ⊢ v ⋮t τ
 | UT_terr: forall Γ b, Γ ⊢WF (mk_under_bot b) -> Γ ⊢ terr ⋮t (mk_under_bot b)
@@ -109,7 +157,7 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
 | UT_Lete_arr: forall Γ (e_x: value) e τ τ_x (L: aset),
     is_arr τ_x ->
     Γ ⊢WF τ -> Γ ⊢ e_x ⋮t τ_x -> (forall x, x ∉ L -> (Γ ++ [(x, τ_x)]) ⊢ (e ^t^ x) ⋮t τ ) -> Γ ⊢ (tlete e_x e) ⋮t τ
-(* operators only take nat type *)
+(** operators only take nat type *)
 | UT_LetOp: forall (Γ: listctx rty) op (v1 v2: value) e τ d1 d2 ϕ1 ϕ2 (L: aset),
     Γ ⊢WF τ ->
     Γ ⊢ v1 ⋮v [v: fst_ty_of_op op | 0 | d1 | ϕ1 ] ->
@@ -119,11 +167,10 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
 | UT_LetAppIndepend: forall Γ (v1 v2: value) e τ τ2 τ_x (L: aset),
     Γ ⊢WF τ -> Γ ⊢ v1 ⋮v (τ2 ⤑ τ_x) -> Γ ⊢ v2 ⋮v τ2 -> (forall x, x ∉ L -> (Γ ++ [(x, τ_x)]) ⊢ (e ^t^ x) ⋮t τ) ->
     Γ ⊢ (tletapp v1 v2 e) ⋮t τ
-(* the value should only be constant or variables *)
+(** the value should only be constant or variables *)
 | UT_LetAppDepend: forall Γ (v1 v2: value) e τ b d ϕ τ_x (L: aset),
     Γ ⊢WF τ ->
     Γ ⊢ v1 ⋮v (-:{v: b | 0 | d | ϕ}⤑ τ_x) -> Γ ⊢ v2 ⋮v [v: b | 0 | d | ϕ] ->
-    (forall x, x ∉ L -> (Γ ++ [(x, [v: b | 0 | d | ϕ])]) ⊢WF τ_x) ->
     (forall x, x ∉ L -> (Γ ++ [(x, τ_x ^r^ v2)]) ⊢ (e ^t^ x) ⋮t τ ) ->
     Γ ⊢ (tletapp v1 v2 e) ⋮t τ
 | UT_Matchb_true: forall Γ (v: value) e1 e2 τ,
@@ -165,99 +212,9 @@ Proof.
            (fun Γ e τ _ => Γ ⊢WF τ)); intros Γ; intros; mydestr; auto.
 Qed.
 
-Theorem soundness_aux: forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> ⅋{∅}⟦ τ ⟧{ Γ } e.
+Lemma rty_judgement_implies_wf_value: forall (Γ: listctx rty) e (τ: rty), Γ ⊢ e ⋮v τ -> Γ ⊢WF τ.
 Proof.
-  apply (term_under_type_check_rec
-           (fun Γ v τ _ => ⅋{∅}⟦ τ ⟧{ Γ } v)
-           (fun Γ e τ _ => ⅋{∅}⟦ τ ⟧{ Γ } e)); intros Γ; intros; mydestr; try soundness_simp.
-  (* constant *)
-  - apply inv_rRctx_pre_weakening_empty; auto.
-  (* var base *)
-  - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc.
-    apply inv_rRctx_pre_weakening; refinement_solver.
-    apply wf_ctxrR_implies_inv_var_over_last.
-    eapply wf_ctxrR_weaken; listctx_set_simpl; eauto.
-  - apply ctxfind_some_spec in H; auto; mydestr; subst.
-    rewrite app_assoc.
-    apply inv_rRctx_pre_weakening; refinement_solver.
-    apply wf_ctxrR_implies_inv_var_under_last.
-    eapply wf_ctxrR_weaken; listctx_set_simpl; eauto.
-  (* var arr *)
-  - apply ctxfind_some_spec in e; auto; mydestr; subst.
-    rewrite app_assoc.
-    apply inv_rRctx_pre_weakening; refinement_solver.
-    apply wf_ctxrR_implies_inv_var_is_arr_last; auto.
-    eapply wf_ctxrR_implies_inner_closed_rty; eauto.
-    eapply wf_ctxrR_weaken; listctx_set_simpl; eauto.
-  (* lam *)
-  - auto_pose_fv x. repeat specialize_with x.
-    eapply inv_rRctx_oarr; eauto; try closed_rty_solver; refinement_solver.
-    apply rty_judgement_implies_wf in t; eauto. soundness_simp; auto.
-  - auto_pose_fv x. repeat specialize_with x.
-    eapply inv_rRctx_arrarr; eauto; try closed_rty_solver; refinement_solver.
-    apply rty_judgement_implies_wf in t. soundness_simp; auto.
-  (* fix *)
-  - apply wf_ctxrR_implies_fix; auto. closed_rty_solver.
-  (* value *)
-  - auto.
-  (* err *)
-  - apply inv_rRctx_pre_weakening_empty; auto.
-  (* sub *)
-  - apply subtyping_spec with (e := e) in s; RD_simp2; auto.
-    + RD_simp. apply inv_rRctx_pre_weakening_empty; auto.
-  (* eq *)
-  - apply subtyping_spec with (e := e) in s.
-    apply subtyping_spec with (e := e) in s0.
-    RD_simp2. RD_simp2. RD_simp2.
-  (* merge *)
-  - match goal with
-    | [H: _ ⊢ _ ⩔ _ ⩵ _ |- _ ] => unfold disjunction in H; erewrite <- H; split; auto
-    end.
-  (* lete *)
-  - auto_pose_fv x. repeat specialize_with x. eapply wf_implies_ctxrR_tlete_ubase_drop in H0; eauto. setoid_rewrite close_open_var_tm in H0; fast_set_solver.
-    apply rty_judgement_implies_wf in t0. soundness_simp; auto.
-    refinement_solver.
-  - auto_pose_fv x. repeat specialize_with x. eapply wf_implies_ctxrR_tlete_is_arr_drop in H0; eauto. setoid_rewrite close_open_var_tm in H0; fast_set_solver.
-    apply rty_judgement_implies_wf in t0. soundness_simp; auto.
-    refinement_solver.
-  (* letop *)
-  - auto_pose_fv x. repeat specialize_with x.
-    apply inv_implies_ctxrR_drop_last with (x:=x) (τ_x:= ({1 ~r> v2} (mk_op_ret op ^r^ v1))); eauto; try fast_set_solver.
-    + apply rty_judgement_implies_wf in t. soundness_simp; auto.
-    + refinement_solver.
-    + eapply inv_rRctx_tletbiop; eauto; try fast_set_solver.
-      apply rty_judgement_implies_wf in t. soundness_simp; auto.
-  - auto_pose_fv x. repeat specialize_with x.
-    apply rty_judgement_implies_wf in t. soundness_simp; auto.
-    assert (is_arr τ2 /\ not_overbasety τ_x) as (Hno1 & Hno2).
-    { apply inv_ctxrR_regular in H; mydestr.
-      rewrite closed_rty_destruct_arrarr in H11; mydestr; auto. }
-    assert ((⅋{∅}⟦τ⟧{Γ ++ [(x, τ_x)] }) (tletapp v1 v2 e)).
-    eapply inv_rRctx_letapp_arrarr; eauto. fast_set_solver.
-    refinement_solver.
-    eapply inv_implies_ctxrR_drop_last in H6; eauto; try fast_set_solver.
-    refinement_solver.
-  - auto_pose_fv x. repeat specialize_with x.
-    apply rty_judgement_implies_wf in t. soundness_simp; auto.
-    assert (not_overbasety τ_x) as Hno.
-    { apply inv_ctxrR_regular in H; mydestr.
-      rewrite closed_rty_destruct_oarr in H11; mydestr; auto. }
-    assert ((⅋{∅}⟦τ⟧{Γ ++ [(x, τ_x ^r^ v2)] }) (tletapp v1 v2 e)).
-    eapply inv_rRctx_letapp_oarr; eauto. fast_set_solver.
-    refinement_solver.
-    soundness_simp; auto.
-    eapply inv_implies_ctxrR_drop_last in H6; eauto; try fast_set_solver.
-    refinement_solver.
-  (* matchb true *)
-  - eapply inv_rRctx_matchb_true; eauto. refinement_solver.
-  - eapply inv_rRctx_matchb_false; eauto. refinement_solver.
-Qed.
-
-Theorem soundness: forall (Γ: listctx rty) (e: tm) (τ: rty), Γ ⊢ e ⋮t τ -> {∅}⟦ τ ⟧{ Γ } e.
-Proof.
-  intros.
-  assert (not_overbasety τ). apply rty_judgement_implies_wf in H; soundness_simp; auto.
-  apply soundness_aux in H.
-  eapply inv_ctxrR_implies_ctxrR; eauto.
+  apply (value_under_type_check_rec
+           (fun Γ v τ _ => Γ ⊢WF τ)
+           (fun Γ e τ _ => Γ ⊢WF τ)); intros Γ; intros; mydestr; auto.
 Qed.

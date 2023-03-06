@@ -8,8 +8,6 @@ Import Tactics.
 Import NamelessTactics.
 Import ListCtx.
 
-(* define the basic \S{Ty} function *)
-
 Definition ty_of_const (c: constant): base_ty :=
   match c with
   | cnat _ => TNat
@@ -49,16 +47,12 @@ Proof with eauto.
   destruct op...
 Qed.
 
-(* Lemma op_fst_is_op_snd : forall (op: biop), fst_ty_of_op op = snd_ty_of_op op. *)
-(* Proof with eauto. *)
-(*   intros.  destruct op... *)
-(* Qed. *)
-
 Definition context := listctx ty.
 
 Reserved Notation "Γ '⊢t' t '⋮t' T" (at level 40).
 Reserved Notation "Γ '⊢t' t '⋮v' T" (at level 40).
 
+(** Basic typing rules  *)
 Inductive tm_has_type : context -> tm -> ty -> Prop :=
 | T_Err : forall Γ T, ok Γ -> Γ ⊢t terr ⋮t T
 | T_Value : forall Γ v T, Γ ⊢t v ⋮v T -> Γ ⊢t v ⋮t T
