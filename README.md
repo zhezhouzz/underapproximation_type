@@ -109,7 +109,7 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
 > Notice: in order to solve the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will differ slightly from the table shown in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
 
-The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Table 2 (Figure 9) of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
 
