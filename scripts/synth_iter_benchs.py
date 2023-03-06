@@ -7,10 +7,10 @@ meta_config_file = "meta-config.json"
 
 names = [
     "UniqueList",
-    "SizedList",
-    "SortedList",
-    "SizedTree",
-    "SizedBST"
+    # "SizedList",
+    #  "SortedList",
+    # "SizedTree",
+    # "SizedBST"
 ]
 
 
@@ -31,7 +31,7 @@ def init ():
         j = json.load(f)
         resfile = j['resfile']
         benchmark_table_file = j['benchmark_table_file']
-        print (benchmark_table_file)
+        # print (benchmark_table_file)
         with open (benchmark_table_file) as f:
             benchmark_table = json.load(f)
     return benchmark_table, resfile

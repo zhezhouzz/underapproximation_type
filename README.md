@@ -83,7 +83,7 @@ This section gives a brief overview of the files in this artifact.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by thier `SOURCE`. Typically the input source files have name `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files have name `data/benchmark/SOURCE/NAME/_under.ml`.
-  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that have name with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by Cobalt.
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that have name with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [Cobalt](#cobalt-synthesizer).
 * `driver`: the IO of **Poirot**.
 * `env/`: the univerail environment of **Poirot** which is load from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
@@ -102,7 +102,7 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
     $ python3 scripts/get_table1.py
 
-The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using [Cobalt](https://dl.acm.org/doi/abs/10.1145/3563310) deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
 
@@ -433,3 +433,97 @@ else let m = n - 1 in e2
   + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
   + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we ommit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless repsentation).
 - In the formalization, our coverage typing rules additionally require that the all branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mentioned it in the original paper, however, we will fix it in the second round submission.
+
+## Appendix: Building Cobalt from Source (Optional)
+
+### Cobalt Synthesizer
+
+[Cobalt](https://github.com/aegis-iisc/propsynth.git) (based on the [paper](https://dl.acm.org/doi/abs/10.1145/3563310)) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length `k` and given nested depth. Unfortunately, the depedencies (e.g., the version of the OCaml and z3) of `Cobalt` is conflit with **Poirot**, thus we put the synthesized results (see `data/` feild in the section [Artifact Structure](#artifact-structure)) instead of the synthesizer into the docker.
+
+**This step is optional:** although the program synthesis is not the claims in the our paper, we still provide instructions to reproduce these synthesized programs for the readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.
+
+### Prerequisites
+
+To build Cobalt following dependencies must be installed:
+
+*  [OCaml]() (Version >= 4.03)
+
+```
+#install opam
+$ apt-get install opam
+
+#environment setup
+$ opam init
+$ eval `opam env`
+
+# install a specific version of the OCaml base compiler
+$ opam switch create 4.03
+$ eval `opam env`
+
+# check OCaml installation
+$ which ocaml
+/Users/.../.opam/4.03.0/bin/ocaml
+
+$ ocaml -version
+The OCaml toplevel, version 4.03.0
+```
+
+*  [Z3 SMT Solver](https://github.com/Z3Prover/z3)
+```
+$ opam install "z3>=4.7.1"
+$ eval $(opam env)
+```
+
+*  Menhir for parsing the specification language
+```
+$ opam install menhir
+$ eval $(opam env)
+```
+
+*  [OCamlbuild](https://github.com/ocaml/ocamlbuild/) version >= 0.12
+```
+$ opam install "ocamlbuild>=0.12"
+$ eval $(opam env)
+```
+
+To Run the Evaluations.
+
+*  [Python3](https://www.python.org/download/releases/3.0/)
+```
+$ apt-get install python3
+```
+
+### Building Cobalt
+
+After all the dependencies are installed, Cobalt can be directly built using *ocamlbuild* using the script `build.sh` in the project root directory.
+
+```
+
+$ ./build.sh
+
+```
+
+The above build script will create a native executable `effsynth.native` in the project's root directory
+
+### Running Cobalt:
+
+Cobalt takes the following arguments:
+```
+$ ./effsynth.native [-cdcl] [-bi] [-k] [-nested] <path_to_specfile>
+
+$ ./effsynth.native -cdcl -bi -k 3  tests_specsynth/ulist_quant.spec
+
+```
+ This should produce a list of synthesized programs in
+`output/tests_specsynth/ulist_quant.spec` directory.
+
+### Generating Poirot benchmarks:
+The 5 benchmarks in `Table2` in **Poirot** are in `test_specsynth/Poirot_benchmaks` directory.
+
+Run the following command to generate the programs used in Poirot for UniqueList:
+
+```
+$ ./effsynth.native -cdcl -bi -k 3 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spc
+```
+
+This will generate a file `output/tests_specsynth/Poirot_benchmaks/Poirot_uniquelist.spc` containing the required programs.
