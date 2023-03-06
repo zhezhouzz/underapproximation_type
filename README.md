@@ -35,7 +35,7 @@ The memory error can be fixed by increasing the RAM limit in Docker; you can fin
 
 To launch a shell in the Docker image, say:
 
-    $ docker run -it poirot23/poirot:pldi-2023
+    $ docker run -it -m="8g" poirot23/poirot:pldi-2023
 
 To compile **Poirot**, say:
 
@@ -96,11 +96,15 @@ This section gives a brief overview of the files in this artifact.
 
 ### Running Benchmarks of Poirot
 
+In this section, we discuss the scripts that displayes the tables in the paper.
+
 ##### Comprehensive Scripts
 
-The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about `50` second:
+The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about `50** second:
 
     $ python3 scripts/get_table1.py
+
+> Notice: in order to solve the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unsued quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns would slight different from the table shown in the paper. The execution time `total (avg. time)(s)` may also be various depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
 
 The following scripts run the benchmark suite displayed in Table 2 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
 
@@ -109,8 +113,6 @@ The following scripts run the benchmark suite displayed in Table 2 of the paper,
 The following scripts run the `STLC` benchmark suite that asked by the reviewers, it will take about `200` second. The details about this new benchmarks can be found in section [STLC Benchmark](#stlc-benchmark).
 
     $ python3 scripts/run_stlc.py
-
-All scripts above will print the coresponding table.
 
 ##### Detailed Steps
 
@@ -121,10 +123,14 @@ By add command line argument `verbose`, the all scripts above will show the actu
 The script will print the following commands:
 
 ```
-dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/stlc/nonderter_dec/prog.ml data/benchmark/stlc/nonderter_dec/_under.ml
-dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/stlc/gen_const/prog.ml data/benchmark/stlc/gen_const/_under.ml
+Running Poirot on data/benchmark/quickchick/sizedlist/prog.ml
+dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+Running Poirot on data/benchmark/quickchick/sortedlist/prog.ml
+dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/quickchick/sortedlist/prog.ml data/benchmark/quickchick/sortedlist/_under.ml
 ...
 ```
+
+Readers can try these commands which will take shorter time.
 
 ### STLC Benchmark
 
@@ -175,12 +181,12 @@ Types to Check:
 + Print the source code from the given file in given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
 
 ```
-$ ./main.exe print-source-code <raw | typed | mnf> <config_file> <source_code_file> <refinement_type_file>
+$ ./main.exe print-source-code [raw | typed | mnf] <config_file> <source_code_file> <refinement_type_file>
 ```
 
 > For example,
 
-    $ ./main.exe print-source-code typed meta-config.json data/benchmark/quickchick/sizedlist/_prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+    $ ./main.exe print-source-code typed meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
 
 > will print
 
@@ -224,7 +230,7 @@ The result of type check is saved in the file `.result` by default. The first wo
 
 > For example,
 
-    $ ./main.exe coverage-type-check meta-config.json data/benchmark/quickchick/sizedlist/_prog.ml data/benchmark/quickchick/sizedlist/_under.ml
+    $ ./main.exe coverage-type-check meta-config.json data/benchmark/quickchick/sizedlist/prog.ml data/benchmark/quickchick/sizedlist/_under.ml
 
 > The content of `.result` would be:
 

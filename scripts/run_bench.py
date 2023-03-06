@@ -28,9 +28,12 @@ def invoc_cmd(verbose, cmd, output_file):
             print(e.output)
 
 def run(dir_str, verbose):
+    filename = "{}/{}".format(dir_str, "prog.ml")
+    if (verbose):
+        print ("Running Poirot on "+filename)
     cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                         # "{}/{}".format(dir_str, "config.json"),
-                        "{}/{}".format(dir_str, "prog.ml"),
+                        filename,
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
 
