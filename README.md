@@ -100,7 +100,7 @@ In this section, we discuss the scripts that displayes the tables in the paper.
 
 ##### Comprehensive Scripts
 
-The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about `50** second:
+The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about `50` second:
 
     $ python3 scripts/get_table1.py
 
@@ -346,14 +346,14 @@ The defintion of the coverage type is consistent of the Figure 3 (line `359`), w
 #### Proof File Structures
 
 The files are structured as follows:
-+ Definitions and proofs of our core language **λ<sup>TG</sup>** that are independent of **Poirot***'s type system.
++ Definitions and proofs of our core language **λ<sup>TG</sup>** that are independent of **Poirot**'s type system.
   - `Atom.v`: Definitions and notations of atoms (variables) in **λ<sup>TG</sup>**.
   - `Tactics.v`: Some auxiliary tactics.
   - `CoreLang.v`: Definitions and notations of **λ<sup>TG</sup>**.
   - `NamelessTactics.v`: Auxiliary tactics for the locally nameless representation.
-  - `CoreLangProp.v`: Lemmas for our core language **λ<sup>TG</sup>**..
-  - `OperationalSemantics.v`: Definitions and notations of the small-step operational semantics of **λ<sup>TG</sup>**..
-  - `OperationalSemanticsProp.v`: Lemmas for the small-step operational semantics of **λ<sup>TG</sup>**..
+  - `CoreLangProp.v`: Lemmas for our core language **λ<sup>TG</sup>**.
+  - `OperationalSemantics.v`: Definitions and notations of the small-step operational semantics of **λ<sup>TG</sup>**.
+  - `OperationalSemanticsProp.v`: Lemmas for the small-step operational semantics of **λ<sup>TG</sup>**.
   - `ListCtx.v`: Definitions and notations for reasoning about polymorphic contexts.
   - `BasicTyping.v`: Definitions and notations for the basic typing.
   - `BasicTypingProp.v`: Lemmas for the basic typing rules.
