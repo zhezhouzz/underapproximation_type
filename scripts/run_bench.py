@@ -48,6 +48,15 @@ def show_source(dir_str, fm, verbose):
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
 
+def split_source(dir_str, verbose):
+    cmd = cmd_prefix + ["split-source-code",
+                        "{}/{}".format(dir_str, "prog.ml")]
+    invoc_cmd(verbose, cmd, None)
+
+def cp_source(from_file, dir_str, verbose):
+    cmd = ["cp", from_file, "{}/{}".format(dir_str, "prog.ml")]
+    invoc_cmd(verbose, cmd, None)
+
 if __name__ == '__main__':
     try:
         if sys.argv[2] == "verbose":

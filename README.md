@@ -64,7 +64,7 @@ Types to Check:
 
 The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof/` directory. These proofs may be executed by running `make`, which may take about `10` min.
 
-    $ cd coq_proof && make
+    $ cd coq_proof && make && cd ..
 
 ## Step-by-Step Instructions
 
@@ -86,7 +86,7 @@ This section gives a brief overview of the files in this artifact.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by their `SOURCE`. Typically the input source files are named `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files are named `data/benchmark/SOURCE/NAME/_under.ml`.
-  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [Cobalt](#cobalt-synthesizer).
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [**Cobalt**](#cobalt-synthesizer).
 * `driver/`: the IO of **Poirot**.
 * `env/`: the universal environment of **Poirot** which is loaded from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
@@ -109,7 +109,7 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
 > Notice: in order to solve the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will differ slightly from the table shown in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
 
-The following scripts run the benchmark suite displayed in Table 2 (Figure 9) of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [Cobalt](#cobalt-synthesizer) deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Table 2 (Figure 9) of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [**Cobalt**](#cobalt-synthesizer) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
 
@@ -461,98 +461,50 @@ else let m = n - 1 in e2
 
 ### Cobalt Synthesizer
 
-[Cobalt](https://github.com/aegis-iisc/propsynth.git) (based on the [paper](https://dl.acm.org/doi/abs/10.1145/3563310)) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length `k` and given nested depth. Unfortunately, the depedencies (e.g., the version of the OCaml and z3) of `Cobalt` is in conflict with **Poirot**, thus we put the synthesized results (see `data/` field in the section [Artifact Structure](#artifact-structure)) instead of the synthesizer into the dockerfile.
+[**Cobalt**](https://github.com/aegis-iisc/propsynth.git) (based on the [paper](https://dl.acm.org/doi/abs/10.1145/3563310)) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length `k` and given nested depth.
 
 **This step is optional:** although the program synthesis is not one of the claims in our paper, we still provide instructions to reproduce these synthesized programs for the readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.
 
-### Prerequisites
-
-To build Cobalt, the following dependencies must be installed:
-
-*  [OCaml]() (Version >= 4.03)
-
-```
-#install opam
-$ apt-get install opam
-
-#environment setup
-$ opam init
-$ eval `opam env`
-
-# install a specific version of the OCaml base compiler
-$ opam switch create 4.03
-$ eval `opam env`
-
-# check OCaml installation
-$ which ocaml
-/Users/.../.opam/4.03.0/bin/ocaml
-
-$ ocaml -version
-The OCaml toplevel, version 4.03.0
-```
-
-*  [Z3 SMT Solver](https://github.com/Z3Prover/z3)
-```
-$ opam install "z3>=4.7.1"
-$ eval $(opam env)
-```
-
-*  Menhir for parsing the specification language
-```
-$ opam install menhir
-$ eval $(opam env)
-```
-
-*  [OCamlbuild](https://github.com/ocaml/ocamlbuild/) version >= 0.12
-```
-$ opam install "ocamlbuild>=0.12"
-$ eval $(opam env)
-```
-
-To Run the Evaluations.
-
-*  [Python3](https://www.python.org/download/releases/3.0/)
-```
-$ apt-get install python3
-```
-
 ### Building Cobalt
 
-After all the dependencies are installed, Cobalt can be directly built using *ocamlbuild* with the script `build.sh` in the project root directory.
+**Cobalt** is not in the current directory, the readers may go to the directory `~/propsynth`.
 
-```
+    $ cd ~/propsynth
 
-$ ./build.sh
+**Cobalt** can be directly built using *ocamlbuild* with the script `build.sh` in the project root directory.
 
-```
+    $ ./build.sh
 
 The above build script will create a native executable `effsynth.native` in the project's root directory
 
-### Running Cobalt:
+### Running Cobalt
 
-Cobalt takes the following arguments:
-```
-$ ./effsynth.native [-cdcl] [-bi] [-k *default=3*] [-nested *default=1*] <path_to_specfile>
+**Cobalt** takes the following arguments:
 
-$ ./effsynth.native -cdcl -bi -k 3  tests_specsynth/ulist_quant.spec
+    $ ./effsynth.native [-cdcl] [-bi] [-k *default=3*] [-nested *default=1*] <path_to_specfile>
 
-```
+    $ ./effsynth.native -cdcl -bi -k 3  tests_specsynth/ulist_quant.spec
+
  This should produce a list of synthesized programs in the
 `output/tests_specsynth/ulist_quant.spec` directory.
 
-### Generating Poirot benchmarks:
+### Generating Poirot benchmarks
+
 The 5 benchmarks in `Table2` in **Poirot** are in the `test_specsynth/Poirot_benchmaks` directory.
 
 Run the following command to generate the programs used in **Poirot** for UniqueList:
 
-```
-$ ./effsynth.native -cdcl -bi -k 5 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec
-```
+    $ ./effsynth.native -cdcl -bi -k 5 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec
+
 This will generate a file `output/tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec` containing the required programs.
 Similarly, run the following commands for different benchmarks:
-```
-$ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedlist.spec
-$ ./effsynth.native -cdcl -bi -k 4 -nested 2 tests_specsynth/Poirot_benchmarks/Poirot_sortedlist.spec
-$ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedbst.spec
-...
-```
+
+    $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedlist.spec
+    $ ./effsynth.native -cdcl -bi -k 4 -nested 2 tests_specsynth/Poirot_benchmarks/Poirot_sortedlist.spec
+    $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedbst.spec
+    ...
+
+Finally, go back to **Poirot**'s root directory and run the following script which copies the synthesized result from **Cobalt** and generates the coresponding benchmarks:
+
+    $ cd ~/underapproximation_type
+    $ python3 scripts/from_cabalt.py verbose
