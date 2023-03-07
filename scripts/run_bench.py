@@ -2,6 +2,7 @@ import sys
 import argparse
 import os
 import subprocess
+import colored
 
 cmd_prefix = ["dune", "exec", "--", "bin/main.exe"]
 
@@ -30,7 +31,7 @@ def invoc_cmd(verbose, cmd, output_file, cwd=None):
 def run(dir_str, verbose):
     filename = "{}/{}".format(dir_str, "prog.ml")
     if (verbose):
-        print ("Running Poirot on "+filename)
+        print (colored.bold_text("Running Poirot on "+filename))
     cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                         # "{}/{}".format(dir_str, "config.json"),
                         filename,
