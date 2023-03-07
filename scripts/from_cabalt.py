@@ -35,6 +35,9 @@ if __name__ == '__main__':
     except:
         if_verbose = False
     name = sys.argv[1]
+    cobalt_output_dir = "{}/output/tests_specsynth/Poirot_benchmarks".format(cobalt_dir)
+    if not os.path.isdir(cobalt_output_dir):
+        os.makedirs(cobalt_output_dir)
     benchmark_table, resfile = synth_iter_benchs.init ()
     if name in synth_iter_benchs.names:
         # get the spath for the benchmark name from the benchmark_table
