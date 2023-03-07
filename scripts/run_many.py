@@ -4,6 +4,7 @@ import os
 import subprocess
 import shutil
 import locale
+import colored
 
 cmd_prefix = ["dune", "exec", "--", "bin/main.exe"]
 meta_config_file = "meta-config.json"
@@ -50,7 +51,7 @@ def run(dir_str, verbose):
     for diri in subdirs:
         ithprogrfile = "{}/{}".format(diri, "prog.ml")
         if verbose:
-            print ("Running Poirot on "+ithprogrfile)
+            print (colored.bold_text("Running Poirot on "+ithprogrfile))
         cmd = cmd_prefix + ["coverage-type-check", meta_config_file,
                             # "{}/{}".format(dir_str, "config.json"),
                             ithprogrfile,
