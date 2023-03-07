@@ -1,6 +1,6 @@
 # Artifact Guide: Covering All the Bases: Type-based Verification of Test Input Generators
 
-This is the accompanying artifact for the PLDI 2023 submission *Covering All the Bases: Type-based Verification of Test Input Generators* by Zhou et al. This artifact consists of both the OCaml implementation (**Poirot****) and the Coq formalization of the type system of our core language **λ<sup>TG</sup>** introduced in the paper.
+This is the accompanying artifact for the PLDI 2023 submission *Covering All the Bases: Type-based Verification of Test Input Generators* by Zhou et al. This artifact consists of both the OCaml implementation (**Poirot**) and the Coq formalization of the type system of our core language **λ<sup>TG</sup>** introduced in the paper.
 
 ## Getting Started Guide
 
