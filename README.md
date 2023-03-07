@@ -548,7 +548,7 @@ Run the following command to generate the programs used in **Poirot** for Unique
 ```
 $ ./effsynth.native -cdcl -bi -k 5 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec
 ```
-This will generate a file `output/tests_specsynth/Poirot_benchmaks/Poirot_uniquelist.spec` containing the required programs.
+This will generate a file `output/tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec` containing the required programs.
 Similarly, run the following commands for different benchmarks:
 ```
 $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedlist.spec
