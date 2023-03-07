@@ -9,21 +9,21 @@ workdir = ""
 
 meta_config_file = "meta-config.json"
 
-def invoc_cmd(verbose, cmd, output_file):
+def invoc_cmd(verbose, cmd, output_file, cwd=None):
     if output_file is not None:
         # print("{}:{}".format(output_file, type(output_file)))
         if (verbose):
             print(" ".join(cmd + [">>", output_file]))
         with open(output_file, "a+") as ofile:
             try:
-                subprocess.run(cmd, stdout=ofile)
+                subprocess.run(cmd, cwd=cwd, stdout=ofile)
             except subprocess.CalledProcessError as e:
                 print(e.output)
     else:
         if (verbose):
             print(" ".join(cmd))
         try:
-            subprocess.run(cmd)
+            subprocess.run(cmd, cwd=cwd)
         except subprocess.CalledProcessError as e:
             print(e.output)
 
@@ -56,6 +56,10 @@ def split_source(dir_str, verbose):
 def cp_source(from_file, dir_str, verbose):
     cmd = ["cp", from_file, "{}/{}".format(dir_str, "prog.ml")]
     invoc_cmd(verbose, cmd, None)
+
+def run_cobalt(cobalt_dir, cmd, cobalt_input, verbose):
+    cmd = ["./effsynth.native"] + cmd + [cobalt_input]
+    invoc_cmd(verbose, cmd, ".log", cwd=cobalt_dir)
 
 if __name__ == '__main__':
     try:

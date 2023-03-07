@@ -467,44 +467,16 @@ else let m = n - 1 in e2
 
 ### Building Cobalt
 
-**Cobalt** is not in the current directory, the readers may go to the directory `~/propsynth`.
+**Cobalt** is not in the current directory, the readers may go to the directory `~/propsynth`. **Cobalt** can be directly built using *ocamlbuild* with the script `build.sh` in the project root directory.
 
-    $ cd ~/propsynth
+    $ cd ~/propsynth && ./build.sh && cd -
 
-**Cobalt** can be directly built using *ocamlbuild* with the script `build.sh` in the project root directory.
-
-    $ ./build.sh
-
-The above build script will create a native executable `effsynth.native` in the project's root directory
-
-### Running Cobalt
-
-**Cobalt** takes the following arguments:
-
-    $ ./effsynth.native [-cdcl] [-bi] [-k *default=3*] [-nested *default=1*] <path_to_specfile>
-
-    $ ./effsynth.native -cdcl -bi -k 3  tests_specsynth/ulist_quant.spec
-
- This should produce a list of synthesized programs in the
-`output/tests_specsynth/ulist_quant.spec` directory.
+The above build script will create a native executable `effsynth.native` in the **Cobalt**'s root directory
 
 ### Generating Poirot benchmarks
 
-The 5 benchmarks in `Table2` in **Poirot** are in the `test_specsynth/Poirot_benchmaks` directory.
+The 5 benchmarks in `Table2` in **Poirot** are in the `../propsynth/test_specsynth/Poirot_benchmaks` directory. The script `scripts/from_cabalt.py` will go to the directory `~/propsynth` and synthesizes the programs for the coresponding benchmarks used in **Poirot**. For example, for the benchmark `UniqueList`:
 
-Run the following command to generate the programs used in **Poirot** for UniqueList:
+    $ python3 scripts/from_cabalt.py UniqueList verbose
 
-    $ ./effsynth.native -cdcl -bi -k 5 tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec
-
-This will generate a file `output/tests_specsynth/Poirot_benchmarks/Poirot_uniquelist.spec` containing the required programs.
-Similarly, run the following commands for different benchmarks:
-
-    $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedlist.spec
-    $ ./effsynth.native -cdcl -bi -k 4 -nested 2 tests_specsynth/Poirot_benchmarks/Poirot_sortedlist.spec
-    $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedbst.spec
-    ...
-
-Finally, go back to **Poirot**'s root directory and run the following script which copies the synthesized result from **Cobalt** and generates the coresponding benchmarks:
-
-    $ cd ~/underapproximation_type
-    $ python3 scripts/from_cabalt.py verbose
+Similarly, readers can run the following commands for different benchmarks `SizedList`, `SortedList`, `SizedTree`, and `SizedBST`.
