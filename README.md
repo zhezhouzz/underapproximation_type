@@ -554,5 +554,6 @@ Similarly, run the following commands for different benchmarks:
 $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedlist.spec
 $ ./effsynth.native -cdcl -bi -k 4 -nested 2 tests_specsynth/Poirot_benchmarks/Poirot_sortedlist.spec
 $ ./effsynth.native -cdcl -bi -k 4 -nested 3 tests_specsynth/Poirot_benchmarks/Poirot_sizedbst.spec
-$ ./effsynth.native  -k 5 -nested 4 tests_specsynth/Poirot_benchmarks/Poirot_sizedtree.spec
+$ ./effsynth.native -cdcl -bi -k 5 -nested 4 tests_specsynth/Poirot_benchmarks/Poirot_sizedtree.spec
 ```
+Note, that the newer version of the synthesizer explores all programs up to the depth `k` and conditional-expression depth `nested`, thus synthesizing a higher number of safe programs. Running Poirot on randomly selected benchmarks from these benchmarks again corroborates our claim in the paper that *the space of the complete generators is significantly smaller than the space of the safe generators.*
