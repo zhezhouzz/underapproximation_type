@@ -52,3 +52,6 @@ let[@library] sizecheck =
 let[@library] subs =
   let s = (true : [%v: int]) [@over] in
   (v == s - 1 : [%v: int]) [@under]
+
+let[@library] dummy = (true : [%v: unit]) [@under]
+
