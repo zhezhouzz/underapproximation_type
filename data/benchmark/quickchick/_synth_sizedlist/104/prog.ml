@@ -4,5 +4,4 @@ let rec goal (size : int) =
    else
      if bool_gen ()
      then size :: (subs size) :: (goal (subs size))
-     else (subs (gt_eq_int_gen size)) :: (goal (gt_eq_int_gen size)) : 
-  int list)
+     else [subs (gt_eq_int_gen (subs size))] : int list)
