@@ -21,6 +21,10 @@ You may fetch the pre-built Docker image from Docker Hub:
 
     $ docker pull poirot23/poirot:pldi-2023
 
+You may also load the docker image from the file `poirot_pldi-2023.tar.gz`.
+
+    $ docker load < poirot_pldi-2023.tar.gz
+
 ### Building the Docker Image (Optional)
 
 Alternately, to build the Docker image yourself, navigate to the
