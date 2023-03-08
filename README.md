@@ -65,13 +65,13 @@ Types to Check:
 
 ### Coq proofs in the Docker Image
 
-The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof/` directory. These proofs may be executed by running `make`, which may take about `10` min.
+The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_proof/` directory. These proofs may be executed by running `make`, which may take about `10` mins.
 
     $ cd coq_proof && make && cd ..
 
 ## Step-by-Step Instructions
 
-In this section, we provide the instructions to evaluate our artifact. The [first half of this [section](#running-benchmarks-of-poirot) describes the installation and use of **Poirot**, an OCaml implementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#running-coq-proofs) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
+In this section, we provide the instructions to evaluate our artifact. The [first half of this [section](#running-benchmarks-of-poirot) describes the installation and use of **Poirot**, an OCaml implementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#proof-readme) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
 
 ### Artifact Structure
 
@@ -89,7 +89,7 @@ This section gives a brief overview of the files in this artifact.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by their `SOURCE`. Typically the input source files are named `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files are named `data/benchmark/SOURCE/NAME/_under.ml`.
-  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [**Cobalt**](#cobalt-synthesizer).
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [**Cobalt**](https://dl.acm.org/doi/abs/10.1145/3563310).
 * `driver/`: the IO of **Poirot**.
 * `env/`: the universal environment of **Poirot** which is loaded from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
@@ -143,7 +143,7 @@ Readers can try these commands which will take a shorter amount of time.
 
 ### STLC Benchmark
 
-The STLC is a new benchmark suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a detailed explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_typ`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library functions in the QuickChick.
+The STLC is a new benchmark suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a detailed explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_type`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library functions in the QuickChick.
 
 The expected experimental result is shown in the following table. The meaning of the table is the same as with Table 1 in the paper (see "benchmarks" paragraph from line `822`), where "▲" indicates these functions are from the STLC benchmark.
 
@@ -335,7 +335,7 @@ OVER_APPR_BASE_RTY := "(PROP : [%VAR: OCAML_TYPE]) [@over]"
 UNDER_APPR_RTY :=
 | UNDER_APPR_BASE_RTY
 | "let VAR = OVER_APPR_BASE_RTY in UNDER_APPR_RTY"
-| "let VAR = UNDER_APPR_BASE_RTY in UNDER_APPR_RTY"
+| "let VAR = UNDER_APPR_RTY in UNDER_APPR_RTY"
 
 ```
 where the `METHOD_PREDICATE` is the method predicates introduced in the first line of the file; the quantifiers in the first-order logic (FOL) proposition `PROP` is typed (`TYPED_QUANTIFIER`).
@@ -347,7 +347,9 @@ The definition of the coverage type is consistent with Figure 3 (line `359`), wh
 + the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
 + the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the underapproximate base refinement type to be the argument type following the constraints in the paper (line `422` to `426`).
 
-### Proof Readme of **λ<sup>TG</sup>**
+### Proof Readme
+
+In this section, we discuss the formualization of our core language **λ<sup>TG</sup>**.
 
 #### Proof File Structures
 

@@ -158,7 +158,6 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
 | UT_Lete_arr: forall Γ (e_x: value) e τ τ_x (L: aset),
     is_arr τ_x ->
     Γ ⊢WF τ -> Γ ⊢ e_x ⋮t τ_x -> (forall x, x ∉ L -> (Γ ++ [(x, τ_x)]) ⊢ (e ^t^ x) ⋮t τ ) -> Γ ⊢ (tlete e_x e) ⋮t τ
-(** operators only take nat type *)
 | UT_LetOp: forall (Γ: listctx rty) op (v1 v2: value) e τ d1 d2 ϕ1 ϕ2 (L: aset),
     Γ ⊢WF τ ->
     Γ ⊢ v1 ⋮v [v: fst_ty_of_op op | 0 | d1 | ϕ1 ] ->
@@ -168,7 +167,6 @@ Inductive term_under_type_check : listctx rty -> tm -> rty -> Prop :=
 | UT_LetAppIndepend: forall Γ (v1 v2: value) e τ τ2 τ_x (L: aset),
     Γ ⊢WF τ -> Γ ⊢ v1 ⋮v (τ2 ⤑ τ_x) -> Γ ⊢ v2 ⋮v τ2 -> (forall x, x ∉ L -> (Γ ++ [(x, τ_x)]) ⊢ (e ^t^ x) ⋮t τ) ->
     Γ ⊢ (tletapp v1 v2 e) ⋮t τ
-(** the value should only be constant or variables *)
 | UT_LetAppDepend: forall Γ (v1 v2: value) e τ b d ϕ τ_x (L: aset),
     Γ ⊢WF τ ->
     Γ ⊢ v1 ⋮v (-:{v: b | 0 | d | ϕ}⤑ τ_x) -> Γ ⊢ v2 ⋮v [v: b | 0 | d | ϕ] ->
