@@ -49,7 +49,7 @@ let goal =
      implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
     : [%v: int tree]) *)
  let d = (0 <= v : [%v: int]) [@over] in
-  let s0 = (d <= v : [%v: int]) [@over] in
+  let size = (d <= v : [%v: int]) [@over] in
   let lo = (true : [%v: int]) [@over] in
   let hi = (v == lo + d : [%v: int]) [@over] in
   (fun (u : [%forall: int]) ->
