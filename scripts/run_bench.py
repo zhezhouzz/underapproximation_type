@@ -55,9 +55,13 @@ def split_source(dir_str, verbose):
     invoc_cmd(verbose, cmd, None)
 
 def reset_source(dir_str, verbose):
+    cmd = ["cp", "{}/_under.ml".format(dir_str), ".tmp._under.ml"]
+    invoc_cmd(verbose, cmd, None)
     cmd = ["rm", "-rf", dir_str]
     invoc_cmd(verbose, cmd, None)
     cmd = ["mkdir", dir_str]
+    invoc_cmd(verbose, cmd, None)
+    cmd = ["cp", ".tmp._under.ml", "{}/_under.ml".format(dir_str)]
     invoc_cmd(verbose, cmd, None)
 
 def cp_source(from_file, dir_str, verbose):
