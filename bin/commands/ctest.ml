@@ -67,6 +67,20 @@ let parse_to_anormal =
 
 type format = Raw | Typed | MonadicNormalForm
 
+let check_cobalt_code_ source_file outputdir =
+  let open Languages in
+  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let term_code = Struc.prog_of_ocamlstruct code in
+  let () =
+    List.iteri
+      ~f:(fun idx struc ->
+        Languages.Termlang.show_fv idx
+          Struc.(if struc.if_rec then [ struc.name ] else [])
+          struc.Struc.body)
+      term_code
+  in
+  ()
+
 let split_source_code_ source_file outputdir =
   let open Languages in
   let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
@@ -82,6 +96,24 @@ let split_source_code_ source_file outputdir =
       Printf.fprintf oc "%s\n"
         (Ocaml_parser.Pprintast.string_of_structure [ context ]);
       Out_channel.close oc)
+
+let check_fv_in_code =
+  Command.basic ~summary:"check free variables in the code"
+    Command.Let_syntax.(
+      let%map_open source_file = anon ("source_code_file" %: regular_file) in
+      fun () ->
+        let path =
+          let tmp = String.split_on_chars source_file ~on:[ '/' ] in
+          let path =
+            match List.rev tmp with
+            | [] -> ""
+            | _ :: tmp ->
+                Zzdatatype.Datatype.List.split_by "/" (fun x -> x)
+                @@ List.rev tmp
+          in
+          path
+        in
+        check_cobalt_code_ source_file path)
 
 let split_source_code =
   Command.basic ~summary:"split a OCaml source code file into files"
@@ -99,8 +131,8 @@ let split_source_code =
           in
           path
         in
-        (* let () = Printf.printf "path: %s\n" path in *)
-        split_source_code_ source_file path)
+        split_source_code_ source_file path
+      (* let () = Printf.printf "path: %s\n" path in *))
 
 let print_source_code meta_config_file source_file refine_file format () =
   let () = Env.load_meta meta_config_file in
@@ -377,6 +409,7 @@ let test =
       ("coverage-type-check", under_type_check);
       ("print-source-code", print_source_code);
       ("split-source-code", split_source_code);
+      ("check-fv-in-code", check_fv_in_code);
     ]
 
 let%test_unit "rev" = [%test_eq: int list] (List.rev [ 3; 2; 1 ]) [ 1; 2; 3 ]
