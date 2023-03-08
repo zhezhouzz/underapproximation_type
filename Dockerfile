@@ -24,16 +24,16 @@ RUN opam install ocamlbuild.0.14.1
 RUN sudo apt-get install -y vim
 SHELL ["/bin/bash", "-lc"]
 ARG CACHEBUST=1
-RUN git clone https://github.com/zhezhouzz/ocaml_parser.git && cd ocaml_parser && git pull origin ce0c760b2c6df0186064ad1093b492ac3686835a && git checkout ce0c760b2c6df0186064ad1093b492ac3686835a && opam install . && cd ..
-RUN git clone https://github.com/zhezhouzz/zzdatatype.git && cd zzdatatype && git pull origin 55f9d6b5a4c483ac2397fd33740f1a4dc86a442a && git checkout 55f9d6b5a4c483ac2397fd33740f1a4dc86a442a && opam install . && cd ..
-RUN git clone https://github.com/zhezhouzz/utils.git && cd utils && git pull origin ad8d11b955469fdb32240bf8131aceb944b3b31d && git checkout ad8d11b955469fdb32240bf8131aceb944b3b31d && opam install . && cd ..
+RUN git clone https://github.com/zhezhouzz/ocaml_parser.git && cd ocaml_parser && git pull origin ce0c760b2c6df0186064ad1093b492ac3686835a && git checkout -b ce0c760b2c6df0186064ad1093b492ac3686835a && opam install . && cd ..
+RUN git clone https://github.com/zhezhouzz/zzdatatype.git && cd zzdatatype && git pull origin 55f9d6b5a4c483ac2397fd33740f1a4dc86a442a && git checkout -b 55f9d6b5a4c483ac2397fd33740f1a4dc86a442a && opam install . && cd ..
+RUN git clone https://github.com/zhezhouzz/utils.git && cd utils && git pull origin ad8d11b955469fdb32240bf8131aceb944b3b31d && git checkout -b ad8d11b955469fdb32240bf8131aceb944b3b31d && opam install . && cd ..
 RUN eval $(opam env)
-RUN git clone https://github.com/zhezhouzz/normalty.git && cd normalty && git pull origin 83d9ac7f39c43b2e0335eba01e89c5c6a4648a1d && git checkout 83d9ac7f39c43b2e0335eba01e89c5c6a4648a1d && opam install . && cd ..
+RUN git clone https://github.com/zhezhouzz/normalty.git && cd normalty && git pull origin 83d9ac7f39c43b2e0335eba01e89c5c6a4648a1d && git checkout -b 83d9ac7f39c43b2e0335eba01e89c5c6a4648a1d && opam install . && cd ..
 RUN eval $(opam env)
-RUN git clone https://github.com/aegis-iisc/propsynth.git && cd propsynth && git pull origin 0d03e2f966d63a33a71c22d8d20bff9c37e721fc && git checkout 0d03e2f966d63a33a71c22d8d20bff9c37e721fc && cd ..
+RUN git clone https://github.com/aegis-iisc/propsynth.git && cd propsynth && git pull origin 58993833a54d05d38b50d977f678d3ecca696e3f && git checkout -b 58993833a54d05d38b50d977f678d3ecca696e3f && cd ..
 RUN git clone https://github.com/zhezhouzz/underapproximation_type.git
 WORKDIR underapproximation_type
 RUN git config pull.ff only
 RUN git checkout artifact
-RUN git pull origin 3f69a57b3f6b9e533f9e63355ca55d9bf32e4d92
-RUN git checkout -b 3f69a57b3f6b9e533f9e63355ca55d9bf32e4d92
+RUN git pull origin 688dafa92b68e6025a7f3ed41751e369ae202ca7
+RUN git checkout -b 688dafa92b68e6025a7f3ed41751e369ae202ca7
