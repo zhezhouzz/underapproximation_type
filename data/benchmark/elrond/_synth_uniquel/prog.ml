@@ -403,7 +403,7 @@ x0 +::  ( goal  size x0 )
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
 then 
-  ( subs  size )  +:: x0 +::  ( goal  size x0 )  
+  ( subs  size )  +:: (x0 +::  ( goal  size x0 ))  
 else 
 x0 +::  ( goal   ( subs  size )  x0 ) 
 (* Program *) 
@@ -776,14 +776,14 @@ let rec goal    (size : int)  (x0 : int) : (int ulist) =
 then 
   ( subs  size )  +::  ( goal   ( subs  size )  x0 )  
 else 
- ( subs  size )  +:: x0 +::  ( goal  size x0 ) 
+ ( subs  size )  +:: (x0 +::  ( goal  size x0 )) 
 (* Program *) 
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
 then 
   ( subs  size )  +::  ( goal   ( subs  size )  x0 )  
 else 
- ( subs  size )  +:: x0 +::  ( goal   ( subs  size )  x0 ) 
+ ( subs  size )  +:: (x0 +::  ( goal   ( subs  size )  x0 ) )
 (* Program *) 
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 

@@ -1,4 +1,7 @@
 let rec goal (d : int) (s0 : int) (lo : int) (hi : int) =
-  (if lt_eq_one lo
-   then Node (hi, Leaf, Leaf)
-   else Node ((increment lo), Leaf, Leaf) : int tree)
+  (if lt_eq_one hi
+   then
+     Node
+       ((increment d1), Leaf, (goal root root (increment s0) (increment lo)))
+   else goal (increment lo) (increment s) (increment s0) (increment hi) : 
+  int tree)
