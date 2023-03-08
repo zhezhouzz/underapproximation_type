@@ -96,11 +96,11 @@
                     <div class="Box-body px-5 pb-5">
                       <article id="grip-content" class="markdown-body entry-content container-lg">
                         <h1><a id="user-content-artifact-guide-covering-all-the-bases-type-based-verification-of-test-input-generators" class="anchor" aria-hidden="true" href="#artifact-guide-covering-all-the-bases-type-based-verification-of-test-input-generators"><span aria-hidden="true" class="octicon octicon-link"></span></a>Artifact Guide: Covering All the Bases: Type-based Verification of Test Input Generators</h1>
-<p>This is the accompanying artifact for the PLDI 2023 submission <em>Covering All the Bases: Type-based Verification of Test Input Generators</em> by Zhou et al. This artifact consists of both the OCaml impelementation (<strong>Poirot</strong>) and the Coq formalization of the type system of our core language <strong>λ<sup>TG</sup></strong> introduced in the paper.</p>
+<p>This is the accompanying artifact for the PLDI 2023 submission <em>Covering All the Bases: Type-based Verification of Test Input Generators</em> by Zhou et al. This artifact consists of both the OCaml implementation (<strong>Poirot</strong>) and the Coq formalization of the type system of our core language <strong>λ<sup>TG</sup></strong> introduced in the paper.</p>
 <h2><a id="user-content-getting-started-guide" class="anchor" aria-hidden="true" href="#getting-started-guide"><span aria-hidden="true" class="octicon octicon-link"></span></a>Getting Started Guide</h2>
 <p>We recommend machines have at least 8 GB of memory and 8 GB of hard
 disk space available when building and running Docker images. All
-benchmarks were tested on MacBook Pro 14-inc, 2021, that has an Apple M1 Pro CPU with 16 GB RAM. The estimated execition time in the rest of document also fits this setting.</p>
+benchmarks were tested on MacBook Pro 14-inc, 2021, which has an Apple M1 Pro CPU with 16 GB RAM. The estimated execution time in the rest of the document also fits this setting.</p>
 <h3><a id="user-content-requirements" class="anchor" aria-hidden="true" href="#requirements"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements</h3>
 <p>This artifact is built as a Docker image. Before proceeding, ensure
 Docker is installed. (On *nix, <code>sudo docker run hello-world</code> will test
@@ -124,7 +124,7 @@ The memory error can be fixed by increasing the RAM limit in Docker; you can fin
 <p>To compile <strong>Poirot</strong>:</p>
 <pre><code>$ dune build &amp;&amp; cp _build/default/bin/main.exe main.exe
 </code></pre>
-<p>The compliation result of <strong>Poirot</strong> is an executable <code>_build/default/bin/main.exe</code>. For the sake of convenience, we copy it under the current directory. You can run <strong>Poirot</strong> by excuting <code>main.exe &lt;args&gt;</code> directly, or excuting it via <code>dune</code>, that is <code>dune exec -- bin/main.exe &lt;args&gt;</code>.</p>
+<p>The compilation result of <strong>Poirot</strong> is an executable <code>_build/default/bin/main.exe</code>. For the sake of convenience, we copy it under the current directory. You can run <strong>Poirot</strong> by executing <code>main.exe &lt;args&gt;</code> directly or executing it via <code>dune</code>, that is <code>dune exec -- bin/main.exe &lt;args&gt;</code>.</p>
 <p>You can print <strong>Poirot</strong>'s help message to verify the tool is operating
 successfully:</p>
 <pre><code>$ ./main.exe --help
@@ -142,7 +142,7 @@ successfully:</p>
 <pre><code>$ cd coq_proof &amp;&amp; make &amp;&amp; cd ..
 </code></pre>
 <h2><a id="user-content-step-by-step-instructions" class="anchor" aria-hidden="true" href="#step-by-step-instructions"><span aria-hidden="true" class="octicon octicon-link"></span></a>Step-by-Step Instructions</h2>
-<p>In this section, we provides the instructions to evaluate our artifact. The <a href="#running-benchmarks-of-poirot">first half of this section</a> describes installation and use of <strong>Poirot</strong>, an OCaml impelementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The <a href="#running-coq-proofs">rest of this section</a> describes the Coq formalization of the core language <strong>λ<sup>TG</sup></strong> in the paper and the corresponding soundness theorem.</p>
+<p>In this section, we provide the instructions to evaluate our artifact. The [first half of this <a href="#running-benchmarks-of-poirot">section</a> describes the installation and use of <strong>Poirot</strong>, an OCaml implementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The <a href="#running-coq-proofs">rest of this section</a> describes the Coq formalization of the core language <strong>λ<sup>TG</sup></strong> in the paper and the corresponding soundness theorem.</p>
 <h3><a id="user-content-artifact-structure" class="anchor" aria-hidden="true" href="#artifact-structure"><span aria-hidden="true" class="octicon octicon-link"></span></a>Artifact Structure</h3>
 <p>This section gives a brief overview of the files in this artifact.</p>
 <ul>
@@ -202,7 +202,7 @@ successfully:</p>
 <h3><a id="user-content-running-benchmarks-of-poirot" class="anchor" aria-hidden="true" href="#running-benchmarks-of-poirot"><span aria-hidden="true" class="octicon octicon-link"></span></a>Running Benchmarks of Poirot</h3>
 <p>In this section, we discuss the scripts that displays the tables in the paper.</p>
 <h5><a id="user-content-comprehensive-scripts" class="anchor" aria-hidden="true" href="#comprehensive-scripts"><span aria-hidden="true" class="octicon octicon-link"></span></a>Comprehensive Scripts</h5>
-<p>The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about <code>50</code> second:</p>
+<p>The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about <code>50</code> seconds:</p>
 <pre><code>$ python3 scripts/get_table1.py
 </code></pre>
 <blockquote>
@@ -214,11 +214,11 @@ successfully:</p>
 <blockquote>
 <p>Notice: the synthesizer uses random choices internally while synthesizing these programs, therefore the programs synthesized in each run of the synthesizer may differ and may vary <em>minutely</em> in numbers. This may cause <em>minute</em> differences in the table generated by the above script from what is reported in the paper. However, in each case, the numbers generated will be close and corroborate our claims in the paper that <em>the space of the complete generators is significantly smaller than the space of the safe generators.</em> (line <code>914</code>)</p>
 </blockquote>
-<p>The following scripts run the <code>STLC</code> benchmark suite that is asked for by the reviewers, it will take about <code>200</code> seconds. The details about these new benchmarks can be found in section <a href="#stlc-benchmark">STLC Benchmark</a>.</p>
+<p>The following scripts run the <code>STLC</code> benchmark suite that is asked for by the reviewers, it will take about <code>200</code> seconds. The details about these new benchmarks can be found in the section <a href="#stlc-benchmark">STLC Benchmark</a>.</p>
 <pre><code>$ python3 scripts/run_stlc.py
 </code></pre>
 <h5><a id="user-content-detailed-steps" class="anchor" aria-hidden="true" href="#detailed-steps"><span aria-hidden="true" class="octicon octicon-link"></span></a>Detailed Steps</h5>
-<p>By add commanding the line argument <code>verbose</code>, all of the scripts above will show the actual command sent to <strong>Poirot</strong> on each benchmark. For example, by runing:</p>
+<p>By add commanding the line argument <code>verbose</code>, all of the scripts above will show the actual command sent to <strong>Poirot</strong> on each benchmark. For example, by running:</p>
 <pre><code>$ python3 scripts/get_table1.py verbose
 </code></pre>
 <p>The script will print the following commands:</p>
@@ -427,7 +427,7 @@ int -&gt; int list)
 <pre><code>$ ./main.exe coverage-type-check &lt;config_file&gt; &lt;source_code_file&gt; &lt;refinement_type_file&gt;
 </code></pre>
 <p>The result of type check is saved in the file <code>.result</code> by default. The first word of <code>.result</code> indicates if the code is type safe.</p>
-<pre><code>&lt; true | false &gt; &amp; &lt;statistics information&gt;
+<pre><code>[ true | false ] &amp; &lt;statistics information&gt;
 </code></pre>
 <blockquote>
 <p>For example,</p>
@@ -519,13 +519,13 @@ UNDER_APPR_RTY :=
 | <span class="pl-s"><span class="pl-pds">"</span>let VAR = OVER_APPR_BASE_RTY in UNDER_APPR_RTY<span class="pl-pds">"</span></span>
 | <span class="pl-s"><span class="pl-pds">"</span>let VAR = UNDER_APPR_BASE_RTY in UNDER_APPR_RTY<span class="pl-pds">"</span></span>
 </pre></div>
-<p>where the <code>METHOD_PREDICATE</code> is the method predicates introduced in the first line of the file; the quantifers in the first-order logic (FOL) proposition <code>PROP</code> is typed (<code>TYPED_QUANTIFIER</code>).</p>
+<p>where the <code>METHOD_PREDICATE</code> is the method predicates introduced in the first line of the file; the quantifiers in the first-order logic (FOL) proposition <code>PROP</code> is typed (<code>TYPED_QUANTIFIER</code>).</p>
 <p>Currently, the <code>OCAML_TYPE</code> supported by <strong>Poirot</strong> is fixed, which is defined in the file <code>data/predefined/data_type_decls.ml</code>.</p>
 <p>The definition of the coverage type is consistent with Figure 3 (line <code>359</code>), which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,</p>
 <ul>
 <li>the overapproximate refinement type <code>{v:b | φ}</code> in the paper is defined as <code>OVER_APPR_BASE_RTY</code>.</li>
 <li>the underapproximate refinement type <code>[v:b | φ]</code> in the paper is defined as <code>UNDER_APPR_BASE_RTY</code>.</li>
-<li>the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, <code>let x = t_x in t</code> represents the type <code>x:t_x→t</code>. Here we syntactically disallow the underapproximate base refinement type to be the arguement type following the constraints in the paper (line <code>422</code> to <code>426</code>).</li>
+<li>the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, <code>let x = t_x in t</code> represents the type <code>x:t_x→t</code>. Here we syntactically disallow the underapproximate base refinement type to be the argument type following the constraints in the paper (line <code>422</code> to <code>426</code>).</li>
 </ul>
 <h3><a id="user-content-proof-readme-of-λtg" class="anchor" aria-hidden="true" href="#proof-readme-of-λtg"><span aria-hidden="true" class="octicon octicon-link"></span></a>Proof Readme of <strong>λ<sup>TG</sup></strong>
 </h3>
@@ -707,7 +707,7 @@ UNDER_APPR_RTY :=
 </code></pre>
 <p>In addition, to simplify the syntax, all operators take two input arguments; e.g., the random nat generator takes two arbitrary numbers as input.</p>
 <ul>
-<li>In the formalization, to simplify the syntax, pattern-matching can only pattern match against Boolean variables. Pattern matching over natural numbers</li>
+<li>In the formalization, to simplify the syntax, pattern-matching can only pattern-match against Boolean variables. Pattern matching over natural numbers</li>
 </ul>
 <pre><code>match n with
 | 0 -&gt; e1
@@ -719,37 +719,41 @@ else let m = n - 1 in e2
 </code></pre>
 <ul>
 <li>We assume all input programs are alpha-converted, such that all variables have unique names.</li>
-<li>We use the <a href="https://chargueraud.org/research/2009/ln/main.pdf" rel="nofollow">locally nameless representation</a> in all terms, values, refinement, and type context, thus the definitions looks slight different from the definitions shown in the paper.</li>
-<li>We encode the propositions in the refinement type as Coq propositions. In order to capture the free variables and the bound variables (see locally nameless repsentation), all proposition will be constructed with
+<li>We use the <a href="https://chargueraud.org/research/2009/ln/main.pdf" rel="nofollow">locally nameless representation</a> in all terms, values, refinement, and type context, thus the definitions look slightly different from the definitions shown in the paper.</li>
+<li>We encode the propositions in the refinement type as Coq propositions. In order to capture the free variables and the bound variables (see locally nameless representation), all propositions will be constructed with
 <ul>
 <li>a set of atoms (variables) <code>d</code>, which are the free variables in the proposition.</li>
 <li>a natural number <code>n</code>, which indicates the upper bound of the bound variables.</li>
 </ul>
 </li>
 <li>Following the encoding above, for example, the base coverage type <code>[v:b | φ]</code> will be encoded as <code>[v:b | n | d | φ]</code>.</li>
-<li>The substitution of refinement types are formalized into states (a mapping from varaibles to values), helping to eliminate termination checks of the fixpoint function in Coq when we define the logical relation. Precisely
+<li>The substitution of refinement types is formalized into states (a mapping from variables to values), helping to eliminate termination checks of the fixpoint function in Coq when we define the logical relation. Precisely
 <ul>
 <li>the definition of the type denotation has the form <code>{ n; bst; st }⟦ τ ⟧</code> instead of <code>⟦ τ ⟧</code>, where <code>(n, bst)</code> is the state of the bound variables, <code>st</code> is the state of the free variables.</li>
-<li>the definition of the type denotation under the type context has the form <code>{ st }⟦ τ ⟧{ Γ }</code> instead of <code>⟦ τ ⟧{ Γ }</code>, where <code>st</code> is the state of the free variables. Here we omit the bound state <code>(n, bst)</code> thus all types in the type context are locally closed (see locally nameless repsentation).</li>
+<li>the definition of the type denotation under the type context has the form <code>{ st }⟦ τ ⟧{ Γ }</code> instead of <code>⟦ τ ⟧{ Γ }</code>, where <code>st</code> is the state of the free variables. Here we omit the bound state <code>(n, bst)</code> thus all types in the type context are locally closed (see locally nameless representation).</li>
 </ul>
 </li>
-<li>In the formalization, our coverage typing rules additionally require that all the branches of a pattern matching expression are type safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mention it in the original paper, however, we will fix it in the second round submission.</li>
-<li>For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule <code>TLetE</code> in the figure 13 (in the supplementary materials) is split into <code>UT_Lete_base</code> and <code>UT_Lete_arr</code> in our proof.</li>
+<li>In the formalization, our coverage typing rules additionally require that all the branches of a pattern-matching expression are type-safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mention it in the original paper, however, we will fix it in the second round submission.</li>
+<li>For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule <code>TLetE</code> in Figure 13 (in the supplementary materials) is split into <code>UT_Lete_base</code> and <code>UT_Lete_arr</code> in our proof.</li>
 </ul>
 <h2><a id="user-content-appendix-building-cobalt-from-source-optional" class="anchor" aria-hidden="true" href="#appendix-building-cobalt-from-source-optional"><span aria-hidden="true" class="octicon octicon-link"></span></a>Appendix: Building Cobalt from Source (Optional)</h2>
 <h3><a id="user-content-cobalt-synthesizer" class="anchor" aria-hidden="true" href="#cobalt-synthesizer"><span aria-hidden="true" class="octicon octicon-link"></span></a>Cobalt Synthesizer</h3>
 <p><a href="https://github.com/aegis-iisc/propsynth.git"><strong>Cobalt</strong></a> (based on the <a href="https://dl.acm.org/doi/abs/10.1145/3563310" rel="nofollow">paper</a>) is a purely functional, refinement-type guided synthesizer. This takes a pure-function spec, along with a small library (function signatures) and synthesis all possible programs of a given function call length <code>k</code> and given nested depth.</p>
-<p><strong>This step is optional:</strong> although the program synthesis is not one of the claims in our paper, we still provide instructions to reproduce these synthesized programs for the readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.</p>
+<p><strong>This step is optional:</strong> although the program synthesis is not one of the claims in our paper, we still provide instructions to reproduce these synthesized programs for readers who have a deep interest in it. In the rest of this section, we discuss the instructions for the Ubuntu build and running.</p>
 <h3><a id="user-content-building-cobalt" class="anchor" aria-hidden="true" href="#building-cobalt"><span aria-hidden="true" class="octicon octicon-link"></span></a>Building Cobalt</h3>
 <p><strong>Cobalt</strong> is not in the current directory, the readers may go to the directory <code>~/propsynth</code>. <strong>Cobalt</strong> can be directly built using <em>ocamlbuild</em> with the script <code>build.sh</code> in the project root directory.</p>
 <pre><code>$ cd ~/propsynth &amp;&amp; ./build.sh &amp;&amp; cd -
 </code></pre>
 <p>The above build script will create a native executable <code>effsynth.native</code> in the <strong>Cobalt</strong>'s root directory</p>
 <h3><a id="user-content-generating-poirot-benchmarks" class="anchor" aria-hidden="true" href="#generating-poirot-benchmarks"><span aria-hidden="true" class="octicon octicon-link"></span></a>Generating Poirot benchmarks</h3>
-<p>The 5 benchmarks in <code>Table2</code> in <strong>Poirot</strong> are in the <code>../propsynth/test_specsynth/Poirot_benchmaks</code> directory. The script <code>scripts/from_cabalt.py</code> will go to the directory <code>~/propsynth</code> and synthesizes the programs for the coresponding benchmarks used in <strong>Poirot</strong>. For example, for the benchmark <code>UniqueList</code>:</p>
-<pre><code>$ python3 scripts/from_cabalt.py UniqueList verbose
+<p>The 5 benchmarks in <code>Table2</code> in <strong>Poirot</strong> are in the <code>../propsynth/test_specsynth/Poirot_benchmaks</code> directory. The following script will go to the directory <code>~/propsynth</code> and synthesizes the programs for all benchmarks used in <strong>Poirot</strong> (it takes about <code>20</code> mins):</p>
+<pre><code>$ python3 scripts/from_cobalt.py all verbose
 </code></pre>
-<p>Similarly, readers can run the following commands for different benchmarks <code>SizedList</code>, <code>SortedList</code>, <code>SizedTree</code>, and <code>SizedBST</code>.</p>
+<p>Readers can also run <strong>Cobalt</strong> over only one benchmark (e.g, benchmark <code>UniqueList</code>):</p>
+<pre><code>$ python3 scripts/from_cobalt.py UniqueList verbose
+</code></pre>
+<p>Similarly, readers can run the command above for the rest of benchmarks: <code>SizedList</code>, <code>SortedList</code>, <code>SizedTree</code>, and <code>SizedBST</code>.</p>
+<p>Then, readers can run <code>python3 scripts/get_table2.py</code> to reproduce the table 2 (figure 9) as we discussed in the section <a href="#comprehensive-scripts">Comprehensive Scripts</a>. It will takes about <code>60</code> mins.</p>
 
                       </article>
                     </div>
