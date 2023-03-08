@@ -33,14 +33,14 @@ def do(name, if_verbose):
         os.makedirs(cobalt_output_dir)
     benchmark_table, resfile = synth_iter_benchs.init ()
     if name in synth_iter_benchs.names:
-        # get the spath for the benchmark name from the benchmark_table
         spath = synth_iter_benchs.get_info_from_name (benchmark_table, name)
         input, cmd, output = make_cobalt_cmd(name)
         print(colored.bold_text("Synthesizing \"{}\" in the directory \"{}\"...".format(name, cobalt_dir)))
-        # run_bench.run_cobalt(cobalt_dir, cmd, input, if_verbose)
+        run_bench.run_cobalt(cobalt_dir, cmd, input, if_verbose)
         output_file = "{}/{}".format(cobalt_dir, output)
         if os.path.exists(output_file):
             print(colored.bold_text("The synthesized result of \"{}\" detected, copying...".format(name)))
+            run_bench.reset_source(spath, if_verbose)
             run_bench.cp_source(output_file, spath, if_verbose)
             run_bench.split_source(spath, if_verbose)
         else:

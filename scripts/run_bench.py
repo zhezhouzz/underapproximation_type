@@ -54,6 +54,12 @@ def split_source(dir_str, verbose):
                         "{}/{}".format(dir_str, "prog.ml")]
     invoc_cmd(verbose, cmd, None)
 
+def reset_source(dir_str, verbose):
+    cmd = ["rm", "-rf", dir_str]
+    invoc_cmd(verbose, cmd, None)
+    cmd = ["mkdir", dir_str]
+    invoc_cmd(verbose, cmd, None)
+
 def cp_source(from_file, dir_str, verbose):
     cmd = ["cp", from_file, "{}/{}".format(dir_str, "prog.ml")]
     invoc_cmd(verbose, cmd, None)
