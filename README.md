@@ -230,7 +230,7 @@ $ ./main.exe coverage-type-check <config_file> <source_code_file> <refinement_ty
 The result of type check is saved in the file `.result` by default. The first word of `.result` indicates if the code is type safe.
 
 ```
-< true | false > & <statistics information>
+[ true | false ] & <statistics information>
 ```
 
 > For example,
@@ -474,8 +474,14 @@ The above build script will create a native executable `effsynth.native` in the 
 
 ### Generating Poirot benchmarks
 
-The 5 benchmarks in `Table2` in **Poirot** are in the `../propsynth/test_specsynth/Poirot_benchmaks` directory. The script `scripts/from_cabalt.py` will go to the directory `~/propsynth` and synthesizes the programs for the coresponding benchmarks used in **Poirot**. For example, for the benchmark `UniqueList`:
+The 5 benchmarks in `Table2` in **Poirot** are in the `../propsynth/test_specsynth/Poirot_benchmaks` directory. The following script will go to the directory `~/propsynth` and synthesizes the programs for all benchmarks used in **Poirot** (it takes about `20` mins):
 
-    $ python3 scripts/from_cabalt.py UniqueList verbose
+    $ python3 scripts/from_cobalt.py all verbose
 
-Similarly, readers can run the following commands for different benchmarks `SizedList`, `SortedList`, `SizedTree`, and `SizedBST`.
+Readers can also run **Cobalt** over only one benchmark (e.g, benchmark `UniqueList`):
+
+    $ python3 scripts/from_cobalt.py UniqueList verbose
+
+Similarly, readers can run the command above for the rest of benchmarks: `SizedList`, `SortedList`, `SizedTree`, and `SizedBST`.
+
+Then, readers can run `python3 scripts/get_table2.py` to reproduce the table 2 (figure 9) as we discussed in the section [Comprehensive Scripts](#comprehensive-scripts). It will takes about `60` mins.
