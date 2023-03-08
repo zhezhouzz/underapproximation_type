@@ -47,6 +47,8 @@ def run(dir_str, verbose):
             if os.path.isdir(d):
                 subdirs.append(d)
     i, successful, failed = 0,0,0
+    # successp = []
+    
     subdirs.sort(key=lambda x: int(x.split('/')[-1]))
     for diri in subdirs:
         ithprogrfile = "{}/{}".format(diri, "prog.ml")
@@ -60,10 +62,12 @@ def run(dir_str, verbose):
         res = parse_stat (resfile)
         if res[0] == "true":
             successful = successful + 1
+            # successp.append (ithprogrfile)
         else:
             failed = failed + 1
         i = i+1
     print ("Total "+str(i))
     print ("Rejected "+str(failed))
     print ("Succeeded "+str(successful))
+    # print (successp)
     return str(i), str(failed), str(successful)

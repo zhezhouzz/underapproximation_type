@@ -403,7 +403,7 @@ x0 +::  ( goal  size x0 )
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
 then 
-  ( subs  size )  +:: ( x0 +::  ( goal  size x0 ) )  
+  ( subs  size )  +:: x0 +::  ( goal  size x0 )  
 else 
 x0 +::  ( goal   ( subs  size )  x0 ) 
 (* Program *) 
@@ -776,14 +776,14 @@ let rec goal    (size : int)  (x0 : int) : (int ulist) =
 then 
   ( subs  size )  +::  ( goal   ( subs  size )  x0 )  
 else 
- ( subs  size )  +:: ( x0 +::  ( goal  size x0 ) ) 
+ ( subs  size )  +:: x0 +::  ( goal  size x0 ) 
 (* Program *) 
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
 then 
   ( subs  size )  +::  ( goal   ( subs  size )  x0 )  
 else 
- ( subs  size )  +:: ( x0 +::  ( goal   ( subs  size )  x0 ) )
+ ( subs  size )  +:: x0 +::  ( goal   ( subs  size )  x0 ) 
 (* Program *) 
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
@@ -1056,7 +1056,7 @@ let rec goal    (size : int)  (x0 : int) : (int ulist) =
 then 
   ( subs  size )  +::  ( goal   ( subs  size )  x0 )  
 else 
-x0 +:: ( x0 +::  ( goal   ( subs  size )  x0 ) )
+x0 +:: (x0 +::  ( goal   ( subs  size )  x0 ) )
 (* Program *) 
 let rec goal    (size : int)  (x0 : int) : (int ulist) = 
  if (  ( sizecheck  x0 )  ) 
@@ -1874,5 +1874,117 @@ let rec goal    (size : int)  (x0 : int) : (int ulist) =
  if (  ( sizecheck  x0 )  ) 
 then 
  x0 +::  ( goal   ( subs  size )  x0 )  
+else 
+x0 +::  ( goal   ( subs  size )  x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  size )  ) 
+then 
+ Unil 
+else 
+x0 +:: (  x0 +:: Unil )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  size )  ) 
+then 
+ Unil 
+else 
+x0 +::  ( goal   ( subs  size )  x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  size )  ) 
+then 
+ Unil 
+else 
+x0 +:: Unil
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( goal   ( subs  size )  x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +:: (x0 +::  ( goal  size x0 ) )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +:: (x0 +::  ( goal   ( subs  size )  x0 ) )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +:: (  x0 +:: Unil )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +::  ( goal  size x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +::  ( goal   ( subs  size )  x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +:: Unil
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+ ( subs  size )  +::  ( goal   ( subs  size )  x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+x0 +:: (x0 +::  ( goal  size x0 ) )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+x0 +:: (x0 +::  ( goal   ( subs  size )  x0 ) )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+x0 +:: (  x0 +:: Unil )
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
+else 
+x0 +::  ( goal  size x0 ) 
+(* Program *) 
+let rec goal    (size : int)  (x0 : int) : (int ulist) = 
+ if (  ( sizecheck  x0 )  ) 
+then 
+  ( goal   ( subs  size )  x0 )  
 else 
 x0 +::  ( goal   ( subs  size )  x0 ) 

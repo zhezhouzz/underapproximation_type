@@ -1223,44 +1223,9 @@ else
 let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
  if (  ( lt_eq_one  lo )  ) 
 then 
-  ( Node (  ( increment  hi ) , Leaf, Leaf ) ) 
-else 
- ( Node ( s0, Leaf, Leaf ) )
-(* Program *) 
-let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
- if (  ( lt_eq_one  lo )  ) 
-then 
-  ( Node (  ( increment  hi ) , Leaf, Leaf ) ) 
-else 
- ( Node (  ( increment  lo ) , Leaf, Leaf ) )
-(* Program *) 
-let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
- if (  ( lt_eq_one  lo )  ) 
-then 
-  ( Node (  ( increment  hi ) , Leaf, Leaf ) ) 
-else 
- ( Node (  ( increment  s0 ) , Leaf, Leaf ) )
-(* Program *) 
-let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
- if (  ( lt_eq_one  lo )  ) 
-then 
-  ( Node (  ( increment  hi ) , Leaf, Leaf ) ) 
-else 
- ( Node (  ( increment  d ) , Leaf, Leaf ) )
-(* Program *) 
-let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
- if (  ( lt_eq_one  lo )  ) 
-then 
   ( Node (  ( increment  lo ) , Leaf, Leaf ) ) 
 else 
  ( Node (  ( increment  lo ) , Leaf,  ( goal  d1 d1 hi hi )  ) )
-(* Program *) 
-let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
- if (  ( lt_eq_one  lo )  ) 
-then 
-  ( Node (  ( increment  lo ) , Leaf, Leaf ) ) 
-else 
- ( Node ( s0, Leaf, Leaf ) )
 (* Program *) 
 let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
  if (  ( lt_eq_one  lo )  ) 
@@ -1947,3 +1912,147 @@ then
   ( Node (  ( increment  s0 ) , Leaf,  ( goal  hi  ( increment  d )  lo hi )  ) ) 
 else 
  ( goal   ( increment  hi )  d1 d  ( increment  d )  ) 
+
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s )   ( increment  lo )   ( increment  d )   ( increment  s )  )  
+else 
+( Node (  ( increment  s0 ) ,  ( goal   ( increment  lo )  d hi hi ) ,  ( goal   ( increment  lo )   ( increment  d1 )  hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s )   ( increment  lo )   ( increment  d )   ( increment  s )  )  
+else 
+( Node ( d, Leaf,  ( goal   ( increment  lo )  d  ( increment  hi )  hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s )   ( increment  lo )   ( increment  d )   ( increment  s )  )  
+else 
+( Node (  ( increment  hi ) , Leaf, Leaf ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s )   ( increment  lo )   ( increment  d )   ( increment  s )  )  
+else 
+( Node (  ( increment  s ) ,  ( goal   ( increment  lo )  d hi hi ) ,  ( goal   ( increment  lo )  d hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s0 )  s0  ( increment  d1 )   ( increment  lo )  )  
+else 
+( Node ( n, Leaf,  ( goal   ( increment  lo )   ( increment  d1 )  hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s0 )  s0  ( increment  d1 )   ( increment  lo )  )  
+else 
+( Node (  ( increment  s0 ) ,  ( goal   ( increment  lo )  d hi hi ) ,  ( goal   ( increment  lo )   ( increment  d1 )  hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s0 )  s0  ( increment  d1 )   ( increment  lo )  )  
+else 
+( Node ( d, Leaf,  ( goal   ( increment  lo )  d  ( increment  hi )  hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s0 )  s0  ( increment  d1 )   ( increment  lo )  )  
+else 
+( Node (  ( increment  hi ) , Leaf, Leaf ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  s0 )  s0  ( increment  d1 )   ( increment  lo )  )  
+else 
+( Node (  ( increment  s ) ,  ( goal   ( increment  lo )  d hi hi ) ,  ( goal   ( increment  lo )  d hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  d )   ( increment  s )  d1  ( increment  d1 )  )  
+else 
+( Node ( n, Leaf,  ( goal   ( increment  lo )   ( increment  d1 )  hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  d )   ( increment  s )  d1  ( increment  d1 )  )  
+else 
+( Node (  ( increment  s0 ) ,  ( goal   ( increment  lo )  d hi hi ) ,  ( goal   ( increment  lo )   ( increment  d1 )  hi hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  d )   ( increment  s )  d1  ( increment  d1 )  )  
+else 
+( Node ( d, Leaf,  ( goal   ( increment  lo )  d  ( increment  hi )  hi )  ) )
+(* Program *) 
+let rec goal    (d : int)  (s0 : int)  (lo : int)  (hi : int) : (int tree) = 
+if (  ( lt_eq_one  d )  ) 
+then 
+ ( Node ( hi,  ( goal  d1 d1 hi hi ) ,  ( goal  d1  ( increment  d )   ( increment  s0 )  hi )  ) ) 
+else 
+if (  ( bool_gen  () )  ) 
+then 
+ ( goal   ( increment  d )   ( increment  s )  d1  ( increment  d1 )  )  
+else 
+( Node (  ( increment  hi ) , Leaf, Leaf ) )
