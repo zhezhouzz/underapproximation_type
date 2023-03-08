@@ -474,7 +474,7 @@ The above build script will create a native executable `effsynth.native` in the 
 
 ### Generating Poirot benchmarks
 
-The 5 benchmarks in `Table2` in **Poirot** are in the `../propsynth/test_specsynth/Poirot_benchmaks` directory. The following script will go to the directory `~/propsynth` and synthesizes the programs for all benchmarks used in **Poirot** (it takes about `20` mins):
+The 5 benchmarks in `Table2` in **Poirot** are in the `../propsynth/tests_specsynth/Poirot_benchmarks` directory. The following script will go to the directory `~/propsynth` and synthesizes the programs for all benchmarks used in **Poirot** (it takes about `20` mins):
 
     $ python3 scripts/from_cobalt.py all verbose
 
