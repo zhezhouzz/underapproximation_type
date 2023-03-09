@@ -11,13 +11,13 @@ from tabulate import tabulate
 
 
 
-headers = ["Benchmark", "#Total", "#Incomplete", "#Complete"]
+headers = ["Benchmark", "#Total", "#Complete"]
 
 
 def show_data(data):
     lines = []
     for (res) in data:
-        lines.append(res)
+        lines.append([res[0], res[1], res[3]])
     print(tabulate(lines, headers, tablefmt='orgtbl', numalign="left"))
 
 if __name__ == '__main__':
