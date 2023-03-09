@@ -89,7 +89,7 @@ This section gives a brief overview of the files in this artifact.
 * `data/`: the predefined types and the benchmark input files.
   + `data/predefined/`: the predefined types.
   + `data/benchmark/SOURCE/NAME/`: the benchmark input files. The benchmarks are group by their `SOURCE`. Typically the input source files are named `data/benchmark/SOURCE/NAME/prog.ml`, and the refinement type files are named `data/benchmark/SOURCE/NAME/_under.ml`.
-  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/prog.ml` contains all sized list generators that are synthesized by [**Cobalt**](https://dl.acm.org/doi/abs/10.1145/3563310).
+  + The benchmarks of the synthesized results (see more in section [Running Benchmarks of Poirot](#running-benchmarks-of-poirot)) are saved in the folders that are named with prefix `_synth_`. For example, `data/benchmark/quickchick/_synth_sizedlist/14/prog.ml` contains the `14`th sized list generators synthesized by [**Cobalt**](https://dl.acm.org/doi/abs/10.1145/3563310).
 * `driver/`: the IO of **Poirot**.
 * `env/`: the universal environment of **Poirot** which is loaded from the configuration files.
 * `frontend/`: the **Poirot** parser, a modified OCaml parser.
