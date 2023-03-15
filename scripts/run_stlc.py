@@ -25,6 +25,12 @@ def show_is_rec(is_rec, branches):
     else:
         return branches
 
+def show_is_rec_latex(is_rec, branches):
+    if is_rec:
+        return branches + "^\\dagger"
+    else:
+        return branches
+
 def show_data(data):
     print("\n")
     lines = []
@@ -32,6 +38,27 @@ def show_data(data):
         res = [show_source(source, res[0]), show_is_rec(is_rec, res[1])] + res[2:]
         lines.append(res)
     print(tabulate(lines, headers, tablefmt='orgtbl', numalign="left"))
+
+def latex_name(name):
+    name = name.replace("_", "\_")
+    name = "\\textsf{" + name + "}"
+    # print(name)
+    return name
+
+def show_latex_tab(data):
+    print("\n")
+    print("""
+\\toprule
+ & \\#Branch & \\#LocalVar & \\#MP & \\#Query & (max. \\#$\\forall$,\\#$\\exists$) & total (avg. time)(s)\\\\
+\\midrule""")
+    for (source, is_rec, res) in data:
+        name = latex_name(res[0])
+        branch = show_is_rec_latex(is_rec, res[1])
+        line = "{} & ${}$ & ${}$ & ${}$ & ${}$ & ${}$ & ${}$ \\\\".format(name, branch, res[2], res[3], res[4], res[5], res[6])
+        print(line)
+    print("\\bottomrule")
+
+if_show_latex = True
 
 if __name__ == '__main__':
     if_verbose = None
@@ -56,4 +83,7 @@ if __name__ == '__main__':
         else:
             res = [name] + res[2:]
             data.append((source, is_rec, res))
-    show_data(data)
+    if if_show_latex:
+        show_latex_tab(data)
+    else:
+        show_data(data)
