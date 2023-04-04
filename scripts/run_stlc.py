@@ -58,7 +58,7 @@ def show_latex_tab(data):
         print(line)
     print("\\bottomrule")
 
-if_show_latex = True
+if_show_latex = False
 
 if __name__ == '__main__':
     if_verbose = None
