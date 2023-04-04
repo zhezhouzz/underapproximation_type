@@ -226,10 +226,23 @@ and handle_letapp_aux (uctx : uctx)
         Some retty (* let uctx' = handle_consume uctx (args, fty) in *)
     | (x, xty) :: args, UnderTy_over_arrow { argname; argty; retty } ->
         (* NOTE: special application rule *)
+        let fvs = UT.fv (ut_eq_to_ut_underctx uctx xty) @ UT.ot_fv argty in
+        let b =
+          match fvs with
+          | [] ->
+              if NT.eq NT.Ty_bool (UT.erase (ut_eq_to_ut_underctx uctx xty))
+              then
+                subtyping_check_bool __FILE__ __LINE__ { uctx with ctx = [] }
+                  (UtNormal (ot_to_ut argty))
+                  (ut_eq_to_ut_underctx uctx xty)
+              else true
+          | _ -> true
+        in
         if
-          subtyping_check_bool __FILE__ __LINE__ uctx
-            (UtNormal (ot_to_ut argty))
-            (ut_eq_to_ut_underctx uctx xty)
+          b
+          && subtyping_check_bool __FILE__ __LINE__ uctx
+               (UtNormal (ot_to_ut argty))
+               (ut_eq_to_ut_underctx uctx xty)
         then
           let ctx' = Typectx.ut_force_add_to_right uctx.ctx (x, xty) in
           let retty = subst_id retty argname x in
@@ -438,11 +451,13 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
         (*   NT.construct_arrow_tp (argsnty, retnty) *)
         (* in *)
         let ftys = Prim.get_primitive_under_multi_ty (f.x, fnty) in
+        (* let () = Pp.printf "f: %s; fnty: %s\n" f.x @@ NT.layout fnty in *)
         let tys =
           List.filter_map
             (fun fty -> handle_letapp_aux uctx (f.x, fty, argsty))
             ftys
         in
+        (* let () = Pp.printf "%s\n" @@ List.split_by_comma UT.pretty_layout tys in *)
         match tys with
         | [] -> UT.make_basic_bot (snd body.NL.ty)
         | [ retty ] ->
