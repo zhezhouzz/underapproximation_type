@@ -6,7 +6,7 @@ import iter_benchs
 import run_bench
 from tabulate import tabulate
 
-headers = ["", "#Branch" , "#LocalVar" , "#MP" , "#Query" , "(max. #∀,#∃)" , "total (avg. time)(s)"]
+headers = ["", "#Branch" , "Recursive", "#LocalVar" , "#MP" , "#Query" , "(max. #∀,#∃)" , "total (avg. time)(s)"]
 
 def parse_stat ():
     line = None
@@ -16,22 +16,50 @@ def parse_stat ():
     return line
 
 def show_source(source, name):
-    tab = {"elrond": "⬦", "quickchick": "*",  "quickcheck": "◯", "leonidas": "★", "stlc": "▲"}
+    tab = {"elrond": "⬦", "quickchick": "*",  "quickcheck": "◯", "leonidas": "★", "stlc": ""}
     return "{} {}".format(name, tab[source])
 
 def show_is_rec(is_rec, branches):
     if is_rec:
-        return branches + "†"
+        return [branches, "✓"]
     else:
-        return branches
+        return [branches, ""]
+
+def show_is_rec_latex(is_rec, branches):
+    if is_rec:
+        return "$" + branches + "$&$\\checkmark$"
+    else:
+        return "$" + branches + "$&"
 
 def show_data(data):
     print("\n")
     lines = []
     for (source, is_rec, res) in data:
-        res = [show_source(source, res[0]), show_is_rec(is_rec, res[1])] + res[2:]
+        res = [show_source(source, res[0])] + show_is_rec(is_rec, res[1]) + res[2:]
         lines.append(res)
     print(tabulate(lines, headers, tablefmt='orgtbl', numalign="left"))
+
+def latex_name(name):
+    name = name.replace("_", "\_")
+    name = "\\textsf{" + name + "}"
+    # print(name)
+    return name
+
+def show_latex_tab(data):
+    print("\n")
+    print("""
+\\toprule
+ & \\#Branch & Recursive & \\#LocalVar & \\#MP & \\#Query & (max. \\#$\\forall$,\\#$\\exists$) & total (avg. time)(s)\\\\
+\\midrule""")
+    for (source, is_rec, res) in data:
+        name = latex_name(res[0])
+        branch = show_is_rec_latex(is_rec, res[1])
+        line = "{} & {} & ${}$ & ${}$ & ${}$ & ${}$ & ${}$ \\\\".format(
+            name, branch, res[2], res[3], res[4], res[5], res[6])
+        print(line)
+    print("\\bottomrule")
+
+if_show_latex = False
 
 if __name__ == '__main__':
     if_verbose = None
@@ -56,4 +84,7 @@ if __name__ == '__main__':
         else:
             res = [name] + res[2:]
             data.append((source, is_rec, res))
-    show_data(data)
+    if if_show_latex:
+        show_latex_tab(data)
+    else:
+        show_data(data)

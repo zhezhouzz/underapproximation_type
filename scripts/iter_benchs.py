@@ -25,18 +25,27 @@ names = [
 stlc_names = [
     "nonderter_dec",
     "gen_const",
-    "type_eq_size",
+    "type_eq'",
     "type_eq",
-    "gen_type_size",
+    "gen_type'",
     "gen_type",
-    "vars_with_type_size",
-    "vars_with_type",
+    "var_with_type'",
+    "var_with_type",
     "or_var_in_typectx",
     "combine_terms",
-    "gen_term_no_app_size",
+    "gen_term_no_app'",
     "gen_term_no_app",
+    "gen_term_size'",
     "gen_term_size"
 ]
+
+# stlc_names = [
+#     "type_eq'",
+#     "gen_type'",
+#     "var_with_type'",
+#     "gen_term_no_app'",
+#     "gen_term_size'"
+# ]
 
 def get_info_from_name(tab, name):
     source = None
