@@ -25,18 +25,18 @@ names = [
 stlc_names = [
     "nonderter_dec",
     "gen_const",
-    "type_eq'",
     "type_eq",
-    "gen_type'",
+    "type_eq'",
     "gen_type",
-    "var_with_type'",
+    "gen_type'",
     "var_with_type",
+    "var_with_type'",
     "or_var_in_typectx",
     "combine_terms",
-    "gen_term_no_app'",
     "gen_term_no_app",
+    "gen_term_no_app'",
+    "gen_term_size",
     "gen_term_size'",
-    "gen_term_size"
 ]
 
 # stlc_names = [

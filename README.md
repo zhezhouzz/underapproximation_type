@@ -71,7 +71,7 @@ The Coq proofs of our core language **λ<sup>TG</sup>** are located in the `coq_
 
 ## Step-by-Step Instructions
 
-In this section, we provide the instructions to evaluate our artifact. The [first half of this [section](#running-benchmarks-of-poirot) describes the installation and use of **Poirot**, an OCaml implementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#proof-readme) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
+In this section, we provide the instructions to evaluate our artifact. The [first half of this section](#running-benchmarks-of-poirot) describes the installation and use of **Poirot**, an OCaml implementation of a refinement type checker that verifies the coverage property of the test input generators written in OCaml. The [rest of this section](#proof-readme) describes the Coq formalization of the core language **λ<sup>TG</sup>** in the paper and the corresponding soundness theorem.
 
 ### Artifact Structure
 
@@ -110,13 +110,13 @@ The following scripts run the benchmark suite displayed in Table 1 of the paper,
 
     $ python3 scripts/get_table1.py
 
-> Notice: in order to improve the performance of **Poirot** on the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will be slightly less than the coresponding numbers shwon in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper (line `865` to `880`) with respect to the displayed results.
+> Notice: in order to improve the performance of **Poirot** on the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will be slightly less than the coresponding numbers shwon in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper with respect to the displayed results.
 
-The following scripts run the benchmark suite displayed in Table 2 (Figure 9) of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [**Cobalt**](#cobalt-synthesizer) deductive synthesis tool.
+The following scripts run the benchmark suite displayed in Figure 10 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [**Cobalt**](#cobalt-synthesizer) deductive synthesis tool.
 
     $ python3 scripts/get_table2.py
 
-The following scripts run the `STLC` benchmark suite that is asked for by the reviewers, it will take about `200` seconds. The details about these new benchmarks can be found in the section [STLC Benchmark](#stlc-benchmark).
+The following scripts run the `STLC` benchmark suite displayed in Table 2 (and Table 3) of the paper, it will take about `300` seconds.
 
     $ python3 scripts/run_stlc.py
 
@@ -137,28 +137,6 @@ dune exec -- bin/main.exe coverage-type-check meta-config.json data/benchmark/qu
 ```
 
 Readers can try these commands which will take a shorter amount of time.
-
-### STLC Benchmark
-
-The STLC is a new benchmark suggested by the reviewers whose setting is not shown in the original version of the paper, thus we provide a detailed explanation in this section. In this benchmark, **Poirot** will verify the coverage property of a hand-written non-trivial test input generator of the simply typed lambda-calculus (STLC) term written in Coq from the [QuickChick](https://github.com/QuickChick/QuickChick). The STLC generator [`gen_term_size`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L249) will generate well-typed terms of the given type under the given type context with a upper bound of the the number of applications in the term. Besides the main funtion `gen_term_size`, this benchmarks consists of `12` helper functions, which are also traslated from the original implementations (e.g., [`gen_term_no_app`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L230), [`vars_with_type`](https://github.com/QuickChick/QuickChick/blob/8.12/examples/stlc/lambda.v#L211), ...), or the built-in library functions in the QuickChick.
-
-The expected experimental result is shown in the following table. The meaning of the table is the same as with Table 1 in the paper (see "benchmarks" paragraph from line `822`), where "▲" indicates these functions are from the STLC benchmark.
-
-|                        | #Branch   | #LocalVar   | #MP   | #Query   | (max. #∀,#∃)   | total (avg. time)(s)   |
-|------------------------|-----------|-------------|-------|----------|----------------|------------------------|
-| nonderter_dec ▲        | 2         | 4           | 1     | 5        | (4,2)          | 0.10(0.02)             |
-| gen_const ▲            | 2         | 5           | 2     | 3        | (4,2)          | 0.05(0.02)             |
-| type_eq_size ▲         | 6†        | 7           | 5     | 9        | (10,9)         | 35.93(3.99)            |
-| type_eq ▲              | 2         | 6           | 2     | 5        | (5,2)          | 0.10(0.02)             |
-| gen_type_size ▲        | 3†        | 10          | 1     | 15       | (10,12)        | 0.48(0.03)             |
-| gen_type ▲             | 2         | 5           | 1     | 3        | (4,2)          | 0.05(0.02)             |
-| vars_with_type_size ▲  | 5†        | 12          | 7     | 13       | (12,8)         | 7.44(0.57)             |
-| vars_with_type ▲       | 2         | 6           | 3     | 6        | (5,2)          | 0.48(0.08)             |
-| or_var_in_typectx ▲    | 3         | 7           | 4     | 4        | (5,2)          | 0.05(0.01)             |
-| combine_terms ▲        | 3         | 9           | 6     | 8        | (6,5)          | 0.14(0.02)             |
-| gen_term_no_app_size ▲ | 3†        | 13          | 10    | 20       | (14,15)        | 4.35(0.22)             |
-| gen_term_no_app ▲      | 2†        | 6           | 3     | 5        | (5,2)          | 0.06(0.01)             |
-| gen_term_size ▲        | 4†        | 24          | 9     | 50       | (27,27)        | 142.93(2.86)           |
 
 ### Detail Usage of Poirot
 
@@ -184,7 +162,7 @@ Types to Check:
 
 ```
 
-+ Print the source code from the given file in a given `format`. Before the refinement type check, **Poirot** (line `811` in the paper) would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
++ Print the source code from the given file in a given `format`. Before the refinement type check, **Poirot** would load the OCaml code (`raw` format), performs the basic type inference (`typed` format), then translate the code in to the Monadic Normal Form (`mnf` format).
 
 ```
 $ ./main.exe print-source-code [raw | typed | mnf] <config_file> <source_code_file> <refinement_type_file>
@@ -222,7 +200,7 @@ int -> int list)
 
 ```
 
-+ Type check will check that the given source code is type safe with respect to the given refinement type (line `810` in the paper):
++ Type check will check that the given source code is type safe with respect to the given refinement type:
 
 ```
 $ ./main.exe coverage-type-check <config_file> <source_code_file> <refinement_type_file>
@@ -261,7 +239,7 @@ Task 1, type check succeeded
 All commands of **Poirot** will take a universal configuration file (`meta-config.json`) in JSON format as its first argument. Precisely, the JSON file
 outputs results in JSON format to some output directory.
 - the `debug_info` field controls the debug information output. Precisely, we have the following options:
-  + if the `show_preprocess` field is true, **Poirot** will print the preprocess result (line `811` in the paper). It will print the given source code, type code, and the code in Monadic Normal Form.
+  + if the `show_preprocess` field is true, **Poirot** will print the preprocess result. It will print the given source code, type code, and the code in Monadic Normal Form.
   + if the `show_typing` field is set as true, **Poirot** will print the type judgement of each step in the type check.
   + if the `show_queries` field is set as true, **Poirot** will print the queries that need to by checked by the SMT solver.
   + if the `show_stat` field is set as true, **Poirot** will print statistics information.
@@ -271,7 +249,7 @@ outputs results in JSON format to some output directory.
 - the `benchmark_table_file` field indicates the path of benchmarks.
 - the `prim_path` field indicates the predefined coverage types for a number of
 OCaml primitives, including constants, various arithmetic operators, and data constructors for a
-range of datatypes(line `813` to `815` in the paper).
+range of datatypes.
 
 ##### Input File Formats
 
@@ -296,7 +274,7 @@ let NAME = UNDER_APPR_RTY
 
 where `NAME` is simply a string.
 
-The method predicates are predefined uninterpreted functions that capture non-trivial datatype shape properties (see line `815` to `821` in the paper). The semantics of the method predicates are define in the file `data/predefined/axioms_of_predicates.ml`.
+The method predicates are predefined uninterpreted functions that capture non-trivial datatype shape properties. The semantics of the method predicates are define in the file `data/predefined/axioms_of_predicates.ml`.
 
 The syntax of the `UNDER_APPR_RTY` (underapproximate refinement type, a synonym of coverage type) is similar to the OCaml let expression but with [attributes](https://v2.ocaml.org/manual/attributes.html):
 
@@ -339,10 +317,10 @@ where the `METHOD_PREDICATE` is the method predicates introduced in the first li
 
 Currently, the `OCAML_TYPE` supported by **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
 
-The definition of the coverage type is consistent with Figure 3 (line `359`), which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,
+The definition of the coverage type is consistent with Figure 3, which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,
 + the overapproximate refinement type `{v:b | φ}` in the paper is defined as `OVER_APPR_BASE_RTY`.
 + the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
-+ the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the overapproximate base refinement type to be the return type of a function following the constraints in the paper (line `422` to `426`).
++ the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the overapproximate base refinement type to be the return type of a function following the constraints in the paper.
 
 ### Proof Readme
 
@@ -400,12 +378,12 @@ Our formalization takes inspiration and ideas from the following work, though do
 | Definition/Theorems           | Paper                                                                   | Definition                                                                                                                 | Notation                        |
 |-------------------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|---------------------------------|
 | Syntax                        | Figure 3                                                                | mutual recursive defined as `value` and `tm` in file `CoreLang.v` (line `42`)                                              |                                 |
-| Operational semantics         | Figure 11 (supplementary materials)                                     | `step` in file `OperationalSemantics.v` (line `23`)                                                                        | `e ↪ e'`                        |
-| Basic typing rules            | Figure 12 (supplementary materials)                                     | mutual recursive definition of `tm_has_type` and `value_hsa_type` in file `BasicTyping.v` (line `56`)                      | `Γ ⊢t e ⋮t T` and `Γ ⊢t v ⋮v T` |
+| Operational semantics         | Figure 12 (supplementary materials)                                     | `step` in file `OperationalSemantics.v` (line `23`)                                                                        | `e ↪ e'`                        |
+| Basic typing rules            | Figure 13 (supplementary materials)                                     | mutual recursive definition of `tm_has_type` and `value_hsa_type` in file `BasicTyping.v` (line `56`)                      | `Γ ⊢t e ⋮t T` and `Γ ⊢t v ⋮v T` |
 | Well-formedness typing rules  | Figure 4                                                                | `wf_typing` in file `Typing` (line `44`)                                                                                   | `Γ ⊢WF τ`                       |
 | Subtyping rules               | Figure 4                                                                | `subtyping` in file `Typing` (line `97`)                                                                                   | `Γ ⊢ τ1 ⪡ τ2`                   |
 | Disjunction typing rules      | Figure 4                                                                | `disjunction` in file `Typing` (line `92`)                                                                                 | `Γ ⊢ τ1 ⩔ τ2 ⩵ τ3`              |
-| Selected typing rules         | Figure 5 (Figure 13 in supplementary materials shows full set of rules) | given by the mutually inductive types `value_under_type_check` and `term_under_type_check` in file `Typing.v` (line `149`) | `Γ ⊢ e ⋮t τ` and `Γ ⊢ v ⋮v τ`   |
+| Selected typing rules         | Figure 5 (Figure 14 in supplementary materials shows full set of rules) | given by the mutually inductive types `value_under_type_check` and `term_under_type_check` in file `Typing.v` (line `149`) | `Γ ⊢ e ⋮t τ` and `Γ ⊢ v ⋮v τ`   |
 | Type denotation               | At the beginning of Section 4.1 (line `573` to `576`)                   | `rR` in file `RefinementTypeDenotation.v` (line `23`)                                                                      | `{ n; bst; st }⟦ τ ⟧`           |
 | Type denotation under context | At the beginning of page 13 (line `594` to `597`)                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
 | Soundness theorem             | Theorem 4.2                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
@@ -415,7 +393,7 @@ Our formalization takes inspiration and ideas from the following work, though do
 #### Differences Between Paper and Artifact
 
 - Our formalization only has two base types: nat and bool.
-- To simplify the syntax, our formalization don't treat the operators (e.g. `+`) as values (line `349` in the paper). Alternately, we can define the operators as values using lambda functions. For example, the value `+` can be defined as
+- To simplify the syntax, our formalization don't treat the operators (e.g. `+`) as values. Alternately, we can define the operators as values using lambda functions. For example, the value `+` can be defined as
 
 ```
 fun (x: nat) (y: nat) =
@@ -457,4 +435,4 @@ else let m = n - 1 in e2
   + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
   + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we omit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless representation).
 - In the formalization, our coverage typing rules additionally require that all the branches of a pattern-matching expression are type-safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mention it in the original paper, however, we will fix it in the second round submission.
-- For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule `TLetE` in Figure 13 (in the supplementary materials) is split into `UT_Lete_base` and `UT_Lete_arr` in our proof.
+- For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule `TLetE` in Figure 14 (in the supplementary materials) is split into `UT_Lete_base` and `UT_Lete_arr` in our proof.

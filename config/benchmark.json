@@ -101,22 +101,22 @@
       "benchmark_source": "stlc",
       "benchmarks": [
         {
-          "name": "gen_term_size'",
+          "name": "gen_term_size",
           "path": "gen_term_size",
           "is_rec": true
         },
         {
-          "name": "gen_term_size",
+          "name": "gen_term_size'",
           "path": "gen_term",
           "is_rec": false
         },
         {
-          "name": "gen_term_no_app",
+          "name": "gen_term_no_app'",
           "path": "gen_term_no_app",
           "is_rec": true
         },
         {
-          "name": "gen_term_no_app'",
+          "name": "gen_term_no_app",
           "path": "gen_term_no_app_size",
           "is_rec": true
         },
@@ -126,12 +126,12 @@
           "is_rec": false
         },
         {
-          "name": "gen_type'",
+          "name": "gen_type",
           "path": "gen_type_size",
           "is_rec": true
         },
         {
-          "name": "gen_type",
+          "name": "gen_type'",
           "path": "gen_type",
           "is_rec": false
         },
@@ -146,22 +146,22 @@
           "is_rec": false
         },
         {
-          "name": "var_with_type",
+          "name": "var_with_type'",
           "path": "vars_with_type",
           "is_rec": false
         },
         {
-          "name": "var_with_type'",
+          "name": "var_with_type",
           "path": "vars_with_type_size",
           "is_rec": true
         },
         {
-          "name": "type_eq'",
+          "name": "type_eq",
           "path": "type_eq_size",
           "is_rec": true
         },
         {
-          "name": "type_eq",
+          "name": "type_eq'",
           "path": "type_eq",
           "is_rec": false
         },
