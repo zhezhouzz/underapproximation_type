@@ -131,6 +131,7 @@ let split_source_code =
           in
           path
         in
+        let () = Printf.printf "path: %s\n" path in
         split_source_code_ source_file path
       (* let () = Printf.printf "path: %s\n" path in *))
 
