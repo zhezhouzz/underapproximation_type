@@ -102,29 +102,30 @@ This section gives a brief overview of the files in this artifact.
 
 ### Running Benchmarks of Poirot
 
-In this section, we discuss the scripts that displays the tables in the paper.
+In this section, we discuss the scripts that displays the tables in the evaluation section of the paper.
 
 ##### Comprehensive Scripts
 
-The following scripts run the benchmark suite displayed in Table 1 of the paper, it will take about `50` seconds:
+The following scripts run the benchmark suite displayed in Table 3 of the paper, it will take about `50` seconds:
 
-    $ python3 scripts/get_table1.py
+    $ python3 scripts/get_table3.py
 
-> Notice: in order to improve the performance of **Poirot** on the new [STLC Benchmark](#stlc-benchmark), we optimized the implementation of the SMT qeuries (remove unused quantified variables in the queries), thus the numbers in the `(max. #∀,#∃)` columns will be slightly less than the coresponding numbers shwon in the paper. The execution time `total (avg. time)(s)` may also vary depending on your machine. Readers can check the claims in the paper with respect to the displayed results.
+The following scripts run the `STLC` benchmark suite displayed in Table 4 (and Table 6 in the appendix) of the paper, it will take about `300` seconds.
 
-The following scripts run the benchmark suite displayed in Figure 10 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [**Cobalt**](#cobalt-synthesizer) deductive synthesis tool.
+    $ python3 scripts/get_table4_and_table6.py
 
-    $ python3 scripts/get_table2.py
+> Notice: The execution time `total (avg. time)(s)` of these two tables above may also vary depending on your machine. Readers can check the claims in the paper with respect to the displayed results.
 
-The following scripts run the `STLC` benchmark suite displayed in Table 2 (and Table 3) of the paper, it will take about `300` seconds.
+The following scripts run the benchmark suite displayed in Table 5 of the paper, it will take about `60` mins. It runs Poirot for the programs synthesized using the [**Cobalt**](#cobalt-synthesizer) deductive synthesis tool.
 
-    $ python3 scripts/run_stlc.py
+    $ python3 scripts/get_table5.py
+
 
 ##### Detailed Steps
 
 By add commanding the line argument `verbose`, all of the scripts above will show the actual command sent to **Poirot** on each benchmark. For example, by running:
 
-    $ python3 scripts/get_table1.py verbose
+    $ python3 scripts/get_table3.py verbose
 
 The script will print the following commands:
 
@@ -317,7 +318,7 @@ where the `METHOD_PREDICATE` is the method predicates introduced in the first li
 
 Currently, the `OCAML_TYPE` supported by **Poirot** is fixed, which is defined in the file `data/predefined/data_type_decls.ml`.
 
-The definition of the coverage type is consistent with Figure 3, which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,
+The definition of the coverage type is consistent with Figure 4, which consists of both the "overapproximated-style" refinement type and the "underapproximated-style" refinement type. Precisely,
 + the overapproximate refinement type `{v:b | φ}` in the paper is defined as `OVER_APPR_BASE_RTY`.
 + the underapproximate refinement type `[v:b | φ]` in the paper is defined as `UNDER_APPR_BASE_RTY`.
 + the function type is defined as a let expression. We use the let binding to represent the argument type and use the body of the let expression to represent the return type. For example, `let x = t_x in t` represents the type `x:t_x→t`. Here we syntactically disallow the overapproximate base refinement type to be the return type of a function following the constraints in the paper.
@@ -377,16 +378,16 @@ Our formalization takes inspiration and ideas from the following work, though do
 
 | Definition/Theorems           | Paper                                                                   | Definition                                                                                                                 | Notation                        |
 |-------------------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|---------------------------------|
-| Syntax                        | Figure 3                                                                | mutual recursive defined as `value` and `tm` in file `CoreLang.v` (line `42`)                                              |                                 |
-| Operational semantics         | Figure 12 (supplementary materials)                                     | `step` in file `OperationalSemantics.v` (line `23`)                                                                        | `e ↪ e'`                        |
-| Basic typing rules            | Figure 13 (supplementary materials)                                     | mutual recursive definition of `tm_has_type` and `value_hsa_type` in file `BasicTyping.v` (line `56`)                      | `Γ ⊢t e ⋮t T` and `Γ ⊢t v ⋮v T` |
-| Well-formedness typing rules  | Figure 4                                                                | `wf_typing` in file `Typing` (line `44`)                                                                                   | `Γ ⊢WF τ`                       |
-| Subtyping rules               | Figure 4                                                                | `subtyping` in file `Typing` (line `97`)                                                                                   | `Γ ⊢ τ1 ⪡ τ2`                   |
-| Disjunction typing rules      | Figure 4                                                                | `disjunction` in file `Typing` (line `92`)                                                                                 | `Γ ⊢ τ1 ⩔ τ2 ⩵ τ3`              |
-| Selected typing rules         | Figure 5 (Figure 14 in supplementary materials shows full set of rules) | given by the mutually inductive types `value_under_type_check` and `term_under_type_check` in file `Typing.v` (line `149`) | `Γ ⊢ e ⋮t τ` and `Γ ⊢ v ⋮v τ`   |
-| Type denotation               | At the beginning of Section 4.1 (line `573` to `576`)                   | `rR` in file `RefinementTypeDenotation.v` (line `23`)                                                                      | `{ n; bst; st }⟦ τ ⟧`           |
-| Type denotation under context | At the beginning of page 13 (line `594` to `597`)                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
-| Soundness theorem             | Theorem 4.2                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
+| Syntax                        | Figure 4                                                                | mutual recursive defined as `value` and `tm` in file `CoreLang.v` (line `42`)                                              |                                 |
+| Operational semantics         | Figure 11 (appendix)                                     | `step` in file `OperationalSemantics.v` (line `23`)                                                                        | `e ↪ e'`                        |
+| Basic typing rules            | Figure 12 (appendix)                                     | mutual recursive definition of `tm_has_type` and `value_hsa_type` in file `BasicTyping.v` (line `56`)                      | `Γ ⊢t e ⋮t T` and `Γ ⊢t v ⋮v T` |
+| Well-formedness typing rules  | Figure 5                                                                | `wf_typing` in file `Typing` (line `44`)                                                                                   | `Γ ⊢WF τ`                       |
+| Subtyping rules               | Figure 5                                                                | `subtyping` in file `Typing` (line `97`)                                                                                   | `Γ ⊢ τ1 ⪡ τ2`                   |
+| Disjunction typing rules      | Figure 5                                                                | `disjunction` in file `Typing` (line `92`)                                                                                 | `Γ ⊢ τ1 ⩔ τ2 ⩵ τ3`              |
+| Selected typing rules         | Figure 6 (Figure 13 in appendix shows full set of rules) | given by the mutually inductive types `value_under_type_check` and `term_under_type_check` in file `Typing.v` (line `149`) | `Γ ⊢ e ⋮t τ` and `Γ ⊢ v ⋮v τ`   |
+| Type denotation               | At the beginning of Section 4.1                  | `rR` in file `RefinementTypeDenotation.v` (line `23`)                                                                      | `{ n; bst; st }⟦ τ ⟧`           |
+| Type denotation under context | Section 4.1                       | `ctxrR` in file `CtxDenotation.v` (line `25`)                                                                              | `{ st }⟦ τ ⟧{ Γ }`              |
+| Soundness theorem             | Theorem 4.3                                                             | `soundness` in file `Soundness.v` (line `140`)                                                                             |                                 |
 
 > Readers can find the supplemental materials in `doc/poirot-SM.pdf`.
 
@@ -435,4 +436,4 @@ else let m = n - 1 in e2
   + the definition of the type denotation has the form `{ n; bst; st }⟦ τ ⟧` instead of `⟦ τ ⟧`, where `(n, bst)` is the state of the bound variables, `st` is the state of the free variables.
   + the definition of the type denotation under the type context has the form `{ st }⟦ τ ⟧{ Γ }` instead of `⟦ τ ⟧{ Γ }`, where `st` is the state of the free variables. Here we omit the bound state `(n, bst)` thus all types in the type context are locally closed (see locally nameless representation).
 - In the formalization, our coverage typing rules additionally require that all the branches of a pattern-matching expression are type-safe in the basic type system (they may not be consistent with the coverage type we want to check). We didn't mention it in the original paper, however, we will fix it in the second round submission.
-- For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule `TLetE` in Figure 14 (in the supplementary materials) is split into `UT_Lete_base` and `UT_Lete_arr` in our proof.
+- For sake of convenience of the proof, we split a single typing rule into different cases (then we can prove these cases separately during the induction proof). For example, the rule `TLetE` in Figure 13 (in the appendix) is split into `UT_Lete_base` and `UT_Lete_arr` in our proof.
