@@ -237,15 +237,15 @@ module F (Typed : Type.Typed) = struct
 end
 
 module NormalAnormal = struct
-  include F (Normalty.Ast.NNtyped)
-  open Normalty.Ast
+  include F (Normalty.Notatedtyped)
+  open Normalty
 
   let recover_dt_constructor_ty (ret, args) =
     match args with
     | [] -> ret.ty
     | _ ->
         let argsty = List.map (fun x -> snd @@ x.ty) args in
-        (None, T.construct_arrow_tp (argsty, snd @@ ret.ty))
+        (None, Ntyped.construct_arr_tp (argsty, snd @@ ret.ty))
 end
 
 module OverAnormal = F (Overty.Otyped)

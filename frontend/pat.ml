@@ -1,4 +1,4 @@
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 module Type = Normalty.Frontend
 open Ast
@@ -43,7 +43,7 @@ let rec pattern_to_slang pattern =
       let res =
         match args with
         | None -> L.App (c, [])
-        | Some arg -> (
+        | Some (_, arg) -> (
             let arg = pattern_to_slang arg in
             match (arg.L.ty, arg.L.x) with
             | None, L.Tu args -> L.App (c, args) (* NOTE: here we decurry *)
@@ -75,10 +75,10 @@ and slang_to_pattern_desc_untyped slang =
       in
       match arg with
       | [] -> Ppat_construct (c, None)
-      | [ arg ] -> Ppat_construct (c, Some (slang_to_pattern arg))
+      | [ arg ] -> Ppat_construct (c, Some ([], slang_to_pattern arg))
       | _ ->
           Ppat_construct
-            (c, Some (slang_to_pattern (L.make_untyped @@ L.Tu arg))))
+            (c, Some ([], slang_to_pattern (L.make_untyped @@ L.Tu arg))))
   | _ -> failwith "wrong pattern name, maybe untyped"
 
 and slang_to_pattern_desc slang =

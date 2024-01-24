@@ -1,7 +1,7 @@
 (library
  (name abstraction)
  (wrapped true)
- (libraries utils ast core)
+ (libraries ast core)
  (modules
    prim
    prim_map

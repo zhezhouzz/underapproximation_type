@@ -4,8 +4,8 @@ open Sugar
 type result = { ifcases : (Expr.expr * bool) list; elsecase : Expr.expr * bool }
 
 open Zzdatatype.Datatype
-module NT = Normalty.Ast.T
-module Ntyped = Normalty.Ast.Ntyped
+module NT = Normalty.Ntyped
+module Ntyped = Normalty.Ntyped
 open Ntyped
 
 let get_preds_interp model =

@@ -1,8 +1,8 @@
 module T = struct
   module P = Autov.Prop
   module T = Autov.Smtty
-  module NT = Normalty.Ast.NT
-  module NTyped = Normalty.Ast.Ntyped
+  module NT = Normalty.Ntyped
+  module NTyped = Normalty.Ntyped
   open Sexplib.Std
   open Sugar
 
@@ -96,9 +96,9 @@ module T = struct
   let nt_to_exn_type t =
     let rec aux t =
       match t with
-      | Ty_unknown | Ty_var _ -> _failatwith __FILE__ __LINE__ ""
-      | Ty_unit | Ty_int | Ty_bool | Ty_list _ | Ty_tree _ | Ty_constructor _ ->
-          make_basic_bot t
+      | Ty_unknown | Ty_var _ | Ty_any | Ty_nat | Ty_uninter _ ->
+          _failatwith __FILE__ __LINE__ ""
+      | Ty_unit | Ty_int | Ty_bool | Ty_constructor _ -> make_basic_bot t
       | Ty_arrow (t1, t2) ->
           UnderTy_under_arrow { argty = aux t1; retty = aux t2 }
       | Ty_tuple ts -> UnderTy_tuple (List.map aux ts)
@@ -442,12 +442,10 @@ module T = struct
 end
 
 module MMT = struct
-  module NT = Normalty.Ast.NT
+  module NT = Normalty.Ntyped
   open Sexplib.Std
 
-  type ut_with_copy =
-    | UtNormal of T.t
-    | UtCopy of string Normalty.Ast.Ntyped.typed
+  type ut_with_copy = UtNormal of T.t | UtCopy of string Normalty.Ntyped.typed
   [@@deriving sexp]
 
   type t = Ot of T.ot | Ut of ut_with_copy | Consumed of ut_with_copy
@@ -455,9 +453,13 @@ module MMT = struct
 
   open T
 
+  let typed_eq a b =
+    let open Normalty.Ntyped in
+    String.equal a.x b.x && eq a.ty b.ty
+
   let ut_eq_ = function
     | UtNormal ut1, UtNormal ut2 -> strict_eq ut1 ut2
-    | UtCopy id1, UtCopy id2 -> Normalty.Ast.Ntyped.typed_eq id1 id2
+    | UtCopy id1, UtCopy id2 -> typed_eq id1 id2
     | _, _ -> false
 
   let eq_ = function

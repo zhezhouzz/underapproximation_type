@@ -1,7 +1,8 @@
 module Op = Op.T
 module Value = Value
-include Normalty.Ast
-module NNormalty = NotatedT
+
+(* include Normalty.Ast *)
+module NNormalty = Normalty.Notatedtyped
 
 module NT = struct
   include T
@@ -13,8 +14,8 @@ module Otyped = Overty.Otyped
 module OT = Overty.T
 module UT = Underty.T
 module MMT = Underty.MMT
-module Ntyped = Ntyped
-module NNtyped = NNtyped
+module Ntyped = Normalty.Ntyped
+module NNtyped = Normalty.Notatedtyped
 module NL = Anormal.NormalAnormal
 module OL = Anormal.OverAnormal
 module UL = Anormal.UnderAnormal

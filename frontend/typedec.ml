@@ -1,4 +1,4 @@
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 open Ast.Typedec
 module Type = Normalty.Frontend
@@ -14,7 +14,7 @@ let constructor_declaration_of_ocaml { pcd_name; pcd_args; _ } =
 let constructor_declaration_to_ocaml { constr_name; argsty } =
   {
     pcd_name = Location.mknoloc constr_name;
-    (* pcd_vars = Location.mknoloc []; *)
+    pcd_vars = [];
     pcd_args = Pcstr_tuple (List.map Type.t_to_core_type argsty);
     pcd_res = None;
     pcd_loc = Location.none;

@@ -1,5 +1,5 @@
 module T = struct
-  module NT = Normalty.Ast.T
+  module NT = Normalty.Ntyped
 
   type constructor_declaration = { constr_name : string; argsty : NT.t list }
 
@@ -16,7 +16,7 @@ module T = struct
   let name_to_ctype name type_params = Ty_constructor (name, type_params)
 
   let mk_constr_types { constr_name; argsty } retty =
-    (constr_name, construct_arrow_tp (argsty, retty))
+    (constr_name, construct_arr_tp (argsty, retty))
 
   let mk_ctx es =
     List.concat

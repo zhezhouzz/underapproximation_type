@@ -4,31 +4,31 @@ module V = Value
 module NType = NNormalty
 module Typectx = NSimpleTypectx
 open Zzdatatype.Datatype
-open NT
+open Ntyped
 open Sugar
 open Abstraction
 
 let layout_ty = Normalty.Frontend.layout
 
 (* let _solve_application file line fty argsty = *)
-(*   let fty' = construct_arrow_tp (argsty, Ty_unknown) in *)
+(*   let fty' = construct_arr_tp (argsty, Ty_unknown) in *)
 (*   _type_unify file line fty fty' *)
 
 let _solve_by_retty file line fty retty' =
-  let argsty, retty = destruct_arrow_tp fty in
+  let argsty, retty = destruct_arr_tp fty in
   (* let () = *)
   (*   Printf.printf "@{<bold>_solve_by_retty :%s ==> %s@}\n" (NT.layout retty) *)
   (*     (NT.layout retty') *)
   (* in *)
   (* let () = failwith "??" in *)
-  let m, retty = _type_unify_ file line StrMap.empty retty retty' in
+  let m, retty = Ntyped._type_unify_ file line StrMap.empty retty retty' in
   let subst m t =
     let rec aux t =
       match t with
       | Ty_var n -> (
           match StrMap.find_opt m n with None -> t | Some ty -> ty)
-      | Ty_list t -> Ty_list (aux t)
-      | Ty_tree t -> Ty_tree (aux t)
+      (* | Ty_list t -> Ty_list (aux t) *)
+      (* | Ty_tree t -> Ty_tree (aux t) *)
       | Ty_arrow (t1, t2) -> Ty_arrow (aux t1, aux t2)
       | Ty_tuple ts -> Ty_tuple (List.map aux ts)
       | Ty_constructor (id, ts) -> Ty_constructor (id, List.map aux ts)
@@ -44,8 +44,8 @@ let rec infer_value (c : Value.t) =
   | U -> Ty_unit
   | I _ -> Ty_int
   | B _ -> Ty_bool
-  | IL _ -> Ty_list Ty_int
-  | IT _ -> Ty_tree Ty_int
+  | IL _ -> _failatwith __FILE__ __LINE__ "die"
+  | IT _ -> _failatwith __FILE__ __LINE__ "die"
   | Tu l -> Ty_tuple (List.map infer_value l)
   | NotADt -> _failatwith __FILE__ __LINE__ "die"
 
@@ -55,8 +55,8 @@ let rec check_against_value (c : Value.t) ty =
   | U, Ty_unit -> true
   | I _, Ty_int -> true
   | B _, Ty_bool -> true
-  | IL _, Ty_list Ty_int -> true
-  | IT _, Ty_tree Ty_int -> true
+  (* | IL _, Ty_list Ty_int -> true *)
+  (* | IT _, Ty_tree Ty_int -> true *)
   | Tu l, Ty_tuple tys ->
       if List.length l != List.length tys then false
       else
@@ -129,7 +129,7 @@ and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
       (*     (layout_ty fty) "??" *)
       (* in *)
       (* let fty' = *)
-      (*   _type_unify __FILE__ __LINE__ fty (construct_arrow_tp (argsty, ty)) *)
+      (*   _type_unify __FILE__ __LINE__ fty (construct_arr_tp (argsty, ty)) *)
       (* in *)
       (* let () = *)
       (*   Pp.printf "@{<bold>solved %s(%s):@} %s ===> %s\n" *)
@@ -137,10 +137,10 @@ and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
       (*     (List.split_by_comma Frontend.Expr.layout args) *)
       (*     (layout_ty fty) (layout_ty fty') *)
       (* in *)
-      (* let argsty', bodyty = destruct_arrow_tp fty' in *)
+      (* let argsty', bodyty = destruct_arr_tp fty' in *)
       (* let ty = _type_unify __FILE__ __LINE__ bodyty ty in *)
       let f' =
-        bidirect_type_check ctx f (None, construct_arrow_tp (argsty, retty))
+        bidirect_type_check ctx f (None, construct_arr_tp (argsty, retty))
       in
       (* let () = *)
       (*   Pp.printf "@{<bold>back %s:@} %s ? %s\n" (Frontend.Expr.layout f) *)
@@ -172,7 +172,7 @@ and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
       let ctx' =
         if if_rec then
           Typectx.add_to_right ctx
-            ("f", construct_arrow_tp (List.map snd xsty, snd ty))
+            ("f", construct_arr_tp (List.map snd xsty, snd ty))
         else ctx'
       in
       let body = bidirect_type_check ctx' body ty in
@@ -201,7 +201,7 @@ and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
                 ( None,
                   match argsty with
                   | [] -> retty
-                  | _ -> construct_arrow_tp ([ retty ], Ty_tuple argsty) );
+                  | _ -> construct_arr_tp ([ retty ], Ty_tuple argsty) );
             x = constructor.x;
           }
         in
@@ -220,7 +220,7 @@ and type_check (ctx : Typectx.ctx) (x : Exp.term) (ty : NType.t) :
   | e, ty ->
       _failatwith __FILE__ __LINE__
         (spf "type_check: inconsistent term (%s) and type (%s)"
-           (Frontend.Expr.layout { ty = None; x = e })
+           (Frontendu.Expr.layout { ty = None; x = e })
            (layout_ty ty))
 
 and type_infer (ctx : Typectx.ctx) (x : Exp.term) : Exp.term Exp.opttyped * t =
@@ -263,9 +263,9 @@ and type_infer (ctx : Typectx.ctx) (x : Exp.term) : Exp.term Exp.opttyped * t =
       let f, fty = bidirect_type_infer ctx f in
       let fty' =
         _type_unify __FILE__ __LINE__ fty
-          (construct_arrow_tp (argsty, Ty_unknown))
+          (construct_arr_tp (argsty, Ty_unknown))
       in
-      let argsty', ty = destruct_arrow_tp fty' in
+      let argsty', ty = destruct_arr_tp fty' in
       let f = bidirect_type_check ctx f (None, fty') in
       let argsargsty = _safe_combine __FILE__ __LINE__ args argsty' in
       let args =
@@ -337,7 +337,7 @@ and type_infer (ctx : Typectx.ctx) (x : Exp.term) : Exp.term Exp.opttyped * t =
                 ( None,
                   match argsty with
                   | [] -> retty
-                  | _ -> construct_arrow_tp ([ retty ], Ty_tuple argsty) );
+                  | _ -> construct_arr_tp ([ retty ], Ty_tuple argsty) );
             x = constructor.x;
           }
         in

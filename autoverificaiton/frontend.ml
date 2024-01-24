@@ -1,11 +1,22 @@
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 module L = Ast
-module Ty = Normalty.Ast.T
-module Q = Normalty.Ast.Q
-open Normalty.Ast.Ntyped
+module Ty = Normalty.Ntyped
+module Q = Normalty.Connective
 open Normalty.Frontend
+open Normalty.Ntyped
 open Sugar
+
+(* let core_type_to_notated_t ct = *)
+(*   match ct.ptyp_desc with *)
+(*   | Ptyp_extension (name, PTyp ty) -> (Some name.txt, core_type_to_t ty) *)
+(*   | _ -> (None, core_type_to_t ct) *)
+
+(* let notated_t_to_core_type (name, t) = *)
+(*   let ct = t_to_core_type t in *)
+(*   match name with *)
+(*   | None -> ct *)
+(*   | Some name -> desc_to_ct (Ptyp_extension (Location.mknoloc name, PTyp ct)) *)
 
 (* type label = Fa of Ty.t | Ex of Ty.t *)
 
@@ -167,7 +178,7 @@ let prop_of_ocamlexpr expr =
           | Ppat_constraint (arg, core_type) ->
               let label =
                 match core_type_to_notated_t core_type with
-                | Some name, ty -> (Q.of_string name, ty)
+                | Some name, ty -> (Q.qt_of_string name, ty)
                 | _ -> failwith "parsing: prop function"
               in
               let arg =
@@ -270,7 +281,7 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      notated_t_to_core_type (Some (Q.to_string Fa), u.ty) )),
+                      notated_t_to_core_type (Some (Q.qt_to_string Fa), u.ty) )),
                aux body ))
     | P.Exists (u, body) ->
         desc_to_ocamlexpr
@@ -280,7 +291,8 @@ let prop_to_expr prop =
                dest_to_pat
                  (Ppat_constraint
                     ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
-                      notated_t_to_core_type (Some (Q.to_string Q.Ex), u.ty) )),
+                      notated_t_to_core_type (Some (Q.qt_to_string Q.Ex), u.ty)
+                    )),
                aux body ))
   in
 

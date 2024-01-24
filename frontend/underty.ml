@@ -1,5 +1,5 @@
 module MetaEnv = Env
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 open Zzdatatype.Datatype
 module T = Ast.Termlang
@@ -111,7 +111,7 @@ let to_over_rty = function
 let ot_undertype_of_ocamlexpr expr = to_over_rty @@ baserty_of_ocamlexpr expr
 
 let _check_eq_nt file line t1 t2 =
-  try _check_equality file line Ast.NT.eq t1 t2
+  try _check_equality file line Ntyped.eq t1 t2
   with e ->
     ( MetaEnv.show_debug_info @@ fun _ ->
       Printf.printf "Type %s != %s\n" (Type.layout t1) (Type.layout t2) );

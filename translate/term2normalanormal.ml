@@ -13,7 +13,7 @@ let get_tp e =
       (* Type.Ty_unit *)
       _failatwith __FILE__ __LINE__
         (spf "Never happen: untyped %s in the term language expr"
-           (Frontend.Expr.layout e))
+           (Frontendu.Expr.layout e))
   | Some ty -> ty
 
 let id_get_tp e =
@@ -289,11 +289,9 @@ let rec convert (cont : cont) (e : term opttyped) (ename : string option) :
                 (* in *)
                 let argsty =
                   match snd constructor_ty with
-                  | NT.Ty_arrow _ -> (
-                      match
-                        snd @@ NT.destruct_arrow_tp (snd constructor_ty)
-                      with
-                      | NT.Ty_tuple tys -> tys
+                  | Nt.Ty_arrow _ -> (
+                      match snd @@ Nt.destruct_arr_tp (snd constructor_ty) with
+                      | Nt.Ty_tuple tys -> tys
                       | ty -> [ ty ])
                   | _ -> []
                 in

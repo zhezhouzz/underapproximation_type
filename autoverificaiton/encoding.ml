@@ -1,7 +1,7 @@
 open Prop
 open Zzdatatype.Datatype
-module Ty = Normalty.Ast.T
-open Normalty.Ast.Ntyped
+module Ty = Normalty.Ntyped
+open Normalty.Ntyped
 
 (* TODO: use hashmap *)
 

@@ -1,7 +1,7 @@
 (library
- (name frontend)
+ (name frontendu)
  (wrapped true)
- (libraries utils ast core ocaml_parser abstraction env)
+ (libraries ast core abstraction env)
  (modules
    quantified
    anormal

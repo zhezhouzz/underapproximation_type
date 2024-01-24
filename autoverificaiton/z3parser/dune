@@ -16,5 +16,5 @@
    parser
    past
  )
- (libraries utils menhirLib core)
+ (libraries env menhirLib core)
 )

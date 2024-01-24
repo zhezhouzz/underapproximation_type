@@ -4,7 +4,7 @@ open Zzdatatype.Datatype
 open Sugar
 open Abstraction
 
-let layout_subtyping = Frontend.Typectx.pretty_layout_over_subtyping
+let layout_subtyping = Frontendu.Typectx.pretty_layout_over_subtyping
 
 let subtyping_to_query (ctx : Typectx.ctx) typeself (prop1, prop2) =
   let fv1 = Autov.prop_fv prop1 in

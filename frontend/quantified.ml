@@ -1,5 +1,5 @@
 open Ast.Ntyped
-open Ast.Q
+open Connective
 
 let mk_q_ (q, x, e) =
   let q = match q with Fa -> "∀ " | Ex -> "∃ " in

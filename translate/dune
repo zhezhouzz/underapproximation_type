@@ -7,5 +7,5 @@
    na
  )
  ; (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
- (libraries zzdatatype utils ast frontend abstraction)
+ (libraries ast frontendu abstraction)
 )

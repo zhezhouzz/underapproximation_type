@@ -313,8 +313,8 @@ let dt_expand f argsty =
          argsty
   in
   let fnty =
-    let _, retnty = NT.destruct_arrow_tp (snd f.NL.ty) in
+    let _, retnty = NT.destruct_arr_tp (snd f.NL.ty) in
     let argsnty = List.map MMT.ut_erase_ argsty in
-    NT.construct_arrow_tp (argsnty, retnty)
+    NT.construct_arr_tp (argsnty, retnty)
   in
   (fnty, argsty)

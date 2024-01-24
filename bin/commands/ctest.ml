@@ -1,6 +1,6 @@
 open Core
 open Caux
-open Frontend
+open Frontendu
 
 (* let parsing_signature = *)
 (*   Command.basic ~summary:"parsing signature" *)
@@ -18,7 +18,7 @@ let parsing_structure =
       let%map_open source_file = anon ("source file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let x = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
         let c = Structure.client_of_ocamlstruct x in
         let () = Printf.printf "%s" (Structure.layout c) in
         ())
@@ -29,10 +29,10 @@ let parse_to_typed_term =
       let%map_open source_file = anon ("source file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
         let () =
           Printf.printf "%s\n\n"
-          @@ Ocaml_parser.Pprintast.string_of_structure code
+          @@ Ocaml5_parser.Pprintast.string_of_structure code
         in
         let code = Structure.client_of_ocamlstruct code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
@@ -48,10 +48,10 @@ let parse_to_anormal =
       let%map_open source_file = anon ("source file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+        let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
         let () =
           Printf.printf "%s\n\n"
-          @@ Ocaml_parser.Pprintast.string_of_structure code
+          @@ Ocaml5_parser.Pprintast.string_of_structure code
         in
         let code = Structure.client_of_ocamlstruct code in
         let () = Printf.printf "%s\n" @@ Structure.layout code in
@@ -69,7 +69,7 @@ type format = Raw | Typed | MonadicNormalForm
 
 let check_cobalt_code_ source_file outputdir =
   let open Languages in
-  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
   let term_code = Struc.prog_of_ocamlstruct code in
   let () =
     List.iteri
@@ -83,7 +83,7 @@ let check_cobalt_code_ source_file outputdir =
 
 let split_source_code_ source_file outputdir =
   let open Languages in
-  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
   List.iteri code ~f:(fun idx context ->
       let path = Printf.sprintf "%s/%i" outputdir idx in
       let () =
@@ -94,7 +94,7 @@ let split_source_code_ source_file outputdir =
       in
       let oc = Out_channel.create (Printf.sprintf "%s/prog.ml" path) in
       Printf.fprintf oc "%s\n"
-        (Ocaml_parser.Pprintast.string_of_structure [ context ]);
+        (Ocaml5_parser.Pprintast.string_of_structure [ context ]);
       Out_channel.close oc)
 
 let check_fv_in_code =
@@ -149,7 +149,7 @@ let print_source_code meta_config_file source_file refine_file format () =
         ~f:(fun ctx (x, ty) -> add_to_right ctx (x, UT.erase ty))
         ~init:empty libs)
   in
-  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
   let msize = Env.get_max_printing_size () in
   let code = Struc.prog_of_ocamlstruct code in
   match format with
@@ -236,7 +236,7 @@ let parsing_type_decls =
       let%map_open refine_file = anon ("source file" %: regular_file) in
       fun () ->
         let () = Config.load_default () in
-        let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
+        let x = Ocaml5_parser.Frontend.parse ~sourcefile:refine_file in
         let type_decls = Structure.type_decl_of_ocamlstruct x in
         let () = Printf.printf "%s\n" (Typedec.layout type_decls) in
         ())

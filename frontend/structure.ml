@@ -1,4 +1,4 @@
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 module L = Ast.Termlang
 module S = Ast.Struc

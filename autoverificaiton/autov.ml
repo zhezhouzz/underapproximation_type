@@ -1,6 +1,6 @@
 module Prop = Prop
 module Func_interp = Func_interp
-module Smtty = Normalty.Ast.Smtty
+module Smtty = Normalty.SMTtyped
 module Enum = Enum
 
 exception FailWithModel of string * Z3.Model.model

@@ -31,7 +31,7 @@ let fold_left (f : 'a -> t -> 'a option) default m =
   in
   loop default bv
 
-open Normalty.Ast.T
+open Normalty.Ntyped
 
 let default_m =
   [

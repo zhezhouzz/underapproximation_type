@@ -1,7 +1,7 @@
 open Ast
 open Sugar
 open Zzdatatype.Datatype
-open Normalty.Ast.Ntyped
+open Normalty.Ntyped
 open Peval
 
 let tope_to_prop (eqvs, prop) =
@@ -37,7 +37,7 @@ let assume_ee file line prop =
 let rename_destruct_uprop_ (ids, prop) =
   List.fold_right
     (fun id (ids', prop) ->
-      let id' = map Rename.unique id in
+      let id' = { x = Rename.unique id.x; ty = id.ty } in
       (id' :: ids', subst_id prop id.x id'.x))
     ids ([], prop)
 
@@ -92,6 +92,8 @@ let assume_tope_uprop file line prop =
   in
   aux prop
 
+let map f id = { x = f id.x; ty = id.ty }
+
 let conjunct_eprop_to_right_ (eqv1, prop1) (eqv2, prop2) =
   let is_eq id = function
     | MethodPred ("==", [ AVar x; ACint n ]) when String.equal x.x id.x ->
@@ -106,6 +108,7 @@ let conjunct_eprop_to_right_ (eqv1, prop1) (eqv2, prop2) =
       List.fold_right
         (fun eq (eqv2, prop1) ->
           if List.exists (fun y -> String.equal eq.x y.x) eqv2 then
+            (* let eq' = { x = Rename.unique eq.x; ty = eq.ty } in *)
             let eq' = map Rename.unique eq in
             (eq' :: eqv2, rename_prop prop1 [ (eq, eq') ])
           else (eq :: eqv2, prop1))

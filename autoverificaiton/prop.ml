@@ -2,7 +2,7 @@ include Stat
 include Unify_qvs
 include Peval
 include Ast
-open Normalty.Ast.Ntyped
+open Normalty.Ntyped
 
 let bvar_to_prop x = Lit (AVar x)
 
@@ -94,7 +94,7 @@ let type_update m t =
   let rec aux_lit t =
     match t with
     | ACint _ | ACbool _ -> t
-    | AVar id -> AVar { x = id.x; ty = Normalty.Ast.T.subst_m m id.ty }
+    | AVar id -> AVar { x = id.x; ty = subst_m m id.ty }
     | AOp2 (op, a, b) -> AOp2 (op, aux_lit a, aux_lit b)
   in
   let rec aux t =

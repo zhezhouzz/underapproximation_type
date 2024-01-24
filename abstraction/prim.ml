@@ -28,14 +28,15 @@ let get_primitive__ msg m erase (name, ty) =
       _failatwith __FILE__ __LINE__
       @@ spf "cannot find built-in %s refinement type (%s)" msg name
   | l -> (
-      let l = List.filter (fun ty' -> Normalty.Ast.T.eq (erase ty') ty) l in
+      let l = List.filter (fun ty' -> Normalty.Ntyped.eq (erase ty') ty) l in
       match l with
       | [] ->
           _failatwith __FILE__ __LINE__
           @@ spf
                "cannot find built-in %s refinement type (%s) with normal type \
                 (%s)"
-               msg name (Normalty.Ast.T.layout ty)
+               msg name
+               (Normalty.Ntyped.layout ty)
       | ty -> ty)
 
 let get_primitive_ msg m erase (name, ty) =
@@ -46,7 +47,8 @@ let get_primitive_ msg m erase (name, ty) =
       @@ spf
            "multiply types of built-in %s refinement type (%s) with normal \
             type (%s)"
-           msg name (Normalty.Ast.T.layout ty)
+           msg name
+           (Normalty.Ntyped.layout ty)
 
 let get_primitive_over_ty (name, ty) =
   let _, entry = get_by_name (get_notation_m ()) name in

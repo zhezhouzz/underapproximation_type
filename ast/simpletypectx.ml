@@ -31,12 +31,12 @@ module F (Type : Type.T) = struct
 end
 
 module NSimpleTypectx = struct
-  include F (Normalty.Ast.T)
+  include F (Normalty.Ntyped)
 
   let of_type_decls e : ctx = Type_dec.T.mk_ctx e
 end
 
-module SMTSimpleTypectx = F (Normalty.Ast.Smtty)
+module SMTSimpleTypectx = F (Normalty.SMTtyped)
 
 module UTSimpleTypectx = struct
   include F (Underty.T)

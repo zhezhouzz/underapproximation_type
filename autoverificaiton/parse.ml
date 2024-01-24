@@ -2,7 +2,7 @@
 open Sugar
 open Past
 open Zzdatatype.Datatype
-open Normalty.Ast.T
+(* open Normalty.Ast.T *)
 
 let past_lit_to_lit past =
   match past.x with

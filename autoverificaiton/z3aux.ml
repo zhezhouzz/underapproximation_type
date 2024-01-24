@@ -2,8 +2,8 @@ open Z3
 open Z3.Expr
 open Z3.Boolean
 open Z3.Arithmetic
-open Normalty.Ast.T
-module T = Normalty.Ast.Smtty
+open Normalty.Ntyped
+module T = Normalty.SMTtyped
 open Sugar
 
 let find_const_in_model m x =

@@ -1,11 +1,13 @@
-open Normalty.Ast
+open Normalty
 module P = Autov.Prop
 module Term = Termlang.T
-open Q
+
+(* open Q *)
+open Connective
 open Sugar
 open Ntyped
 
-type qprop = { mode : Q.t; qvs : string typed list; prop : P.t }
+type qprop = { mode : qt; qvs : string typed list; prop : P.t }
 type t = { lemma_udts : string typed list; qprop : qprop }
 
 let filter_by_mps mps lemma =
@@ -50,20 +52,37 @@ let to_prop { lemma_udts; qprop } =
 let parse_qvs qvs =
   let aux qv =
     match qv with
-    | Term.{ x; ty = Some (Some "forall", nty) } -> (Q.Fa, { x; ty = nty })
-    | Term.{ x; ty = Some (Some "exists", nty) } -> (Q.Ex, { x; ty = nty })
+    | Term.{ x; ty = Some (Some "forall", nty) } -> (Fa, { x; ty = nty })
+    | Term.{ x; ty = Some (Some "exists", nty) } -> (Ex, { x; ty = nty })
     | Term.{ ty = Some (Some name, _); _ } ->
         _failatwith __FILE__ __LINE__ @@ Printf.sprintf "unknown label %s" name
     | Term.{ ty = Some (None, _); _ } -> failwith "wrong format"
     | _ -> _failatwith __FILE__ __LINE__ "wrong format: untyped"
   in
-  List.map aux qvs
+  let res = List.map aux qvs in
+  (* let () = Printf.printf "len(parse_qvs) = %i\n" (List.length res) in *)
+  (* let () = *)
+  (*   List.iter *)
+  (*     (fun (_, x) -> Printf.printf "%s; " @@ layout_typed (fun x -> x) x) *)
+  (*     res *)
+  (* in *)
+  res
 
 open Zzdatatype.Datatype
 
+let local_is_dt nt =
+  let open Ntyped in
+  match nt with
+  | Ty_constructor _ -> true
+  | Ty_uninter "stlc_term" -> true
+  | Ty_uninter "stlc_ty" -> true
+  | Ty_uninter "stlc_tyctx" -> true
+  | _ -> false
+
 let of_raw (qvs, prop) =
+  (* let () = Printf.printf "len(qvs) = %i\n" (List.length qvs) in *)
   let rec get_udts udts = function
-    | (Q.Fa, udt) :: qvs when NT.is_dt udt.ty -> get_udts (udts @ [ udt ]) qvs
+    | (Fa, udt) :: qvs when local_is_dt udt.ty -> get_udts (udts @ [ udt ]) qvs
     | qvs -> (udts, qvs)
   in
   let udts, qvs = get_udts [] @@ parse_qvs qvs in
@@ -75,7 +94,7 @@ let of_raw (qvs, prop) =
   let () =
     List.iter
       (fun (_, qv) ->
-        if not (NT.is_basic_tp qv.ty) then
+        if not (Ntyped.is_basic_tp qv.ty) then
           _failatwith __FILE__ __LINE__
             (spf "lemma has datatype qv: %s: %s" qv.x (Ntyped.layout qv.ty))
         else ())
@@ -91,11 +110,11 @@ let of_raw (qvs, prop) =
     if List.for_all (fun (mode, _) -> is_forall mode) qvs then
       let qvs = to_qvs qvs in
       let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
-      { mode = Q.Fa; qvs; prop = Autov.typeinfer m prop }
+      { mode = Fa; qvs; prop = Autov.typeinfer m prop }
     else if List.for_all (fun (mode, _) -> is_exists mode) qvs then
       let qvs = to_qvs qvs in
       let m = List.fold_left (fun m x -> StrMap.add x.x x.ty m) m qvs in
-      { mode = Q.Ex; qvs; prop = Autov.typeinfer m prop }
+      { mode = Ex; qvs; prop = Autov.typeinfer m prop }
     else _failatwith __FILE__ __LINE__ ""
   in
   { lemma_udts = udts; qprop }

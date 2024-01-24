@@ -1,6 +1,6 @@
 open Ast
 module V = Value
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 open Sugar
 open Zzdatatype.Datatype

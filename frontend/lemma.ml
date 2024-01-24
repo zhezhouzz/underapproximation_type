@@ -1,5 +1,5 @@
 module MetaEnv = Env
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 module L = Ast.UT
 module Ntyped = Ast.Ntyped

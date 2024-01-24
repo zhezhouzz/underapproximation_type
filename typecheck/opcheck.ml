@@ -1,5 +1,5 @@
 open Languages
-open NT
+open Nt
 open Op
 module Prim = Abstraction.Prim
 

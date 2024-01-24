@@ -408,8 +408,8 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
         let opty =
           Prim.get_primitive_under_ty
             ( Op.op_to_string op,
-              NT.construct_arrow_tp
-                (List.map (fun x -> snd x.ty) args, snd ret.ty) )
+              NT.construct_arr_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
+            )
         in
         let fname = Op.op_to_string op in
         let argsty = List.map (value_type_infer uctx) args in
@@ -448,7 +448,7 @@ and term_type_infer (uctx : uctx) (a : NL.term NL.typed) : UL.t =
         (* let fnty = *)
         (*   let _, retnty = NT.destruct_arrow_tp (snd f.ty) in *)
         (*   let argsnty = List.map MMT.ut_erase_ argsty in *)
-        (*   NT.construct_arrow_tp (argsnty, retnty) *)
+        (*   NT.construct_arr_tp (argsnty, retnty) *)
         (* in *)
         let ftys = Prim.get_primitive_under_multi_ty (f.x, fnty) in
         (* let () = Pp.printf "f: %s; fnty: %s\n" f.x @@ NT.layout fnty in *)
@@ -536,7 +536,7 @@ and term_type_check (uctx : uctx) (x : NL.term NL.typed) (ty : UT.t) : unit =
       let opty =
         Prim.get_primitive_under_ty
           ( Op.op_to_string op,
-            NT.construct_arrow_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
+            NT.construct_arr_tp (List.map (fun x -> snd x.ty) args, snd ret.ty)
           )
       in
       let fname = Op.op_to_string op in

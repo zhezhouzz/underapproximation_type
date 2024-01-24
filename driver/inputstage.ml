@@ -10,13 +10,13 @@ let load_ssa libs source_file =
         ~f:(fun ctx (x, ty) -> add_to_right ctx (x, UT.erase ty))
         ~init:empty libs)
   in
-  let code = Ocaml_parser.Frontend.parse ~sourcefile:source_file in
+  let code = Ocaml5_parser.Frontend.parse ~sourcefile:source_file in
   let msize = Env.get_max_printing_size () in
   let () =
     Env.show_debug_preprocess @@ fun _ ->
     Printf.printf "\n[Load ocaml program]:\n%s\n\n"
     @@ short_str msize
-    @@ Ocaml_parser.Pprintast.string_of_structure code
+    @@ Ocaml5_parser.Pprintast.string_of_structure code
   in
   let code = Struc.prog_of_ocamlstruct code in
   let () =
@@ -40,7 +40,7 @@ let load_ssa libs source_file =
 let load_normal_refinements refine_file =
   let refinements =
     Struc.func_decl_of_ocamlstruct
-      (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+      (Ocaml5_parser.Frontend.parse ~sourcefile:refine_file)
   in
   refinements
 
@@ -57,10 +57,10 @@ let _load_under_refinments refinements =
     List.fold_left
       ~f:(fun (a, b, c) x ->
         match x with
-        | Frontend.Structure.NoExt, x -> (a, b, c @ [ (None, x) ])
-        | Frontend.Structure.Inv info, x -> (a, b, c @ [ (Some info, x) ])
-        | Frontend.Structure.LibraryExt, x -> (a, b @ [ x ], c)
-        | Frontend.Structure.NotationExt "over", (name, ty) ->
+        | Frontendu.Structure.NoExt, x -> (a, b, c @ [ (None, x) ])
+        | Frontendu.Structure.Inv info, x -> (a, b, c @ [ (Some info, x) ])
+        | Frontendu.Structure.LibraryExt, x -> (a, b @ [ x ], c)
+        | Frontendu.Structure.NotationExt "over", (name, ty) ->
             ( a
               @ [
                   ( name,
@@ -73,9 +73,9 @@ let _load_under_refinments refinements =
                 ],
               b,
               c )
-        | Frontend.Structure.NotationExt "under", (name, ty) ->
+        | Frontendu.Structure.NotationExt "under", (name, ty) ->
             (a @ [ (name, MMT.Ut (UtNormal ty)) ], b, c)
-        | Frontend.Structure.NotationExt str, _ ->
+        | Frontendu.Structure.NotationExt str, _ ->
             _failatwith __FILE__ __LINE__ @@ spf "unknown label: %s" str)
       ~init:([], [], []) refinements
   in
@@ -91,34 +91,34 @@ let _load_under_refinments refinements =
   (notations, libs, refinements)
 
 let load_under_refinments refine_file =
-  _load_under_refinments (Ocaml_parser.Frontend.parse ~sourcefile:refine_file)
+  _load_under_refinments (Ocaml5_parser.Frontend.parse ~sourcefile:refine_file)
 
 (* the first struct is the "mps" *)
 (* the rest of structs are the codes *)
 
 let load_user_defined_mps source_file =
-  match Ocaml_parser.Frontend.parse ~sourcefile:source_file with
+  match Ocaml5_parser.Frontend.parse ~sourcefile:source_file with
   | [] -> failwith "method predicates list is expected"
   | e :: _ -> Struc.mps_of_ocamlstruct e
 
 let load_user_defined_under_refinments_empty () =
   let randomness_refinements =
-    Ocaml_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
+    Ocaml5_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
   in
   _load_under_refinments randomness_refinements
 
 let load_user_defined_under_refinments refine_file =
   let randomness_refinements =
-    Ocaml_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
+    Ocaml5_parser.Frontend.parse ~sourcefile:(Env.get_randomp_path ())
   in
   let refinements =
-    match Ocaml_parser.Frontend.parse ~sourcefile:refine_file with
+    match Ocaml5_parser.Frontend.parse ~sourcefile:refine_file with
     | [] -> failwith "method predicates list is expected"
     | _ :: code -> code
   in
   (* let () = *)
   (*   Printf.printf "load_under_refinments\n%s\n" *)
-  (*     (Ocaml_parser.Pprintast.string_of_structure refinements) *)
+  (*     (Ocaml5_parser.Pprintast.string_of_structure refinements) *)
   (* in *)
   (* let () = failwith "end" in *)
   _load_under_refinments (randomness_refinements @ refinements)
@@ -129,7 +129,7 @@ module LA = Lemma
 let load_lemmas lemma_file =
   let lemmas =
     Struc.refinement_of_ocamlstruct Lemma.undertype_of_ocamlexpr
-      (Ocaml_parser.Frontend.parse ~sourcefile:lemma_file)
+      (Ocaml5_parser.Frontend.parse ~sourcefile:lemma_file)
   in
   let lemmas = List.map ~f:(fun ((_, name), lemma) -> (name, lemma)) lemmas in
   (* let () = *)
@@ -139,7 +139,7 @@ let load_lemmas lemma_file =
   lemmas
 
 let load_type_decls refine_file =
-  let x = Ocaml_parser.Frontend.parse ~sourcefile:refine_file in
+  let x = Ocaml5_parser.Frontend.parse ~sourcefile:refine_file in
   let type_decls = Struc.type_decl_of_ocamlstruct x in
   let () =
     Env.show_debug_preprocess @@ fun _ ->

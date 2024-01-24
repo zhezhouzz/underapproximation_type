@@ -1,7 +1,8 @@
 open Ast
 module S = Map.Make (Op)
 open Op
-module Type = Normalty.Ast.T
+module Type = Normalty.Ntyped
+module NT = Normalty.Ntyped
 
 let typed_prim_of_string ctx = function
   | "+::" ->

@@ -1,6 +1,6 @@
 module T = struct
   open Sexplib.Std
-  module NotatedT = Normalty.Ast.NotatedT
+  module NotatedT = Normalty.Notatedtyped
 
   type ty = NotatedT.t [@@deriving sexp]
   type id = string [@@deriving sexp]

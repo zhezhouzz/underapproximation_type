@@ -1,7 +1,7 @@
 module T = struct
   open Sexplib.Std
   open Sugar
-  module NT = Normalty.Ast.T
+  module NT = Normalty.Ntyped
 
   type id = string [@@deriving sexp]
   type normalty = NT.t [@@deriving sexp]
@@ -73,7 +73,7 @@ module T = struct
 
   module P = Autov.Prop
   module T = Autov.Smtty
-  module Ntyped = Normalty.Ast.Ntyped
+  module Ntyped = Normalty.Ntyped
   open Ntyped
 
   let strict_eq t1 t2 =

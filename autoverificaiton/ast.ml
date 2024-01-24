@@ -1,6 +1,8 @@
 open Sexplib.Std
-module Ty = Normalty.Ast.T
-open Normalty.Ast.Ntyped
+module Ty = Normalty.Ntyped
+open Ty
+
+let typed_eq a b = String.equal a.x b.x && eq a.ty b.ty
 
 type ty = Ty.t [@@deriving sexp]
 

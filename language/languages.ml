@@ -1,7 +1,7 @@
 include Ast
 
 module Lemma = struct
-  include Frontend.Lemma
+  include Frontendu.Lemma
   include Lemma
 
   (* open Sugar *)
@@ -186,12 +186,12 @@ module Lemma = struct
 end
 
 module UT = struct
-  include Frontend.Underty
+  include Frontendu.Underty
   include UT
 end
 
 module MustMayTypectx = struct
-  include Frontend.Typectx
+  include Frontendu.Typectx
   include MustMayTypectx
   open Sugar
   open MMT
@@ -507,22 +507,22 @@ module MustMayTypectx = struct
 end
 
 module Typedec = struct
-  include Frontend.Typedec
+  include Frontendu.Typedec
   include Typedec
 end
 
 module Struc = struct
-  include Frontend.Structure
+  include Frontendu.Structure
   include Struc
 
-  let prog_of_ocamlstruct = Frontend.Structure.client_of_ocamlstruct
-  let mps_of_ocamlstruct = Frontend.Structure.mps_of_ocamlstruct_one
+  let prog_of_ocamlstruct = Frontendu.Structure.client_of_ocamlstruct
+  let mps_of_ocamlstruct = Frontendu.Structure.mps_of_ocamlstruct_one
 end
 
 module NL = struct
   include NL
 
-  let layout x = Frontend.Expr.layout @@ Trans.nan_to_term x
+  let layout x = Frontendu.Expr.layout @@ Trans.nan_to_term x
   let layout_value v = layout { x = V v; ty = v.ty }
   let layout_id x = layout_value { x = Var x; ty = x.ty }
 end
@@ -530,12 +530,12 @@ end
 module StrucNA = struct
   include StrucNA
 
-  let prog_of_ocamlstruct = Frontend.Structure.client_of_ocamlstruct
+  let prog_of_ocamlstruct = Frontendu.Structure.client_of_ocamlstruct
   let layout code = Struc.layout @@ Trans.struc_nan_to_term code
 end
 
 module OT = struct
-  include Frontend.Overty
+  include Frontendu.Overty
   include OT
 end
 
@@ -552,6 +552,7 @@ module UL = struct
   (*   layout x *)
 
   let typed_map f { ty; x } = { ty; x = f x }
+  let to_ntyped NNtyped.{ x; ty } = Ntyped.{ x; ty = snd ty }
 
   let get_args_return_name retname body =
     let open Anormal.NormalAnormal in
@@ -559,8 +560,10 @@ module UL = struct
       match body.x with
       | V { x = Lam { lamarg; lambody }; _ } ->
           let args, retv = aux lambody in
-          (NNtyped.to_ntyped lamarg :: args, retv)
-      | _ -> ([], NNtyped.to_ntyped { x = retname; ty = body.ty })
+          (to_ntyped lamarg :: args, retv)
+      | _ -> ([], to_ntyped { x = retname; ty = body.ty })
     in
     aux body
 end
+
+module NT = Normalty.Ntyped

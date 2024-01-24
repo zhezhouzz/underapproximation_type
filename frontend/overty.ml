@@ -1,4 +1,4 @@
-open Ocaml_parser
+open Ocaml5_parser
 open Parsetree
 open Zzdatatype.Datatype
 module T = Ast.Termlang
