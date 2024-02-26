@@ -1,0 +1,19 @@
+(env
+ (dev
+  (flags (:standard -w -32-35-27-33-26-64)))
+ (release
+  (flags (:standard -w -32-35-27-33-26-64))
+  (ocamlopt_flags (:standard -unsafe -noassert -inline 100))))
+
+(library
+ (name syntax)
+ (wrapped false)
+ (modules
+   constant
+   lit
+   rty
+   raw_term
+ )
+ (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+ (libraries language_utils)
+)

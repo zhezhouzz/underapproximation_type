@@ -1,0 +1,8 @@
+{
+    "global": [
+        {"kind": "plain", "name": "constant"},
+        {"kind": "plain", "name": "rty"},
+        {"kind": "typed", "name": "raw_term"},
+        {"kind": "typed", "name": "raw_match_case"}
+    ]
+}
