@@ -1,8 +1,17 @@
 {
     "global": [
-        {"kind": "plain", "name": "constant"},
-        {"kind": "plain", "name": "rty"},
+        {"kind": "typed", "name": "lit"},
+        {"kind": "typed", "name": "prop"},
+        {"kind": "typed", "name": "cty"},
+        {"kind": "typed", "name": "rty"},
         {"kind": "typed", "name": "raw_term"},
-        {"kind": "typed", "name": "raw_match_case"}
+        {"kind": "typed", "name": "raw_match_case"},
+        {"kind": "typed", "name": "value"},
+        {"kind": "typed", "name": "term"},
+        {"kind": "typed", "name": "match_vase"}
+    ],
+    "bak" : [
+        {"kind": "plain", "name": "op"},
+        {"kind": "plain", "name": "constant"}
     ]
 }

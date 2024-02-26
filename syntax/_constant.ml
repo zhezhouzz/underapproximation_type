@@ -1,10 +1,10 @@
 open Mtyped
 open Sexplib.Std
 
-type const =
+type constant =
   | U
   | B of bool
   | I of int
-  | Tu of const list
-  | Dt of string * const list
+  | Tu of constant list
+  | Dt of string * constant list
 [@@deriving sexp]
