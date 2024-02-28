@@ -1,0 +1,24 @@
+(library
+ (name frontendz)
+ (wrapped true)
+ (libraries syntax core env)
+ (modules
+   to_id
+   to_op
+   to_constant
+   to_raw_term
+   ; quantified
+   ; anormal
+   ; expr
+   ; lemma
+   ; overty
+   ; pat
+   ; structure
+   ; typectx
+   ; utypectx
+   ; typedec
+   ; underty
+   ; value
+ )
+ (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+)
