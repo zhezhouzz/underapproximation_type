@@ -4,7 +4,7 @@ let[@library] cons =
   let _ = (true : [%v: int]) [@under] in
   let s = (v >= 0 : [%v: int]) [@over] in
   let _ = (len v s : [%v: int list]) [@under] in
-  (fun (u : [%forall: int]) -> implies (u == s + 1) (len v u)
+  (fun (u : int) -> implies (u == s + 1) (len v u)
     : [%v: int list])
     [@under]
 
@@ -14,11 +14,11 @@ let[@library] ucons =
   let h = (true : [%v: int]) [@over] in
   let s = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (len v s && fun (u : [%forall: int]) -> implies (mem v u) (u == h)
+    (len v s && fun (u : int) -> implies (mem v u) (u == h)
       : [%v: int ulist])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (u == s + 1) (len v u) && implies (mem v u) (u == h)
     : [%v: int ulist])
     [@under]
@@ -28,7 +28,7 @@ let[@library] batchedq =
   let _ = (len v s1 : [%v: int list]) [@under] in
   let s2 = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) -> implies (0 <= u && u <= s1) (len v u)
+    (fun (u : int) -> implies (0 <= u && u <= s1) (len v u)
       : [%v: int list])
       [@over]
   in
@@ -39,10 +39,10 @@ let[@library] leaf = (len v 0 : [%v: int tree]) [@under]
 let[@library] node =
   let _ = (true : [%v: int]) [@under] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
-  let _ = (fun (u : [%forall: int]) -> len v sizel : [%v: int tree]) [@under] in
+  let _ = (fun (u : int) -> len v sizel : [%v: int tree]) [@under] in
   let sizer = (v == sizel : [%v: int]) [@over] in
-  let _ = (fun (u : [%forall: int]) -> len v sizer : [%v: int tree]) [@under] in
-  (fun (u : [%forall: int]) -> implies (u == sizel + 1) (len v u)
+  let _ = (fun (u : int) -> len v sizer : [%v: int tree]) [@under] in
+  (fun (u : int) -> implies (u == sizel + 1) (len v u)
     : [%v: int tree])
     [@under]
 
@@ -53,17 +53,17 @@ let[@library] cnode =
   let _ = (true : [%v: int]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) -> len v sizel && complete v
+    (fun (u : int) -> len v sizel && complete v
       : [%v: int ctree])
       [@under]
   in
   let sizer = (v == sizel : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) -> len v sizer && complete v
+    (fun (u : int) -> len v sizer && complete v
       : [%v: int ctree])
       [@under]
   in
-  (fun (u : [%forall: int]) -> complete v && implies (u == sizel + 1) (len v u)
+  (fun (u : int) -> complete v && implies (u == sizel + 1) (len v u)
     : [%v: int ctree])
     [@under]
 
@@ -85,7 +85,7 @@ let[@library] rbtnode =
       : [%v: int rbtree])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      hdcolor v false && implies (u == sizel + 1) (numblack v u && noredred v)
     : [%v: int rbtree])
     [@under]
@@ -115,19 +115,19 @@ let[@library] hnode =
   let root = (true : [%v: int]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        len v sizel && heap v && implies (hd v u) (u <= root)
       : [%v: int heap])
       [@under]
   in
   let sizer = (v == sizel : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        len v sizer && heap v && implies (hd v u) (u <= root)
       : [%v: int heap])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      hd v root && heap v && implies (u == sizel + 1) (len v u)
     : [%v: int heap])
     [@under]
@@ -144,7 +144,7 @@ let[@library] streamlazycons =
   let _ = (true : [%v: int]) [@under] in
   let s = (v >= 0 : [%v: int]) [@over] in
   let _ = (len v s : [%v: int stream lazyty]) [@under] in
-  (fun (u : [%forall: int]) -> implies (u == s + 1) (len v u)
+  (fun (u : int) -> implies (u == s + 1) (len v u)
     : [%v: int stream])
     [@under]
 
@@ -156,7 +156,7 @@ let[@library] bankersq =
   let _ = (v >= 0 && v <= lenf : [%v: int]) [@under] in
   let s2 = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) -> implies (0 <= u && u <= lenf) (len v u)
+    (fun (u : int) -> implies (0 <= u && u <= lenf) (len v u)
       : [%v: int stream])
       [@under]
   in
@@ -171,11 +171,11 @@ let[@library] lhpnode =
   let _ = (len v sizel : [%v: int leftisthp]) [@under] in
   let sizer = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) -> implies (0 <= u && u <= sizel) (len v u)
+    (fun (u : int) -> implies (0 <= u && u <= sizel) (len v u)
       : [%v: int leftisthp])
       [@under]
   in
   let _ = (v == sizer : [%v: int]) [@under] in
-  (fun (u : [%forall: int]) -> implies (u == sizel + 1) (len v u)
+  (fun (u : int) -> implies (u == sizel + 1) (len v u)
     : [%v: int leftisthp])
     [@under]

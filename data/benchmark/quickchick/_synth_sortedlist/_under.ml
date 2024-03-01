@@ -13,10 +13,10 @@ let[@library] subs =
    *)
   
 
-let goal =
+let[@assert] goal =
   let size = (0 <= v : [%v: int]) [@over] in
   let x0 = (true : [%v: int]) [@over] in
-  (rng v size && fun (u : [%forall: int]) (w : [%forall: int]) ->
+  (rng v size && fun (u : int) (w : int) ->
    implies (mem v u) (x0 <= u) && implies (ord v u w) (u <= w)
     : [%v: int list])
     [@under]

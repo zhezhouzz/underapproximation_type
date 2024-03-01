@@ -6,7 +6,7 @@ let[@library] type_eq_size =
   let tau_b = (true : [%v: stlc_ty]) [@over] in
   (iff v (type_eq_spec tau_a tau_b) : [%v: bool]) [@under]
 
-let type_eq =
+let[@assert] type_eq =
   let tau_a = (true : [%v: stlc_ty]) [@over] in
   let tau_b = (true : [%v: stlc_ty]) [@over] in
   (iff v (type_eq_spec tau_a tau_b) : [%v: bool]) [@under]

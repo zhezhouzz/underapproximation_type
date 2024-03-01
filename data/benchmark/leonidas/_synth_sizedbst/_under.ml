@@ -40,19 +40,19 @@ let[@library] n = (true : [%v: int]) [@under]
 
 let[@library] root = (true : [%v: int]) [@under]
 
-let goal =
+let[@assert] goal =
   (* let (d : [%over: int]) = (0 <= v : [%v: int]) in
   let (s0 : [%over: int]) = (d <= v : [%v: int]) in
   let (lo : [%over: int]) = (true : [%v: int]) in
   let (hi : [%over: int]) = (v == lo + d : [%v: int]) in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
     : [%v: int tree]) *)
  let d = (0 <= v : [%v: int]) [@over] in
   let size = (d <= v : [%v: int]) [@over] in
   let lo = (true : [%v: int]) [@over] in
   let hi = (v == lo + d : [%v: int]) [@over] in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
     : [%v: int tree])
     [@under]

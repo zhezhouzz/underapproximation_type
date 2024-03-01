@@ -4,12 +4,12 @@ let[@library] cons =
   let h = (true : [%v: int]) [@over] in
   let s = (true : [%v: int]) [@over] in
   let _ =
-    (rng v s && fun (u : [%forall: int]) (w : [%forall: int]) ->
+    (rng v s && fun (u : int) (w : int) ->
      implies (mem v u) (h <= u) && implies (ord v u w) (u <= w)
       : [%v: int list])
       [@under]
   in
-  (fun (u : [%forall: int]) (w : [%forall: int]) ->
+  (fun (u : int) (w : int) ->
      implies (u == s + 1) (rng v u)
      && implies (mem v u) (h <= u)
      && implies (ord v u w) (u <= w)
@@ -22,7 +22,7 @@ let[@library] node =
   let root = (true : [%v: int]) [@over] in
   let range1 = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root - range1 < u && u < root)
        && sorted v && rng v range1
       : [%v: int tree])
@@ -30,13 +30,13 @@ let[@library] node =
   in
   let ranger = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root < u && u < root + ranger)
        && sorted v && rng v ranger
       : [%v: int tree])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (u == range1 + ranger) (rng v u)
      && implies (mem v u) (root - range1 < u && u < root + ranger)
      && sorted v
@@ -51,7 +51,7 @@ let[@library] snode =
   let root = (true : [%v: int]) [@over] in
   let range1 = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root - range1 < u && u < root)
        && sorted v && rng v range1
       : [%v: int set])
@@ -59,13 +59,13 @@ let[@library] snode =
   in
   let ranger = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root < u && u < root + ranger)
        && sorted v && rng v ranger
       : [%v: int set])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (u == range1 + ranger) (rng v u)
      && implies (mem v u) (root - range1 < u && u < root + ranger)
      && sorted v
@@ -80,7 +80,7 @@ let[@library] usnode =
   let root = (true : [%v: int]) [@over] in
   let range1 = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root - range1 < u && u < root)
        && sorted v && rng v range1
       : [%v: int unbset])
@@ -88,13 +88,13 @@ let[@library] usnode =
   in
   let ranger = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : [%forall: int]) ->
+    (fun (u : int) ->
        implies (mem v u) (root < u && u < root + ranger)
        && sorted v && rng v ranger
       : [%v: int unbset])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      implies (u == range1 + ranger) (rng v u)
      && implies (mem v u) (root - range1 < u && u < root + ranger)
      && sorted v

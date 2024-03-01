@@ -43,6 +43,11 @@ def show_refine(dir_str, verbose):
                         "{}/{}".format(dir_str, "_under.ml")]
     invoc_cmd(verbose, cmd, None)
 
+def show_source_new(filename, fm, verbose):
+    cmd = cmd_prefix + ["print-source-code", fm, meta_config_file,
+                        filename]
+    invoc_cmd(verbose, cmd, None)
+
 def show_source(dir_str, fm, verbose):
     cmd = cmd_prefix + ["print-source-code", fm, meta_config_file,
                         "{}/{}".format(dir_str, "prog.ml"),

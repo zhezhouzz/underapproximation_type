@@ -9,7 +9,7 @@ let[@library] stlc_ty_arr =
   let _ = (size v s1 : [%v: stlc_ty]) [@under] in
   let s2 = (v >= 0 : [%v: int]) [@over] in
   let _ = (size v s2 : [%v: stlc_ty]) [@under] in
-  (fun (u : [%forall: int]) -> implies (u == 1 + s1 + s2) (size v u)
+  (fun (u : int) -> implies (u == 1 + s1 + s2) (size v u)
     : [%v: stlc_ty])
     [@under]
 
@@ -20,7 +20,7 @@ let[@library] stlc_tyctx_cons =
   let _ = (true : [%v: stlc_ty]) [@under] in
   let s = (true : [%v: int]) [@over] in
   let _ = (false : [%v: stlc_tyctx]) [@under] in
-  (fun (u : [%forall: int]) -> implies (size v u) (u == s + 1)
+  (fun (u : int) -> implies (size v u) (u == s + 1)
     : [%v: stlc_tyctx])
     [@under]
 

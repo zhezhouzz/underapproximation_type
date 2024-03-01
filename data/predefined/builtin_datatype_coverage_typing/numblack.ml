@@ -16,7 +16,7 @@ let[@library] rbtnode =
       : [%v: int rbtree])
       [@under]
   in
-  (fun (u : [%forall: int]) ->
+  (fun (u : int) ->
      hdcolor v false && implies (u == sizel + 1) (numblack v u && noredred v)
     : [%v: int rbtree])
     [@under]

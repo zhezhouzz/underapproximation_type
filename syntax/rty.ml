@@ -4,7 +4,7 @@ open Cty
 
 type 't rty =
   | RtyBase of { ou : bool; cty : 't cty }
-  | RtyBaseArr of { argrty : 't rty; arg : (string[@bound]); retty : 't rty }
+  | RtyBaseArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
   | RtyTuple of 't rty list
 [@@deriving sexp]
@@ -13,14 +13,14 @@ type 't rty =
 let rec fv_rty (rty_e : 't rty) =
   match rty_e with
   | RtyBase { cty; _ } -> [] @ fv_cty cty
-  | RtyBaseArr { argrty; arg; retty } ->
+  | RtyBaseArr { argcty; arg; retty } ->
       let res = [] @ fv_rty retty in
       let res =
         List.filter_map
           (fun x -> if String.equal arg x.x then None else Some x)
           res
       in
-      res @ fv_rty argrty
+      res @ fv_cty argcty
   | RtyArrArr { argrty; retty } -> ([] @ fv_rty retty) @ fv_rty argrty
   | RtyTuple _trtylist0 -> [] @ List.concat (List.map fv_rty _trtylist0)
 
@@ -29,13 +29,13 @@ and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 let rec subst_rty (string_x : string) f (rty_e : 't rty) =
   match rty_e with
   | RtyBase { ou; cty } -> RtyBase { ou; cty = subst_cty string_x f cty }
-  | RtyBaseArr { argrty; arg; retty } ->
+  | RtyBaseArr { argcty; arg; retty } ->
       if String.equal arg string_x then
-        RtyBaseArr { argrty = subst_rty string_x f argrty; arg; retty }
+        RtyBaseArr { argcty = subst_cty string_x f argcty; arg; retty }
       else
         RtyBaseArr
           {
-            argrty = subst_rty string_x f argrty;
+            argcty = subst_cty string_x f argcty;
             arg;
             retty = subst_rty string_x f retty;
           }
@@ -53,8 +53,8 @@ and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
 let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   match rty_e with
   | RtyBase { ou; cty } -> RtyBase { ou; cty = map_cty f cty }
-  | RtyBaseArr { argrty; arg; retty } ->
-      RtyBaseArr { argrty = map_rty f argrty; arg; retty = map_rty f retty }
+  | RtyBaseArr { argcty; arg; retty } ->
+      RtyBaseArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
   | RtyArrArr { argrty; retty } ->
       RtyArrArr { argrty = map_rty f argrty; retty = map_rty f retty }
   | RtyTuple _trtylist0 -> RtyTuple (List.map (map_rty f) _trtylist0)

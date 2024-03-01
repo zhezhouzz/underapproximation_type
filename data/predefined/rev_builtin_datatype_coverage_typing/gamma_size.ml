@@ -3,9 +3,7 @@ let[@library] stlc_ty_nat = (ty_size v 0 : [%v: stlc_ty]) [@under]
 
 let[@library] stlc_ty_arr =
   let a =
-    (fun (u : [%forall: int]) -> implies (ty_size v u) (u > 0)
-      : [%v: stlc_ty])
-      [@over]
+    (fun (u : int) -> implies (ty_size v u) (u > 0) : [%v: stlc_ty]) [@over]
   in
   ( (is_ty_pre a v : [%v: stlc_ty]) [@under],
     (is_ty_post a v : [%v: stlc_ty]) [@under] )
@@ -14,7 +12,7 @@ let[@library] stlc_tyctx_nil = (gamma_size v 0 : [%v: stlc_tyctx]) [@under]
 
 let[@library] stlc_tyctx_cons =
   let a =
-    (fun (u : [%forall: int]) -> implies (gamma_size v u) (u > 0)
+    (fun (u : int) -> implies (gamma_size v u) (u > 0)
       : [%v: stlc_tyctx])
       [@over]
   in

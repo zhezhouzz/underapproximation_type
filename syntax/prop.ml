@@ -93,3 +93,7 @@ let subst_prop_instance x instance e =
 let typed_subst_prop_instance x instance e =
   subst_f_to_instance typed_subst_prop x instance e
 (* Generated from _prop.ml *)
+
+(* force *)
+let prop_force_typed_lit_opt prop =
+  match prop with Lit lit -> Some lit | _ -> None

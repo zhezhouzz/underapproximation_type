@@ -1,12 +1,15 @@
 (library
  (name commands)
- (libraries core core_unix.sys_unix frontendu translate typecheck env driver qcheck
+ (libraries core core_unix.sys_unix
+            ; frontendu translate typecheck env driver qcheck
+            frontendz syntax
             ; inference
  )
  (modules
    caux
-   ctest
-   cgen
+   ; ctest
+   ; cgen
+   cre
  )
  (preprocess (pps ppx_inline_test ppx_assert ppx_jane))
  (inline_tests)

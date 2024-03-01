@@ -15,7 +15,7 @@ let[@library] gen_const =
 let[@library] combine_terms =
   let gamma = (true : [%v: stlc_tyctx]) [@over] in
   let tau = (true : [%v: stlc_ty]) [@over] in
-  let a =
+  let[@assert] a =
     (typing gamma v tau && (is_const v || is_abs v) : [%v: stlc_term]) [@over]
   in
   let b = (typing gamma v tau && not (no_app v) : [%v: stlc_term]) [@over] in
@@ -26,7 +26,7 @@ let[@library] gen_term_no_app =
   let gamma = (true : [%v: stlc_tyctx]) [@over] in
   (typing gamma v tau && no_app v : [%v: stlc_term]) [@under]
 
-let gen_term_size =
+let[@assert] gen_term_size =
   let dec = (v >= 0 : [%v: int]) [@over] in
   let num_app = (v >= 0 : [%v: int]) [@over] in
   let tau = (dec_pair v dec num_app : [%v: stlc_ty]) [@over] in

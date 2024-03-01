@@ -17,8 +17,8 @@ external method_predicates : t = "len" "<="
 
 let[@library] n = (true : [%v: int]) [@under]
 
-let goal =
+let[@assert] goal =
   let size = (0 <= v : [%v: int]) [@over] in
-  (fun (u : [%forall: int]) -> implies (len v u) (0 <= u && u <= size)
+  (fun (u : int) -> implies (len v u) (0 <= u && u <= size)
     : [%v: int list])
     [@under]

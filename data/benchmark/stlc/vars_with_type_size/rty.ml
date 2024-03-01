@@ -1,4 +1,4 @@
-let vars_with_type_size =
+let[@assert] vars_with_type_size =
   let s = (v >= 0 : [%v: int]) [@over] in
   let gamma = (gamma_size v s : [%v: stlc_tyctx]) [@over] in
   let offset = (v >= 0 : [%v: int]) [@over] in

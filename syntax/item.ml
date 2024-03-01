@@ -2,40 +2,53 @@ open Sexplib.Std
 open Mtyped
 open Raw_term
 open Term
+open Rty
+open Prop
+open Constructor_declaration
 
 type 't item =
-  | MSignat of {
-      type_decl_map : ('t, string) typed list;
-      func_type_map : ('t, string) typed list;
+  | MTyDecl of {
+      type_name : string;
+      type_params : string list;
+      type_decls : constructor_declaration list;
     }
-  | MstructRaw of {
+  | MValDecl of ('t, string) typed
+  | MMethodPred of ('t, string) typed
+  | MAxiom of { name : string; prop : 't prop }
+  | MFuncImpRaw of {
       name : string;
       if_rec : bool;
       body : ('t, 't raw_term) typed;
     }
-  | Mstruct of { name : string; if_rec : bool; body : ('t, 't term) typed }
+  | MFuncImp of { name : string; if_rec : bool; body : ('t, 't term) typed }
+  | MRty of { is_assumption : bool; name : string; rty : 't rty }
 [@@deriving sexp]
 
 let rec fv_item (item_e : 't item) =
   match item_e with
-  | MSignat _ -> []
-  | MstructRaw { body; _ } -> [] @ typed_fv_raw_term body
-  | Mstruct { body; _ } -> [] @ typed_fv_term body
+  | MTyDecl _ -> []
+  | MValDecl _ -> []
+  | MMethodPred _ -> []
+  | MAxiom { prop; _ } -> [] @ fv_prop prop
+  | MFuncImpRaw { body; _ } -> [] @ typed_fv_raw_term body
+  | MFuncImp { body; _ } -> [] @ typed_fv_term body
+  | MRty { rty; _ } -> [] @ fv_rty rty
 
 and typed_fv_item (item_e : ('t, 't item) typed) = fv_item item_e.x
 
 let rec map_item (f : 't -> 's) (item_e : 't item) =
   match item_e with
-  | MSignat { type_decl_map; func_type_map } ->
-      MSignat
-        {
-          type_decl_map = List.map (fun x -> x #=> f) type_decl_map;
-          func_type_map = List.map (fun x -> x #=> f) func_type_map;
-        }
-  | MstructRaw { name; if_rec; body } ->
-      MstructRaw { name; if_rec; body = typed_map_raw_term f body }
-  | Mstruct { name; if_rec; body } ->
-      Mstruct { name; if_rec; body = typed_map_term f body }
+  | MTyDecl { type_name; type_params; type_decls } ->
+      MTyDecl { type_name; type_params; type_decls }
+  | MValDecl _t_stringtyped0 -> MValDecl _t_stringtyped0 #=> f
+  | MMethodPred _t_stringtyped0 -> MMethodPred _t_stringtyped0 #=> f
+  | MAxiom { name; prop } -> MAxiom { name; prop = map_prop f prop }
+  | MFuncImpRaw { name; if_rec; body } ->
+      MFuncImpRaw { name; if_rec; body = typed_map_raw_term f body }
+  | MFuncImp { name; if_rec; body } ->
+      MFuncImp { name; if_rec; body = typed_map_term f body }
+  | MRty { is_assumption; name; rty } ->
+      MRty { is_assumption; name; rty = map_rty f rty }
 
 and typed_map_item (f : 't -> 's) (item_e : ('t, 't item) typed) =
   item_e #-> (map_item f)
