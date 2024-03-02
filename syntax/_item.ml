@@ -16,10 +16,14 @@ type 't item =
   | MMethodPred of ('t, string) typed
   | MAxiom of { name : string; prop : 't prop }
   | MFuncImpRaw of {
-      name : string;
+      name : ('t, string) typed;
       if_rec : bool;
       body : ('t, 't raw_term) typed;
     }
-  | MFuncImp of { name : string; if_rec : bool; body : ('t, 't term) typed }
+  | MFuncImp of {
+      name : ('t, string) typed;
+      if_rec : bool;
+      body : ('t, 't term) typed;
+    }
   | MRty of { is_assumption : bool; name : string; rty : 't rty }
 [@@deriving sexp]

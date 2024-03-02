@@ -30,7 +30,7 @@ let rec map_cty (f : 't -> 's) (cty_e : 't cty) =
   match cty_e with Cty { nty; phi } -> Cty { nty; phi = map_prop f phi }
 
 and typed_map_cty (f : 't -> 's) (cty_e : ('t, 't cty) typed) =
-  cty_e #-> (map_cty f)
+  cty_e #=> f #-> (map_cty f)
 
 let fv_cty_id e = fv_typed_id_to_id fv_cty e
 let typed_fv_cty_id e = fv_typed_id_to_id typed_fv_cty e
@@ -39,3 +39,5 @@ let subst_cty_instance x instance e = subst_f_to_instance subst_cty x instance e
 let typed_subst_cty_instance x instance e =
   subst_f_to_instance typed_subst_cty x instance e
 (* Generated from _cty.ml *)
+
+let erase_cty = function Cty { nty; _ } -> nty

@@ -49,11 +49,14 @@ let ocaml_structure_to_item structure =
                 "syntax error: non known rty kind, not axiom | assert | library"
           )
       | [] ->
+          let body = typed_raw_term_of_expr value_binding.pvb_expr in
           MFuncImpRaw
             {
-              name;
+              name =
+                name
+                #: (Some (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body.x));
               if_rec = get_if_rec flag;
-              body = typed_raw_term_of_expr value_binding.pvb_expr;
+              body;
             }
       | _ -> _failatwith __FILE__ __LINE__ "wrong syntax")
   | _ -> _failatwith __FILE__ __LINE__ "translate not a func_decl"
@@ -71,10 +74,10 @@ let layout_item = function
   | MFuncImpRaw { name; if_rec; body } ->
       spf "let %s%s = %s"
         (if if_rec then "rec " else "")
-        name
+        name.x
         (layout_typed_raw_term body)
   | MFuncImp { name; if_rec; _ } ->
-      spf "let %s%s = %s" (if if_rec then "rec " else "") name "??"
+      spf "let %s%s = %s" (if if_rec then "rec " else "") name.x "??"
   | MRty { is_assumption = false; name; rty } ->
       spf "let[@assert] %s = %s" name (layout_rty rty)
   | MRty { is_assumption = true; name; rty } ->

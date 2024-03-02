@@ -40,19 +40,21 @@ let rec subst_lit (string_x : string) f (lit_e : 't lit) =
 and typed_subst_lit (string_x : string) f (lit_e : ('t, 't lit) typed) =
   lit_e #-> (subst_lit string_x f)
 
-let rec map_lit (f : 't -> 's) (lit_e : 't lit) =
+let rec map_lit : 't 's. ('t -> 's) -> 't lit -> 's lit =
+ fun f lit_e ->
   match lit_e with
   | AC constant0 -> AC constant0
   | AVar _t_stringtyped0 -> AVar _t_stringtyped0 #=> f
   | ATu _t__tlittypedlist0 ->
-      ATu (List.map (typed_map_lit f) _t__tlittypedlist0)
+      ATu (List.map (fun e -> typed_map_lit f e) _t__tlittypedlist0)
   | AProj (_t__tlittyped0, int1) -> AProj (typed_map_lit f _t__tlittyped0, int1)
   | AAppOp (_t_stringtyped0, _t__tlittypedlist1) ->
       AAppOp
         (_t_stringtyped0 #=> f, List.map (typed_map_lit f) _t__tlittypedlist1)
 
-and typed_map_lit (f : 't -> 's) (lit_e : ('t, 't lit) typed) =
-  lit_e #-> (map_lit f)
+and typed_map_lit :
+      't 's. ('t -> 's) -> ('t, 't lit) typed -> ('s, 's lit) typed =
+ fun f lit_e -> lit_e #=> f #-> (map_lit f)
 
 let fv_lit_id e = fv_typed_id_to_id fv_lit e
 let typed_fv_lit_id e = fv_typed_id_to_id typed_fv_lit e

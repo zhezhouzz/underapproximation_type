@@ -140,7 +140,8 @@ and typed_subst_raw_match_case (string_x : string) f
     (raw_match_case_e : ('t, 't raw_match_case) typed) =
   raw_match_case_e #-> (subst_raw_match_case string_x f)
 
-let rec map_raw_term (f : 't -> 's) (raw_term_e : 't raw_term) =
+let rec map_raw_term : 't 's. ('t -> 's) -> 't raw_term -> 's raw_term =
+ fun f raw_term_e ->
   match raw_term_e with
   | Var _t_stringtyped0 -> Var _t_stringtyped0 #=> f
   | Const constant0 -> Const constant0
@@ -161,7 +162,8 @@ let rec map_raw_term (f : 't -> 's) (raw_term_e : 't raw_term) =
           List.map (typed_map_raw_term f) _t__traw_termtypedlist1 )
   | AppOp (_t_optyped0, _t__traw_termtypedlist1) ->
       AppOp
-        (_t_optyped0, List.map (typed_map_raw_term f) _t__traw_termtypedlist1)
+        ( _t_optyped0 #=> f,
+          List.map (typed_map_raw_term f) _t__traw_termtypedlist1 )
   | Ite (_t__traw_termtyped0, _t__traw_termtyped1, _t__traw_termtyped2) ->
       Ite
         ( typed_map_raw_term f _t__traw_termtyped0,
@@ -176,8 +178,10 @@ let rec map_raw_term (f : 't -> 's) (raw_term_e : 't raw_term) =
           match_cases = List.map (map_raw_match_case f) match_cases;
         }
 
-and typed_map_raw_term (f : 't -> 's) (raw_term_e : ('t, 't raw_term) typed) =
-  raw_term_e #-> (map_raw_term f)
+and typed_map_raw_term :
+      't 's. ('t -> 's) -> ('t, 't raw_term) typed -> ('s, 's raw_term) typed =
+ fun (f : 't -> 's) (raw_term_e : ('t, 't raw_term) typed) ->
+  raw_term_e #=> f #-> (map_raw_term f)
 
 and map_raw_match_case (f : 't -> 's) (raw_match_case_e : 't raw_match_case) =
   match raw_match_case_e with
@@ -209,4 +213,18 @@ let subst_raw_match_case_instance x instance e =
 
 let typed_subst_raw_match_case_instance x instance e =
   subst_f_to_instance typed_subst_raw_match_case x instance e
+
 (* Generated from _raw_term.ml *)
+open Sugar
+
+let rec __get_lam_term_ty file line = function
+  | Lam { lamarg; lambody } -> (
+      let t1 =
+        match lamarg.ty with
+        | Some t1 -> t1
+        | None -> _failatwith file line "__get_lam_term_ty"
+      in
+      match lambody.ty with
+      | Some t2 -> Nt.mk_arr t1 t2
+      | None -> Nt.mk_arr t1 (__get_lam_term_ty file line lambody.x))
+  | _ -> _failatwith file line "__get_lam_term_ty"

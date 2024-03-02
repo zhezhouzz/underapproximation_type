@@ -1,0 +1,15 @@
+(library
+ (name preprocessing)
+ (wrapped true)
+ (libraries syntax frontendz languagez)
+ (modules
+   normal_constant_typing
+   normal_id_typing
+   normal_op_typing
+   normal_term_typing
+   normal_lit_typing
+   normal_prop_typing
+   normal_cty_typing
+   normal_rty_typing
+   normal_item_typing
+))

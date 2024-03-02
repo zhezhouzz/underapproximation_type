@@ -16,11 +16,15 @@ type 't item =
   | MMethodPred of ('t, string) typed
   | MAxiom of { name : string; prop : 't prop }
   | MFuncImpRaw of {
-      name : string;
+      name : ('t, string) typed;
       if_rec : bool;
       body : ('t, 't raw_term) typed;
     }
-  | MFuncImp of { name : string; if_rec : bool; body : ('t, 't term) typed }
+  | MFuncImp of {
+      name : ('t, string) typed;
+      if_rec : bool;
+      body : ('t, 't term) typed;
+    }
   | MRty of { is_assumption : bool; name : string; rty : 't rty }
 [@@deriving sexp]
 
@@ -44,14 +48,15 @@ let rec map_item (f : 't -> 's) (item_e : 't item) =
   | MMethodPred _t_stringtyped0 -> MMethodPred _t_stringtyped0 #=> f
   | MAxiom { name; prop } -> MAxiom { name; prop = map_prop f prop }
   | MFuncImpRaw { name; if_rec; body } ->
-      MFuncImpRaw { name; if_rec; body = typed_map_raw_term f body }
+      MFuncImpRaw
+        { name = name #=> f; if_rec; body = typed_map_raw_term f body }
   | MFuncImp { name; if_rec; body } ->
-      MFuncImp { name; if_rec; body = typed_map_term f body }
+      MFuncImp { name = name #=> f; if_rec; body = typed_map_term f body }
   | MRty { is_assumption; name; rty } ->
       MRty { is_assumption; name; rty = map_rty f rty }
 
 and typed_map_item (f : 't -> 's) (item_e : ('t, 't item) typed) =
-  item_e #-> (map_item f)
+  item_e #=> f #-> (map_item f)
 
 let fv_item_id e = fv_typed_id_to_id fv_item e
 let typed_fv_item_id e = fv_typed_id_to_id typed_fv_item e

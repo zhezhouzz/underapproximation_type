@@ -4,10 +4,13 @@ open Constant
 open Op
 
 type 't value =
-  | Const of constant
-  | Var of (('t, string) typed[@free])
-  | Lam of { lamarg : (('t, string) typed[@bound]); body : ('t, 't term) typed }
-  | Fix of {
+  | VConst of constant
+  | VVar of (('t, string) typed[@free])
+  | VLam of {
+      lamarg : (('t, string) typed[@bound]);
+      body : ('t, 't term) typed;
+    }
+  | VFix of {
       fixname : (('t, string) typed[@bound]);
       fixarg : (('t, string) typed[@bound]);
       body : ('t, 't term) typed;
@@ -15,9 +18,9 @@ type 't value =
   | VTu of ('t, 't value) typed list
 
 and 't term =
-  | Err
+  | CErr
   | CVal of ('t, 't value) typed
-  | LetE of {
+  | CLetE of {
       rhs : ('t, 't term) typed;
       lhs : (('t, string) typed[@bound]);
       body : ('t, 't term) typed;
@@ -30,13 +33,13 @@ and 't term =
   | CApp of { appf : ('t, 't value) typed; apparg : ('t, 't value) typed }
   | CAppOp of { op : ('t, op) typed; appopargs : ('t, 't value) typed list }
   (* branches, we will copy the continuations for branches *)
-  | Match of {
+  | CMatch of {
       matched : ('t, 't value) typed;
       match_cases : 't match_case list;
     }
 
 and 't match_case =
-  | Matchcase of {
+  | CMatchcase of {
       constructor : ('t, string) typed;
       args : (('t, string) typed list[@bound]);
       exp : ('t, 't term) typed;

@@ -60,7 +60,7 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   | RtyTuple _trtylist0 -> RtyTuple (List.map (map_rty f) _trtylist0)
 
 and typed_map_rty (f : 't -> 's) (rty_e : ('t, 't rty) typed) =
-  rty_e #-> (map_rty f)
+  rty_e #=> f #-> (map_rty f)
 
 let fv_rty_id e = fv_typed_id_to_id fv_rty e
 let typed_fv_rty_id e = fv_typed_id_to_id typed_fv_rty e
@@ -69,3 +69,11 @@ let subst_rty_instance x instance e = subst_f_to_instance subst_rty x instance e
 let typed_subst_rty_instance x instance e =
   subst_f_to_instance typed_subst_rty x instance e
 (* Generated from _rty.ml *)
+
+let rec erase_rty = function
+  | RtyBase { cty; _ } -> erase_cty cty
+  | RtyBaseArr { argcty; arg; retty } ->
+      Nt.mk_arr (erase_cty argcty) (erase_rty retty)
+  | RtyArrArr { argrty; retty } ->
+      Nt.mk_arr (erase_rty argrty) (erase_rty retty)
+  | RtyTuple _trtylist0 -> Nt.mk_tuple (List.map erase_rty _trtylist0)

@@ -82,7 +82,7 @@ let rec map_prop (f : 't -> 's) (prop_e : 't prop) =
   | Exists { qv; body } -> Exists { qv = qv #=> f; body = map_prop f body }
 
 and typed_map_prop (f : 't -> 's) (prop_e : ('t, 't prop) typed) =
-  prop_e #-> (map_prop f)
+  prop_e #=> f #-> (map_prop f)
 
 let fv_prop_id e = fv_typed_id_to_id fv_prop e
 let typed_fv_prop_id e = fv_typed_id_to_id typed_fv_prop e
