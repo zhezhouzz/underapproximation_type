@@ -10,7 +10,7 @@ type t = Nt.t
 let constructor_declaration_mk_ (retty, { constr_name; argsty }) =
   constr_name #: (Nt.construct_arr_tp (argsty, retty))
 
-let item_mk_ctx ctx (e : t option item) =
+let item_mk_ctx (e : t option item) =
   match e with
   | MTyDecl { type_name; type_params; type_decls } ->
       let retty =
@@ -20,15 +20,12 @@ let item_mk_ctx ctx (e : t option item) =
       let xs =
         List.map (fun c -> constructor_declaration_mk_ (retty, c)) type_decls
       in
-      add_to_rights ctx xs
-  | MValDecl x -> add_to_right ctx (__force_typed __FILE__ __LINE__ x)
-  | MMethodPred mp -> add_to_right ctx (__force_typed __FILE__ __LINE__ mp)
-  | MAxiom _ -> ctx
-  | MRty _ -> ctx
-  | MFuncImpRaw { name; _ } ->
-      add_to_right ctx (__force_typed __FILE__ __LINE__ name)
-  | MFuncImp { name; _ } ->
-      add_to_right ctx (__force_typed __FILE__ __LINE__ name)
+      xs
+  | MValDecl x -> [ __force_typed __FILE__ __LINE__ x ]
+  | MMethodPred mp -> [ __force_typed __FILE__ __LINE__ mp ]
+  | MAxiom _ -> []
+  | MRty _ -> []
+  | MFuncImpRaw _ | MFuncImp _ -> _failatwith __FILE__ __LINE__ "not predefine"
 
 let item_check ctx (e : t option item) : t ctx * t item =
   match e with
@@ -65,6 +62,9 @@ let item_check ctx (e : t option item) : t ctx * t item =
       let body = bi_typed_term_check ctx' body name.ty in
       (ctx', MFuncImpRaw { name; if_rec = false; body })
   | MFuncImp _ -> _failatwith __FILE__ __LINE__ "die"
+
+let struct_mk_ctx ctx l =
+  add_to_rights ctx @@ List.concat @@ List.map item_mk_ctx l
 
 let struct_check ctx l =
   List.fold_left

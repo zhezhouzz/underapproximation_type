@@ -2,7 +2,7 @@
  (name commands)
  (libraries core core_unix.sys_unix
             ; frontendu translate typecheck env driver qcheck
-            frontendz syntax
+            frontendz syntax preprocessing translatez
             ; inference
  )
  (modules

@@ -255,4 +255,39 @@ let subst_match_case_instance x instance e =
 
 let typed_subst_match_case_instance x instance e =
   subst_f_to_instance typed_subst_match_case x instance e
+
 (* Generated from _term.ml *)
+open Sugar
+
+let value_to_term v = (CVal v) #: v.ty
+
+let term_to_value e =
+  match e.x with
+  | CVal v -> v.x #: e.ty
+  | _ -> _failatwith __FILE__ __LINE__ "die"
+
+let id_to_value v = (VVar v) #: v.ty
+let id_to_term v = value_to_term @@ id_to_value v
+
+let mk_lam lamarg body =
+  (VLam { lamarg; body }) #: (Nt.mk_arr lamarg.ty body.ty)
+
+let mk_id_function ty =
+  let lamarg = "x" #: ty in
+  (VLam { lamarg; body = id_to_term lamarg }) #: (Nt.mk_arr ty ty)
+
+let mk_fix fixname fixarg body = (VFix { fixname; fixarg; body }) #: fixname.ty
+
+let lam_to_fix fixname body =
+  match body.x with
+  | VLam { lamarg; body } -> mk_fix fixname lamarg body
+  | _ -> _failatwith __FILE__ __LINE__ ""
+
+let lam_to_fix_comp fixname body =
+  value_to_term (lam_to_fix fixname (term_to_value body))
+
+let mk_lete lhs rhs body = (CLetE { lhs; rhs; body }) #: body.ty
+let mk_app appf apparg = (CApp { appf; apparg }) #: (Nt.get_retty appf.ty)
+
+let mk_appop op appopargs =
+  (CAppOp { op; appopargs }) #: (snd @@ Nt.destruct_arr_tp op.ty)

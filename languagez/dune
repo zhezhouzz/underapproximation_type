@@ -5,5 +5,5 @@
    languagez
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
-  (libraries syntax frontendz language_utils)
+  (libraries syntax frontendz language_utils translatez)
 )

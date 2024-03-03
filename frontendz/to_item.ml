@@ -11,7 +11,7 @@ open To_prop
 open To_id
 open Sugar
 
-let ocaml_structure_to_item structure =
+let ocaml_structure_item_to_item structure =
   match structure.pstr_desc with
   | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } -> (
       if String.equal pval_name.txt "method_predicates" then
@@ -60,6 +60,9 @@ let ocaml_structure_to_item structure =
             }
       | _ -> _failatwith __FILE__ __LINE__ "wrong syntax")
   | _ -> _failatwith __FILE__ __LINE__ "translate not a func_decl"
+
+let ocaml_structure_to_items structure =
+  List.map ocaml_structure_item_to_item structure
 
 let layout_ct_opt = function
   | Some ct -> Nt.layout ct

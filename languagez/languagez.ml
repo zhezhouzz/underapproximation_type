@@ -25,35 +25,54 @@ module FrontendRaw = struct
   let layout_typed_raw_term = To_raw_term.layout_typed_raw_term
   let layout_item = To_item.layout_item
   let layout_structure = To_item.layout_structure
+
+  (* let layout_typed_term e = *)
+  (*   let e = Anf_to_raw_term.denormalize_term e in *)
+  (*   let e = (map_raw_term (fun t -> Some t) e.x) #: (Some e.ty) in *)
+  (*   To_raw_term.layout_typed_raw_term e *)
+
+  (* let layout_item item = *)
+  (*   layout_item *)
+  (*   @@ map_item (fun t -> Some t) *)
+  (*   @@ Anf_to_raw_term.denormalize_item item *)
+
+  (* let layout_structure s = *)
+  (*   layout_structure *)
+  (*   @@ List.map (map_item (fun t -> Some t)) *)
+  (*   @@ Anf_to_raw_term.denormalize_structure s *)
 end
 
 module FrontendTyped = struct
-  open Sugar
-
-  let force = function
-    | None -> _failatwith __FILE__ __LINE__ "die"
-    | Some x -> x
-
+  let some ty = Some ty
   let layout_constant = To_constant.layout_constant
   let layout_constants = To_constant.layout_constants
   let layout_op = To_op.layout_op
 
   let layout_typed_lit e =
-    To_lit.layout_typed_lit e #-> force #=> (map_lit force)
+    To_lit.layout_typed_lit (map_lit some e.x) #: (some e.ty)
 
-  let layout_lit e = To_lit.layout @@ map_lit force e
-  let layout_prop prop = To_prop.layout_prop @@ map_prop force prop
-  let layout_cty cty = To_cty.layout_cty @@ map_cty force cty
-  let layout_rty rty = To_rty.layout_rty @@ map_rty force rty
-  let layout_raw_term e = To_raw_term.layout_raw_term @@ map_raw_term force e
+  let layout_lit e = To_lit.layout @@ map_lit some e
+  let layout_prop prop = To_prop.layout_prop @@ map_prop some prop
+  let layout_cty cty = To_cty.layout_cty @@ map_cty some cty
+  let layout_rty rty = To_rty.layout_rty @@ map_rty some rty
+  let layout_raw_term e = To_raw_term.layout_raw_term @@ map_raw_term some e
 
   let layout_typed_raw_term e =
-    To_raw_term.layout_typed_raw_term e #-> force #=> (map_term force)
+    To_raw_term.layout_typed_raw_term (map_raw_term some e.x) #: (some e.ty)
 
-  let layout_item item = To_item.layout_item @@ map_item force item
+  let layout_item item = To_item.layout_item @@ map_item some item
 
   let layout_structure s =
-    To_item.layout_structure @@ List.map (map_item force) s
+    To_item.layout_structure @@ List.map (map_item some) s
+
+  let layout_typed_term e =
+    let e = Anf_to_raw_term.denormalize_term e in
+    layout_typed_raw_term e
+
+  let layout_item item = layout_item @@ Anf_to_raw_term.denormalize_item item
+
+  let layout_structure s =
+    layout_structure @@ Anf_to_raw_term.denormalize_structure s
 end
 
 (* module Typedec = struct *)

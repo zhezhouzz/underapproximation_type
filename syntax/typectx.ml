@@ -14,6 +14,8 @@ and typed_map_ctx (f : 't -> 's) (ctx_e : ('t, 't ctx) typed) =
 (* Generated from _typectx.ml *)
 open Sugar
 
+let emp = Typectx []
+
 let get_opt ctx name =
   match ctx with
   | Typectx l ->

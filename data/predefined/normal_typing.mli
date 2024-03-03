@@ -11,9 +11,11 @@ val cons : 'a -> 'a list -> 'a list
 val tt : unit
 val unil : 'a ulist
 val ucons : 'a -> 'a ulist -> 'a ulist
-(* val _ret_two_value : int -> int *)
-(* val int_range : int -> int -> int *)
-(* val int_range_inc : int -> int -> int *)
-(* val int_gen : unit -> int *)
-(* val nat_gen : unit -> int *)
-(* val bool_gen : unit -> bool *)
+val ( == ) : 'a -> 'a -> bool
+val ( != ) : 'a -> 'a -> bool
+val ( < ) : int -> int -> bool
+val ( <= ) : int -> int -> bool
+val ( > ) : int -> int -> bool
+val ( >= ) : int -> int -> bool
+val ( + ) : int -> int -> int
+val ( - ) : int -> int -> int
