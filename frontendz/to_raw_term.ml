@@ -134,7 +134,7 @@ let typed_raw_term_of_expr expr =
     match expr.pexp_desc with
     | Pexp_tuple es -> (Tu (List.map aux es)) #: None
     | Pexp_constraint (expr, ty) ->
-        let () = Printf.printf "%s\n" (layout_ct ty) in
+        (* let () = Printf.printf "%s\n" (layout_ct ty) in *)
         update_ty (aux expr) (Nt.core_type_to_t ty)
     | Pexp_ident id -> (Var (longid_to_id id) #: None) #: None
     | Pexp_construct (c, args) -> (

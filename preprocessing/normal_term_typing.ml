@@ -32,6 +32,7 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
       let es = List.map (fun (e, ty) -> bi_typed_term_check ctx e ty) estys in
       (Tu es) #: ty
   | Lam { lamarg; lambody }, Ty_arrow (t1, _) ->
+      (* let _ = Printf.printf "lamarg: %s\n" lamarg.x in *)
       let lamarg = bi_typed_id_check ctx lamarg t1 in
       let ty =
         Nt._type_unify __FILE__ __LINE__ (Ty_arrow (lamarg.ty, Ty_unknown)) ty
@@ -44,9 +45,8 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
       let op' = bi_typed_op_infer ctx op in
       let args' = List.map (bi_typed_term_infer ctx) args in
       let fty =
-        Nt._type_unify __FILE__ __LINE__
+        Nt._type_unify __FILE__ __LINE__ op'.ty
           (Nt.construct_arr_tp (List.map _get_ty args', ty))
-          op'.ty
       in
       let argsty, _ = Nt.destruct_arr_tp fty in
       let args =
@@ -126,6 +126,7 @@ and bi_term_infer (ctx : t ctx) (x : t option raw_term) : (t, t raw_term) typed
         "Cannot infer the type of the exception, should provide the return type"
   | Const c -> (Const c) #: (Normal_constant_typing.infer_constant c)
   | Var id ->
+      (* let _ = Printf.printf "id: %s\n" id.x in *)
       let id = bi_typed_id_infer ctx id in
       (Var id) #: id.ty
   | Tu es ->

@@ -205,7 +205,11 @@ let prop_of_expr expr =
         | "||", [ a; b ] -> Or [ aux a; aux b ]
         | "||", _ -> failwith "parsing: prop wrong or"
         | "=", _ -> failwith "please use == instead of ="
-        | _, _ -> Lit (typed_lit_of_expr expr))
+        | _, _ ->
+            if List.length args > 0 && not (To_op.is_builtin_op f.x) then
+              let args = List.map typed_lit_of_expr args in
+              MethodPred { mpred = f.x; args }
+            else Lit (typed_lit_of_expr expr))
     | Pexp_ifthenelse (e1, e2, Some e3) -> Ite (aux e1, aux e2, aux e3)
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_fun (_, _, arg, expr) -> (

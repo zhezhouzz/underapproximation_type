@@ -11,8 +11,10 @@ open To_id
 open Sugar
 
 let rec layout_rty = function
-  | RtyBase { ou = true; cty } -> spf "{%s}" (layout_cty cty)
-  | RtyBase { ou = false; cty } -> spf "[%s]" (layout_cty cty)
+  | RtyBase { ou; cty } -> (
+      match ou_to_qt ou with
+      | Normalty.Connective.Fa -> spf "{%s}" (layout_cty cty)
+      | Normalty.Connective.Ex -> spf "[%s]" (layout_cty cty))
   | RtyBaseArr { argcty; arg; retty } ->
       spf "(%s:%s) → %s" arg (layout_cty argcty) (layout_rty retty)
   | RtyArrArr { argrty; retty } ->

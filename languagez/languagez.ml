@@ -73,6 +73,123 @@ module FrontendTyped = struct
 
   let layout_structure s =
     layout_structure @@ Anf_to_raw_term.denormalize_structure s
+
+  (* Lit *)
+
+  let mk_typed_lit_by_id id = (AVar id) #: id.ty
+  let mk_typed_lit_by_const c = (AC c.x) #: c.ty
+
+  let mk_lit_eq nty (lit1, lit2) =
+    let op = "==" #: (Nt.construct_arr_tp ([ nty; nty ], Nt.bool_ty)) in
+    AAppOp (op, [ lit1; lit2 ])
+
+  (* Prop *)
+  let get_cbool prop =
+    match prop with Lit { x = AC (Constant.B b); _ } -> Some b | _ -> None
+
+  let mk_true = Lit (AC (B true)) #: Nt.bool_ty
+  let mk_false = Lit (AC (B false)) #: Nt.bool_ty
+  let is_true p = match get_cbool p with Some true -> true | _ -> false
+  let is_false p = match get_cbool p with Some false -> true | _ -> false
+
+  let smart_and l =
+    if List.exists is_false l then mk_false
+    else
+      match List.filter (fun p -> not (is_true p)) l with
+      | [] -> mk_true
+      | [ x ] -> x
+      | l -> And l
+
+  let smart_or l =
+    if List.exists is_true l then mk_true
+    else
+      match List.filter (fun p -> not (is_false p)) l with
+      | [] -> mk_false
+      | [ x ] -> x
+      | l -> Or l
+
+  let smart_add_to a prop =
+    match get_cbool a with
+    | Some true -> prop
+    | Some false -> mk_false
+    | None -> (
+        match prop with
+        | And props -> smart_and (a :: props)
+        | _ -> smart_and [ a; prop ])
+
+  let smart_implies a prop =
+    match get_cbool a with
+    | Some true -> prop
+    | Some false -> mk_true
+    | None -> Implies (a, prop)
+
+  let smart_sigma (qv, xprop) prop =
+    match qv.ty with
+    | Nt.Ty_unit -> smart_add_to xprop prop
+    | _ -> Exists { qv; body = smart_add_to xprop prop }
+
+  let smart_pi (qv, xprop) prop =
+    match qv.ty with
+    | Nt.Ty_unit -> smart_add_to xprop prop
+    | _ -> Forall { qv; body = smart_add_to xprop prop }
+
+  let mk_prop_var_eq_c nty (id, c) =
+    let lit =
+      mk_lit_eq nty
+        (mk_typed_lit_by_id id #: nty, mk_typed_lit_by_const c #: nty)
+    in
+    Lit lit #: nty
+
+  let mk_prop_var_eq_var nty (id, id') =
+    let lit =
+      mk_lit_eq nty (mk_typed_lit_by_id id #: nty, mk_typed_lit_by_id id' #: nty)
+    in
+    Lit lit #: nty
+
+  (* Cty *)
+  let prop_to_cty nty prop = Cty { nty; phi = prop }
+  let prop_to_rty ou nty prop = RtyBase { ou; cty = prop_to_cty nty prop }
+
+  let mk_cty_var_eq_c nty (id, c) =
+    Cty { nty; phi = mk_prop_var_eq_c nty (id, c) }
+
+  let mk_rty_var_eq_c nty (id, c) =
+    RtyBase { ou = false; cty = mk_cty_var_eq_c nty (id, c) }
+
+  let mk_cty_var_eq_var nty (id, c) =
+    Cty { nty; phi = mk_prop_var_eq_var nty (id, c) }
+
+  let mk_rty_var_eq_var nty (id, c) =
+    RtyBase { ou = false; cty = mk_cty_var_eq_var nty (id, c) }
+
+  (* Rty *)
+
+  let map_in_retrty (f : 't rty -> 't rty) t =
+    let rec aux t =
+      match t with
+      | RtyBase _ -> f t
+      | RtyTuple ts -> RtyTuple (List.map aux ts)
+      | RtyBaseArr { argcty; arg; retty } ->
+          RtyBaseArr { argcty; arg; retty = aux retty }
+      | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    in
+    aux t
+
+  let map_base_in_retrty (f : 't cty -> 't cty) t =
+    let rec aux t =
+      match t with
+      | RtyBase { ou; cty } -> RtyBase { ou; cty = f cty }
+      | RtyTuple ts -> RtyTuple (List.map aux ts)
+      | RtyBaseArr { argcty; arg; retty } ->
+          RtyBaseArr { argcty; arg; retty = aux retty }
+      | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    in
+    aux t
+
+  let map_prop_in_retrty (f : 't prop -> 't prop) t =
+    map_base_in_retrty
+      (function Cty { nty; phi } -> Cty { nty; phi = f phi })
+      t
 end
 
 (* module Typedec = struct *)
@@ -126,4 +243,4 @@ end
 (*     aux body *)
 (* end *)
 
-(* module NT = Normalty.Ntyped *)
+(* module NT = Nt *)

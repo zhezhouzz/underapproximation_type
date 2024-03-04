@@ -1,0 +1,9 @@
+(library
+ (name typing)
+ (wrapped true)
+ (libraries languagez subtyping core env)
+ (modules
+   checkaux
+   termcheck
+   ; itemcheck
+ ))

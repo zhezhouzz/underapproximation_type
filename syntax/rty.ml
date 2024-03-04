@@ -77,3 +77,11 @@ let rec erase_rty = function
   | RtyArrArr { argrty; retty } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyTuple _trtylist0 -> Nt.mk_tuple (List.map erase_rty _trtylist0)
+
+let ou_to_qt = function
+  | true -> Normalty.Connective.Fa
+  | false -> Normalty.Connective.Ex
+
+let qt_to_ou = function
+  | Normalty.Connective.Fa -> true
+  | Normalty.Connective.Ex -> false

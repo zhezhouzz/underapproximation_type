@@ -22,7 +22,8 @@ let get_opt ctx name =
       let* x = List.find_opt (fun x -> String.equal name x.x) l in
       Some x.ty
 
-let add_to_right ctx { x; ty } =
+let add_to_right : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
+ fun ctx { x; ty } ->
   match get_opt ctx x with
   | Some _ -> _failatwith __FILE__ __LINE__ "duplicate adding to ctx"
   | None -> ( match ctx with Typectx l -> Typectx (l @ [ { x; ty } ]))

@@ -27,6 +27,11 @@ let item_mk_ctx (e : t option item) =
   | MRty _ -> []
   | MFuncImpRaw _ | MFuncImp _ -> _failatwith __FILE__ __LINE__ "not predefine"
 
+let item_erase (e : 'a option item) =
+  match e with
+  | MRty { name; rty; _ } -> MValDecl name #: (Some (erase_rty rty))
+  | _ -> e
+
 let item_check ctx (e : t option item) : t ctx * t item =
   match e with
   | MTyDecl { type_name; type_params; type_decls } ->

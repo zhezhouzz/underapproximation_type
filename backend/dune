@@ -1,0 +1,13 @@
+(library
+ (name backend)
+ (wrapped true)
+ (libraries languagez env z3)
+ (modules
+   z3aux
+   litencoding
+   propencoding
+   check
+   smtquery
+)
+ (inline_tests)
+ (preprocess (pps ppx_inline_test)))
