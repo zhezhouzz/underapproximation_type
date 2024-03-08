@@ -94,8 +94,6 @@ let layout_prop_
     } =
   let rec layout = function
     | Lit lit -> (layout_typed_lit lit, true)
-    | MethodPred { mpred; args } ->
-        (spf "%s(%s)" mpred (List.split_by_comma layout_typed_lit args), true)
     | Implies (p1, p2) ->
         (spf "%s %s %s" (p_layout p1) sym_implies (p_layout p2), false)
     | And [ p ] -> layout p
@@ -125,8 +123,6 @@ let rec prop_to_expr expr =
   let rec aux e =
     match e with
     | Lit lit -> typed_lit_to_expr lit
-    | MethodPred { mpred; args } ->
-        mk_op_apply (mpred, List.map typed_lit_to_expr args)
     | Implies (e1, e2) ->
         mk_op_apply ("implies", List.map prop_to_expr [ e1; e2 ])
     | Ite (e1, e2, e3) ->
@@ -205,11 +201,7 @@ let prop_of_expr expr =
         | "||", [ a; b ] -> Or [ aux a; aux b ]
         | "||", _ -> failwith "parsing: prop wrong or"
         | "=", _ -> failwith "please use == instead of ="
-        | _, _ ->
-            if List.length args > 0 && not (Op.is_builtin_op f.x) then
-              let args = List.map typed_lit_of_expr args in
-              MethodPred { mpred = f.x; args }
-            else Lit (typed_lit_of_expr expr))
+        | _, _ -> Lit (typed_lit_of_expr expr))
     | Pexp_ifthenelse (e1, e2, Some e3) -> Ite (aux e1, aux e2, aux e3)
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_fun (_, _, arg, expr) -> (

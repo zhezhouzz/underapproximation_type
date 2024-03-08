@@ -5,11 +5,6 @@ open Languagez
 let to_z3 ctx prop =
   let rec aux prop =
     match prop with
-    | MethodPred { mpred; args } ->
-        let argsty = List.map _get_ty args in
-        let func = z3func ctx mpred argsty Nt.bool_ty in
-        let args = List.map (Litencoding.typed_lit_to_z3 ctx) args in
-        Z3.FuncDecl.apply func args
     | Implies (p1, p2) -> Boolean.mk_implies ctx (aux p1) (aux p2)
     | Ite (p1, p2, p3) -> Boolean.mk_ite ctx (aux p1) (aux p2) (aux p3)
     | Not p -> Boolean.mk_not ctx (aux p)

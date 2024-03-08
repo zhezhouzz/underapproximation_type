@@ -11,7 +11,6 @@ type 't prop =
   | And of 't prop list
   | Or of 't prop list
   | Iff of 't prop * 't prop
-  | MethodPred of { mpred : string; args : ('t, 't lit) typed list }
   | Forall of { qv : (('t, string) typed[@bound]); body : 't prop }
   | Exists of { qv : (('t, string) typed[@bound]); body : 't prop }
 [@@deriving sexp]
@@ -26,7 +25,6 @@ let rec fv_prop (prop_e : 't prop) =
   | And _tproplist0 -> [] @ List.concat (List.map fv_prop _tproplist0)
   | Or _tproplist0 -> [] @ List.concat (List.map fv_prop _tproplist0)
   | Iff (_tprop0, _tprop1) -> ([] @ fv_prop _tprop1) @ fv_prop _tprop0
-  | MethodPred { args; _ } -> [] @ List.concat (List.map typed_fv_lit args)
   | Forall { qv; body } ->
       Zzdatatype.Datatype.List.substract (typed_eq String.equal)
         ([] @ fv_prop body)
@@ -53,8 +51,6 @@ let rec subst_prop (string_x : string) f (prop_e : 't prop) =
   | Or _tproplist0 -> Or (List.map (subst_prop string_x f) _tproplist0)
   | Iff (_tprop0, _tprop1) ->
       Iff (subst_prop string_x f _tprop0, subst_prop string_x f _tprop1)
-  | MethodPred { mpred; args } ->
-      MethodPred { mpred; args = List.map (typed_subst_lit string_x f) args }
   | Forall { qv; body } ->
       if String.equal qv.x string_x then Forall { qv; body }
       else Forall { qv; body = subst_prop string_x f body }
@@ -76,8 +72,6 @@ let rec map_prop (f : 't -> 's) (prop_e : 't prop) =
   | And _tproplist0 -> And (List.map (map_prop f) _tproplist0)
   | Or _tproplist0 -> Or (List.map (map_prop f) _tproplist0)
   | Iff (_tprop0, _tprop1) -> Iff (map_prop f _tprop0, map_prop f _tprop1)
-  | MethodPred { mpred; args } ->
-      MethodPred { mpred; args = List.map (typed_map_lit f) args }
   | Forall { qv; body } -> Forall { qv = qv #=> f; body = map_prop f body }
   | Exists { qv; body } -> Exists { qv = qv #=> f; body = map_prop f body }
 
