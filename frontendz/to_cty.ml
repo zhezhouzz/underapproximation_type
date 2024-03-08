@@ -64,6 +64,10 @@ let vars_phi_of_expr expr =
   let rec aux expr =
     match expr.pexp_desc with
     | Pexp_constraint (e', ct) ->
+        (* let () = Printf.printf "\nct: %s\n" (layout_ct ct) in *)
+        (* let () = *)
+        (*   Printf.printf "\ne': %s\n" (Pprintast.string_of_expression e') *)
+        (* in *)
         let v = get_self ct in
         let vs, phi = aux e' in
         (v :: vs, phi)
@@ -75,4 +79,4 @@ let vars_phi_of_expr expr =
 let cty_of_expr expr =
   match vars_phi_of_expr expr with
   | [ { x; ty } ], phi when String.equal x default_v -> Cty { nty = ty; phi }
-  | _ -> _failatwith __FILE__ __LINE__ "die"
+  | _ -> _failatwith __FILE__ __LINE__ (Pprintast.string_of_expression expr)

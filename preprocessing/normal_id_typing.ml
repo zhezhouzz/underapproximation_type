@@ -13,7 +13,14 @@ let bi_typed_id_infer (ctx : t ctx) (x : (t option, string) typed) :
     (t, string) typed =
   match _unify_opt __FILE__ __LINE__ (get_opt ctx x.x) x.ty with
   | Some ty -> { ty; x = x.x }
-  | None -> _failatwith __FILE__ __LINE__ "die"
+  | None ->
+      let layout_ct_opt = function None -> "none" | Some ty -> Nt.layout ty in
+      let () =
+        Printf.printf "(%s: %s) =? %s\n" x.x
+          (layout_ct_opt (get_opt ctx x.x))
+          (layout_ct_opt x.ty)
+      in
+      _failatwith __FILE__ __LINE__ "die"
 
 let bi_typed_id_check (ctx : t ctx) (x : (t option, string) typed) (ty : t) :
     (t, string) typed =

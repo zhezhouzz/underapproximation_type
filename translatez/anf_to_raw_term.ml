@@ -61,6 +61,7 @@ and macth_case_to_raw_macth_case = function
       Matchcase { constructor; args; exp = typed_term_to_typed_raw_term exp }
 
 let denormalize_term = typed_term_to_typed_raw_term
+let denormalize_value = typed_value_to_typed_raw_term
 
 let denormalize_item (item : Nt.t item) =
   match item with

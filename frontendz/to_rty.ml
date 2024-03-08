@@ -15,8 +15,10 @@ let rec layout_rty = function
       match ou_to_qt ou with
       | Normalty.Connective.Fa -> spf "{%s}" (layout_cty cty)
       | Normalty.Connective.Ex -> spf "[%s]" (layout_cty cty))
-  | RtyBaseArr { argcty; arg; retty } ->
-      spf "(%s:%s) → %s" arg (layout_cty argcty) (layout_rty retty)
+  | RtyBaseArr { argcty; arg; retty } -> (
+      match arg with
+      | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
+      | _ -> spf "(%s:{%s}) → %s" arg (layout_cty argcty) (layout_rty retty))
   | RtyArrArr { argrty; retty } ->
       spf "%s → %s" (layout_rty argrty) (layout_rty retty)
   | RtyTuple ts -> spf "(%s)" @@ List.split_by_comma layout_rty ts

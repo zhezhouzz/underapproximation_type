@@ -206,7 +206,7 @@ let prop_of_expr expr =
         | "||", _ -> failwith "parsing: prop wrong or"
         | "=", _ -> failwith "please use == instead of ="
         | _, _ ->
-            if List.length args > 0 && not (To_op.is_builtin_op f.x) then
+            if List.length args > 0 && not (Op.is_builtin_op f.x) then
               let args = List.map typed_lit_of_expr args in
               MethodPred { mpred = f.x; args }
             else Lit (typed_lit_of_expr expr))

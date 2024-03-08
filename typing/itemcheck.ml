@@ -1,85 +1,82 @@
 open Languagez
+open Sugar
+open Zzdatatype.Datatype
 
-let item_check ctx = function
-  | =
-    List.fold_left
-      (fun ctx (x, ty) -> Nctx.add_to_right ctx (x, ty))
-      Nctx.empty libs
-  in
-  List.mapi
-    (fun id (_, (name', ty)) ->
-      let id = id + 1 in
-      let () =
-        Env.show_debug_typing @@ fun _ -> Pp.printf "@{<bold>Task %i:@}\n" id
+let item_check (axioms, uctx) imps = function
+  | MFuncImp { name; body; _ } ->
+      let body = term_to_value body in
+      Some (uctx, StrMap.add name.x body imps)
+      (* match body.x with *)
+      (* | VLam { lamarg; body } -> *)
+      (*     let imp = *)
+      (*       if if_rec then VFix { fixname = name; fixarg = lamarg; body } *)
+      (*       else VLam { lamarg; body } *)
+      (*     in *)
+      (*     let imp = imp #: name.ty in *)
+      (*     Some (uctx, StrMap.add name.x imp imps) *)
+      (* | _ -> _failatwith __FILE__ __LINE__ "die") *)
+  | MRty { is_assumption = true; name; rty } ->
+      Some (add_to_right uctx name #: rty, imps)
+  | MRty { is_assumption = false; name; rty } -> (
+      let imp =
+        match StrMap.find_opt imps name with
+        | None ->
+            _failatwith __FILE__ __LINE__
+              (spf "The source code of given refinement type '%s' is missing."
+                 name)
+        | Some v -> v
       in
-      match List.find_opt (fun { name; _ } -> String.equal name name') l with
-      | None ->
-          _failatwith __FILE__ __LINE__
-            (spf "The source code of given refinement type '%s' is missing."
-               name')
-      | Some { body; _ } ->
-          let () =
-            Env.show_debug_typing @@ fun _ ->
-            Pp.printf "@{<bold>check against with:@} %s\n" (pretty_layout ty)
-          in
-          let ctx = empty in
-          let res =
-            Undersub.type_err_to_false (fun () ->
-                type_check { nctx; ctx; libctx } body ty)
-          in
-          let () =
-            if res then
-              Env.show_debug_typing @@ fun _ ->
-              Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
-                id
-            else
-              Env.show_debug_typing @@ fun _ ->
-              Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
-          in
-          res)
-    r
-
-
-let struc_check l notations libs r =
-  let nctx =
-    List.fold_left
-      (fun ctx (name, ty) -> add_to_right ctx (name, ty))
-      empty notations
-  in
-  let libctx =
-    List.fold_left
-      (fun ctx (x, ty) -> Nctx.add_to_right ctx (x, ty))
-      Nctx.empty libs
-  in
-  List.mapi
-    (fun id (_, (name', ty)) ->
-      let id = id + 1 in
       let () =
-        Env.show_debug_typing @@ fun _ -> Pp.printf "@{<bold>Task %i:@}\n" id
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<bold>Type Check %s:@}\n" name
       in
-      match List.find_opt (fun { name; _ } -> String.equal name name') l with
+      let () =
+        Env.show_debug_typing @@ fun _ ->
+        Pp.printf "@{<bold>check against with:@} %s\n"
+          (FrontendTyped.layout_rty rty)
+      in
+      let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
+      match
+        Termcheck.value_type_check
+          { builtin_ctx = uctx; local_ctx = emp; axioms }
+          imp rty
+      with
+      | Some _ ->
+          ( Env.show_debug_typing @@ fun _ ->
+            Pp.printf "@{<bold>@{<yellow>Task %s, type check succeeded@}@}\n"
+              name );
+          Some (add_to_right uctx name #: rty, imps)
       | None ->
-          _failatwith __FILE__ __LINE__
-            (spf "The source code of given refinement type '%s' is missing."
-               name')
-      | Some { body; _ } ->
-          let () =
-            Env.show_debug_typing @@ fun _ ->
-            Pp.printf "@{<bold>check against with:@} %s\n" (pretty_layout ty)
-          in
-          let ctx = empty in
-          let res =
-            Undersub.type_err_to_false (fun () ->
-                type_check { nctx; ctx; libctx } body ty)
-          in
-          let () =
-            if res then
-              Env.show_debug_typing @@ fun _ ->
-              Pp.printf "@{<bold>@{<yellow>Task %i, type check succeeded@}@}\n"
-                id
-            else
-              Env.show_debug_typing @@ fun _ ->
-              Pp.printf "@{<bold>@{<red>Task %i, type check failed@}@}\n" id
-          in
-          res)
-    r
+          ( Env.show_debug_typing @@ fun _ ->
+            Pp.printf "@{<bold>@{<red>Task %s, type check failed@}@}\n" name );
+          None)
+  | _ -> Some (uctx, imps)
+
+let gather_uctx l =
+  let l =
+    List.filter_map
+      (function
+        | MRty { is_assumption = true; name; rty } -> Some name #: rty
+        | _ -> None)
+      l
+  in
+  add_to_rights emp l
+
+let gather_axioms l =
+  let l =
+    List.filter_map
+      (function MAxiom { name; prop } -> Some name #: prop | _ -> None)
+      l
+  in
+  l
+
+let struc_check (axioms, uctx) items =
+  let res =
+    List.fold_left
+      (fun res item ->
+        let* uctx, imps = res in
+        item_check (axioms, uctx) imps item)
+      (Some (uctx, StrMap.empty))
+      items
+  in
+  match res with Some _ -> true | None -> false

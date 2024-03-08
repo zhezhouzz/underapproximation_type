@@ -17,7 +17,8 @@ let bi_typed_prop_check (ctx : t ctx) (prop : t option prop) : t prop =
     | MethodPred { mpred; args } ->
         let mpred_ty =
           match Typectx.get_opt ctx mpred with
-          | None -> _failatwith __FILE__ __LINE__ "prop type error"
+          | None ->
+              _failatwith __FILE__ __LINE__ (spf "prop: cannot find %s" mpred)
           | Some ty -> ty
         in
         let args' = List.map (bi_typed_lit_infer ctx) args in

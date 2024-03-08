@@ -21,8 +21,7 @@ let check_bool axiom vc =
   in
   match res with
   | None -> true
-  | Some _ ->
-      (* | Some model -> *)
-      (* ( Env.show_debug_queries @@ fun _ -> *)
-      (*   Printf.printf "model:\n%s\n" (Z3.Model.to_string model) ); *)
+  | Some model ->
+      ( Env.show_debug_queries @@ fun _ ->
+        Printf.printf "model:\n%s\n" (Z3.Model.to_string model) );
       false

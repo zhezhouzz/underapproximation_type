@@ -5,5 +5,5 @@
  (modules
    checkaux
    termcheck
-   ; itemcheck
+   itemcheck
  ))

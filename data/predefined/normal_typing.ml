@@ -8,9 +8,9 @@ val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
 (* dt *)
 
-val nil : 'a list
-val cons : 'a -> 'a list -> 'a list
-val tt : unit
+(* val nil : 'a list *)
+(* val cons : 'a -> 'a list -> 'a list *)
+(* val tt : unit *)
 val unil : 'a ulist
 val ucons : 'a -> 'a ulist -> 'a ulist
 
@@ -28,3 +28,10 @@ val gt_eq_int_gen : int -> int
 val sizecheck : int -> bool
 val subs : int -> int
 val dummy : unit
+
+(* others *)
+(* val len : 'a list -> int -> bool *)
+val lenF : 'a list -> int
+
+(* val consB : 'a -> 'a list -> 'a list -> bool *)
+val consF : 'a -> 'a list -> 'a list

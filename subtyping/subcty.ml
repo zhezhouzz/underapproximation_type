@@ -2,80 +2,131 @@ open Languagez
 open FrontendTyped
 open Zzdatatype.Datatype
 open Sugar
+open Normalty.Connective
 
-let close_rtyped_to_prop x prop =
-  match x.ty with
-  | Cty { nty; phi } -> (
-      let qt, x = x.x in
-      let x = x #: nty in
-      match qt with
-      | Normalty.Connective.Fa -> smart_pi (x, phi) prop
-      | Normalty.Connective.Ex -> smart_sigma (x, phi) prop)
-
-let close_rtypeds_to_prop l prop = List.fold_right close_rtyped_to_prop l prop
-
-let layout_qt = function
-  | Normalty.Connective.Fa -> "∀"
-  | Normalty.Connective.Ex -> "∃"
+let layout_qt = function Fa -> "∀" | Ex -> "∃"
 
 let layout_qv { x = qt, x; ty } =
   spf "%s%s:{%s}" (layout_qt qt) x @@ layout_cty ty
 
-let aux_sub_cty uqvs cty1 cty2 =
-  match (cty1, cty2) with
-  | Cty { nty = nty1; phi = phi1 }, Cty { nty = nty2; phi = phi2 } ->
-      let nty = Nt._type_unify __FILE__ __LINE__ nty1 nty2 in
-      let () =
-        Env.show_debug_queries @@ fun _ ->
-        Printf.printf "uqvs: %s\n" @@ List.split_by_comma layout_qv uqvs
-      in
-      let query = close_rtypeds_to_prop uqvs (smart_implies phi1 phi2) in
-      (* let () = Printf.printf "query: %s\n" (layout_prop query) in *)
-      let query =
-        match nty with
-        | Nt.Ty_unit -> query
-        | _ -> Forall { qv = default_v #: nty; body = query }
-      in
-      let () =
-        Env.show_debug_queries @@ fun _ ->
-        Printf.printf "query: %s\n" (layout_prop query)
-      in
-      let fvs = fv_prop query in
-      let () =
-        _assert __FILE__ __LINE__
-          (spf "the cty query has free variables %s"
-             (List.split_by_comma
-                (function { x; ty } -> spf "%s:%s" x (Nt.layout ty))
-                fvs))
-          (0 == List.length fvs)
-      in
-      (* TODO: Axioms *)
-      Backend.Smtquery.check_bool mk_true query
+let layout_vs qt uqvs =
+  List.split_by_comma layout_qv
+  @@ List.map (fun { x; ty } -> { x = (qt, x); ty }) uqvs
 
-type qt = Normalty.Connective.qt
+let rec normalize_ctx ctx =
+  match ctx with
+  | [] -> ([], [])
+  | { x = Fa, x; ty = cty } :: ctx ->
+      let fa_ctx, ex_ctx = normalize_ctx ctx in
+      ((x #: cty) :: fa_ctx, ex_ctx)
+  | { x = Ex, x; ty = cty } :: ctx ->
+      let fa_ctx, ex_ctx = normalize_ctx ctx in
+      (fa_ctx, (x #: cty) :: ex_ctx)
+
+let check_query axioms query =
+  let () =
+    Env.show_debug_queries @@ fun _ ->
+    Printf.printf "query: %s\n" (layout_prop query)
+  in
+  let fvs = fv_prop query in
+  let () =
+    _assert __FILE__ __LINE__
+      (spf "the cty query has free variables %s"
+         (List.split_by_comma
+            (function { x; ty } -> spf "%s:%s" x (Nt.layout ty))
+            fvs))
+      (0 == List.length fvs)
+  in
+  Backend.Smtquery.check_bool (smart_and axioms) query
+
+let aux_sub_cty (axioms, uqvs) cty1 cty2 =
+  let fa_ctx, ex_ctx = normalize_ctx uqvs in
+  (* let () = *)
+  (*   Env.show_debug_queries @@ fun _ -> *)
+  (*   Printf.printf "uqvs: %s\n" @@ List.split_by_comma layout_qv uqvs *)
+  (* in *)
+  (* let () = *)
+  (*   Env.show_debug_queries @@ fun _ -> *)
+  (*   Printf.printf "Forall ctx: %s\n" @@ layout_vs Fa fa_ctx *)
+  (* in *)
+  (* let () = *)
+  (*   Env.show_debug_queries @@ fun _ -> *)
+  (*   Printf.printf "Exists ctx: %s\n" @@ layout_vs Ex ex_ctx *)
+  (* in *)
+  let cty1, cty2 =
+    List.fold_right
+      (fun x (cty1, cty2) ->
+        (exists_cty_to_cty (x, cty1), exists_cty_to_cty (x, cty2)))
+      ex_ctx (cty1, cty2)
+  in
+  let nty, prop1, prop2 =
+    match (cty1, cty2) with
+    | Cty { nty = nty1; phi = phi1 }, Cty { nty = nty2; phi = phi2 } ->
+        let nty = Nt._type_unify __FILE__ __LINE__ nty1 nty2 in
+        (nty, phi1, phi2)
+  in
+  let () =
+    Env.show_debug_queries @@ fun _ ->
+    Printf.printf "prop1: %s\nprop2: %s\n" (layout_prop prop1)
+      (layout_prop prop2)
+  in
+  let body = smart_implies prop2 prop1 in
+  let query =
+    match nty with
+    | Nt.Ty_unit -> body
+    | _ -> Forall { qv = default_v #: nty; body }
+  in
+  let query =
+    List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query
+  in
+  check_query axioms query
+
+let aux_emptyness (axioms, uqvs) cty =
+  let fa_ctx, ex_ctx = normalize_ctx uqvs in
+  let nty, body = match cty with Cty { nty; phi } -> (nty, phi) in
+  let body =
+    match nty with
+    | Nt.Ty_unit -> body
+    | _ -> Exists { qv = default_v #: nty; body }
+  in
+  let query =
+    List.fold_right
+      (fun x cty -> exists_cty_to_prop (x, cty))
+      (fa_ctx @ ex_ctx) body
+  in
+  (* let query = *)
+  (*   List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query *)
+  (* in *)
+  check_query axioms query
+
 type t = Nt.t
 
-let sub_cty (pctx : t rty ctx) (cty1, cty2) =
-  let rec aux (pctx : (t rty, string) typed list) uqvs cty1 cty2 =
+let rty_ctx_to_cty_ctx pctx =
+  let rec aux (pctx : (t rty, string) typed list) uqvs =
     match List.last_destruct_opt pctx with
-    | None -> aux_sub_cty uqvs cty1 cty2
+    | None -> uqvs
     | Some (pctx, binding) -> (
         match binding.ty with
         | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-        | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs cty1 cty2
+        | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
         | RtyBase { ou; cty } ->
             let qt = ou_to_qt ou in
             let x = (qt, binding.x) #: cty in
-            aux pctx (x :: uqvs) cty1 cty2)
+            aux pctx (x :: uqvs))
   in
-  match pctx with Typectx pctx -> aux pctx [] cty1 cty2
+  match pctx with Typectx pctx -> aux pctx []
 
-let sub_cty_bool (pctx : t rty ctx) (cty1, cty2) = sub_cty pctx (cty1, cty2)
+let sub_cty pctx (cty1, cty2) =
+  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 
-let is_bot_cty pctx cty =
-  sub_cty_bool pctx (cty, prop_to_cty (erase_cty cty) mk_false)
+let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
-let is_bot_rty pctx rty =
+let is_nonempty_cty pctx cty =
+  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  aux_emptyness (pctx.axioms, ctx) cty
+
+let is_nonempty_rty pctx rty =
   match rty with
-  | RtyBase { ou = false; cty } -> is_bot_cty pctx cty
+  | RtyBase { ou = false; cty } -> is_nonempty_cty pctx cty
   | _ -> false

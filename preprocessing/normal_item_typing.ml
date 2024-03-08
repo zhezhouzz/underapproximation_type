@@ -65,7 +65,7 @@ let item_check ctx (e : t option item) : t ctx * t item =
       let name = name.x #: name_ty in
       let ctx' = add_to_right ctx name in
       let body = bi_typed_term_check ctx' body name.ty in
-      (ctx', MFuncImpRaw { name; if_rec = false; body })
+      (ctx', MFuncImpRaw { name; if_rec = true; body })
   | MFuncImp _ -> _failatwith __FILE__ __LINE__ "die"
 
 let struct_mk_ctx ctx l =

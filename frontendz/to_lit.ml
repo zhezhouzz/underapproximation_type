@@ -9,6 +9,7 @@ open To_op
 open To_raw_term
 open Sugar
 
+(* NOTE: drop type notation *)
 let rec lit_to_raw_term expr =
   let aux expr =
     match expr with
@@ -19,11 +20,11 @@ let rec lit_to_raw_term expr =
         AppOp (op, args)
     | ATu l -> Tu (List.map typed_lit_to_typed_raw_term l)
     | AProj _ -> _failatwith __FILE__ __LINE__ "unimp"
-    | AVar x -> Var x
+    | AVar x -> Var x.x #: None
   in
   aux expr
 
-and typed_lit_to_typed_raw_term expr = expr #-> lit_to_raw_term
+and typed_lit_to_typed_raw_term expr = (lit_to_raw_term expr.x) #: None
 
 let typed_lit_to_expr expr =
   typed_raw_term_to_expr @@ typed_lit_to_typed_raw_term expr
