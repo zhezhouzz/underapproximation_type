@@ -45,6 +45,20 @@ let type_check_ meta_config_file source_file () =
   let _ = Typing.Itemcheck.struc_check (lemmas, builtin_ctx) code in
   ()
 
+let type_infer_ meta_config_file source_file () =
+  let () = Env.load_meta meta_config_file in
+  let code = preproress meta_config_file source_file () in
+  let prim_path = Env.get_prim_path () in
+  let predefine = preproress meta_config_file prim_path.under_basicp () in
+  let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
+  let lemmas = preproress meta_config_file prim_path.lemmas () in
+  let lemmas =
+    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
+  in
+  (* let axioms = Typing.Itemcheck.gather_axioms predefine in *)
+  let _ = Typing.Itemcheck.struc_infer (lemmas, builtin_ctx) code in
+  ()
+
 let print_erase_code meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code =
@@ -74,4 +88,5 @@ let test =
     [
       ("print-source-code", print_source_code);
       ("type-check", input_config_source "type check" type_check_);
+      ("type-infer", input_config_source "type infer" type_infer_);
     ]
