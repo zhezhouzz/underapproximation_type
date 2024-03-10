@@ -8,7 +8,7 @@ type t = Nt.t
 let rec bi_typed_lit_check (ctx : t ctx) (lit : (t option, t option lit) typed)
     (ty : t) : (t, t lit) typed =
   match (lit.x, ty) with
-  | AVar _, _ | AC _, _ ->
+  | AC _, _ | AVar _, _ ->
       let lit = bi_typed_lit_infer ctx lit in
       let _ = Nt._type_unify __FILE__ __LINE__ lit.ty ty in
       lit.x #: ty
@@ -41,7 +41,10 @@ and bi_typed_lit_infer (ctx : t ctx) (lit : (t option, t option lit) typed) :
   | AVar id ->
       let id = bi_typed_id_infer ctx id in
       (AVar id) #: id.ty
-  | AC c -> (AC c) #: (infer_constant c)
+  | AC c -> (
+      match lit.ty with
+      | None -> (AC c) #: (infer_constant c)
+      | Some ty -> (AC c) #: ty)
   | ATu l ->
       let l = List.map (bi_typed_lit_infer ctx) l in
       let ty = Nt.mk_tuple (List.map _get_ty l) in

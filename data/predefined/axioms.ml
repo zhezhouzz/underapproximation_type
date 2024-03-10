@@ -1,39 +1,82 @@
 (* int list *)
 
-(* let[@axiom] il8 (l : int list) (u : int) = implies (len l u) (u >= 0) *)
+(** list basic *)
 
-(* let[@axiom] il17 (l : int list) (n : int) (m : int) = *)
-(*   implies (len l n && len l m) (n == m) *)
+let[@axiom] list_emp_no_hd (l : int list) (x : int) =
+  (emp l) #==> (not (hd l x))
+
+let[@axiom] list_emp_no_tl (l : int list) (l1 : int list) =
+  (emp l) #==> (not (tl l l1))
+
+let[@axiom] list_no_emp_exists_tl (l : int list) ((l1 [@exists]) : int list) =
+  (not (emp l)) #==> (tl l l1)
+
+let[@axiom] list_no_emp_exists_hd (l : int list) ((x [@exists]) : int) =
+  (not (emp l)) #==> (hd l x)
+
+let[@axiom] list_hd_no_emp (l : int list) (x : int) =
+  (hd l x) #==> (not (emp l))
+
+let[@axiom] list_tl_no_emp (l : int list) (l1 : int list) =
+  (tl l l1) #==> (not (emp l))
+
+(** len *)
+
+let[@axiom] list_len_geq_0 (l : int list) (n : int) = (len l n) #==> (n > 0)
+let[@axiom] list_emp_len_0 (l : int list) = iff (emp l) (len l 0)
+let[@axiom] list_ex_len (l : int list) ((n [@exists]) : int) = len l n
+
+let[@axiom] list_tl_len_plus_1 (l : int list) (l1 : int list) (n : int) =
+  (tl l l1) #==> (iff (len l1 n) (len l (n + 1)))
 
 (* let[@axiom] il18 (n : int) ((l [@exists]) : int list) = *)
-(*   implies (n >= 0) (len l n) *)
+(*   implies (n >= 0) (lenF l == n) *)
 
-(* let[@axiom] il19 (x : int) (l1 : int list) (l2 : int list) (n : int) = *)
-(*   implies (consB x l1 l2) (iff (len l1 n) (len l2 (n + 1))) *)
+(* let[@axiom] il4 (l : int list) ((u [@exists]) : int) = *)
+(*   implies (lenF l > 0) (hd l u) *)
 
-(* let[@axiom] il20 (x : int) (l : int list) (l1 : int list) (l2 : int list) = *)
-(*   implies (consB x l l1 && consB x l l2) (l1 == l2) *)
+(** list_mem *)
 
-(* let[@axiom] il21 (x1 : int) (x2 : int) (l1 : int list) (l2 : int list) *)
-(*     (l : int list) = *)
-(*   implies (consB x1 l1 l && consB x2 l2 l) (x1 == x2 && l1 == l2) *)
+let[@axiom] list_hd_is_mem (l : int list) (u : int) =
+  (hd l u) #==> (list_mem l u)
 
-(* let[@axiom] il22 (x : int) (l1 : int list) (l2 : int list) = *)
-(*   implies (consB x l1 l2) (not (len l2 0)) *)
+let[@axiom] list_emp_no_mem (l : int list) (u : int) =
+  (emp l) #==> (not (list_mem l u))
 
-let[@axiom] il8 (l : int list) = lenF l >= 0
+(* let[@axiom] il3 (l : int list) ((u [@exists]) : int) = *)
+(*   implies (lenF l > 0) (list_mem l u) *)
 
-let[@axiom] il18 (n : int) ((l [@exists]) : int list) =
-  implies (n >= 0) (lenF l == n)
+let[@axiom] list_tl_mem (l : int list) (l1 : int list) (u : int) =
+  (tl l l1 && list_mem l1 u) #==> (list_mem l u)
 
-let[@axiom] il19 (x : int) (l : int list) = 1 + lenF l == lenF (consF x l)
-(* let[@axiom] il20 ((l [@exists]) : int list) = lenF l == 0 *)
+let[@axiom] list_cons_mem (l : int list) (l1 : int list) (u : int) =
+  (tl l l1 && list_mem l u) #==> (list_mem l1 u || hd l u)
 
-let[@axiom] il21 (x1 : int) (x2 : int) (l1 : int list) (l2 : int list) =
-  implies (consF x1 l1 == consF x2 l2) (x1 == x2 && l1 == l2)
+(** sorted *)
 
-let[@axiom] il22 (x : int) (l : int list) = lenF (consF x l) > 0
+let[@axiom] list_emp_sorted (l : int list) = (emp l) #==> (sorted l)
 
-let[@axiom] il23 (l : int list) ((x [@exists]) : int)
-    ((l1 [@exists]) : int list) =
-  implies (lenF l > 0) (l == consF x l1)
+let[@axiom] list_tl_sorted (l : int list) (l1 : int list) =
+  (tl l l1 && sorted l) #==> (sorted l1)
+
+let[@axiom] list_hd_sorted (l : int list) (l1 : int list) (x : int) (y : int) =
+  (tl l l1 && sorted l) #==> (emp l1 || ((hd l1 y && hd l x) #==> (x <= y)))
+
+(* let[@axiom] il26 (x : int) (l : int list) (u : int) = *)
+(*   implies (sorted (consF x l)) (sorted l && implies (list_mem l u) (x <= u)) *)
+
+(* let[@axiom] il28 (x : int) (l : int list) (u : int) = *)
+(*   implies (sorted (consF x l)) (implies (hd l u) (x <= u) && sorted l) *)
+
+(* let[@axiom] il27 (l : int list) = implies (lenF l == 0) (sorted l) *)
+
+(* list_min *)
+
+(* let[@axiom] il28 (u : int) = list_min (0 : int list) u *)
+(* let[@axiom] il29 (l : int list) ((x [@exists]) : int) = list_min l x *)
+
+(* let[@axiom] il26 (x : int) (l : int list) = *)
+(*   iff (sorted (consF x l)) (sorted l && list_min l x) *)
+
+(* let[@axiom] il30 (x : int) (n : int) ((l [@exists]) : int list) = *)
+(*   implies (n >= 0) (list_min l x && lenF l == n) *)

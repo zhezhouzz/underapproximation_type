@@ -20,6 +20,31 @@ let quantifier_to_pattern (q, u) =
        ( dest_to_pat (Ppat_var (Location.mknoloc u.x)),
          notated (Normalty.Connective.qt_to_string q, u.ty) ))
 
+let smt_layout_ty = function
+  | Some Nt.T.Ty_bool -> "Bool"
+  | Some Nt.T.Ty_int -> "Int"
+  | Some (Nt.T.Ty_constructor _) -> "Int"
+  | _ -> _failatwith __FILE__ __LINE__ "unimp"
+
+let rec layout_to_smtlib2 = function
+  | Lit lit -> layout_typed_lit_to_smtlib2 lit
+  | Implies (p1, p2) ->
+      spf "(=> %s %s)" (layout_to_smtlib2 p1) (layout_to_smtlib2 p2)
+  | And [ p ] -> layout_to_smtlib2 p
+  | Or [ p ] -> layout_to_smtlib2 p
+  | And ps -> spf "(and %s)" @@ List.split_by " " layout_to_smtlib2 ps
+  | Or ps -> spf "(or %s)" @@ List.split_by " " layout_to_smtlib2 ps
+  | Not p -> spf "(not %s)" (layout_to_smtlib2 p)
+  | Iff (p1, p2) ->
+      spf "(= %s %s)" (layout_to_smtlib2 p1) (layout_to_smtlib2 p2)
+  | Ite _ -> _failatwith __FILE__ __LINE__ "unimp"
+  | Forall { qv; body } ->
+      spf "(forall ((%s %s)) %s)" qv.x (smt_layout_ty qv.ty)
+        (layout_to_smtlib2 body)
+  | Exists { qv; body } ->
+      spf "(exists ((%s %s)) %s)" qv.x (smt_layout_ty qv.ty)
+        (layout_to_smtlib2 body)
+
 type 't layout_setting = {
   sym_true : string;
   sym_false : string;
@@ -74,8 +99,8 @@ let coqsetting =
     sym_not = "~";
     sym_implies = "->";
     sym_iff = "<->";
-    sym_forall = "forall";
-    sym_exists = "exists";
+    sym_forall = "forall ";
+    sym_exists = "exists ";
     layout_typedid = (fun x -> x.x);
     layout_mp = (function "==" -> "=" | x -> x);
   }
@@ -111,9 +136,9 @@ let layout_prop_
             (fst @@ layout p3),
           false )
     | Forall { qv; body } ->
-        (spf "%s%s. %s" sym_forall (layout_typedid qv) (p_layout body), false)
+        (spf "%s%s, %s" sym_forall (layout_typedid qv) (p_layout body), false)
     | Exists { qv; body } ->
-        (spf "%s%s. %s" sym_exists (layout_typedid qv) (p_layout body), false)
+        (spf "%s%s, %s" sym_exists (layout_typedid qv) (p_layout body), false)
   and p_layout p =
     match layout p with str, true -> str | str, false -> spf "(%s)" str
   in
@@ -185,8 +210,12 @@ let prop_of_expr expr =
     | Pexp_let _ -> failwith "parsing: prop does not have let"
     | Pexp_match _ -> failwith "parsing: prop does not have match"
     | Pexp_apply (func, args) -> (
+        (*     let () = *)
+        (*       Printf.printf "expr: %s\n" (Pprintast.string_of_expression expr) *)
+        (*     in *)
         let f = id_of_expr func in
         let args = List.map snd args in
+        (* let () = Printf.printf "f: %s\n" f.x in *)
         match (f.x, args) with
         | "not", [ e1 ] -> Not (aux e1)
         | "not", _ -> failwith "parsing: prop wrong not"
@@ -194,6 +223,8 @@ let prop_of_expr expr =
         | "ite", _ -> failwith "parsing: prop wrong ite"
         | "implies", [ e1; e2 ] -> Implies (aux e1, aux e2)
         | "implies", _ -> failwith "parsing: prop wrong implies"
+        | "#==>", [ e1; e2 ] -> Implies (aux e1, aux e2)
+        | "#==>", _ -> failwith "parsing: prop wrong implies"
         | "iff", [ e1; e2 ] -> Iff (aux e1, aux e2)
         | "iff", _ -> failwith "parsing: prop wrong iff"
         | "&&", [ a; b ] -> And [ aux a; aux b ]
@@ -210,7 +241,12 @@ let prop_of_expr expr =
         match q with
         | Normalty.Connective.Fa -> Forall { qv; body }
         | Normalty.Connective.Ex -> Exists { qv; body })
-    | Pexp_tuple _ | Pexp_ident _ | Pexp_constant _ | Pexp_construct _ ->
+    | Pexp_construct _ ->
+        (* let () = *)
+        (*   Printf.printf "expr: %s\n" (Pprintast.string_of_expression expr) *)
+        (* in *)
+        Lit (typed_lit_of_expr expr)
+    | Pexp_tuple _ | Pexp_ident _ | Pexp_constant _ ->
         Lit (typed_lit_of_expr expr)
     | _ ->
         raise
@@ -222,3 +258,4 @@ let prop_of_expr expr =
 
 let layout_prop__raw x = Pprintast.string_of_expression @@ prop_to_expr x
 let layout_prop = layout_prop_ psetting
+let layout_prop_to_coq = layout_prop_ coqsetting

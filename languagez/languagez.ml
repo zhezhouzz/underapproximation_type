@@ -53,6 +53,11 @@ module FrontendTyped = struct
 
   let layout_lit e = To_lit.layout @@ map_lit some e
   let layout_prop prop = To_prop.layout_prop @@ map_prop some prop
+  let layout_prop_to_coq prop = To_prop.layout_prop_to_coq @@ map_prop some prop
+
+  let layout_prop_to_smtlib2 prop =
+    To_prop.layout_to_smtlib2 @@ map_prop some prop
+
   let layout_cty cty = To_cty.layout_cty @@ map_cty some cty
   let layout_rty rty = To_rty.layout_rty @@ map_rty some rty
   let layout_raw_term e = To_raw_term.layout_raw_term @@ map_raw_term some e
@@ -284,10 +289,13 @@ module FrontendTyped = struct
         in
         RtyBase { ou = false; cty = union_ctys ctys }
 
-  let exists_rty_to_cty = function
-    | { x; ty = RtyBase { ou = false; cty } }, cty' ->
-        exists_cty_to_cty (x #: cty, cty')
-    | _ -> _failatwith __FILE__ __LINE__ "die"
+  let exists_rty_to_cty (x, cty') =
+    match x.ty with
+    | RtyBase { ou = false; cty } -> exists_cty_to_cty (x.x #: cty, cty')
+    | RtyArrArr _ | RtyBaseArr _ -> cty'
+    | _ ->
+        let () = Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty) in
+        _failatwith __FILE__ __LINE__ "die"
 
   let exists_cty_to_rty = function
     | x, RtyBase { ou = false; cty = cty' } -> exists_cty_to_cty (x, cty')

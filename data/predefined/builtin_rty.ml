@@ -41,12 +41,13 @@ let[@library] ( - ) =
 let[@library] TT = (true : [%v: unit]) [@under]
 let[@library] True = (v : [%v: bool]) [@under]
 let[@library] False = (not v : [%v: bool]) [@under]
-let[@library] Nil = (lenF v == 0 : [%v: int list]) [@under]
+let[@library] Nil = (emp v : [%v: int list]) [@under]
 
 let[@library] Cons =
-  let a = (true : [%v: int]) [@over] in
-  let b = (true : [%v: int list]) [@over] in
-  (v == consF a b : [%v: int list]) [@under]
+  let x = (true : [%v: int]) [@over] in
+  let xs = (true : [%v: int list]) [@over] in
+  (* (v == consF a b : [%v: int list]) [@under] *)
+  (hd v x && tl v xs : [%v: int list]) [@under]
 
 (* the built-in random generators *)
 

@@ -13,6 +13,10 @@ let layout_vs qt uqvs =
   List.split_by_comma layout_qv
   @@ List.map (fun { x; ty } -> { x = (qt, x); ty }) uqvs
 
+(* let layout_prop_ = layout_prop_to_smtlib2 *)
+(* let layout_prop_ = layout_prop_to_coq *)
+let layout_prop_ = layout_prop
+
 let rec normalize_ctx ctx =
   match ctx with
   | [] -> ([], [])
@@ -26,7 +30,7 @@ let rec normalize_ctx ctx =
 let check_query axioms query =
   let () =
     Env.show_debug_queries @@ fun _ ->
-    Printf.printf "query: %s\n" (layout_prop query)
+    Printf.printf "query: %s\n" (layout_prop_ query)
   in
   let fvs = fv_prop query in
   let () =
@@ -67,8 +71,8 @@ let aux_sub_cty (axioms, uqvs) cty1 cty2 =
   in
   let () =
     Env.show_debug_queries @@ fun _ ->
-    Printf.printf "prop1: %s\nprop2: %s\n" (layout_prop prop1)
-      (layout_prop prop2)
+    Printf.printf "prop1: %s\nprop2: %s\n" (layout_prop_ prop1)
+      (layout_prop_ prop2)
   in
   let body = smart_implies prop2 prop1 in
   let query =
@@ -97,6 +101,7 @@ let aux_emptyness (axioms, uqvs) cty =
   (* let query = *)
   (*   List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query *)
   (* in *)
+  (* not (check_query axioms (Not query)) *)
   check_query axioms query
 
 type t = Nt.t

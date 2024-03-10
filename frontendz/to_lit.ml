@@ -26,6 +26,21 @@ let rec lit_to_raw_term expr =
 
 and typed_lit_to_typed_raw_term expr = (lit_to_raw_term expr.x) #: None
 
+let rec layout_lit_to_smtlib2 expr =
+  let aux expr =
+    match expr with
+    | AC c -> To_constant.layout_constant c
+    | AAppOp (op, args) ->
+        let op = match op.x with "==" -> "=" | _ -> op.x in
+        spf "(%s %s)" op (List.split_by " " layout_typed_lit_to_smtlib2 args)
+    | ATu _ -> _failatwith __FILE__ __LINE__ "unimp"
+    | AProj _ -> _failatwith __FILE__ __LINE__ "unimp"
+    | AVar x -> x.x
+  in
+  aux expr
+
+and layout_typed_lit_to_smtlib2 expr = layout_lit_to_smtlib2 expr.x
+
 let typed_lit_to_expr expr =
   typed_raw_term_to_expr @@ typed_lit_to_typed_raw_term expr
 

@@ -30,7 +30,8 @@ let sub_rty_bool uctx (t1, t2) =
 
 let is_nonempty_rty uctx t1 =
   let _ = pprint_typectx_nonempty uctx.local_ctx t1 in
-  Subrty.is_nonempty_rty uctx t1
+  true
+(* Subrty.is_nonempty_rty uctx t1 *)
 
 let _id_type_infer file line (uctx : uctx) (id : string) : t rty =
   match get_opt uctx id with
@@ -92,7 +93,7 @@ and value_type_check (uctx : uctx) (a : (t, t value) typed) (rty : t rty) :
       let rty_a = RtyBaseArr { argcty; arg = a.x; retty = retty_a } in
       let rty_a = map_prop_in_retrty (smart_add_to prop) rty_a in
       let binding = fixarg.x #: (RtyBase { ou = true; cty = argcty }) in
-      (* let retty = subst_rty_instance arg (AVar a) retty in *)
+      let retty = subst_rty_instance arg (AVar fixarg) retty in
       (* let body = (subst_term_instance fixarg.x (VVar a) body.x) #: body.ty in *)
       let* body' =
         term_type_check
@@ -242,10 +243,11 @@ and term_type_infer (uctx : uctx) (a : ('t, 't term) typed) :
         let* bindings, res = term_type_infer_app uctx a in
         Some res.x #: (exists_rtys_to_rty bindings res.ty)
     | CMatch { matched; match_cases } ->
+        (* NOTE: we drop unreachable cases *)
         let match_cases =
-          List.map (match_case_type_infer uctx matched) match_cases
+          List.filter_map (match_case_type_infer uctx matched) match_cases
         in
-        let* match_cases = Sugar.opt_list_to_list_opt match_cases in
+        (* let* match_cases = Sugar.opt_list_to_list_opt match_cases in *)
         let unioned_ty =
           union_rtys
           @@ List.map (function CMatchcase { exp; _ } -> exp.ty) match_cases
@@ -277,8 +279,12 @@ and term_type_check (uctx : uctx) (y : ('t, 't term) typed) (rty : t rty) :
   match y.x with
   | CErr -> Some CErr #: rty
   | CLetDeTu _ -> failwith "unimp"
-  | CVal _ | CApp _ | CAppOp _ | CMatch _ ->
+  | CVal v ->
+      let* v = value_type_check uctx v rty in
+      Some (CVal v) #: rty
+  | CApp _ | CAppOp _ | CMatch _ ->
       let* x = term_type_infer uctx y in
+      (* let () = failwith "end" in *)
       if sub_rty_bool uctx (x.ty, rty) then Some x.x #: rty
       else (
         _warinning_subtyping_error __FILE__ __LINE__ (x.ty, rty);

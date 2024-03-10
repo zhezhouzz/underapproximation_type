@@ -77,7 +77,7 @@ type 't term_or_op =
 
 let constructor_to_term_or_op c =
   match c with
-  | "Err" -> C_is_term Err #: (Some Nt.T.Ty_any)
+  | "Err" | "Exn" -> C_is_term Err #: (Some Nt.T.Ty_any)
   | "true" | "false" | "()" ->
       C_is_term { x = Const (string_to_constant c); ty = None }
   | name -> (

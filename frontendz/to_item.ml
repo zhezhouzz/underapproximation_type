@@ -13,58 +13,66 @@ open Sugar
 
 let ocaml_structure_item_to_item structure =
   match structure.pstr_desc with
-  | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } -> (
-      if String.equal pval_name.txt "method_predicates" then
-        let mp = List.nth pval_prim 0 in
-        MMethodPred mp #: (Some (Nt.core_type_to_t pval_type))
-      else
-        match pval_attributes with
-        | [ x ] when String.equal x.attr_name.txt "method_pred" ->
-            MMethodPred pval_name.txt #: (Some (Nt.core_type_to_t pval_type))
-        | _ -> MValDecl pval_name.txt #: (Some (Nt.core_type_to_t pval_type)))
-  | Pstr_type (_, [ type_dec ]) -> To_type_dec.of_ocamltypedec type_dec
-  | Pstr_value (flag, [ value_binding ]) -> (
-      let name = id_of_pattern value_binding.pvb_pat in
-      match value_binding.pvb_attributes with
-      | [ x ] -> (
-          match x.attr_name.txt with
-          | "axiom" ->
-              MAxiom { name; prop = prop_of_expr value_binding.pvb_expr }
-          | "assert" ->
-              MRty
-                {
-                  is_assumption = false;
-                  name;
-                  rty = rty_of_expr value_binding.pvb_expr;
-                }
-          | "library" ->
-              MRty
-                {
-                  is_assumption = true;
-                  name;
-                  rty = rty_of_expr value_binding.pvb_expr;
-                }
-          | _ ->
-              _failatwith __FILE__ __LINE__
-                "syntax error: non known rty kind, not axiom | assert | library"
-          )
-      | [] ->
-          let body = typed_raw_term_of_expr value_binding.pvb_expr in
-          (* let () = Printf.printf "if_rec: %b\n" (get_if_rec flag) in *)
-          (* let () = failwith "end" in *)
-          MFuncImpRaw
-            {
-              name =
-                name
-                #: (Some (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body.x));
-              if_rec = get_if_rec flag;
-              body;
-            }
-      | _ -> _failatwith __FILE__ __LINE__ "wrong syntax")
-  | _ -> _failatwith __FILE__ __LINE__ "translate not a func_decl"
+  | Pstr_primitive { pval_name; pval_type; pval_prim; pval_attributes; _ } ->
+      Some
+        (if String.equal pval_name.txt "method_predicates" then
+           let mp = List.nth pval_prim 0 in
+           MMethodPred mp #: (Some (Nt.core_type_to_t pval_type))
+         else
+           match pval_attributes with
+           | [ x ] when String.equal x.attr_name.txt "method_pred" ->
+               MMethodPred pval_name.txt #: (Some (Nt.core_type_to_t pval_type))
+           | _ -> MValDecl pval_name.txt #: (Some (Nt.core_type_to_t pval_type)))
+  | Pstr_type (_, [ type_dec ]) -> Some (To_type_dec.of_ocamltypedec type_dec)
+  | Pstr_value (flag, [ value_binding ]) ->
+      Some
+        (let name = id_of_pattern value_binding.pvb_pat in
+         match value_binding.pvb_attributes with
+         | [ x ] -> (
+             match x.attr_name.txt with
+             | "axiom" ->
+                 MAxiom { name; prop = prop_of_expr value_binding.pvb_expr }
+             | "assert" ->
+                 MRty
+                   {
+                     is_assumption = false;
+                     name;
+                     rty = rty_of_expr value_binding.pvb_expr;
+                   }
+             | "library" ->
+                 MRty
+                   {
+                     is_assumption = true;
+                     name;
+                     rty = rty_of_expr value_binding.pvb_expr;
+                   }
+             | _ ->
+                 _failatwith __FILE__ __LINE__
+                   "syntax error: non known rty kind, not axiom | assert | \
+                    library")
+         | [] ->
+             let body = typed_raw_term_of_expr value_binding.pvb_expr in
+             (* let () = Printf.printf "if_rec: %b\n" (get_if_rec flag) in *)
+             (* let () = failwith "end" in *)
+             MFuncImpRaw
+               {
+                 name =
+                   name
+                   #: (Some
+                         (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body.x));
+                 if_rec = get_if_rec flag;
+                 body;
+               }
+         | _ -> _failatwith __FILE__ __LINE__ "wrong syntax")
+  | Pstr_attribute _ -> None
+  | _ ->
+      let () =
+        Printf.printf "%s\n" (Pprintast.string_of_structure [ structure ])
+      in
+      _failatwith __FILE__ __LINE__ "translate not a func_decl"
 
 let ocaml_structure_to_items structure =
-  List.map ocaml_structure_item_to_item structure
+  List.filter_map ocaml_structure_item_to_item structure
 
 let layout_ct_opt = function
   | Some ct -> Nt.layout ct
