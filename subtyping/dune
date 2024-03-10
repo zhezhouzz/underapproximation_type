@@ -1,7 +1,7 @@
 (library
  (name subtyping)
  (wrapped true)
- (libraries languagez core backend env)
+ (libraries language core backend env)
  (modules
    subcty
    subrty

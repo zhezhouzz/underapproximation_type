@@ -1,4 +1,4 @@
-open Languagez
+open Language
 open FrontendTyped
 
 (* open Zzdatatype.Datatype *)

@@ -1,4 +1,4 @@
-open Languagez
+open Language
 open Sugar
 
 type t = Nt.t

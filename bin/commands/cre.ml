@@ -1,6 +1,6 @@
 open Core
 open Caux
-open Languagez
+open Language
 open Zzdatatype.Datatype
 open Preprocessing.Normal_item_typing
 open To_item

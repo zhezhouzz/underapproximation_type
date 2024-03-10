@@ -1,4 +1,4 @@
-open Languagez
+open Language
 open Normal_prop_typing
 
 type t = Nt.t

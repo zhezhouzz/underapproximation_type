@@ -1,7 +1,7 @@
 (library
  (name typing)
  (wrapped true)
- (libraries languagez subtyping core env)
+ (libraries language subtyping core env)
  (modules
    checkaux
    termcheck

@@ -1,4 +1,4 @@
-open Languagez
+open Language
 open Normal_lit_typing
 (* open Sugar *)
 

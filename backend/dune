@@ -1,7 +1,7 @@
 (library
  (name backend)
  (wrapped true)
- (libraries languagez env z3)
+ (libraries language env z3)
  (modules
    z3aux
    litencoding

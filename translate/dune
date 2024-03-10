@@ -1,5 +1,5 @@
 (library
- (name translatez)
+ (name translate)
  (wrapped false)
  (modules
    raw_term_to_anf

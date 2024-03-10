@@ -1,6 +1,6 @@
 open Z3
 open Z3aux
-open Languagez
+open Language
 open Sugar
 
 let constant_to_z3 ctx c =

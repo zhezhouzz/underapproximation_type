@@ -1,5 +1,5 @@
 (library
- (name frontendz)
+ (name frontend_opt)
  (wrapped true)
  (libraries syntax core env)
  (modules
@@ -15,18 +15,6 @@
    to_type_dec
    to_typectx
    to_item
-   ; quantified
-   ; anormal
-   ; expr
-   ; lemma
-   ; overty
-   ; pat
-   ; structure
-   ; typectx
-   ; utypectx
-   ; typedec
-   ; underty
-   ; value
  )
  (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
 )

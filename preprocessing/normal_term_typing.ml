@@ -1,4 +1,4 @@
-open Languagez
+open Language
 open Sugar
 open Zzdatatype.Datatype
 open Normal_id_typing

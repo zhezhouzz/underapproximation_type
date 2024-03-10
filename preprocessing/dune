@@ -1,7 +1,7 @@
 (library
  (name preprocessing)
  (wrapped true)
- (libraries syntax frontendz languagez)
+ (libraries syntax language)
  (modules
    normal_constant_typing
    normal_id_typing
