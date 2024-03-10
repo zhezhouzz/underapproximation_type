@@ -5,7 +5,6 @@ let[@assert] size_bst_gen =
   let s = (d <= v : [%v: int]) [@over] in
   let lo = (true : [%v: int]) [@over] in
   let hi = (v == lo + d : [%v: int]) [@over] in
-  (fun (u : int) ->
-     implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
+  (fun (u : int) -> implies (mem v u) (lo < u && u < hi) && sorted v && rng v d
     : [%v: int tree])
     [@under]

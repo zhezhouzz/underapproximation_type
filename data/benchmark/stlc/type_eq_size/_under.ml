@@ -1,5 +1,5 @@
-external method_predicates : t = "ty_size" "type_eq_spec" "is_ty_pre" "is_ty_post" ">="
-
+external method_predicates : t
+  = "ty_size" "type_eq_spec" "is_ty_pre" "is_ty_post" ">="
 
 let[@assert] type_eq_size =
   let s = (v >= 0 : [%v: int]) [@over] in

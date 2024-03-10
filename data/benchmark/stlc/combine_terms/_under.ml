@@ -1,4 +1,5 @@
-external method_predicates : t = "typing" "size_app" "typing_var" "no_app" "is_const" "is_abs"
+external method_predicates : t
+  = "typing" "size_app" "typing_var" "no_app" "is_const" "is_abs"
 
 let[@library] or_var_in_typectx =
   let gamma = (true : [%v: stlc_tyctx]) [@over] in

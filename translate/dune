@@ -1,9 +1,5 @@
 (library
  (name translate)
  (wrapped false)
- (modules
-   raw_term_to_anf
-   anf_to_raw_term
- )
- (libraries syntax language_utils)
-)
+ (modules raw_term_to_anf anf_to_raw_term)
+ (libraries syntax language_utils))

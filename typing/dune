@@ -2,10 +2,4 @@
  (name typing)
  (wrapped true)
  (libraries language subtyping core env inference)
- (modules
-   checkaux
-   termcheck
-   infer_prop
-   termsyn
-   itemcheck
- ))
+ (modules checkaux termcheck infer_prop termsyn itemcheck))

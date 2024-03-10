@@ -2,7 +2,4 @@
  (name subtyping)
  (wrapped true)
  (libraries language core backend env)
- (modules
-   subcty
-   subrty
- ))
+ (modules subcty subrty))

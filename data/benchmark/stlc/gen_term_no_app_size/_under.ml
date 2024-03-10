@@ -1,4 +1,14 @@
-external method_predicates : t = "size" "typing" "is_abs" "is_const" "no_app" "is_ty_post" "is_ty_pre" "ty_size" "size_app" "typing_var"
+external method_predicates : t
+  = "size"
+    "typing"
+    "is_abs"
+    "is_const"
+    "no_app"
+    "is_ty_post"
+    "is_ty_pre"
+    "ty_size"
+    "size_app"
+    "typing_var"
 
 let[@library] gen_const =
   let a = (true : [%v: unit]) [@over] in

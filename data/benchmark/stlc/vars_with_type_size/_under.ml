@@ -1,4 +1,11 @@
-external method_predicates : t = "gamma_size" "typing_var" "is_var_in_range" "is_tyctx_hd" "is_tyctx_tl" "type_eq_spec" "is_id_eq"
+external method_predicates : t
+  = "gamma_size"
+    "typing_var"
+    "is_var_in_range"
+    "is_tyctx_hd"
+    "is_tyctx_tl"
+    "type_eq_spec"
+    "is_id_eq"
 
 let[@library] type_eq =
   let tau_a = (true : [%v: stlc_ty]) [@over] in
