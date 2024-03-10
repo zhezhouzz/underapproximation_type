@@ -1,4 +1,5 @@
 (library
+ (public_name underapproximation_type.backend)
  (name backend)
  (wrapped true)
  (libraries language env z3)

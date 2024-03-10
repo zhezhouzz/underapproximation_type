@@ -1,5 +1,6 @@
 (library
  (name preprocessing)
+ (public_name underapproximation_type.preprocessing)
  (wrapped true)
  (libraries syntax language)
  (modules

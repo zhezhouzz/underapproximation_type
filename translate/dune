@@ -1,4 +1,5 @@
 (library
+ (public_name underapproximation_type.translate)
  (name translate)
  (wrapped false)
  (modules raw_term_to_anf anf_to_raw_term)

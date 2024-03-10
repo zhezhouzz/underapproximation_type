@@ -1,5 +1,6 @@
 (library
  (name commands)
+ (public_name underapproximation_type.commands)
  (libraries
   core
   core_unix.sys_unix

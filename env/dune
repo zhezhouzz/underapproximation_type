@@ -1,4 +1,5 @@
 (library
+ (public_name underapproximation_type.env)
  (name env)
  (wrapped false)
  (modules env)

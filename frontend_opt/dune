@@ -1,4 +1,5 @@
 (library
+ (public_name underapproximation_type.frontend_opt)
  (name frontend_opt)
  (wrapped true)
  (libraries syntax core env)

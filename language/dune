@@ -1,4 +1,5 @@
 (library
+ (public_name underapproximation_type.language)
  (name language)
  (wrapped false)
  (modules language)
