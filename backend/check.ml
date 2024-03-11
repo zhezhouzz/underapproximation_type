@@ -76,6 +76,7 @@ exception SMTTIMEOUT
 
 let debug_counter = ref 0
 
+(** Unsat means true; otherwise means false *)
 let handle_check_res query_action =
   let time_t, res = Sugar.clock query_action in
   let () =
@@ -87,10 +88,12 @@ let handle_check_res query_action =
   (*   else debug_counter := !debug_counter + 1 *)
   (* in *)
   match res with
-  | SmtUnsat -> None
+  | SmtUnsat -> true
   | SmtSat model ->
-      ( Env.show_debug_stat @@ fun _ ->
+      ( Env.show_debug_queries @@ fun _ ->
         Printf.printf "model:\n%s\n"
         @@ Sugar.short_str 100 @@ Z3.Model.to_string model );
-      Some model
-  | Timeout -> raise SMTTIMEOUT
+      false
+  | Timeout ->
+      (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");
+      false

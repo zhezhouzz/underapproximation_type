@@ -28,7 +28,9 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
         Some (VLam { lamarg; body }) #: rty
     | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
         let* body =
-          term_type_check (add_to_right uctx lamarg.x #: argrty) body retty
+          partial_term_type_infer
+            (add_to_right uctx lamarg.x #: argrty)
+            body retty
         in
         let lamarg = lamarg.x #: argrty in
         let rty = RtyArrArr { argrty; retty = body.ty } in
@@ -43,11 +45,8 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
         let binding = fixarg.x #: (RtyBase { ou = true; cty = argcty }) in
         (* let retty = subst_rty_instance arg (AVar a) retty in *)
         (* let body = (subst_term_instance fixarg.x (VVar a) body.x) #: body.ty in *)
-        let* body' =
-          partial_term_type_infer
-            (add_to_rights uctx [ binding; fixname.x #: rty_a ])
-            body retty
-        in
+        let uctx' = add_to_rights uctx [ binding; fixname.x #: rty_a ] in
+        let* body' = partial_term_type_infer uctx' body retty in
         let rty = RtyBaseArr { argcty; arg = fixarg.x; retty = body'.ty } in
         Some
           (VFix
@@ -72,4 +71,10 @@ and partial_term_type_infer (uctx : uctx) (a : (t, t term) typed) (rty : t rty)
   | CVal v ->
       let* v = partial_value_type_infer uctx v rty in
       Some (CVal v) #: v.ty
-  | _ -> term_type_infer uctx a
+  | _ ->
+      (* NOTE: the first type not a value (function body) *)
+      let* a = term_type_infer uctx a in
+      let inferred_rty = Infer_prop.abductive_infer_rty uctx a.ty rty in
+      let () = Printf.printf "inferred_rty: %s\n" (layout_rty inferred_rty) in
+      Some a
+(* | _ -> term_type_infer uctx a *)

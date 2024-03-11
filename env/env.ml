@@ -22,6 +22,7 @@ type prim_path = {
   type_decls : string;
   lemmas : string;
   functional_lemmas : string;
+  templates : string;
 }
 [@@deriving sexp]
 
@@ -137,6 +138,7 @@ let load_meta meta_fname =
   let p = metaj |> member "prim_path" in
   let prim_path =
     {
+      templates = p |> member "templates" |> to_string;
       normalp = p |> member "normal_typing" |> to_string;
       under_basicp = p |> member "builtin_coverage_typing" |> to_string;
       under_randomp =

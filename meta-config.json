@@ -13,6 +13,7 @@
     "benchmark_table_file": "config/benchmark.json",
     "prim_path": {
         "data_type_decls": "data/predefined/data_type_decls.ml",
+        "templates": "data/predefined/templates.ml",
         "normal_typing": "data/predefined/normal_typing.ml",
         "axioms_of_predicates": "data/predefined/axioms.ml",
         "axioms_of_query_encoding": "data/predefined/axioms_of_query_encoding.ml",

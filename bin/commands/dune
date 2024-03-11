@@ -2,6 +2,7 @@
  (name commands)
  (libraries core core_unix.sys_unix
             frontend_opt syntax preprocessing translate typing
+            ; inferrty
             ; inference
  )
  (modules

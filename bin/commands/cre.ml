@@ -41,7 +41,11 @@ let type_check_ meta_config_file source_file () =
   let lemmas =
     List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
   in
-  (* let axioms = Typing.Itemcheck.gather_axioms predefine in *)
+  (* let templates = preproress meta_config_file prim_path.templates () in *)
+  (* let templates = *)
+  (*   List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms templates *)
+  (* in *)
+  (* let () = Inference.Feature.init_template templates in *)
   let _ = Typing.Itemcheck.struc_check (lemmas, builtin_ctx) code in
   ()
 
@@ -55,7 +59,11 @@ let type_infer_ meta_config_file source_file () =
   let lemmas =
     List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
   in
-  (* let axioms = Typing.Itemcheck.gather_axioms predefine in *)
+  let templates = preproress meta_config_file prim_path.templates () in
+  let templates =
+    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms templates
+  in
+  let () = Inference.Feature.init_template templates in
   let _ = Typing.Itemcheck.struc_infer (lemmas, builtin_ctx) code in
   ()
 
