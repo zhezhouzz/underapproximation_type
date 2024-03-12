@@ -148,7 +148,7 @@ Using **Poirot**, you can
 + Print the refinement types (we called _coverage refinement types_ in the paper) that encodes the coverage property from the given file:
 
 ```
-$ ./main.exe print-coverage-types <config_file> <refinement_type_file>
+    $ ./main.exe print-coverage-types <config_file> <refinement_type_file>
 ```
 
 > For example,
