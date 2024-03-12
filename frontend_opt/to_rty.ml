@@ -52,7 +52,9 @@ let rec rty_of_expr expr =
       let retty = rty_of_expr body in
       let arg = id_of_pattern vb.pvb_pat in
       match rty_of_expr vb.pvb_expr with
-      | RtyBase { cty; _ } -> RtyBaseDepPair { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = false } ->
+          RtyBaseDepPair { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = true } -> RtyBaseArr { argcty = cty; arg; retty }
       | RtyTuple _ -> _failatwith __FILE__ __LINE__ "die"
       | _ -> _failatwith __FILE__ __LINE__ "die")
   | Pexp_tuple es -> RtyTuple (List.map rty_of_expr es)

@@ -45,10 +45,9 @@ let rec value_type_infer (uctx : uctx) (a : (t, t value) typed) :
         let res = _id_type_infer __FILE__ __LINE__ uctx id.x in
         let rty =
           match res with
-          | RtyBaseArr _ | RtyArrArr _ | RtyBase { ou = false; _ } -> res
-          | RtyBaseDepPair _ -> _failatwith __FILE__ __LINE__ "unimp"
+          | RtyBaseArr _ | RtyArrArr _ | RtyBaseDepPair _ -> res
           | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-          | RtyBase { ou = true; _ } -> mk_rty_var_eq_var a.ty (default_v, id.x)
+          | RtyBase _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
         in
         (VVar id.x #: rty) #: rty
     | VConst U -> (VConst U) #: (prop_to_rty false Nt.unit_ty mk_true)
@@ -74,6 +73,14 @@ and value_type_check (uctx : uctx) (a : (t, t value) typed) (rty : t rty) :
   | VLam { lamarg; body }, RtyBaseArr { argcty; arg; retty } ->
       let retty = subst_rty_instance arg (AVar lamarg) retty in
       let argrty = RtyBase { ou = true; cty = argcty } in
+      let* body =
+        term_type_check (add_to_right uctx lamarg.x #: argrty) body retty
+      in
+      let lamarg = lamarg.x #: argrty in
+      Some (VLam { lamarg; body }) #: rty
+  | VLam { lamarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
+      let retty = subst_rty_instance arg (AVar lamarg) retty in
+      let argrty = RtyBase { ou = false; cty = argcty } in
       let* body =
         term_type_check (add_to_right uctx lamarg.x #: argrty) body retty
       in
