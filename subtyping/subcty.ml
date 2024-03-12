@@ -1,5 +1,5 @@
-open Language
-open FrontendTyped
+open Lang
+open Typedlang
 open Zzdatatype.Datatype
 open Sugar
 open Normalty.Connective
@@ -113,6 +113,7 @@ let rty_ctx_to_cty_ctx pctx =
     | Some (pctx, binding) -> (
         match binding.ty with
         | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
+        | RtyBaseDepPair _ -> _failatwith __FILE__ __LINE__ "unimp"
         | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
         | RtyBase { ou; cty } ->
             let qt = ou_to_qt ou in

@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Normal_id_typing
 
 type t = Nt.t

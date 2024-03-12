@@ -1,7 +1,6 @@
-open Language
 open Sugar
 open Feature
-open FrontendTyped
+open Typedlang
 
 type t = { ftab : feature_tab; fvec_tab : (int, label) Hashtbl.t }
 

@@ -1,5 +1,5 @@
-open Language
-open FrontendTyped
+open Lang
+open Typedlang
 open Sugar
 
 type t = Nt.t

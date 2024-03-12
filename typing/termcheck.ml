@@ -1,5 +1,5 @@
-open Language
-open FrontendTyped
+open Lang
+open Typedlang
 open Zzdatatype.Datatype
 open Sugar
 open Subtyping
@@ -11,18 +11,17 @@ let layout_ty = Nt.layout
 let _warinning_subtyping_error file line (rty1, rty2) =
   Env.show_debug_typing @@ fun _ ->
   Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s <: %s\n" file line
-    (FrontendTyped.layout_rty rty1)
-    (FrontendTyped.layout_rty rty2)
+    (layout_rty rty1) (layout_rty rty2)
 
 let _warinning_subtyping_emptyness_error file line rty1 =
   Env.show_debug_typing @@ fun _ ->
   Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s is empty type\n" file line
-    (FrontendTyped.layout_rty rty1)
+    (layout_rty rty1)
 
 let _warinning_typing_error file line (str, rty) =
   Env.show_debug_typing @@ fun _ ->
   Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s : %s\n" file line str
-    (FrontendTyped.layout_rty rty)
+    (layout_rty rty)
 
 let sub_rty_bool uctx (t1, t2) =
   let _ = pprint_typectx_subtyping uctx.local_ctx (t1, t2) in
@@ -47,6 +46,7 @@ let rec value_type_infer (uctx : uctx) (a : (t, t value) typed) :
         let rty =
           match res with
           | RtyBaseArr _ | RtyArrArr _ | RtyBase { ou = false; _ } -> res
+          | RtyBaseDepPair _ -> _failatwith __FILE__ __LINE__ "unimp"
           | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
           | RtyBase { ou = true; _ } -> mk_rty_var_eq_var a.ty (default_v, id.x)
         in

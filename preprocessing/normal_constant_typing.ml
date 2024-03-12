@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Sugar
 
 let rec infer_constant (c : constant) =

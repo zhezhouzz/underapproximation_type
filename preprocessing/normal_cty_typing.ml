@@ -1,7 +1,5 @@
-open Language
+open Lang
 open Normal_prop_typing
-
-type t = Nt.t
 
 let bi_typed_cty_check (ctx : t ctx) (cty : t option cty) : t cty =
   match cty with

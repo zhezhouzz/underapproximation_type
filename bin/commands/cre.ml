@@ -1,6 +1,6 @@
 open Core
 open Caux
-open Language
+open Lang
 open Zzdatatype.Datatype
 open Preprocessing.Normal_item_typing
 open To_item
@@ -19,11 +19,11 @@ let preproress meta_config_file source_file () =
     ocaml_structure_to_items
     @@ Ocaml5_parser.Frontend.parse ~sourcefile:source_file
   in
-  (* let _ = Pp.printf "%s\n" (FrontendRaw.layout_structure code) in *)
+  (* let _ = Pp.printf "%s\n" (Rawlang.layout_structure code) in *)
   let _, code = struct_check init_normal_ctx code in
-  (* let _ = Pp.printf "%s\n" (FrontendTyped.layout_structure code) in *)
+  (* let _ = Pp.printf "%s\n" (Typedlang.layout_structure code) in *)
   let code = normalize_structure code in
-  let _ = Pp.printf "%s\n" (FrontendTyped.layout_structure code) in
+  let _ = Pp.printf "%s\n" (Typedlang.layout_structure code) in
   code
 
 let print_source_code meta_config_file source_file () =
@@ -74,7 +74,7 @@ let print_erase_code meta_config_file source_file () =
     @@ Ocaml5_parser.Frontend.parse ~sourcefile:source_file
   in
   let code = List.map item_erase code in
-  let _ = Printf.printf "%s\n" (FrontendRaw.layout_structure code) in
+  let _ = Printf.printf "%s\n" (Rawlang.layout_structure code) in
   ()
 
 let input_config_source message f =

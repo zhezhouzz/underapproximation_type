@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Sugar
 open Zzdatatype.Datatype
 open Normal_id_typing
@@ -115,7 +115,7 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
   | e, ty ->
       _failatwith __FILE__ __LINE__
         (spf "bi_term_check: inconsistent term (%s) and type (%s)"
-           (FrontendRaw.layout_raw_term e)
+           (Rawlang.layout_raw_term e)
            (Nt.layout ty))
 
 and bi_term_infer (ctx : t ctx) (x : t option raw_term) : (t, t raw_term) typed

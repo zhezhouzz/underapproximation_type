@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Normal_id_typing
 open Normal_constant_typing
 open Sugar

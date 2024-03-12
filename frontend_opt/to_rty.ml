@@ -19,6 +19,10 @@ let rec layout_rty = function
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
       | _ -> spf "(%s:{%s}) → %s" arg (layout_cty argcty) (layout_rty retty))
+  | RtyBaseDepPair { argcty; arg; retty } -> (
+      match arg with
+      | "_" -> spf "[%s] → %s" (layout_cty argcty) (layout_rty retty)
+      | _ -> spf "(%s:[%s]) → %s" arg (layout_cty argcty) (layout_rty retty))
   | RtyArrArr { argrty; retty } ->
       spf "%s → %s" (layout_rty argrty) (layout_rty retty)
   | RtyTuple ts -> spf "(%s)" @@ List.split_by_comma layout_rty ts
@@ -48,9 +52,9 @@ let rec rty_of_expr expr =
       let retty = rty_of_expr body in
       let arg = id_of_pattern vb.pvb_pat in
       match rty_of_expr vb.pvb_expr with
-      | RtyBase { cty; _ } -> RtyBaseArr { argcty = cty; arg; retty }
+      | RtyBase { cty; _ } -> RtyBaseDepPair { argcty = cty; arg; retty }
       | RtyTuple _ -> _failatwith __FILE__ __LINE__ "die"
-      | argrty -> RtyArrArr { argrty; retty })
+      | _ -> _failatwith __FILE__ __LINE__ "die")
   | Pexp_tuple es -> RtyTuple (List.map rty_of_expr es)
   | _ ->
       _failatwith __FILE__ __LINE__

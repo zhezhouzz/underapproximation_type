@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Sugar
 open Zzdatatype.Datatype
 open Normal_prop_typing

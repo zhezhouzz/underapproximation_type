@@ -1,6 +1,6 @@
 open Z3
 open Z3aux
-open Language
+open Lang
 
 let to_z3 ctx prop =
   let rec aux prop =

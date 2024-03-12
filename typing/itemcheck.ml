@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Sugar
 open Zzdatatype.Datatype
 
@@ -24,7 +24,7 @@ let item_check (axioms, uctx) imps = function
       let () =
         Env.show_debug_typing @@ fun _ ->
         Pp.printf "@{<bold>check against with:@} %s\n"
-          (FrontendTyped.layout_rty rty)
+          (Typedlang.layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match
@@ -65,7 +65,7 @@ let item_infer (axioms, uctx) imps = function
       let () =
         Env.show_debug_typing @@ fun _ ->
         Pp.printf "@{<bold>partial infer against with:@} %s\n"
-          (FrontendTyped.layout_rty rty)
+          (Typedlang.layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match

@@ -5,6 +5,11 @@ open Cty
 type 't rty =
   | RtyBase of { ou : bool; cty : 't cty }
   | RtyBaseArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
+  | RtyBaseDepPair of {
+      argcty : 't cty;
+      arg : (string[@bound]);
+      retty : 't rty;
+    }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
   | RtyTuple of 't rty list
 [@@deriving sexp]
@@ -14,6 +19,14 @@ let rec fv_rty (rty_e : 't rty) =
   match rty_e with
   | RtyBase { cty; _ } -> [] @ fv_cty cty
   | RtyBaseArr { argcty; arg; retty } ->
+      let res = [] @ fv_rty retty in
+      let res =
+        List.filter_map
+          (fun x -> if String.equal arg x.x then None else Some x)
+          res
+      in
+      res @ fv_cty argcty
+  | RtyBaseDepPair { argcty; arg; retty } ->
       let res = [] @ fv_rty retty in
       let res =
         List.filter_map
@@ -39,6 +52,16 @@ let rec subst_rty (string_x : string) f (rty_e : 't rty) =
             arg;
             retty = subst_rty string_x f retty;
           }
+  | RtyBaseDepPair { argcty; arg; retty } ->
+      if String.equal arg string_x then
+        RtyBaseDepPair { argcty = subst_cty string_x f argcty; arg; retty }
+      else
+        RtyBaseDepPair
+          {
+            argcty = subst_cty string_x f argcty;
+            arg;
+            retty = subst_rty string_x f retty;
+          }
   | RtyArrArr { argrty; retty } ->
       RtyArrArr
         {
@@ -55,6 +78,8 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   | RtyBase { ou; cty } -> RtyBase { ou; cty = map_cty f cty }
   | RtyBaseArr { argcty; arg; retty } ->
       RtyBaseArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
+  | RtyBaseDepPair { argcty; arg; retty } ->
+      RtyBaseDepPair { argcty = map_cty f argcty; arg; retty = map_rty f retty }
   | RtyArrArr { argrty; retty } ->
       RtyArrArr { argrty = map_rty f argrty; retty = map_rty f retty }
   | RtyTuple _trtylist0 -> RtyTuple (List.map (map_rty f) _trtylist0)
@@ -73,6 +98,8 @@ let typed_subst_rty_instance x instance e =
 let rec erase_rty = function
   | RtyBase { cty; _ } -> erase_cty cty
   | RtyBaseArr { argcty; arg; retty } ->
+      Nt.mk_arr (erase_cty argcty) (erase_rty retty)
+  | RtyBaseDepPair { argcty; arg; retty } ->
       Nt.mk_arr (erase_cty argcty) (erase_rty retty)
   | RtyArrArr { argrty; retty } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)

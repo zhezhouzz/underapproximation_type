@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Normal_cty_typing
 
 type t = Nt.t
@@ -10,6 +10,11 @@ let bi_typed_rty_check (ctx : t ctx) (rty : t option rty) : t rty =
         let argcty = bi_typed_cty_check ctx argcty in
         let arg' = arg #: (erase_cty argcty) in
         RtyBaseArr { argcty; arg; retty = aux (add_to_right ctx arg') retty }
+    | RtyBaseDepPair { argcty; arg; retty } ->
+        let argcty = bi_typed_cty_check ctx argcty in
+        let arg' = arg #: (erase_cty argcty) in
+        RtyBaseDepPair
+          { argcty; arg; retty = aux (add_to_right ctx arg') retty }
     | RtyArrArr { argrty; retty } ->
         let argrty = aux ctx argrty in
         RtyArrArr { argrty; retty = aux ctx retty }

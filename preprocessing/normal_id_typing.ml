@@ -1,4 +1,4 @@
-open Language
+open Lang
 open Sugar
 
 type t = Nt.t
@@ -7,7 +7,7 @@ let _unify_opt file line t1 t2 =
   match (t1, t2) with
   | _, None -> t1
   | None, _ -> t2
-  | Some t1, Some t2 -> Some (Nt._type_unify file line t1 t2)
+  | Some t1, Some t2 -> Some (Normalty.Ntyped._type_unify file line t1 t2)
 
 let bi_typed_id_infer (ctx : t ctx) (x : (t option, string) typed) :
     (t, string) typed =
