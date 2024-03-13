@@ -2,11 +2,10 @@ let rec sorted_list_gen (size : int) : int list =
   let (b : bool) = size == 0 in
   if b then []
   else
-    let (y : int) = int_gen () in
     let (size2 : int) = size - 1 in
     let (l : int list) = sorted_list_gen size2 in
-    let (l2 : int list) = y :: l in
-    l2
+    let (y : int) = int_gen () in
+    y :: l
 
 (* let[@assert] sorted_list_gen = *)
 (*   let s = (0 <= v : [%v: int]) [@over] in *)

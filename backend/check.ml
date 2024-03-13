@@ -92,7 +92,7 @@ let handle_check_res query_action =
   | SmtSat model ->
       ( Env.show_debug_queries @@ fun _ ->
         Printf.printf "model:\n%s\n"
-        @@ Sugar.short_str 100 @@ Z3.Model.to_string model );
+        @@ Sugar.short_str 1000 @@ Z3.Model.to_string model );
       false
   | Timeout ->
       (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");

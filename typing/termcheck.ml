@@ -46,9 +46,9 @@ let rec value_type_infer (uctx : uctx) (a : (t, t value) typed) :
         let res = _id_type_infer __FILE__ __LINE__ uctx id.x in
         let rty =
           match res with
-          | RtyBaseArr _ | RtyArrArr _ | RtyBase { ou = false; _ } -> res
+          | RtyBaseArr _ | RtyArrArr _ -> res
           | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-          | RtyBase { ou = true; _ } -> mk_rty_var_eq_var a.ty (default_v, id.x)
+          | RtyBase _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
         in
         (VVar id.x #: rty) #: rty
     | VConst U -> (VConst U) #: (prop_to_rty false Nt.unit_ty mk_true)

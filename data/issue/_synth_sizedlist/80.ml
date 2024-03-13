@@ -6,4 +6,4 @@ let rec goal (size : int) : int list =
 
 let[@assert] goal =
   let s = (0 <= v : [%v: int]) [@over] in
-  (fun (n : int) -> (len v n) #==> (n <= s) : [%v: int list]) [@under]
+  (fun ((n [@exists]) : int) -> len v n && n <= s : [%v: int list]) [@under]
