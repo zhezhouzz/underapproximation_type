@@ -83,6 +83,8 @@ module FrontendTyped = struct
   let layout_structure s =
     layout_structure @@ Anf_to_raw_term.denormalize_structure s
 
+  let layout_id_rty x = x.x ^ ":" ^ layout_rty x.ty
+
   (* Lit *)
 
   let mk_typed_lit_by_id id = (AVar id) #: id.ty
