@@ -6,7 +6,7 @@ open Zzdatatype.Datatype
 let layout_typectx (layout : 'a -> string) ctx : string =
   match ctx with
   | Typectx.Typectx l ->
-      List.split_by_comma (fun { x; ty } -> spf "%s:%s" x (layout ty)) l
+      List.split_by "\n" (fun { x; ty } -> spf "%s:%s" x (layout ty)) l
 
 let pprint_typectx f ctx =
   Env.show_debug_typing (fun _ ->
