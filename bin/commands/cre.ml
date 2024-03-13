@@ -23,7 +23,7 @@ let preproress meta_config_file source_file () =
   let _, code = struct_check init_normal_ctx code in
   (* let _ = Pp.printf "%s\n" (FrontendTyped.layout_structure code) in *)
   let code = normalize_structure code in
-  let _ = Pp.printf "%s\n" (FrontendTyped.layout_structure code) in
+  (*   let _ = Pp.printf "%s\n" (FrontendTyped.layout_structure code) in *)
   code
 
 let print_source_code meta_config_file source_file () =
