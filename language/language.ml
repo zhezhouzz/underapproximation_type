@@ -277,6 +277,10 @@ module FrontendTyped = struct
       (function Cty { nty; phi } -> Cty { nty; phi = f phi })
       t
 
+  let map_typed_term (f : 't -> 'r) (t : ('t, 't term) typed) :
+      ('r, 'r term) typed =
+    { x = map_term f t.x; ty = f t.ty }
+
   let union_rtys = function
     | [] -> _failatwith __FILE__ __LINE__ "die"
     | _ as rtys ->
