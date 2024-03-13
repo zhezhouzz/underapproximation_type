@@ -1,13 +1,9 @@
 (library
+ (public_name underapproximation_type.backend)
  (name backend)
  (wrapped true)
  (libraries language env z3)
- (modules
-   z3aux
-   litencoding
-   propencoding
-   check
-   smtquery
-)
+ (modules z3aux litencoding propencoding check smtquery)
  (inline_tests)
- (preprocess (pps ppx_inline_test)))
+ (preprocess
+  (pps ppx_inline_test)))

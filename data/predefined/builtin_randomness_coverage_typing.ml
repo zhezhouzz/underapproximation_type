@@ -54,4 +54,3 @@ let[@library] subs =
   (v == s - 1 : [%v: int]) [@under]
 
 let[@library] dummy = (true : [%v: unit]) [@under]
-

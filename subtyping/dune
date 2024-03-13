@@ -1,8 +1,6 @@
 (library
+ (public_name underapproximation_type.subtyping)
  (name subtyping)
  (wrapped true)
  (libraries language core backend env)
- (modules
-   subcty
-   subrty
- ))
+ (modules subcty subrty))

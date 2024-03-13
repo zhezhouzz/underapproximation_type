@@ -1,4 +1,13 @@
-external method_predicates : t = "dec_pair" "size" "typing" "no_app" "is_const" "is_abs" "is_ty_post" "is_ty_pre" "typing_var"
+external method_predicates : t
+  = "dec_pair"
+    "size"
+    "typing"
+    "no_app"
+    "is_const"
+    "is_abs"
+    "is_ty_post"
+    "is_ty_pre"
+    "typing_var"
 
 let[@library] nonderter_dec =
   let a = (v > 0 : [%v: int]) [@over] in

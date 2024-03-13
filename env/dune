@@ -1,10 +1,9 @@
 (library
+ (public_name underapproximation_type.env)
  (name env)
  (wrapped false)
- (modules
-   env
- )
+ (modules env)
  (libraries core language_utils)
- (preprocess (pps ppx_inline_test ppx_assert ppx_optcomp ppx_compare ppx_sexp_conv))
- (inline_tests)
-)
+ (preprocess
+  (pps ppx_inline_test ppx_assert ppx_optcomp ppx_compare ppx_sexp_conv))
+ (inline_tests))

@@ -20,9 +20,7 @@ let[@library] stlc_tyctx_cons =
   let _ = (true : [%v: stlc_ty]) [@under] in
   let s = (true : [%v: int]) [@over] in
   let _ = (false : [%v: stlc_tyctx]) [@under] in
-  (fun (u : int) -> implies (size v u) (u == s + 1)
-    : [%v: stlc_tyctx])
-    [@under]
+  (fun (u : int) -> implies (size v u) (u == s + 1) : [%v: stlc_tyctx]) [@under]
 
 let[@library] stlc_abs =
   let a = (true : [%v: int]) [@over] in

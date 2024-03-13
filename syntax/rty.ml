@@ -78,6 +78,10 @@ let rec erase_rty = function
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyTuple _trtylist0 -> Nt.mk_tuple (List.map erase_rty _trtylist0)
 
+let assume_base_rty = function
+  | RtyBase { ou; cty } -> (ou, cty)
+  | _ -> failwith "assume_base_rty"
+
 let ou_to_qt = function
   | true -> Normalty.Connective.Fa
   | false -> Normalty.Connective.Ex

@@ -83,6 +83,8 @@ module FrontendTyped = struct
   let layout_structure s =
     layout_structure @@ Anf_to_raw_term.denormalize_structure s
 
+  let layout_id_rty x = x.x ^ ":" ^ layout_rty x.ty
+
   (* Lit *)
 
   let mk_typed_lit_by_id id = (AVar id) #: id.ty
@@ -276,6 +278,10 @@ module FrontendTyped = struct
     map_base_in_retrty
       (function Cty { nty; phi } -> Cty { nty; phi = f phi })
       t
+
+  let map_typed_term (f : 't -> 'r) (t : ('t, 't term) typed) :
+      ('r, 'r term) typed =
+    { x = map_term f t.x; ty = f t.ty }
 
   let union_rtys = function
     | [] -> _failatwith __FILE__ __LINE__ "die"

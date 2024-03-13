@@ -1,20 +1,20 @@
 (library
+ (public_name underapproximation_type.frontend_opt)
  (name frontend_opt)
  (wrapped true)
  (libraries syntax core env)
  (modules
-   to_notation
-   to_id
-   to_op
-   to_constant
-   to_raw_term
-   to_lit
-   to_prop
-   to_cty
-   to_rty
-   to_type_dec
-   to_typectx
-   to_item
- )
- (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
-)
+  to_notation
+  to_id
+  to_op
+  to_constant
+  to_raw_term
+  to_lit
+  to_prop
+  to_cty
+  to_rty
+  to_type_dec
+  to_typectx
+  to_item)
+ (preprocess
+  (pps ppx_optcomp ppx_compare ppx_sexp_conv)))

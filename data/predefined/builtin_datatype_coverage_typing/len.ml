@@ -4,9 +4,7 @@ let[@library] cons =
   let _ = (true : [%v: int]) [@under] in
   let s = (v >= 0 : [%v: int]) [@over] in
   let _ = (len v s : [%v: int list]) [@under] in
-  (fun (u : int) -> implies (u == s + 1) (len v u)
-    : [%v: int list])
-    [@under]
+  (fun (u : int) -> implies (u == s + 1) (len v u) : [%v: int list]) [@under]
 
 let[@library] unil = (len v 0 : [%v: int ulist]) [@under]
 
@@ -18,8 +16,7 @@ let[@library] ucons =
       : [%v: int ulist])
       [@under]
   in
-  (fun (u : int) ->
-     implies (u == s + 1) (len v u) && implies (mem v u) (u == h)
+  (fun (u : int) -> implies (u == s + 1) (len v u) && implies (mem v u) (u == h)
     : [%v: int ulist])
     [@under]
 
@@ -53,15 +50,11 @@ let[@library] cnode =
   let _ = (true : [%v: int]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : int) -> len v sizel && complete v
-      : [%v: int ctree])
-      [@under]
+    (fun (u : int) -> len v sizel && complete v : [%v: int ctree]) [@under]
   in
   let sizer = (v == sizel : [%v: int]) [@over] in
   let _ =
-    (fun (u : int) -> len v sizer && complete v
-      : [%v: int ctree])
-      [@under]
+    (fun (u : int) -> len v sizer && complete v : [%v: int ctree]) [@under]
   in
   (fun (u : int) -> complete v && implies (u == sizel + 1) (len v u)
     : [%v: int ctree])
@@ -115,20 +108,17 @@ let[@library] hnode =
   let root = (true : [%v: int]) [@over] in
   let sizel = (v >= 0 : [%v: int]) [@over] in
   let _ =
-    (fun (u : int) ->
-       len v sizel && heap v && implies (hd v u) (u <= root)
+    (fun (u : int) -> len v sizel && heap v && implies (hd v u) (u <= root)
       : [%v: int heap])
       [@under]
   in
   let sizer = (v == sizel : [%v: int]) [@over] in
   let _ =
-    (fun (u : int) ->
-       len v sizer && heap v && implies (hd v u) (u <= root)
+    (fun (u : int) -> len v sizer && heap v && implies (hd v u) (u <= root)
       : [%v: int heap])
       [@under]
   in
-  (fun (u : int) ->
-     hd v root && heap v && implies (u == sizel + 1) (len v u)
+  (fun (u : int) -> hd v root && heap v && implies (u == sizel + 1) (len v u)
     : [%v: int heap])
     [@under]
 
@@ -144,9 +134,7 @@ let[@library] streamlazycons =
   let _ = (true : [%v: int]) [@under] in
   let s = (v >= 0 : [%v: int]) [@over] in
   let _ = (len v s : [%v: int stream lazyty]) [@under] in
-  (fun (u : int) -> implies (u == s + 1) (len v u)
-    : [%v: int stream])
-    [@under]
+  (fun (u : int) -> implies (u == s + 1) (len v u) : [%v: int stream]) [@under]
 
 (* bankersq *)
 let[@library] bankersq =

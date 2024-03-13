@@ -1,26 +1,29 @@
 (env
  (dev
-  (flags (:standard -w -32-35-27-33-26-64)))
+  (flags
+   (:standard -w -32-35-27-33-26-64)))
  (release
-  (flags (:standard -w -32-35-27-33-26-64))
-  (ocamlopt_flags (:standard -unsafe -noassert -inline 100))))
+  (flags
+   (:standard -w -32-35-27-33-26-64))
+  (ocamlopt_flags
+   (:standard -unsafe -noassert -inline 100))))
 
 (library
+ (public_name underapproximation_type.syntax)
  (name syntax)
  (wrapped false)
  (modules
-   op
-   constant
-   lit
-   prop
-   cty
-   rty
-   typectx
-   raw_term
-   term
-   constructor_declaration
-   item
- )
- (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
- (libraries language_utils)
-)
+  op
+  constant
+  lit
+  prop
+  cty
+  rty
+  typectx
+  raw_term
+  term
+  constructor_declaration
+  item)
+ (preprocess
+  (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+ (libraries language_utils))
