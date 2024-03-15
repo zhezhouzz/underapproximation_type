@@ -187,10 +187,14 @@ module FrontendTyped = struct
         Lit lit #: nty
 
   let mk_prop_var_eq_var nty (id, id') =
-    let lit =
-      mk_lit_eq nty (mk_typed_lit_by_id id #: nty, mk_typed_lit_by_id id' #: nty)
-    in
-    Lit lit #: nty
+    match nty with
+    | Nt.Ty_unit -> mk_true
+    | _ ->
+        let lit =
+          mk_lit_eq nty
+            (mk_typed_lit_by_id id #: nty, mk_typed_lit_by_id id' #: nty)
+        in
+        Lit lit #: nty
 
   (* Cty *)
   let prop_to_cty nty prop = Cty { nty; phi = prop }
