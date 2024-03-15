@@ -11,7 +11,7 @@ type t = Nt.t
 
 let layout_ty = Nt.layout
 
-let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
+let rec partial_value_type_infer (lrctx : lrctx) (a : (t, t value) typed)
     (rty : t rty) : (t rty, t rty value) typed option =
   let res =
     match (a.x, rty) with
@@ -20,7 +20,7 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
         let argrty = RtyBase { ou = true; cty = argcty } in
         let* body =
           partial_term_type_infer
-            (add_to_right uctx lamarg.x #: argrty)
+            (add_to_right lrctx lamarg.x #: argrty)
             body retty
         in
         let lamarg = lamarg.x #: argrty in
@@ -29,7 +29,7 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
     | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
         let* body =
           partial_term_type_infer
-            (add_to_right uctx lamarg.x #: argrty)
+            (add_to_right lrctx lamarg.x #: argrty)
             body retty
         in
         let lamarg = lamarg.x #: argrty in
@@ -45,8 +45,8 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
         let binding = fixarg.x #: (RtyBase { ou = true; cty = argcty }) in
         (* let retty = subst_rty_instance arg (AVar a) retty in *)
         (* let body = (subst_term_instance fixarg.x (VVar a) body.x) #: body.ty in *)
-        let uctx' = add_to_rights uctx [ binding; fixname.x #: rty_a ] in
-        let* body' = partial_term_type_infer uctx' body retty in
+        let lrctx' = add_to_rights lrctx [ binding; fixname.x #: rty_a ] in
+        let* body' = partial_term_type_infer lrctx' body retty in
         let rty = RtyBaseArr { argcty; arg = fixarg.x; retty = body'.ty } in
         Some
           (VFix
@@ -56,25 +56,26 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
                body = body';
              })
           #: rty
-    | _ -> Some (value_type_infer uctx a)
+    | _ -> Some (value_type_infer lrctx a)
   in
   let () =
     match res with
-    | Some res -> pprint_simple_typectx_infer uctx (layout_typed_value a, res.ty)
+    | Some res ->
+        pprint_simple_typectx_infer lrctx (layout_typed_value a, res.ty)
     | None -> ()
   in
   res
 
-and partial_term_type_infer (uctx : uctx) (a : (t, t term) typed) (rty : t rty)
-    : (t rty, t rty term) typed option =
+and partial_term_type_infer (lrctx : lrctx) (a : (t, t term) typed)
+    (rty : t rty) : (t rty, t rty term) typed option =
   match a.x with
   | CVal v ->
-      let* v = partial_value_type_infer uctx v rty in
+      let* v = partial_value_type_infer lrctx v rty in
       Some (CVal v) #: v.ty
   | _ ->
       (* NOTE: the first type not a value (function body) *)
-      let* a = term_type_infer uctx a in
-      let inferred_rty = Infer_prop.abductive_infer_rty uctx a.ty rty in
+      let* a = term_type_infer lrctx a in
+      let inferred_rty = Infer_prop.abductive_infer_rty lrctx a.ty rty in
       let () = Printf.printf "inferred_rty: %s\n" (layout_rty inferred_rty) in
       Some a
-(* | _ -> term_type_infer uctx a *)
+(* | _ -> term_type_infer lrctx a *)

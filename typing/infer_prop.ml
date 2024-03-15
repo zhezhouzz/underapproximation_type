@@ -13,16 +13,7 @@ let abductive_infer_subtyping_query ~(features : t lit list)
   | Some res -> res
 
 let abductive_infer_cty uctx cty1 cty2 =
-  let vars =
-    match uctx.local_ctx with
-    | Typectx l ->
-        List.filter_map
-          (fun x ->
-            match x.ty with
-            | RtyBase { ou = true; _ } -> Some x.x #: (erase_rty x.ty)
-            | _ -> None)
-          l
-  in
+  let vars = lrctx_to_base_tvars uctx in
   match cty1 with
   | Cty { nty; phi } ->
       let v = default_v #: nty in

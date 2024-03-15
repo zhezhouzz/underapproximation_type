@@ -106,30 +106,14 @@ let aux_emptyness (axioms, uqvs) cty =
 
 type t = Nt.t
 
-let rty_ctx_to_cty_ctx pctx =
-  let rec aux (pctx : (t rty, string) typed list) uqvs =
-    match List.last_destruct_opt pctx with
-    | None -> uqvs
-    | Some (pctx, binding) -> (
-        match binding.ty with
-        | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-        | RtyBaseDepPair _ -> _failatwith __FILE__ __LINE__ "unimp"
-        | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
-        | RtyBase { ou; cty } ->
-            let qt = ou_to_qt ou in
-            let x = (qt, binding.x) #: cty in
-            aux pctx (x :: uqvs))
-  in
-  match pctx with Typectx pctx -> aux pctx []
-
 let sub_cty pctx (cty1, cty2) =
-  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  let ctx = lrctx_to_cctx pctx.local_ctx in
   aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 
 let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
 let is_nonempty_cty pctx cty =
-  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  let ctx = lrctx_to_cctx pctx.local_ctx in
   aux_emptyness (pctx.axioms, ctx) cty
 
 let is_nonempty_rty pctx rty =
