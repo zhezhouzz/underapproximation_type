@@ -13,6 +13,6 @@ let rec bound_list_gen (size : int) (x : int) : int list =
 let[@assert] bound_list_gen =
   let s = (0 <= v : [%v: int]) [@over] in
   let x = (true : [%v: int]) [@over] in
-  (lenF v == s && fun (u : int) -> implies (list_mem v u) (x <= u)
+  (len v s && fun (u : int) -> implies (list_mem v u) (x <= u)
     : [%v: int list])
     [@under]

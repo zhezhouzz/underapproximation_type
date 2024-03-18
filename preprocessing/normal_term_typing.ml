@@ -32,10 +32,9 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
       let es = List.map (fun (e, ty) -> bi_typed_term_check ctx e ty) estys in
       (Tu es) #: ty
   | Lam { lamarg; lambody }, Ty_arrow (t1, _) ->
-      (* let _ = Printf.printf "lamarg: %s\n" lamarg.x in *)
       let lamarg = bi_typed_id_check ctx lamarg t1 in
       let ty =
-        Nt._type_unify __FILE__ __LINE__ (Ty_arrow (lamarg.ty, Ty_unknown)) ty
+        Nt._type_unify __FILE__ __LINE__ (Ty_arrow (lamarg.ty, Nt.Ty_any)) ty
       in
       let lambody =
         bi_typed_term_check (add_to_right ctx lamarg) lambody (Nt.get_retty ty)
@@ -96,7 +95,7 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
         | Matchcase { constructor; args; exp } ->
             let constructor_ty =
               Nt.construct_arr_tp
-                (List.map (fun _ -> Nt.Ty_unknown) args, matched.ty)
+                (List.map (fun _ -> Nt.Ty_any) args, matched.ty)
             in
             let constructor =
               bi_typed_id_check ctx constructor constructor_ty
@@ -142,7 +141,7 @@ and bi_term_infer (ctx : t ctx) (x : t option raw_term) : (t, t raw_term) typed
       let args = List.map (bi_typed_term_infer ctx) args in
       let op =
         bi_typed_op_check ctx op
-          (Nt.construct_arr_tp (List.map _get_ty args, Ty_unknown))
+          (Nt.construct_arr_tp (List.map _get_ty args, Nt.Ty_any))
       in
       let _, ty = Nt.destruct_arr_tp op.ty in
       (AppOp (op, args)) #: ty
