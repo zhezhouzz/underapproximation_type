@@ -259,6 +259,7 @@ let typed_subst_match_case_instance x instance e =
 (* Generated from _term.ml *)
 open Sugar
 
+let constant_to_value c = (VConst c) #: (constant_to_nt c)
 let value_to_term v = (CVal v) #: v.ty
 
 let term_to_value e =
