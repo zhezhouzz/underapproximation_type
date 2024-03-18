@@ -233,7 +233,10 @@ let prop_of_expr expr =
         | "||", _ -> failwith "parsing: prop wrong or"
         | "=", _ -> failwith "please use == instead of ="
         | _, _ -> Lit (typed_lit_of_expr expr))
-    | Pexp_ifthenelse (e1, e2, Some e3) -> Ite (aux e1, aux e2, aux e3)
+    | Pexp_ifthenelse (e1, e2, Some e3) ->
+        let p1, p2, p3 = map3 aux (e1, e2, e3) in
+        And [ Implies (p1, p2); Implies (Not p1, p3) ]
+        (* Ite (aux e1, aux e2, aux e3) *)
     | Pexp_ifthenelse (_, _, None) -> raise @@ failwith "no else branch in ite"
     | Pexp_fun (_, _, arg, expr) -> (
         let q, qv = quantifier_of_expr arg in

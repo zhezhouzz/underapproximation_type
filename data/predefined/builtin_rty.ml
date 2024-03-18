@@ -54,6 +54,25 @@ let[@library] list_mem =
   let x = (true : [%v: int]) [@over] in
   (v == list_mem xs x : [%v: bool]) [@under]
 
+let[@library] Leaf = (leaf v : [%v: int tree]) [@under]
+
+let[@library] Node =
+  let x = (true : [%v: int]) [@over] in
+  let lt = (true : [%v: int tree]) [@over] in
+  let rt = (true : [%v: int tree]) [@over] in
+  (root v x && lch v lt && rch v rt : [%v: int tree]) [@under]
+
+let[@library] Rbtleaf = (rb_leaf v : [%v: int rbtree]) [@under]
+
+let[@library] Rbtnode =
+  let c = (true : [%v: bool]) [@over] in
+  let x = (true : [%v: int]) [@over] in
+  let lt = (true : [%v: int rbtree]) [@over] in
+  let rt = (true : [%v: int rbtree]) [@over] in
+  (rb_root_color v c && rb_root v x && rb_lch v lt && rb_rch v rt
+    : [%v: int rbtree])
+    [@under]
+
 (* the built-in random generators *)
 
 let[@library] int_range =

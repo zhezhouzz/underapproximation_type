@@ -31,6 +31,24 @@ let print_source_code meta_config_file source_file () =
   let _ = preproress meta_config_file source_file () in
   ()
 
+let subtype_check_ meta_config_file source_file () =
+  let () = Env.load_meta meta_config_file in
+  let code = preproress meta_config_file source_file () in
+  let prim_path = Env.get_prim_path () in
+  let predefine = preproress meta_config_file prim_path.under_basicp () in
+  let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
+  let lemmas = preproress meta_config_file prim_path.lemmas () in
+  let lemmas =
+    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
+  in
+  let _, rty1 = get_rty_by_name code "rty1" in
+  let _, rty2 = get_rty_by_name code "rty2" in
+  let ctx = FrontendTyped.{ builtin_ctx; local_ctx = emp; axioms = lemmas } in
+  let res = Subtyping.Subrty.sub_rty_bool ctx (rty1, rty2) in
+  let () = FrontendTyped.pprint_typectx_subtyping emp (rty1, rty2) in
+  let () = Pp.printf "Result: %b\n" res in
+  ()
+
 let type_check_ meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code = preproress meta_config_file source_file () in
@@ -97,4 +115,5 @@ let test =
       ("print-source-code", print_source_code);
       ("type-check", input_config_source "type check" type_check_);
       ("type-infer", input_config_source "type infer" type_infer_);
+      ("subtype-check", input_config_source "subtype check" subtype_check_);
     ]
