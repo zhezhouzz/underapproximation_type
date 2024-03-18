@@ -49,6 +49,19 @@ let[@library] Cons =
   (* (v == consF a b : [%v: int list]) [@under] *)
   (hd v x && tl v xs : [%v: int list]) [@under]
 
+let[@library] list_mem =
+  let xs = (true : [%v: int list]) [@over] in
+  let x = (true : [%v: int]) [@over] in
+  (v == list_mem xs x : [%v: bool]) [@under]
+
+let[@library] Leaf = (leaf v : [%v: int tree]) [@under]
+
+let[@library] Node =
+  let x = (true : [%v: int]) [@over] in
+  let lt = (true : [%v: int tree]) [@over] in
+  let rt = (true : [%v: int tree]) [@over] in
+  (root v x && lch v lt && rch v rt : [%v: int tree]) [@under]
+
 (* the built-in random generators *)
 
 let[@library] int_range =

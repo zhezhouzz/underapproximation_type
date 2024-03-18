@@ -29,16 +29,19 @@ val sizecheck : int -> bool
 val subs : int -> int
 val dummy : unit
 
-(* others *)
+(* method predicates *)
+(* for lists *)
 val len : 'a list -> int -> bool
-(* val lenF : 'a list -> int *)
-
-(* val consF : 'a -> 'a list -> 'a list *)
 val emp : 'a list -> bool
 val hd : 'a list -> 'a -> bool
 val tl : 'a list -> 'a list -> bool
 val list_mem : 'a list -> 'a -> bool
-(* val list_min : 'a list -> 'a -> bool *)
-
-(* val ord : 'a list -> 'a -> 'a -> bool *)
 val sorted : 'a list -> bool
+val uniq : 'a list -> bool
+
+(* for lists *)
+val depth : 'a tree -> int -> bool
+val leaf : 'a tree -> bool
+val root : 'a tree -> 'a -> bool
+val lch : 'a tree -> 'a tree -> bool
+val rch : 'a tree -> 'a tree -> bool
