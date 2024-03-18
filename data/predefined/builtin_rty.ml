@@ -66,8 +66,8 @@ let[@library] Rbtleaf = (rb_leaf v : [%v: int rbtree]) [@under]
 
 let[@library] Rbtnode =
   let c = (true : [%v: bool]) [@over] in
-  let x = (true : [%v: int]) [@over] in
   let lt = (true : [%v: int rbtree]) [@over] in
+  let x = (true : [%v: int]) [@over] in
   let rt = (true : [%v: int rbtree]) [@over] in
   (rb_root_color v c && rb_root v x && rb_lch v lt && rb_rch v rt
     : [%v: int rbtree])

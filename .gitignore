@@ -1,3 +1,6 @@
+*.glob
+*.aux
+*.cache
 .log
 .tmp._under.ml
 _build/

@@ -30,6 +30,6 @@ let[@assert] rbtree_gen =
   (num_black v h && no_red_red v
    &&
    if c then not (rb_root_color v true)
-   else (h == 0) #==> (rb_root_color v true)
+   else (h == 0) #==> (not (rb_root_color v false))
     : [%v: int rbtree])
     [@under]
