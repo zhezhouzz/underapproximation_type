@@ -17,6 +17,25 @@ let rec sub_rty_bool rctx (rty1, rty2) =
       let retty2 =
         subst_rty_instance arg2 (AVar arg1 #: (erase_cty argcty1)) retty2
       in
+      let rctx =
+        add_to_right rctx arg1 #: (RtyBase { ou = true; cty = argcty2 })
+      in
+      sub_rty_bool rctx (retty1, retty2)
+  | ( RtyBaseDepPair { argcty = argcty1; arg = arg1; retty = retty1 },
+      RtyBaseDepPair { argcty = argcty2; arg = arg2; retty = retty2 } ) ->
+      Subcty.sub_cty_bool rctx (argcty1, argcty2)
+      &&
+      let arg2' = if String.equal arg1 arg2 then Rename.unique arg2 else arg2 in
+      let retty2 =
+        subst_rty_instance arg2 (AVar arg2' #: (erase_cty argcty1)) retty2
+      in
+      let rctx =
+        add_to_rights rctx
+          [
+            arg2' #: (RtyBase { ou = true; cty = argcty1 });
+            arg1 #: (RtyBase { ou = false; cty = argcty1 });
+          ]
+      in
       sub_rty_bool rctx (retty1, retty2)
   | ( RtyArrArr { argrty = argrty1; retty = retty1 },
       RtyArrArr { argrty = argrty2; retty = retty2 } ) ->

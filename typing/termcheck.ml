@@ -179,24 +179,9 @@ and arrow_type_apply (lrctx : lrctx) appf_rty apparg =
       let argrty = and_cty_to_rty argcty argrty in
       if is_nonempty_rty lrctx argrty then
         let tmp_name = Rename.unique arg in
-
-        (* let lit = *)
-        (*   Checkaux. __FILE__ __LINE__ *)
-
-        (* in *)
         let retty =
           subst_rty_instance arg (AVar tmp_name #: (erase_rty argrty)) retty
         in
-        (* let cty = *)
-        (*   match argcty with *)
-        (*   | Cty { phi; _ } -> *)
-        (*       Cty *)
-        (*         { *)
-        (*           nty = Nt.unit_ty; *)
-        (*           phi = subst_prop_instance default_v lit.x phi; *)
-        (*         } *)
-        (* in *)
-        (* let rty = RtyBase { ou = false; cty } in *)
         Some ([ tmp_name #: argrty ], retty)
       else (
         _warinning_subtyping_emptyness_error __FILE__ __LINE__ argrty;

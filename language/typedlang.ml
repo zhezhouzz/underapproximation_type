@@ -278,6 +278,45 @@ type t = Nt.t
 
 (* uctx *)
 
+open Zzdatatype.Datatype
+
+let pprint_typectx_infer ctx (e, (r : t rty)) =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>Type Infer:@}\n" in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s@} ⇨ " (short_str 100 e);
+      Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
+
+let pprint_typectx_judge ctx (e, (r : t rty)) =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>Type Check:@}\n" in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s@} ⇦ " (short_str 10000 e);
+      Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
+
+let pprint_typectx_app_judge fname ctx (args, r) =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>Application Type Check (%s):@}\n" fname in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s → ? @} ⇦ "
+        (List.split_by " → "
+           (fun (x, ty) -> spf "%s:%s" x (layout_rty ty))
+           args);
+      Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
+
+let pprint_typectx_subtyping ctx (r1, r2) =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>Subtyping Check:@}\n" in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s@} <: @{<cyan>%s@}\n\n" (layout_rty r1)
+        (layout_rty r2))
+
+let pprint_typectx_nonempty ctx r1 =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>None-mptyness Check:@}\n" in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s@} is not empty\n\n" (layout_rty r1))
+
 module LinearRtyCtx = struct
   type linear_label = Available | Used | Persistent
 
@@ -286,8 +325,6 @@ module LinearRtyCtx = struct
     local_ctx : (linear_label * t rty) ctx;
     axioms : t prop list;
   }
-
-  open Zzdatatype.Datatype
 
   let layout_linear_label = function
     | Available -> "❲1❳"
@@ -312,45 +349,8 @@ module LinearRtyCtx = struct
           x;
         print_newline ())
 
-  let pprint_typectx_infer ctx (e, (r : t rty)) =
-    Env.show_debug_typing (fun _ ->
-        let () = Pp.printf "@{<bold>Type Infer:@}\n" in
-        ctx ();
-        Pp.printf "⊢ @{<hi_magenta>%s@} ⇨ " (short_str 100 e);
-        Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
-
-  let pprint_typectx_judge ctx (e, (r : t rty)) =
-    Env.show_debug_typing (fun _ ->
-        let () = Pp.printf "@{<bold>Type Check:@}\n" in
-        ctx ();
-        Pp.printf "⊢ @{<hi_magenta>%s@} ⇦ " (short_str 10000 e);
-        Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
-
-  let pprint_typectx_app_judge fname ctx (args, r) =
-    Env.show_debug_typing (fun _ ->
-        let () = Pp.printf "@{<bold>Application Type Check (%s):@}\n" fname in
-        ctx ();
-        Pp.printf "⊢ @{<hi_magenta>%s → ? @} ⇦ "
-          (List.split_by " → "
-             (fun (x, ty) -> spf "%s:%s" x (layout_rty ty))
-             args);
-        Pp.printf "@{<cyan>%s@}\n\n" @@ layout_rty r)
-
-  let pprint_typectx_subtyping ctx (r1, r2) =
-    Env.show_debug_typing (fun _ ->
-        let () = Pp.printf "@{<bold>Subtyping Check:@}\n" in
-        ctx ();
-        Pp.printf "⊢ @{<hi_magenta>%s@} <: @{<cyan>%s@}\n\n" (layout_rty r1)
-          (layout_rty r2))
-
-  let pprint_typectx_nonempty ctx r1 =
-    Env.show_debug_typing (fun _ ->
-        let () = Pp.printf "@{<bold>None-mptyness Check:@}\n" in
-        ctx ();
-        Pp.printf "⊢ @{<hi_magenta>%s@} is not empty\n\n" (layout_rty r1))
-
-  let linear_rctx_to_rctx = function
-    | Typectx l -> Typectx (List.map (fun { x; ty = _, ty } -> { x; ty }) l)
+  let linear_rctx_to_list = function
+    | Typectx l -> List.map (fun { x; ty = _, ty } -> { x; ty }) l
 
   let pprint_simple_typectx_judge ctx (e, rty) =
     pprint_typectx_judge (fun () -> pprint_linear_typectx ctx.local_ctx) (e, rty)
