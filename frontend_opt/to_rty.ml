@@ -19,6 +19,8 @@ let rec layout_rty = function
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
       | _ -> spf "(%s:{%s}) → %s" arg (layout_cty argcty) (layout_rty retty))
+  | RtyGhostArr { argnty; arg; retty } ->
+      spf "%s:%s ⇢ %s" arg (Nt.layout argnty) (layout_rty retty)
   | RtyBaseDepPair { argcty; arg; retty } -> (
       match arg with
       | "_" -> spf "[%s] → %s" (layout_cty argcty) (layout_rty retty)
@@ -40,10 +42,16 @@ let rec rty_of_expr expr =
       else RtyBase { ou = false; cty }
   | Pexp_fun (_, rtyexpr, pattern, body) -> (
       let retty = rty_of_expr body in
-      let arg = id_of_pattern pattern in
       match rtyexpr with
-      | None -> _failatwith __FILE__ __LINE__ "die"
+      | None ->
+          let arg, argnty =
+            match To_raw_term.typed_ids_of_pattern pattern with
+            | [ { x; ty = Some ty } ] -> (x, ty)
+            | _ -> _failatwith __FILE__ __LINE__ "die"
+          in
+          RtyGhostArr { argnty; arg; retty }
       | Some rtyexpr -> (
+          let arg = id_of_pattern pattern in
           match rty_of_expr rtyexpr with
           | RtyBase { cty; _ } -> RtyBaseArr { argcty = cty; arg; retty }
           | RtyTuple _ -> _failatwith __FILE__ __LINE__ "die"

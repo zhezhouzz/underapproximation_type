@@ -217,6 +217,8 @@ let map_in_retrty (f : 't rty -> 't rty) t =
         RtyBaseArr { argcty; arg; retty = aux retty }
     | RtyBaseDepPair { argcty; arg; retty } ->
         RtyBaseDepPair { argcty; arg; retty = aux retty }
+    | RtyGhostArr { argnty; arg; retty } ->
+        RtyGhostArr { argnty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
   in
   aux t
@@ -230,6 +232,8 @@ let map_base_in_retrty (f : 't cty -> 't cty) t =
         RtyBaseArr { argcty; arg; retty = aux retty }
     | RtyBaseDepPair { argcty; arg; retty } ->
         RtyBaseDepPair { argcty; arg; retty = aux retty }
+    | RtyGhostArr { argnty; arg; retty } ->
+        RtyGhostArr { argnty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
   in
   aux t
@@ -276,6 +280,30 @@ let and_cty_to_rty cty1 = function
 
 type t = Nt.t
 
+let default_res = "rr"
+
+let desugar_rty_ret_under rty =
+  let rec aux (res : t rty -> t rty) = function
+    | RtyBase { ou = true; cty } -> res (RtyBase { ou = true; cty })
+    | RtyBase { ou = false; cty = Cty { nty; phi } } ->
+        let phi' = mk_prop_var_eq_var nty (default_v, default_res) in
+        let cty = Cty { nty; phi = smart_and [ phi'; phi ] } in
+        let retty = res (RtyBase { ou = true; cty }) in
+        RtyGhostArr { argnty = erase_cty cty; arg = default_res; retty }
+    | RtyBaseArr { argcty; arg; retty } ->
+        aux (fun retty -> RtyBaseArr { argcty; arg; retty }) retty
+    | RtyBaseDepPair { argcty; arg; retty } ->
+        aux (fun retty -> RtyBaseDepPair { argcty; arg; retty }) retty
+    | RtyArrArr { argrty; retty } ->
+        aux (fun retty -> RtyArrArr { argrty; retty }) retty
+    | RtyTuple _trtylist0 -> _failatwith __FILE__ __LINE__ "unimp"
+    | RtyGhostArr { argnty; arg; retty } ->
+        aux (fun retty -> RtyGhostArr { argnty; arg; retty }) retty
+  in
+  match erase_rty rty with
+  | Nt.Ty_arrow _ -> aux (fun rty -> rty) rty
+  | _ -> rty
+
 (* uctx *)
 
 open Zzdatatype.Datatype
@@ -317,6 +345,82 @@ let pprint_typectx_nonempty ctx r1 =
       ctx ();
       Pp.printf "⊢ @{<hi_magenta>%s@} is not empty\n\n" (layout_rty r1))
 
+(* let playout_under_subtyping ctx (r1, r2) = *)
+(*   To_typectx.playout_subtyping *)
+(*     (To_typectx.layout_typectx layout_rty ctx) *)
+(*     (layout_rty r1, layout_rty r2) *)
+
+let ctx_list_to_cctx pctx =
+  let rec aux (pctx : (t rty, string) typed list) uqvs =
+    match List.last_destruct_opt pctx with
+    | None -> uqvs
+    | Some (pctx, binding) -> (
+        match binding.ty with
+        | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
+        | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
+        | RtyGhostArr _ -> (
+            match erase_rty binding.ty with
+            | Nt.Ty_arrow _ -> aux pctx uqvs
+            | _ -> _failatwith __FILE__ __LINE__ "die")
+        | RtyBase { ou; cty } ->
+            let qt = ou_to_qt ou in
+            let x = (qt, binding.x) #: cty in
+            aux pctx (x :: uqvs))
+  in
+  aux pctx []
+
+let ctx_list_to_base_tvars l =
+  List.filter_map
+    (fun x ->
+      match x.ty with
+      | RtyBase { ou = true; cty } -> Some x.x #: (erase_cty cty)
+      | _ -> None)
+    l
+
+module RtyCtx = struct
+  type lrctx = {
+    builtin_ctx : t rty ctx;
+    local_ctx : t rty ctx;
+    axioms : t prop list;
+  }
+
+  let pprint_typectx x =
+    Env.show_debug_typing (fun _ ->
+        To_typectx.pprint_typectx layout_rty x;
+        print_newline ())
+
+  let pprint_linear_typectx x =
+    Env.show_debug_typing (fun _ ->
+        To_typectx.pprint_typectx layout_rty x;
+        print_newline ())
+
+  let to_ctx_list = function Typectx l -> l
+
+  let pprint_simple_typectx_judge ctx (e, rty) =
+    pprint_typectx_judge (fun () -> pprint_linear_typectx ctx.local_ctx) (e, rty)
+
+  let pprint_simple_typectx_infer ctx (e, rty) =
+    pprint_typectx_infer (fun () -> pprint_linear_typectx ctx.local_ctx) (e, rty)
+
+  let add_to_right_label { builtin_ctx; local_ctx; axioms } x =
+    { builtin_ctx; local_ctx = add_to_right local_ctx x; axioms }
+
+  let add_to_right { builtin_ctx; local_ctx; axioms } x =
+    { builtin_ctx; local_ctx = add_to_right local_ctx x; axioms }
+
+  let add_to_rights lrctx l = List.fold_left add_to_right lrctx l
+
+  let get_opt { builtin_ctx; local_ctx; _ } id =
+    match get_opt local_ctx id with
+    | None -> get_opt builtin_ctx id
+    | Some res -> Some res
+
+  let lrctx_to_cctx pctx = ctx_list_to_cctx (to_ctx_list pctx)
+
+  let lrctx_to_base_tvars uctx =
+    ctx_list_to_base_tvars (to_ctx_list uctx.local_ctx)
+end
+
 module LinearRtyCtx = struct
   type linear_label = Available | Used | Persistent
 
@@ -349,7 +453,7 @@ module LinearRtyCtx = struct
           x;
         print_newline ())
 
-  let linear_rctx_to_list = function
+  let to_ctx_list = function
     | Typectx l -> List.map (fun { x; ty = _, ty } -> { x; ty }) l
 
   let pprint_simple_typectx_judge ctx (e, rty) =
@@ -396,31 +500,11 @@ module LinearRtyCtx = struct
         if !counter == 1 then { lrctx with local_ctx = Typectx l }
         else _failatwith __FILE__ __LINE__ "die!"
 
-  let lrctx_to_cctx pctx =
-    let rec aux (pctx : (linear_label * t rty, string) typed list) uqvs =
-      match List.last_destruct_opt pctx with
-      | None -> uqvs
-      | Some (pctx, binding) -> (
-          match snd binding.ty with
-          | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-          | RtyBaseDepPair _ -> _failatwith __FILE__ __LINE__ "unimp"
-          | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
-          | RtyBase { ou; cty } ->
-              let qt = ou_to_qt ou in
-              let x = (qt, binding.x) #: cty in
-              aux pctx (x :: uqvs))
-    in
-    match pctx with Typectx pctx -> aux pctx []
+  let lrctx_to_cctx pctx = ctx_list_to_cctx (to_ctx_list pctx)
 
   let lrctx_to_base_tvars uctx =
-    match uctx.local_ctx with
-    | Typectx l ->
-        List.filter_map
-          (fun x ->
-            match snd x.ty with
-            | RtyBase { ou = true; cty } -> Some x.x #: (erase_cty cty)
-            | _ -> None)
-          l
+    ctx_list_to_base_tvars (to_ctx_list uctx.local_ctx)
 end
 
-include LinearRtyCtx
+(* include LinearRtyCtx *)
+include RtyCtx

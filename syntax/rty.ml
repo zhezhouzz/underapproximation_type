@@ -1,5 +1,6 @@
 open Sexplib.Std
 open Mtyped
+module Nt = Normalty.Ntyped
 open Cty
 
 type 't rty =
@@ -12,6 +13,7 @@ type 't rty =
     }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
   | RtyTuple of 't rty list
+  | RtyGhostArr of { argnty : Nt.t; arg : (string[@bound]); retty : 't rty }
 [@@deriving sexp]
 
 (* NOTE: modified *)
@@ -36,6 +38,14 @@ let rec fv_rty (rty_e : 't rty) =
       res @ fv_cty argcty
   | RtyArrArr { argrty; retty } -> ([] @ fv_rty retty) @ fv_rty argrty
   | RtyTuple _trtylist0 -> [] @ List.concat (List.map fv_rty _trtylist0)
+  | RtyGhostArr { argnty; arg; retty } ->
+      let res = [] @ fv_rty retty in
+      let res =
+        List.filter_map
+          (fun x -> if String.equal arg x.x then None else Some x)
+          res
+      in
+      res
 
 and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 
@@ -69,6 +79,9 @@ let rec subst_rty (string_x : string) f (rty_e : 't rty) =
           retty = subst_rty string_x f retty;
         }
   | RtyTuple _trtylist0 -> RtyTuple (List.map (subst_rty string_x f) _trtylist0)
+  | RtyGhostArr { argnty; arg; retty } ->
+      if String.equal arg string_x then RtyGhostArr { argnty; arg; retty }
+      else RtyGhostArr { argnty; arg; retty = subst_rty string_x f retty }
 
 and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
   rty_e #-> (subst_rty string_x f)
@@ -83,6 +96,8 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   | RtyArrArr { argrty; retty } ->
       RtyArrArr { argrty = map_rty f argrty; retty = map_rty f retty }
   | RtyTuple _trtylist0 -> RtyTuple (List.map (map_rty f) _trtylist0)
+  | RtyGhostArr { argnty; arg; retty } ->
+      RtyGhostArr { argnty; arg; retty = map_rty f retty }
 
 and typed_map_rty (f : 't -> 's) (rty_e : ('t, 't rty) typed) =
   rty_e #=> f #-> (map_rty f)
@@ -104,6 +119,7 @@ let rec erase_rty = function
   | RtyArrArr { argrty; retty } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyTuple _trtylist0 -> Nt.mk_tuple (List.map erase_rty _trtylist0)
+  | RtyGhostArr { retty; _ } -> erase_rty retty
 
 let ou_to_qt = function
   | true -> Normalty.Connective.Fa
