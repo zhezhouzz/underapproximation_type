@@ -75,6 +75,7 @@ let smt_neg_and_solve ctx axioms vc =
 exception SMTTIMEOUT
 
 let debug_counter = ref 0
+let smt_timeout_flag = ref false
 
 (** Unsat means true; otherwise means false *)
 let handle_check_res query_action =
@@ -87,6 +88,7 @@ let handle_check_res query_action =
   (*   if 18 == !debug_counter then failwith "end" *)
   (*   else debug_counter := !debug_counter + 1 *)
   (* in *)
+  smt_timeout_flag := false;
   match res with
   | SmtUnsat -> true
   | SmtSat model ->
@@ -96,4 +98,5 @@ let handle_check_res query_action =
       false
   | Timeout ->
       (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");
+      smt_timeout_flag := true;
       false

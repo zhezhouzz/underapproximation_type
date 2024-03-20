@@ -3,6 +3,12 @@ open Mtyped
 
 type 't ctx = Typectx of ('t, string) typed list [@@deriving sexp]
 
+let map_ctx_typed (f : ('t, string) typed -> ('t, string) typed)
+    (ctx_e : 't ctx) =
+  match ctx_e with
+  | Typectx _t_stringtypedlist0 ->
+      Typectx (List.map (fun x -> f x) _t_stringtypedlist0)
+
 let rec map_ctx (f : 't -> 's) (ctx_e : 't ctx) =
   match ctx_e with
   | Typectx _t_stringtypedlist0 ->
@@ -29,3 +35,4 @@ let add_to_right : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
   | None -> ( match ctx with Typectx l -> Typectx (l @ [ { x; ty } ]))
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l
+let to_list ctx = match ctx with Typectx l -> l

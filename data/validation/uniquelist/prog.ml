@@ -1,7 +1,7 @@
 let rec unique_list_gen (s : int) : int list =
-  if s == 0 then []
+  if sizecheck s then []
   else
-    let (l : int list) = unique_list_gen (s - 1) in
+    let (l : int list) = unique_list_gen (subs s) in
     let (x : int) = int_gen () in
     if list_mem l x then Err else x :: l
 

@@ -94,7 +94,7 @@ let coqsetting =
   {
     sym_true = "True";
     sym_false = "False";
-    sym_and = "/\\ ";
+    sym_and = " /\\ ";
     sym_or = " \\/ ";
     sym_not = "~";
     sym_implies = "->";
