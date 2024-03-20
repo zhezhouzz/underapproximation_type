@@ -1,7 +1,7 @@
 let rec sized_list_gen (s : int) : int list =
-  if s == 0 then []
+  if sizecheck s then []
   else if bool_gen () then []
-  else int_gen () :: sized_list_gen (s - 1)
+  else int_gen () :: sized_list_gen (subs s)
 
 let[@assert] sized_list_gen =
   let s = (0 <= v : [%v: int]) [@over] in
