@@ -26,7 +26,7 @@ let[@axiom] list_tl_no_emp (l : int list) (l1 : int list) =
 (** len *)
 
 let[@axiom] list_len_geq_0 (l : int list) (n : int) = (len l n) #==> (n >= 0)
-let[@axiom] list_len_0_emp (l : int list) = (emp l) #==> (len l 0)
+(* let[@axiom] list_len_0_emp (l : int list) = (emp l) #==> (len l 0) *)
 
 let[@axiom] list_emp_len_0 (l : int list) (n : int) =
   (emp l && len l n) #==> (n == 0)
@@ -110,6 +110,59 @@ let[@axiom] tree_positive_depth_is_not_leaf (l : int tree) (n : int) =
 let[@axiom] tree_ch_depth_plus_1 (l : int tree) (l1 : int tree) (n : int)
     ((n1 [@exists]) : int) =
   ((lch l l1 || rch l l1) && depth l n) #==> (depth l1 n1 && n1 <= n - 1)
+
+(* let[@axiom] tree_depth_lt_ex (l : int tree) (l1 : int tree) (d : int) *)
+(*     ((d1 [@exists]) : int) = *)
+(*   (lch l l1 && depth l d) #==> (depth l1 d1 && d1 < d) *)
+
+(* let[@axiom] tree_depth_rt_ex (l : int tree) (l1 : int tree) (d : int) *)
+(*     ((d1 [@exists]) : int) = *)
+(*   (rch l l1 && depth l d) #==> (depth l1 d1 && d1 < d) *)
+
+(** tree_mem *)
+
+let[@axiom] tree_root_mem (l : int tree) (x : int) =
+  (root l x) #==> (tree_mem l x)
+
+let[@axiom] tree_mem_lch_mem (l : int tree) (l1 : int tree) (x : int) =
+  (lch l l1 && tree_mem l1 x) #==> (tree_mem l x)
+
+let[@axiom] tree_mem_rch_mem (l : int tree) (l1 : int tree) (x : int) =
+  (rch l l1 && tree_mem l1 x) #==> (tree_mem l x)
+
+(** bst *)
+
+let[@axiom] tree_leaf_bst (l : int tree) = (leaf l) #==> (bst l)
+
+let[@axiom] tree_bst_lch_bst (l : int tree) (l1 : int tree) =
+  (lch l l1 && bst l) #==> (bst l1)
+
+let[@axiom] tree_bst_rch_bst (l : int tree) (l1 : int tree) =
+  (rch l l1 && bst l) #==> (bst l1)
+
+let[@axiom] tree_bst_lch_mem_lt_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (bst l && lch l l1 && root l x && tree_mem l1 y) #==> (y < x)
+
+let[@axiom] tree_bst_rch_mem_gt_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (bst l && rch l l1 && root l x && tree_mem l1 y) #==> (x < y)
+
+(** heap *)
+
+let[@axiom] tree_heap_lch_heap (l : int tree) (l1 : int tree) =
+  (lch l l1 && heap l) #==> (heap l1)
+
+let[@axiom] tree_heap_rch_heap (l : int tree) (l1 : int tree) =
+  (rch l l1 && heap l) #==> (heap l1)
+
+let[@axiom] tree_heap_root_lt_lch_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (heap l && lch l l1 && root l x && root l1 y) #==> (y < x)
+
+let[@axiom] tree_heap_root_rt_rch_root (l : int tree) (l1 : int tree) (x : int)
+    (y : int) =
+  (heap l && rch l l1 && root l x && root l1 y) #==> (y < x)
 
 (** int rbtree *)
 
