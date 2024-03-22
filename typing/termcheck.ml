@@ -348,6 +348,9 @@ let term_type_check_with_rec_check (uctx : uctx) (y : ('t, 't term) typed)
     (rty : t rty) =
   try term_type_check uctx y rty with RecArgCheckFailure -> None
 
+let term_type_infer_with_rec_check (uctx : uctx) (y : ('t, 't term) typed) =
+  try term_type_infer uctx y with RecArgCheckFailure -> None
+
 let value_type_check_with_rec_check (uctx : uctx) (a : (t, t value) typed)
     (rty : t rty) =
   try value_type_check uctx a rty with RecArgCheckFailure -> None
