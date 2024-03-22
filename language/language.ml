@@ -196,6 +196,17 @@ module FrontendTyped = struct
         in
         Lit lit #: nty
 
+  open Sugar
+
+  type t = Nt.t
+
+  let apply_pi_prop (p : t prop) (lit : (t, t lit) typed) =
+    match p with
+    | Forall { qv; body } ->
+        if Nt.eq qv.ty lit.ty then subst_prop_instance qv.x lit.x body
+        else _failatwith __FILE__ __LINE__ "die"
+    | _ -> _failatwith __FILE__ __LINE__ "die"
+
   (* Cty *)
   let prop_to_cty nty prop = Cty { nty; phi = prop }
   let prop_to_rty ou nty prop = RtyBase { ou; cty = prop_to_cty nty prop }
@@ -211,8 +222,6 @@ module FrontendTyped = struct
 
   let mk_rty_var_eq_var nty (id, c) =
     RtyBase { ou = false; cty = mk_cty_var_eq_var nty (id, c) }
-
-  open Sugar
 
   let mk_rty_var_eq_v (id, v) =
     match v.x with
@@ -340,8 +349,6 @@ module FrontendTyped = struct
   (*       Typectx uqvs *)
 
   open Zzdatatype.Datatype
-
-  type t = Nt.t
 
   let playout_under_subtyping ctx (r1, r2) =
     To_typectx.playout_subtyping

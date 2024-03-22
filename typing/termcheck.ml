@@ -7,6 +7,27 @@ open Subtyping
 type t = Nt.t
 
 let layout_ty = Nt.layout
+let _rec_arg : t prop option ref = ref None
+let init_rec_arg x = _rec_arg := Some x
+
+let apply_rec_arg arg =
+  match !_rec_arg with
+  | Some p ->
+      let arg = (AVar arg) #: arg.ty in
+      let param = (AVar default_v #: Nt.int_ty) #: Nt.int_ty in
+      let phi = apply_pi_prop (apply_pi_prop p arg) param in
+      Cty { nty = Nt.int_ty; phi }
+  | None -> _failatwith __FILE__ __LINE__ "die"
+
+let _cur_rec_func_name : (string * t cty) option ref = ref None
+let init_cur_rec_func_name (fname, cty) = _cur_rec_func_name := Some (fname, cty)
+
+exception RecArgCheckFailure
+
+let get_cur_rec_func_name () =
+  match !_cur_rec_func_name with
+  | Some (fname, cty) -> (fname, RtyBase { ou = false; cty })
+  | None -> _failatwith __FILE__ __LINE__ "die"
 
 let _warinning_subtyping_error file line (rty1, rty2) =
   Env.show_debug_typing @@ fun _ ->
@@ -87,6 +108,7 @@ and value_type_check (uctx : uctx) (a : (t, t value) typed) (rty : t rty) :
       Some (VLam { lamarg; body }) #: rty
   | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
   | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
+      let () = init_cur_rec_func_name (fixname.x, apply_rec_arg fixarg) in
       let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
       let prop = Checkaux.make_order_constraint fixarg a in
       let retty_a = subst_rty_instance arg (AVar a) retty in
@@ -207,6 +229,22 @@ and term_type_infer_app (uctx : uctx) (a : ('t, 't term) typed) :
     match a.x with
     | CApp { appf; apparg } ->
         let appf, apparg = map2 (value_type_infer uctx) (appf, apparg) in
+        (* HACK: safety check here *)
+        let () =
+          let fname, rec_arg_rty = get_cur_rec_func_name () in
+          match appf.x with
+          | VVar x when String.equal fname x.x ->
+              if sub_rty_bool uctx (rec_arg_rty, apparg.ty) then ()
+              else (
+                _warinning_subtyping_error __FILE__ __LINE__
+                  (rec_arg_rty, apparg.ty);
+                ( Env.show_debug_typing @@ fun _ ->
+                  Pp.printf
+                    "@{<bold>Recursive Safety Check Fails at [%s::%i]:@}\n"
+                    __FILE__ __LINE__ );
+                raise RecArgCheckFailure)
+          | _ -> ()
+        in
         let* bindings, retty = arrow_type_apply uctx appf.ty apparg in
         Some (bindings, (CApp { appf; apparg }) #: retty)
     | CAppOp { op; appopargs } ->
@@ -300,3 +338,11 @@ and term_type_check (uctx : uctx) (y : ('t, 't term) typed) (rty : t rty) :
       (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
       (* in *)
       Some (CLetE { rhs; lhs; body }) #: rty
+
+let term_type_check_with_rec_check (uctx : uctx) (y : ('t, 't term) typed)
+    (rty : t rty) =
+  try term_type_check uctx y rty with RecArgCheckFailure -> None
+
+let value_type_check_with_rec_check (uctx : uctx) (a : (t, t value) typed)
+    (rty : t rty) =
+  try value_type_check uctx a rty with RecArgCheckFailure -> None
