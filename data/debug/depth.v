@@ -11,6 +11,7 @@ Variable rch: IT -> IT -> Prop.
 Variable tree_mem: IT -> Z -> Prop.
 Variable bst: IT -> Prop.
 Variable heap: IT -> Prop.
+Variable complete: IT -> Prop.
 
 Definition ch (tr: IT) (tr': IT) := lch tr tr' \/ rch tr tr'.
 
@@ -60,9 +61,9 @@ Lemma tree_bst_lch_mem_lt_root (l : IT) (l1 : IT) (x: Z) (y: Z): bst l -> lch l 
 Admitted.
 #[export] Hint Resolve tree_bst_lch_mem_lt_root : core.
 
-Lemma tree_bst_lch_mem_gt_root (l : IT) (l1 : IT) (x: Z) (y: Z): bst l -> lch l l1 -> root l x -> tree_mem l1 y -> (x < y)%Z.
+Lemma tree_bst_rch_mem_gt_root (l : IT) (l1 : IT) (x: Z) (y: Z): bst l -> rch l l1 -> root l x -> tree_mem l1 y -> (x < y)%Z.
 Admitted.
-#[export] Hint Resolve tree_bst_lch_mem_gt_root : core.
+#[export] Hint Resolve tree_bst_rch_mem_gt_root : core.
 
 
 Lemma tree_depth_ch_depth_minus_1 (tr tr1 tr2: IT) (n n1 n2: Z):
@@ -71,11 +72,19 @@ Lemma tree_depth_ch_depth_minus_1 (tr tr1 tr2: IT) (n n1 n2: Z):
 Admitted.
 #[export] Hint Resolve tree_depth_ch_depth_minus_1 : core.
 
-Lemma tree_depth_lt_ex (l: IT) (l1: IT) (d: Z): lch l l1 -> depth l d -> exists d1, depth l1 d1 /\ (d1 < d)%Z.
+Lemma tree_depth_lt_ex (l: IT) (l1: IT) (d: Z): lch l l1 -> depth l d -> exists d1, depth l1 d1.
 Admitted.
 
-Lemma tree_depth_rt_ex (l: IT) (l1: IT) (d: Z): rch l l1 -> depth l d -> exists d1, depth l1 d1 /\ (d1 < d)%Z.
+Lemma tree_depth_rt_ex (l: IT) (l1: IT) (d: Z): rch l l1 -> depth l d -> exists d1, depth l1 d1.
 Admitted.
+
+Lemma tree_depth_lt_minus_1 (l: IT) (l1: IT) (d: Z) (d1: Z): lch l l1 -> depth l d -> depth l1 d1 -> (d1 < d)%Z.
+Admitted.
+#[export] Hint Resolve tree_depth_lt_minus_1 : core.
+
+Lemma tree_depth_rt_minus_1 (l: IT) (l1: IT) (d: Z) (d1: Z): rch l l1 -> depth l d -> depth l1 d1 -> (d1 < d)%Z.
+Admitted.
+#[export] Hint Resolve tree_depth_rt_minus_1 : core.
 
 (* heap *)
 
@@ -95,6 +104,67 @@ Lemma tree_heap_root_rt_rch_root (l : IT) (l1 : IT) (x: Z) (y: Z): heap l -> rch
 Admitted.
 #[export] Hint Resolve tree_heap_root_rt_rch_root: core.
 
+(* complete *)
+
+Lemma tree_complete_lch_complete (l : IT) (l1 : IT): lch l l1 -> complete l -> complete l1.
+Admitted.
+#[export] Hint Resolve tree_complete_lch_complete : core.
+
+Lemma tree_complete_rch_complete (l : IT) (l1 : IT): rch l l1 -> complete l -> complete l1.
+Admitted.
+#[export] Hint Resolve tree_complete_rch_complete : core.
+
+Lemma tree_complete_lch_depth_minus_1 (l : IT) (l1 : IT) (n: Z): lch l l1 -> complete l -> depth l n -> depth l1 (n - 1)%Z.
+Admitted.
+#[export] Hint Resolve tree_complete_lch_depth_minus_1 : core.
+
+Lemma tree_complete_rch_depth_minus_1 (l : IT) (l1 : IT) (n: Z): rch l l1 -> complete l -> depth l n -> depth l1 (n - 1)%Z.
+Admitted.
+#[export] Hint Resolve tree_complete_rch_depth_minus_1 : core.
+
+(** bst *)
+
+Lemma tree_bst_depth_ex (l: IT): bst l -> exists n, depth l n.
+Admitted.
+
+Lemma sized_bst_gen: (
+                       forall d, (0 <= d -> (forall lo, (forall hi, (lo < hi -> (forall v, (((forall u, (tree_mem v u -> (lo < u /\ u < hi))) /\ (bst v /\ (forall n, (depth v n -> n <= d)))) -> ((d = 0 /\ leaf v) \/ (~d = 0 /\ (exists x_1, ((x_1 /\ leaf v) \/ (~x_1 /\ (lo + 1) < hi /\ (exists b_3, ((1 + lo) < b_3 /\ b_3 = hi /\ (exists x, (lo < x /\ x < b_3 /\ (exists d_1, (0 <= d_1 /\ d_1 < d /\ d_1 = (d - 1) /\ (exists hi_0, (lo < hi_0 /\ hi_0 = x /\ (exists lt, ((forall u, (tree_mem lt u -> (lo < u /\ u < hi_0))) /\ bst lt /\ (forall n, (depth lt n -> n <= d_1)) /\ (exists d_2, (0 <= d_2 /\ d_2 < d /\ d_2 = (d - 1) /\ (exists hi_1, (x < hi_1 /\ hi_1 = hi /\ (exists rt, ((forall u, (tree_mem rt u -> (x < u /\ u < hi_1))) /\ bst rt /\ (forall n, (depth rt n -> n <= d_2)) /\ root v x /\ lch v lt /\ rch v rt))))))))))))))))))))))))))))%Z.
+Proof.
+  intros. destruct (Z.eqb_spec d 0)%Z.
+  - left. subst. intuition. destruct (tree_bst_depth_ex v) as (d & Hd); eauto. admit.
+  - right. intuition.
+    destruct (decide_leaf v).
+    + exists True. intuition.
+    + exists False. right.
+      destruct (tree_bst_depth_ex v) as (dd & Hdd); eauto.
+      assert (dd <= d)%Z as Hddd; eauto.
+      destruct (tree_not_leaf_ex v) as (x & lt & rt & Hx & Hlt & Hrt); auto.
+      assert (lo < x /\ x < hi)%Z. { eauto; lia. }
+      intuition.
+      exists hi. intuition.
+      exists x; eauto. intuition.
+      exists (d - 1)%Z. intuition.
+      exists x; eauto. intuition.
+      exists lt. intuition; eauto. apply H2. eauto.
+      eapply tree_depth_lt_minus_1 in H5; eauto. lia.
+      exists (d - 1)%Z. intuition.
+      exists hi; eauto. intuition.
+      exists rt. intuition; eauto. apply H2; eauto.
+      eapply tree_depth_rt_minus_1 in H5; eauto. lia.
+Qed.
+
+Lemma complete_tree_gen: (forall s, (0 <= s -> (forall v, ((depth v s /\ complete v) -> ((s = 0 /\ leaf v) \/ (~s = 0 /\ (exists s_1, (0 <= s_1 /\ s_1 < s /\ s_1 = (s - 1) /\ (exists lt, (depth lt s_1 /\ complete lt /\ (exists s_2, (0 <= s_2 /\ s_2 < s /\ s_2 = (s - 1) /\ (exists rt, (depth rt s_2 /\ complete rt /\ (exists n, (root v n /\ (lch v lt /\ rch v rt)))))))))))))))))%Z.
+Proof.
+  intros. destruct (Z.eqb_spec s 0)%Z.
+  - left. subst. intuition.
+  - right. intuition.
+    assert (~ leaf v); eauto.
+    destruct (tree_not_leaf_ex v) as (x & lt & rt & Hx & Hlt & Hrt); auto.
+    exists (s - 1)%Z. intuition.
+    exists lt. intuition; eauto.
+    exists (s - 1)%Z. intuition.
+    exists rt. intuition; eauto.
+Qed.
 
 Lemma depth_heap_gen:(
                         forall d, (0 <= d -> (forall mx, (forall v, ((heap v /\ ((exists u, (depth v u /\ u <= d)) /\ (forall u, (root v u -> u < mx)))) -> ((d = 0 /\ leaf v) \/ (~d = 0 /\ (exists x_1, ((x_1 /\ leaf v) \/ (~x_1 /\ (exists n, ((n < mx /\ (exists d_1, ((0 <= d_1 /\ d_1 = (d - 1)) /\ (exists lt, (((d_1 < d /\ d_1 >= 0) /\ heap lt /\ ((exists u, (depth lt u /\ u <= d_1)) /\ (forall u, (root lt u -> u < n)))) /\ (exists d_2, ((0 <= d_2 /\ d_2 = (d - 1)) /\ (exists rt, (((d_2 < d /\ d_2 >= 0) /\ heap rt /\ ((exists u, (depth rt u /\ u <= d_2)) /\ (forall u, (root rt u -> u < n)))) /\ root v n /\ (lch v lt /\ rch v rt)))))))))) \/ (~n < mx /\ leaf v)))))))))))))%Z.

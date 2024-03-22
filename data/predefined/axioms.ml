@@ -2,9 +2,6 @@
 
 (** basic *)
 
-(* let[@axiom] list_ex_emp ((l [@exists]) : int list) = emp l *)
-(* let[@axiom] list_ex_emp ((l [@exists]) : int list) = not (emp l) *)
-
 let[@axiom] list_emp_no_hd (l : int list) (x : int) =
   (emp l) #==> (not (hd l x))
 
@@ -33,9 +30,6 @@ let[@axiom] list_emp_len_0 (l : int list) (n : int) =
 
 let[@axiom] list_positive_len_is_not_emp (l : int list) (n : int) =
   (len l n && n > 0) #==> (not (emp l))
-(* let[@axiom] list_ex_len (l : int list) ((n [@exists]) : int) = len l n *)
-(* let[@axiom] list_ex_len (l : int list) ((n [@exists]) : int) = len l n *)
-(* let[@axiom] list_ex_len_list (n : int) ((l [@exists]) : int list) = len l n *)
 
 let[@axiom] list_tl_len_plus_1 (l : int list) (l1 : int list) (n : int) =
   (tl l l1) #==> (iff (len l1 n) (len l (n + 1)))
@@ -107,17 +101,13 @@ let[@axiom] tree_leaf_depth_0 (l : int tree) (n : int) =
 let[@axiom] tree_positive_depth_is_not_leaf (l : int tree) (n : int) =
   (depth l n && n > 0) #==> (not (leaf l))
 
-let[@axiom] tree_ch_depth_plus_1 (l : int tree) (l1 : int tree) (n : int)
+let[@axiom] tree_ch_depth_ex (l : int tree) (l1 : int tree) (n : int)
     ((n1 [@exists]) : int) =
-  ((lch l l1 || rch l l1) && depth l n) #==> (depth l1 n1 && n1 <= n - 1)
+  ((lch l l1 || rch l l1) && depth l n) #==> (depth l1 n1)
 
-(* let[@axiom] tree_depth_lt_ex (l : int tree) (l1 : int tree) (d : int) *)
-(*     ((d1 [@exists]) : int) = *)
-(*   (lch l l1 && depth l d) #==> (depth l1 d1 && d1 < d) *)
-
-(* let[@axiom] tree_depth_rt_ex (l : int tree) (l1 : int tree) (d : int) *)
-(*     ((d1 [@exists]) : int) = *)
-(*   (rch l l1 && depth l d) #==> (depth l1 d1 && d1 < d) *)
+let[@axiom] tree_ch_depth_minus_1 (l : int tree) (l1 : int tree) (n : int)
+    (n1 : int) =
+  ((lch l l1 || rch l l1) && depth l n && depth l1 n1) #==> (n1 <= n - 1)
 
 (** tree_mem *)
 
@@ -163,6 +153,22 @@ let[@axiom] tree_heap_root_lt_lch_root (l : int tree) (l1 : int tree) (x : int)
 let[@axiom] tree_heap_root_rt_rch_root (l : int tree) (l1 : int tree) (x : int)
     (y : int) =
   (heap l && rch l l1 && root l x && root l1 y) #==> (y < x)
+
+(** complete *)
+
+let[@axiom] tree_complete_lch_complete (l : int tree) (l1 : int tree) =
+  (lch l l1 && complete l) #==> (complete l1)
+
+let[@axiom] tree_complete_rch_complete (l : int tree) (l1 : int tree) =
+  (rch l l1 && complete l) #==> (complete l1)
+
+let[@axiom] tree_complete_lch_depth_minus_1 (l : int tree) (l1 : int tree)
+    (n : int) =
+  (lch l l1 && complete l && depth l n) #==> (depth l1 (n - 1))
+
+let[@axiom] tree_complete_rch_depth_minus_1 (l : int tree) (l1 : int tree)
+    (n : int) =
+  (rch l l1 && complete l && depth l n) #==> (depth l1 (n - 1))
 
 (** int rbtree *)
 

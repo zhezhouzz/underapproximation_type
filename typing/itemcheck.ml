@@ -18,11 +18,11 @@ let item_check (axioms, uctx) imps = function
         | Some v -> v
       in
       let () =
-        Env.show_debug_typing @@ fun _ ->
+        Env.show_debug_result @@ fun _ ->
         Pp.printf "@{<bold>Type Check %s:@}\n" name
       in
       let () =
-        Env.show_debug_typing @@ fun _ ->
+        Env.show_debug_result @@ fun _ ->
         Pp.printf "@{<bold>check against with:@} %s\n"
           (FrontendTyped.layout_rty rty)
       in
@@ -33,12 +33,12 @@ let item_check (axioms, uctx) imps = function
           imp rty
       with
       | Some _ ->
-          ( Env.show_debug_typing @@ fun _ ->
+          ( Env.show_debug_result @@ fun _ ->
             Pp.printf "@{<bold>@{<yellow>Task %s, type check succeeded@}@}\n"
               name );
           Some (add_to_right uctx name #: rty, imps)
       | None ->
-          ( Env.show_debug_typing @@ fun _ ->
+          ( Env.show_debug_result @@ fun _ ->
             Pp.printf "@{<bold>@{<red>Task %s, type check failed@}@}\n" name );
           None)
   | _ -> Some (uctx, imps)
@@ -59,11 +59,11 @@ let item_infer (axioms, uctx) imps = function
         | Some v -> v
       in
       let () =
-        Env.show_debug_typing @@ fun _ ->
+        Env.show_debug_result @@ fun _ ->
         Pp.printf "@{<bold>Type partial infer %s:@}\n" name
       in
       let () =
-        Env.show_debug_typing @@ fun _ ->
+        Env.show_debug_result @@ fun _ ->
         Pp.printf "@{<bold>partial infer against with:@} %s\n"
           (FrontendTyped.layout_rty rty)
       in
@@ -74,12 +74,12 @@ let item_infer (axioms, uctx) imps = function
           imp rty
       with
       | Some _ ->
-          ( Env.show_debug_typing @@ fun _ ->
+          ( Env.show_debug_result @@ fun _ ->
             Pp.printf "@{<bold>@{<yellow>Task %s, type infer succeeded@}@}\n"
               name );
           Some (add_to_right uctx name #: rty, imps)
       | None ->
-          ( Env.show_debug_typing @@ fun _ ->
+          ( Env.show_debug_result @@ fun _ ->
             Pp.printf "@{<bold>@{<red>Task %s, type infer failed@}@}\n" name );
           None)
   | _ -> Some (uctx, imps)

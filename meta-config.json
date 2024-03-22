@@ -3,9 +3,10 @@
     "max_printing_size": 300,
     "debug_info": {
         "show_preprocess": false,
-        "show_typing": true,
+        "show_typing": false,
         "show_queries": true,
         "show_stat": false,
+        "show_result": true,
         "show_others": false
     },
     "logfile": ".log",

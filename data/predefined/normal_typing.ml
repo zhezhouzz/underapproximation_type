@@ -48,6 +48,7 @@ val rch : 'a tree -> 'a tree -> bool
 val tree_mem : 'a tree -> 'a -> bool
 val bst : 'a tree -> bool
 val heap : 'a tree -> bool
+val complete : 'a tree -> bool
 
 (* for rbtree *)
 val num_black : 'a rbtree -> int -> bool

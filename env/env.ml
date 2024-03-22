@@ -8,6 +8,7 @@ type mode =
       show_solving : bool;
       show_stat : bool;
       show_info : bool;
+      show_result : bool;
       show_debug : bool;
     }
   | Release
@@ -59,6 +60,11 @@ let show_debug_preprocess (f : unit -> unit) =
 let show_debug_typing (f : unit -> unit) =
   match get_mode () with
   | Debug { show_typing; _ } when show_typing -> f ()
+  | _ -> ()
+
+let show_debug_result (f : unit -> unit) =
+  match get_mode () with
+  | Debug { show_result; _ } when show_result -> f ()
   | _ -> ()
 
 let show_debug_queries (f : unit -> unit) =
@@ -122,6 +128,7 @@ let load_meta meta_fname =
           {
             show_preprocess = get_bool "show_preprocess";
             show_typing = get_bool "show_typing";
+            show_result = get_bool "show_result";
             show_queries = get_bool "show_queries";
             (* we don't need this field *)
             show_solving = false;
