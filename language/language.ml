@@ -94,6 +94,12 @@ module FrontendTyped = struct
     let op = "==" #: (Nt.construct_arr_tp ([ nty; nty ], Nt.bool_ty)) in
     AAppOp (op, [ lit1; lit2 ])
 
+  let lit_get_mp = function
+    | AAppOp (op, _) when not (Op.is_builtin_op op.x) -> Some op.x
+    | _ -> None
+
+  let typed_lit_get_mp lit = lit_get_mp lit.x
+
   (* Prop *)
   let get_cbool prop =
     match prop with Lit { x = AC (Constant.B b); _ } -> Some b | _ -> None
@@ -222,6 +228,22 @@ module FrontendTyped = struct
             (mk_typed_lit_by_id id #: nty, mk_typed_lit_by_id id' #: nty)
         in
         Lit lit #: nty
+
+  let prop_get_mp prop =
+    let rec aux prop_e =
+      match prop_e with
+      | Lit lit -> (
+          match typed_lit_get_mp lit with Some mp -> [ mp ] | None -> [])
+      | Implies (p1, p2) -> aux p1 @ aux p2
+      | Ite (p1, p2, p3) -> aux p1 @ aux p2 @ aux p3
+      | Not p1 -> aux p1
+      | And ps -> List.concat (List.map aux ps)
+      | Or ps -> List.concat (List.map aux ps)
+      | Iff (p1, p2) -> aux p1 @ aux p2
+      | Forall { body; _ } -> aux body
+      | Exists { body; _ } -> aux body
+    in
+    List.slow_rm_dup String.equal @@ aux prop
 
   open Sugar
 

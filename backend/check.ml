@@ -60,12 +60,38 @@ let smt_solve ctx assertions =
   let _, res = Sugar.clock (fun () -> solver_result solver) in
   res
 
+let extend = [ ("len", [ "hd"; "tl"; "emp" ]) ]
+
 let smt_neg_and_solve ctx axioms vc =
   (* let () = *)
   (*   Env.show_debug_queries @@ fun _ -> *)
   (*   Printf.printf "Query: %s\n" @@ Language.Rty.layout_prop vc *)
   (* in *)
-  let assertions = List.map (Propencoding.to_z3 ctx) [ axioms; Not vc ] in
+  let open Language.FrontendTyped in
+  let current_mps = prop_get_mp vc in
+  let current_mps =
+    List.concat
+    @@ List.map
+         (fun mp ->
+           match
+             List.find_opt (fun (name, _) -> String.equal name mp) extend
+           with
+           | Some (_, res) -> mp :: res
+           | _ -> [ mp ])
+         current_mps
+  in
+  (* let _ = *)
+  (*   Printf.printf "current_mps: %s\n" *)
+  (*     (Zzdatatype.Datatype.StrList.to_string current_mps) *)
+  (* in *)
+  let axioms =
+    List.filter
+      (fun a ->
+        let mps = prop_get_mp a in
+        List.for_all (fun mp -> List.exists (String.equal mp) current_mps) mps)
+      axioms
+  in
+  let assertions = List.map (Propencoding.to_z3 ctx) (axioms @ [ Not vc ]) in
   let time_t, res = Sugar.clock (fun () -> smt_solve ctx assertions) in
   let () =
     Env.show_debug_stat @@ fun _ -> Pp.printf "Z3 solving time: %0.4fs\n" time_t

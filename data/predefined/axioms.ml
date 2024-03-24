@@ -170,6 +170,134 @@ let[@axiom] tree_complete_rch_depth_minus_1 (l : int tree) (l1 : int tree)
     (n : int) =
   (rch l l1 && complete l && depth l n) #==> (depth l1 (n - 1))
 
+(** int stream *)
+
+let[@axiom] stream_stream_emp_no_stream_hd (l : int stream) (x : int) =
+  (stream_emp l) #==> (not (stream_hd l x))
+
+let[@axiom] stream_stream_emp_no_stream_tl (l : int stream) (l1 : int stream) =
+  (stream_emp l) #==> (not (stream_tl l l1))
+
+let[@axiom] stream_no_stream_emp_exists_stream_tl (l : int stream)
+    ((l1 [@exists]) : int stream) =
+  (not (stream_emp l)) #==> (stream_tl l l1)
+
+let[@axiom] stream_no_stream_emp_exists_stream_hd (l : int stream)
+    ((x [@exists]) : int) =
+  (not (stream_emp l)) #==> (stream_hd l x)
+
+let[@axiom] stream_stream_hd_no_stream_emp (l : int stream) (x : int) =
+  (stream_hd l x) #==> (not (stream_emp l))
+
+let[@axiom] stream_stream_tl_no_stream_emp (l : int stream) (l1 : int stream) =
+  (stream_tl l l1) #==> (not (stream_emp l))
+
+(** stream_len *)
+
+let[@axiom] stream_stream_len_geq_0 (l : int stream) (n : int) =
+  (stream_len l n) #==> (n >= 0)
+
+let[@axiom] stream_stream_len_leq_0_emp_stream (l : int stream) (n : int) =
+  (stream_len l n && n <= 0) #==> (stream_emp l)
+
+let[@axiom] stream_stream_emp_stream_len_0 (l : int stream) (n : int) =
+  (stream_emp l && stream_len l n) #==> (n == 0)
+
+let[@axiom] stream_positive_stream_len_is_not_stream_emp (l : int stream)
+    (n : int) =
+  (stream_len l n && n > 0) #==> (not (stream_emp l))
+
+let[@axiom] stream_stream_tl_stream_len_plus_1 (l : int stream)
+    (l1 : int stream) (n : int) =
+  (stream_tl l l1) #==> (iff (stream_len l1 n) (stream_len l (n + 1)))
+
+(** bankersq *)
+
+let[@axiom] bankersq_destruct (q : int bankersq) ((lenf [@exists]) : int)
+    ((f [@exists]) : int stream) ((lenr [@exists]) : int)
+    ((r [@exists]) : int stream) =
+  lenr >= 0 && lenr <= lenf && stream_len f lenf && stream_len r lenr
+  && bankersq1 q lenf && bankersq2 q f && bankersq3 q lenr && bankersq4 q r
+
+let[@axiom] bankersq1_len (q : int bankersq) (n : int) (m : int) =
+  (bankersq1 q n && bankersq_len q m) #==> (n == m)
+
+(** batchedq *)
+
+let[@axiom] batchedq_destruct (q : int batchedq) ((lenf [@exists]) : int)
+    ((f [@exists]) : int list) ((lenr [@exists]) : int)
+    ((r [@exists]) : int list) =
+  batchedq1 q f && batchedq2 q r && lenr >= 0 && len f lenf && len r lenr
+
+let[@axiom] batchedq_f_geq_r (q : int batchedq) (lenf : int) (f : int list)
+    (lenr : int) (r : int list) =
+  (batchedq1 q f && batchedq2 q r && len f lenf && len r lenr)
+  #==> (lenf >= lenr)
+
+let[@axiom] batchedq1_len (q : int batchedq) (f : int list) (n : int) =
+  (batchedq1 q f) #==> (iff (batchedq_len q n) (len f n))
+
+(** int leafisthp *)
+
+(** basic *)
+
+let[@axiom] leftisthp_leftisthp_leaf_no_leftisthp_root (l : int leftisthp)
+    (x : int) =
+  (leftisthp_leaf l) #==> (not (leftisthp_root l x))
+
+let[@axiom] leftisthp_leftisthp_leaf_no_ch (l : int leftisthp)
+    (l1 : int leftisthp) =
+  (leftisthp_leaf l) #==> (not (leftisthp_lch l l1 || leftisthp_rch l l1))
+
+let[@axiom] leftisthp_no_leftisthp_leaf_exists_ch (l : int leftisthp)
+    ((l1 [@exists]) : int leftisthp) ((l2 [@exists]) : int leftisthp)
+    ((r [@exists]) : int) =
+  (not (leftisthp_leaf l))
+  #==> (leftisthp_lch l l1 && leftisthp_rch l l2 && leftisthp_rank l r
+       && leftisthp_depth l2 (r - 1)
+       && r > 0)
+
+let[@axiom] leftisthp_no_leftisthp_leaf_exists_leftisthp_root
+    (l : int leftisthp) ((x [@exists]) : int) =
+  (not (leftisthp_leaf l)) #==> (leftisthp_root l x)
+
+let[@axiom] leftisthp_leftisthp_root_no_leftisthp_leaf (l : int leftisthp)
+    (x : int) =
+  (leftisthp_root l x) #==> (not (leftisthp_leaf l))
+
+let[@axiom] leftisthp_ch_no_leftisthp_leaf (l : int leftisthp)
+    (l1 : int leftisthp) =
+  (leftisthp_lch l l1 || leftisthp_rch l l1) #==> (not (leftisthp_leaf l))
+
+(** leftisthp_depth *)
+
+let[@axiom] leftisthp_leftisthp_depth_0_leftisthp_leaf (l : int leftisthp) =
+  (leftisthp_depth l 0) #==> (leftisthp_leaf l)
+
+let[@axiom] leftisthp_right_depth_leq_depth (l : int leftisthp) (n : int)
+    (r : int) =
+  (leftisthp_depth l n && leftisthp_rank l r) #==> (r <= n)
+
+let[@axiom] leftisthp_right_depth_leq_depth (l : int leftisthp)
+    (l1 : int leftisthp) (r : int) =
+  (leftisthp_rch l l1 && leftisthp_rank l r) #==> (leftisthp_depth l1 (r - 1))
+
+let[@axiom] leftisthp_leftisthp_depth_geq_0 (l : int leftisthp) (n : int) =
+  (leftisthp_depth l n) #==> (n >= 0)
+
+let[@axiom] leftisthp_leftisthp_leaf_leftisthp_depth_0 (l : int leftisthp)
+    (n : int) =
+  (leftisthp_leaf l && leftisthp_depth l n) #==> (n == 0)
+
+let[@axiom] leftisthp_positive_leftisthp_depth_is_not_leftisthp_leaf
+    (l : int leftisthp) (n : int) =
+  (leftisthp_depth l n && not (n == 0)) #==> (not (leftisthp_leaf l))
+
+let[@axiom] leftisthp_leftisthp_depth_ch_leftisthp_depth_minus_1
+    (tr : int leftisthp) (tr1 : int leftisthp) (n : int) =
+  (leftisthp_lch tr tr1)
+  #==> (iff (leftisthp_depth tr (n + 1)) (leftisthp_depth tr1 n))
+
 (** int rbtree *)
 
 (** basic *)

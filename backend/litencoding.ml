@@ -19,6 +19,8 @@ let rec typed_lit_to_z3 ctx lit =
   | AAppOp (op, args) -> (
       let args = List.map (typed_lit_to_z3 ctx) args in
       match (op.x, args) with
+      (* NOTE: we don't encode force *)
+      | "forc", [ a ] -> a
       | "==", [ a; b ] -> Boolean.mk_eq ctx a b
       | "!=", [ a; b ] -> Boolean.mk_not ctx @@ Boolean.mk_eq ctx a b
       | "<=", [ a; b ] -> Arithmetic.mk_le ctx a b

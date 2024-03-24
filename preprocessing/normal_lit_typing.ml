@@ -22,6 +22,7 @@ let rec bi_typed_lit_check (ctx : t ctx) (lit : (t option, t option lit) typed)
   | AAppOp (mp, args), _ ->
       let mp = bi_typed_id_infer ctx mp in
       let args' = List.map (bi_typed_lit_infer ctx) args in
+      (* let _ = Printf.printf "lit: %s\n" (To_lit.layout_typed_lit lit) in *)
       let mp_ty =
         Nt._type_unify __FILE__ __LINE__ mp.ty
           (Nt.construct_arr_tp (List.map _get_ty args', ty))
@@ -39,7 +40,13 @@ and bi_typed_lit_infer (ctx : t ctx) (lit : (t option, t option lit) typed) :
     (t, t lit) typed =
   match lit.x with
   | AVar id ->
-      let id = bi_typed_id_infer ctx id in
+      let id =
+        match id.ty with
+        | None -> bi_typed_id_infer ctx id
+        | Some ty ->
+            let _ = failwith "endsd" in
+            id.x #: ty
+      in
       (AVar id) #: id.ty
   | AC c -> (
       match lit.ty with

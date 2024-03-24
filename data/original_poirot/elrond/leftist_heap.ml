@@ -5,5 +5,8 @@ let rec leftisthp_gen (s : int) : int leftisthp =
     let (lt : int leftisthp) = leftisthp_gen s1 in
     let (s2 : int) = int_range_inc 0 s1 in
     let (rt : int leftisthp) = leftisthp_gen s2 in
-    let (n : int) = int_gen () in
-    Lhpnode (s2 + 1, n, lt, rt)
+    Lhpnode (s2 + 1, int_gen (), lt, rt)
+
+let[@assert] leftisthp_gen =
+  let s = (0 <= v : [%v: int]) [@over] in
+  (leftisthp_depth v s : [%v: int leftisthp]) [@under]

@@ -26,8 +26,8 @@ exception RecArgCheckFailure
 
 let get_cur_rec_func_name () =
   match !_cur_rec_func_name with
-  | Some (fname, cty) -> (fname, RtyBase { ou = false; cty })
-  | None -> _failatwith __FILE__ __LINE__ "die"
+  | Some (fname, cty) -> Some (fname, RtyBase { ou = false; cty })
+  | None -> None
 
 let _warinning_subtyping_error file line (rty1, rty2) =
   Env.show_debug_typing @@ fun _ ->
@@ -235,18 +235,20 @@ and term_type_infer_app (uctx : uctx) (a : ('t, 't term) typed) :
         let appf, apparg = map2 (value_type_infer uctx) (appf, apparg) in
         (* HACK: safety check here *)
         let () =
-          let fname, rec_arg_rty = get_cur_rec_func_name () in
-          match appf.x with
-          | VVar x when String.equal fname x.x ->
-              if sub_rty_bool uctx (rec_arg_rty, apparg.ty) then ()
-              else (
-                _warinning_subtyping_error __FILE__ __LINE__
-                  (rec_arg_rty, apparg.ty);
-                ( Env.show_debug_typing @@ fun _ ->
-                  Pp.printf
-                    "@{<bold>Recursive Safety Check Fails at [%s::%i]:@}\n"
-                    __FILE__ __LINE__ );
-                raise RecArgCheckFailure)
+          match get_cur_rec_func_name () with
+          | Some (fname, rec_arg_rty) -> (
+              match appf.x with
+              | VVar x when String.equal fname x.x ->
+                  if sub_rty_bool uctx (rec_arg_rty, apparg.ty) then ()
+                  else (
+                    _warinning_subtyping_error __FILE__ __LINE__
+                      (rec_arg_rty, apparg.ty);
+                    ( Env.show_debug_typing @@ fun _ ->
+                      Pp.printf
+                        "@{<bold>Recursive Safety Check Fails at [%s::%i]:@}\n"
+                        __FILE__ __LINE__ );
+                    raise RecArgCheckFailure)
+              | _ -> ())
           | _ -> ()
         in
         let* bindings, retty = arrow_type_apply uctx appf.ty apparg in

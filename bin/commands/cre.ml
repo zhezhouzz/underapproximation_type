@@ -65,6 +65,12 @@ let handle_template templates =
   let templates = List.map (fun x -> x.ty) templates in
   templates
 
+let handle_lemma lemmas =
+  let lemmas =
+    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
+  in
+  lemmas
+
 let type_check_ meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code = preproress meta_config_file source_file () in
@@ -72,9 +78,7 @@ let type_check_ meta_config_file source_file () =
   let predefine = preproress meta_config_file prim_path.under_basicp () in
   let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
   let lemmas = preproress meta_config_file prim_path.lemmas () in
-  let lemmas =
-    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
-  in
+  let lemmas = handle_lemma lemmas in
   let templates = preproress meta_config_file prim_path.templates () in
   let templates = handle_template templates in
   let () = Inference.Feature.init_template templates in
@@ -88,9 +92,7 @@ let type_infer_ meta_config_file source_file () =
   let predefine = preproress meta_config_file prim_path.under_basicp () in
   let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
   let lemmas = preproress meta_config_file prim_path.lemmas () in
-  let lemmas =
-    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms lemmas
-  in
+  let lemmas = handle_lemma lemmas in
   let templates = preproress meta_config_file prim_path.templates () in
   let templates = handle_template templates in
   let () = Inference.Feature.init_template templates in

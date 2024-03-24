@@ -41,7 +41,7 @@ let check_query axioms query =
             fvs))
       (0 == List.length fvs)
   in
-  Backend.Smtquery.check_bool (smart_and axioms) query
+  Backend.Smtquery.check_bool axioms query
 
 let aux_sub_cty (axioms, uqvs) cty1 cty2 =
   let fa_ctx, ex_ctx = normalize_ctx uqvs in

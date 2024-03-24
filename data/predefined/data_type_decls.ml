@@ -20,7 +20,7 @@ type 'a ctree = Cleaf | Cnode of 'a * 'a ctree * 'a ctree
 
 type 'a leftisthp =
   | Lhpleaf
-  | Lhpnode of 'a * 'a leftisthp * 'a leftisthp * int
+  | Lhpnode of int * 'a * 'a leftisthp * 'a leftisthp
 
 type stlc_ty = Stlc_ty_nat | Stlc_ty_arr of stlc_ty * stlc_ty
 
