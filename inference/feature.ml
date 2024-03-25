@@ -12,6 +12,7 @@ type feature_vec_id = int
 type label = Pos | Neg | Unknown
 
 let is_not_neg = function Neg -> false | _ -> true
+let is_positive = function Pos -> true | _ -> false
 
 (** feature vec and feature vec id is one-to-one correspondence *)
 

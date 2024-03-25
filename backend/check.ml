@@ -118,7 +118,7 @@ let handle_check_res query_action =
   match res with
   | SmtUnsat -> true
   | SmtSat model ->
-      ( Env.show_debug_queries @@ fun _ ->
+      ( Env.show_debug_debug @@ fun _ ->
         Printf.printf "model:\n%s\n"
         @@ Sugar.short_str 1000 @@ Z3.Model.to_string model );
       false

@@ -25,8 +25,6 @@ let get_prop_by_filter f { ftab; fvec_tab } =
   | [] -> mk_false
   | _ -> Or (List.map (feature_id_to_prop ftab) fvecs)
 
-let get_candidate = get_prop_by_filter is_not_neg
-
 let pick_by_filter f { fvec_tab; _ } =
   Hashtbl.fold
     (fun fv b res ->
