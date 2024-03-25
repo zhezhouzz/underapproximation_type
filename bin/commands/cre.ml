@@ -97,6 +97,13 @@ let type_infer_ meta_config_file source_file () =
   let templates = handle_template templates in
   let () = Inference.Feature.init_template templates in
   let _ = Typing.Itemcheck.struc_infer (axioms, builtin_ctx) code in
+  let result = Typing.Termsyn.get_inferred_result () in
+  let () =
+    let oc = Out_channel.create @@ Env.get_abdfile source_file in
+    Printf.fprintf oc "%s\n"
+      (Sexplib.Sexp.to_string @@ sexp_of_rty Nt.T.sexp_of_t result);
+    Out_channel.close oc
+  in
   ()
 
 let print_erase_code meta_config_file source_file () =

@@ -10,6 +10,12 @@ open Termcheck
 type t = Nt.t
 
 let layout_ty = Nt.layout
+let inferred_result = ref None
+
+let get_inferred_result () =
+  match !inferred_result with
+  | None -> _failatwith __FILE__ __LINE__ "die"
+  | Some res -> res
 
 let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
     (rty : t rty) : (t rty, t rty value) typed option =
@@ -76,5 +82,6 @@ and partial_term_type_infer (uctx : uctx) (a : (t, t term) typed) (rty : t rty)
       let* a = term_type_infer uctx a in
       let inferred_rty = Infer_prop.abductive_infer_rty uctx a.ty rty in
       let () = Printf.printf "inferred_rty: %s\n" (layout_rty inferred_rty) in
+      let () = inferred_result := Some inferred_rty in
       Some a
 (* | _ -> term_type_infer uctx a *)

@@ -50,6 +50,7 @@ let show_debug_stat = show_log "stat"
 let show_debug_info = show_log "info"
 let show_debug_debug = show_log "debug"
 let get_resfile () = (get_meta ()).resfile
+let get_abdfile inputname = inputname ^ (get_meta ()).abdfile
 let get_prim_path () = (get_meta ()).prim_path
 let get_uninterops () = (get_meta ()).abd_templates
 
