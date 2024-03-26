@@ -81,8 +81,14 @@ let instantiate_template vars { bvars; body } =
   in
   features
 
+let name_to_avoid = [ "inv"; "mx"; "lo"; "hi" ]
+
 let mk_features templates vars =
-  let vars = List.filter (fun x -> not (String.equal x.x "inv")) vars in
+  let vars =
+    List.filter
+      (fun x -> List.for_all (fun y -> not (String.equal x.x y)) name_to_avoid)
+      vars
+  in
   let features =
     List.concat @@ List.map (instantiate_template vars) templates
   in

@@ -1,5 +1,5 @@
 let rec depth_heap_gen (d : int) (mx : int) : int tree =
-  if d == 0 then Leaf
+  if d == 0 then Err
   else if bool_gen () then Leaf
   else
     let (n : int) = int_gen () in

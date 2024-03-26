@@ -54,7 +54,7 @@ let cegis_break features verifier =
         if get_res () then Some (get_candidate ())
         else _failatwith __FILE__ __LINE__ "die"
   in
-  let res = loop () in
+  let res = if get_res () then Some (get_candidate ()) else loop () in
   res
 
 let cegis_enumerate features verifier =
@@ -103,4 +103,4 @@ let cegis_enumerate features verifier =
   let res = loop () in
   res
 
-let cegis = cegis_enumerate
+let cegis = cegis_break

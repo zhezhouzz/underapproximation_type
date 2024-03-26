@@ -127,6 +127,33 @@ Admitted.
 Lemma tree_bst_depth_ex (l: IT): bst l -> exists n, depth l n.
 Admitted.
 
+(* abduction *)
+
+Lemma depth_heap_abduction: (forall d, (0 <= d -> (forall mx, (forall v, ((heap v /\ ((exists u, (depth v u /\ u <= d)) /\ (forall u, (root v u -> u < mx)))) -> ((~leaf v /\ ~mx = 0 /\ d = 0) \/ (~leaf v /\ ~mx = 0 /\ ~d = 0) \/ (leaf v /\ ~mx = 0 /\ ~d = 0) \/ (leaf v /\ mx = 0 /\ ~d = 0) \/ (d = 0 /\ leaf v) \/ (~d = 0 /\ (exists x_1, (~x_1 /\ (exists n, (n < mx /\ (exists d_1, (0 <= d_1 /\ d_1 < d /\ d_1 = (d - 1) /\ (exists lt, (heap lt /\ (exists u, (depth lt u /\ u <= d_1)) /\ (forall u, (root lt u -> u < n)) /\ (exists d_2, (0 <= d_2 /\ d_2 < d /\ d_2 = (d - 1) /\ (exists rt, (heap rt /\ (exists u, (depth rt u /\ u <= d_2)) /\ (forall u, (root rt u -> u < n)) /\ root v n /\ lch v lt /\ rch v rt)))))))))))))))))))%Z.
+Proof.
+  intros. destruct (Z.eqb_spec d 0)%Z.
+  - do 4 right. left. subst. intuition. destruct H0 as (s & Hs & Hs'). eauto. admit.
+  - destruct H0 as (Hv & (s & Hs & Hs') & HH).
+    destruct (decide_leaf v).
+    + do 2 right.
+      destruct (Z.eqb mx 0)%Z eqn: Hz; intuition.
+    + right.
+      destruct (Z.eqb mx 0)%Z eqn: Hz; auto.
+      2:{ intuition. }
+      do 4 right. intuition.
+      exists False. intuition.
+      destruct (tree_not_leaf_ex v) as (x & lt & rt & Hx & Hlt & Hrt); auto.
+      exists x; eauto. intuition.
+      exists (d - 1)%Z. intuition.
+      exists lt. intuition; eauto. edestruct (tree_depth_lt_ex) as (d1 & Hd1); eauto. exists d1. intuition; eauto.
+      eapply tree_depth_lt_minus_1 in Hlt; eauto. lia.
+      exists (d - 1)%Z. intuition.
+      exists rt. intuition; eauto. edestruct (tree_depth_rt_ex) as (d1 & Hd1); eauto. exists d1. intuition; eauto.
+      eapply tree_depth_rt_minus_1 in Hrt; eauto. lia.
+Admitted.
+
+
+
 Lemma sized_bst_gen: (
                        forall d, (0 <= d -> (forall lo, (forall hi, (lo < hi -> (forall v, (((forall u, (tree_mem v u -> (lo < u /\ u < hi))) /\ (bst v /\ (forall n, (depth v n -> n <= d)))) -> ((d = 0 /\ leaf v) \/ (~d = 0 /\ (exists x_1, ((x_1 /\ leaf v) \/ (~x_1 /\ (lo + 1) < hi /\ (exists b_3, ((1 + lo) < b_3 /\ b_3 = hi /\ (exists x, (lo < x /\ x < b_3 /\ (exists d_1, (0 <= d_1 /\ d_1 < d /\ d_1 = (d - 1) /\ (exists hi_0, (lo < hi_0 /\ hi_0 = x /\ (exists lt, ((forall u, (tree_mem lt u -> (lo < u /\ u < hi_0))) /\ bst lt /\ (forall n, (depth lt n -> n <= d_1)) /\ (exists d_2, (0 <= d_2 /\ d_2 < d /\ d_2 = (d - 1) /\ (exists hi_1, (x < hi_1 /\ hi_1 = hi /\ (exists rt, ((forall u, (tree_mem rt u -> (x < u /\ u < hi_1))) /\ bst rt /\ (forall n, (depth rt n -> n <= d_2)) /\ root v x /\ lch v lt /\ rch v rt))))))))))))))))))))))))))))%Z.
 Proof.
