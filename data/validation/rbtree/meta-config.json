@@ -21,7 +21,7 @@
                      ],
     "num_quantifier": 0,
     "synth_bound": 3,
-    "synth_timeout": "999",
+    "synth_timeout": "499",
     "prim_path": {
         "data_type_decls": "data/predefined/data_type_decls.ml",
         "templates": "data/predefined/templates.ml",
