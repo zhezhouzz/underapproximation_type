@@ -1,7 +1,9 @@
 *.glob
 *.aux
 *.cache
-.log
+*.stat
+*.log
+*.abd
 .tmp._under.ml
 _build/
 *.out

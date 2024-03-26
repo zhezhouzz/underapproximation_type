@@ -19,7 +19,7 @@ def run_type_infer_aux(meta_config_file, f):
 def run_type_infer(dir_str):
     meta_config_file = "{}/{}".format(dir_str, config_file)
     for filename in os.listdir(dir_str):
-        matches = re.search(r"prog[0-9]+\.ml", filename)
+        matches = re.search(r"prog[0-9]+\.ml$", filename, re.MULTILINE)
         if matches:
             run_type_infer_aux(meta_config_file, "{}/{}".format(dir_str, filename))
 

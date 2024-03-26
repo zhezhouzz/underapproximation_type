@@ -62,7 +62,15 @@ let handle_template templates =
     | _ -> failwith "cannot find builtin rec arg constraints"
   in
   let () = Typing.Termcheck.init_rec_arg rec_arg in
-  let templates = List.map (fun x -> x.ty) templates in
+  let temp_names = Env.get_uninterops () in
+  let templates =
+    List.map
+      (fun name ->
+        match List.find_opt (fun x -> String.equal name x.x) templates with
+        | None -> Sugar._failatwith __FILE__ __LINE__ "die"
+        | Some x -> x.ty)
+      temp_names
+  in
   templates
 
 let handle_lemma axioms =
