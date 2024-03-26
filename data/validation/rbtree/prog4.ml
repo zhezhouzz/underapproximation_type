@@ -6,10 +6,7 @@ let rec rbtree_gen (inv : int) (color : bool) (h : int) : int rbtree =
   else
     let (hh : int) = h - 1 in
     let (rt : int) = int_gen () in
-    if color then
-      let (lt2 : int rbtree) = rbtree_gen (inv - 1) false hh in
-      let (rt2 : int rbtree) = rbtree_gen (inv - 1) false hh in
-      Rbtnode (false, lt2, rt, rt2)
+    if color then Err
     else
       let (c : bool) = bool_gen () in
       if c then

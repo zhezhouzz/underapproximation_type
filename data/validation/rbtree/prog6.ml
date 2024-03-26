@@ -16,10 +16,7 @@ let rec rbtree_gen (inv : int) (color : bool) (h : int) : int rbtree =
         let (lt3 : int rbtree) = rbtree_gen (inv - 1) true h in
         let (rt3 : int rbtree) = rbtree_gen (inv - 1) true h in
         Rbtnode (true, lt3, rt, rt3)
-      else
-        let (lt4 : int rbtree) = rbtree_gen (inv - 2) false hh in
-        let (rt4 : int rbtree) = rbtree_gen (inv - 2) false hh in
-        Rbtnode (false, lt4, rt, rt4)
+      else Err
 
 let[@assert] rbtree_gen =
   let inv = (v >= 0 : [%v: int]) [@over] in

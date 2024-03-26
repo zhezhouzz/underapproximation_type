@@ -1,27 +1,26 @@
 {
     "mode": "debug",
     "max_printing_size": 300,
-    "debug_info": {
-        "show_preprocess": false,
-        "show_typing": true,
-        "show_queries": true,
-        "show_stat": false,
-        "show_others": false
-    },
+    "debug_tags": [
+        // "preprocess",
+        // "ntyping",
+        // "typing",
+        "queries",
+        "result",
+        "never-use"
+    ],
     "logfile": ".log",
     "resfile": ".result",
-    "benchmark_table_file": "",
+    "abdfile": ".abd",
+    "abd_templates": ["template_leaf", "template_eq_0"],
+    "num_quantifier": 0,
     "synth_bound": 3,
     "synth_timeout": "999",
     "prim_path": {
-        "data_type_decls": "underapproximation_type/data/predefined/data_type_decls.ml",
-        "templates": "underapproximation_type/data/predefined/templates.ml",
-        "normal_typing": "underapproximation_type/data/predefined/normal_typing.ml",
-        "axioms_of_predicates": "underapproximation_type/data/predefined/axioms.ml",
-        "axioms_of_query_encoding": "underapproximation_type/data/predefined/axioms_of_query_encoding.ml",
-        "builtin_coverage_typing": "underapproximation_type/data/validation/depthtree/builtin_rty.ml",
-        "builtin_randomness_coverage_typing": "underapproximation_type/data/predefined/builtin_randomness_coverage_typing.ml",
-        "builtin_datatype_coverage_typing": "underapproximation_type/data/predefined/builtin_datatype_coverage_typing",
-        "rev_builtin_datatype_coverage_typing": "underapproximation_type/data/predefined/rev_builtin_datatype_coverage_typing"
+        "data_type_decls": "data/predefined/data_type_decls.ml",
+        "templates": "data/predefined/templates.ml",
+        "normal_typing": "data/predefined/normal_typing.ml",
+        "axioms": "data/predefined/axioms.ml",
+        "coverage_typing": "data/predefined/coverage_typing.ml"
     }
 }

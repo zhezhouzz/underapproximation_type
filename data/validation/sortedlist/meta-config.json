@@ -12,7 +12,7 @@
     "logfile": ".log",
     "resfile": ".result",
     "abdfile": ".abd",
-    "abd_templates": ["template_emp", "template_eq_0"],
+    "abd_templates": ["template_emp"],
     "num_quantifier": 0,
     "synth_bound": 3,
     "synth_timeout": "999",

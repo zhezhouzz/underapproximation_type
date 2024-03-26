@@ -1,8 +1,5 @@
 let rec rbtree_gen (inv : int) (color : bool) (h : int) : int rbtree =
-  if h == 0 then
-    if color then Rbtleaf
-    else if bool_gen () then Rbtleaf
-    else Rbtnode (true, Rbtleaf, int_gen (), Rbtleaf)
+  if h == 0 then if color then Rbtleaf else if bool_gen () then Rbtleaf else Err
   else
     let (hh : int) = h - 1 in
     let (rt : int) = int_gen () in

@@ -334,6 +334,9 @@ let[@axiom] rbtree_ch_no_rb_leaf (l : int rbtree) (l1 : int rbtree) =
 
 (** num_black *)
 
+let[@axiom] rbtree_num_black_0_rb_leaf (l : int rbtree) =
+  (num_black l 0 && not (rb_root_color l true)) #==> (rb_leaf l)
+
 let[@axiom] rbtree_num_black_geq_0 (l : int rbtree) (n : int) =
   (num_black l n) #==> (n >= 0)
 
@@ -343,11 +346,6 @@ let[@axiom] rbtree_rb_leaf_num_black_0 (l : int rbtree) (n : int) =
 let[@axiom] rbtree_positive_num_black_is_not_rb_leaf (l : int rbtree) (n : int)
     =
   (num_black l n && n > 0) #==> (not (rb_leaf l))
-
-let[@axiom] rbtree_ch_num_black_plus_1 (l : int rbtree) (l1 : int rbtree)
-    (n : int) ((n1 [@exists]) : int) =
-  ((rb_lch l l1 || rb_rch l l1) && num_black l n)
-  #==> (num_black l1 n1 && n1 <= n - 1)
 
 let[@axiom] num_black_root_black_lt_minus_1 (v : int rbtree) (lt : int rbtree)
     (h : int) =
@@ -367,16 +365,13 @@ let[@axiom] num_black_root_red_rt_same (v : int rbtree) (rt : int rbtree)
     (h : int) =
   (rb_root_color v true && num_black v h && rb_rch v rt) #==> (num_black rt h)
 
-let[@axiom] num_black_root_black_0_lt_leaf (v : int rbtree) (lt : int rbtree)
-    (h : int) =
+let[@axiom] num_black_root_black_0_lt_leaf (v : int rbtree) (lt : int rbtree) =
   (num_black v 0 && rb_lch v lt) #==> (rb_leaf lt)
 
-let[@axiom] num_black_root_black_0_rt_leaf (v : int rbtree) (rt : int rbtree)
-    (h : int) =
+let[@axiom] num_black_root_black_0_rt_leaf (v : int rbtree) (rt : int rbtree) =
   (num_black v 0 && rb_rch v rt) #==> (rb_leaf rt)
 
-let[@axiom] num_black_root_black_0_rt_red (v : int rbtree) (rt : int rbtree)
-    (h : int) =
+let[@axiom] num_black_root_black_0_rt_red (v : int rbtree) (rt : int rbtree) =
   (num_black v 0 && rb_rch v rt) #==> (rb_root_color v true)
 
 let[@axiom] no_red_red_lt (v : int rbtree) (lt : int rbtree) =
@@ -404,3 +399,17 @@ let[@axiom] black_rt_black_num_black_gt_1 (v : int rbtree) (rt : int rbtree)
   (num_black v h && rb_rch v rt && rb_root_color v false
  && rb_root_color rt false)
   #==> (h > 1)
+
+(** For synthesis *)
+
+let[@axiom] root_color_single (v : int rbtree) =
+  not (rb_root_color v false && rb_root_color v true)
+
+let[@axiom] leaf_no_root_color (v : int rbtree) =
+  (rb_leaf v) #==> ((not (rb_root_color v false)) && not (rb_root_color v true))
+
+(* let[@axiom] num_black_no_leaf_root_black_0_rt_red (v : int rbtree) = *)
+(*   (num_black v 0 && not (rb_leaf v)) #==> (rb_root_color v true) *)
+
+(* let[@axiom] black_rt_no_color_is_emp (v : int rbtree) = *)
+(*   ((not (rb_root_color v false)) && not (rb_root_color v true)) #==> (rb_leaf v) *)

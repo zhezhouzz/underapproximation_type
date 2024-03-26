@@ -13,7 +13,7 @@ Variable no_red_red: IT -> Prop.
 
 Definition ch (tr: IT) (tr': IT) := rb_lch tr tr' \/ rb_rch tr tr'.
 
-Lemma tree_num_black_0_rb_leaf (l : IT) :(num_black l 0) -> (rb_leaf l) .
+Lemma tree_num_black_0_rb_leaf (l : IT) :(num_black l 0) -> ~ (rb_root_color l true) -> (rb_leaf l) .
 Admitted.
 #[export] Hint Resolve tree_num_black_0_rb_leaf : core.
 
@@ -84,6 +84,19 @@ Lemma black_rt_black_num_black_gt_1 (v rt: IT) (h: Z):
   num_black v h -> rb_rch v rt -> rb_root_color v false -> rb_root_color rt false -> (h > 1)%Z.
 Admitted.
 #[export] Hint Resolve black_rt_black_num_black_gt_1 : core.
+
+(* Lemma abduction_debug: (forall inv, (inv >= 0 -> (forall color, (forall h, ((h >= 0 /\ (((color = true) -> (h + h) = inv) /\ (~(color = true) -> ((h + h) + 1) = inv))) -> (forall v, ((num_black v h /\ (no_red_red v /\ (h = 0 /\ (((color = true) -> ~rb_root_color v true) /\ (~(color = true) -> (h = 0 -> ~rb_root_color v false)))))) -> ((h = 0 /\ (((color = true) /\ rb_leaf v) \/ (~(color = true) /\ (exists x_1, (x_1 /\ rb_leaf v))))) \/ (~h = 0 /\ (color = true) /\ (exists x_2, (rb_leaf x_2 /\ (exists x_3, (rb_leaf x_3 /\ rb_root_color v false /\ rb_root v h /\ rb_lch v x_3 /\ rb_rch v x_2)))))))))))))%Z. *)
+(* Proof. *)
+(*   intros.  destruct (Z.eqb_spec h 0). *)
+(*   - left. subst. intuition. *)
+(*     destruct color. *)
+(*     + left. intuition. *)
+(*     + right. intuition. destruct (decide_rb_leaf v). *)
+(*       * exists True. intuition. *)
+(*       * exists True. intuition. admit. *)
+(*   - right. intuition. *)
+
+
 
 Lemma num_black_tree_gen:
 (forall inv, (inv >= 0 -> (forall color, (forall h, ((h >= 0/\ (((color = true) -> (h + h) = inv)/\ (~(color = true) -> ((h + h) + 1) = inv))) -> (forall v, ((num_black v h/\ (no_red_red v/\ (((color = true) -> ~rb_root_color v true)/\ (~(color = true) -> (h = 0 -> ~rb_root_color v false))))) -> ((h = 0/\ (((color = true)/\ rb_leaf v) \/ (~(color = true)/\ (exists x_1, ((x_1/\ rb_leaf v) \/ (~x_1/\ (exists x_2, (rb_leaf x_2/\ (exists x_3, (exists x_4, (rb_leaf x_4/\ rb_root_color v true/\ (rb_root v x_3/\ (rb_lch v x_4/\ rb_rch v x_2))))))))))))) \/ (~h = 0/\ (exists rt, (((color = true)/\ (exists inv_1, ((inv_1 >= 0/\ inv_1 = (inv - 1))/\ (exists h_0, (((h_0 >= 0/\ ((False -> (h_0 + h_0) = inv_1)/\ (~False -> ((h_0 + h_0) + 1) = inv_1)))/\ h_0 = (h - 1))/\ (exists lt2, (((inv_1 < inv/\ inv_1 >= 0)/\ num_black lt2 h_0/\ (no_red_red lt2/\ ((False -> ~rb_root_color lt2 true)/\ (~False -> (h_0 = 0 -> ~rb_root_color lt2 false)))))/\ (exists inv_2, ((inv_2 >= 0/\ inv_2 = (inv - 1))/\ (exists h_1, (((h_1 >= 0/\ ((False -> (h_1 + h_1) = inv_2)/\ (~False -> ((h_1 + h_1) + 1) = inv_2)))/\ h_1 = (h - 1))/\ (exists rt2, (((inv_2 < inv/\ inv_2 >= 0)/\ num_black rt2 h_1/\ (no_red_red rt2/\ ((False -> ~rb_root_color rt2 true)/\ (~False -> (h_1 = 0 -> ~rb_root_color rt2 false)))))/\ rb_root_color v false/\ (rb_root v rt/\ (rb_lch v lt2/\ rb_rch v rt2))))))))))))))) \/ (~(color = true)/\ (exists c, ((c/\ (exists inv_3, ((inv_3 >= 0/\ inv_3 = (inv - 1))/\ (exists h_2, (((h_2 >= 0/\ ((True -> (h_2 + h_2) = inv_3)/\ (~True -> ((h_2 + h_2) + 1) = inv_3)))/\ h_2 = h)/\ (exists lt3, (((inv_3 < inv/\ inv_3 >= 0)/\ num_black lt3 h_2/\ (no_red_red lt3/\ ((True -> ~rb_root_color lt3 true)/\ (~True -> (h_2 = 0 -> ~rb_root_color lt3 false)))))/\ (exists inv_4, ((inv_4 >= 0/\ inv_4 = (inv - 1))/\ (exists h_3, (((h_3 >= 0/\ ((True -> (h_3 + h_3) = inv_4)/\ (~True -> ((h_3 + h_3) + 1) = inv_4)))/\ h_3 = h)/\ (exists rt3, (((inv_4 < inv/\ inv_4 >= 0)/\ num_black rt3 h_3/\ (no_red_red rt3/\ ((True -> ~rb_root_color rt3 true)/\ (~True -> (h_3 = 0 -> ~rb_root_color rt3 false)))))/\ rb_root_color v true/\ (rb_root v rt/\ (rb_lch v lt3/\ rb_rch v rt3))))))))))))))) \/ (~c/\ (exists inv_5, ((inv_5 >= 0/\ inv_5 = (inv - 2))/\ (exists h_4, (((h_4 >= 0/\ ((False -> (h_4 + h_4) = inv_5)/\ (~False -> ((h_4 + h_4) + 1) = inv_5)))/\ h_4 = (h - 1))/\ (exists lt4, (((inv_5 < inv/\ inv_5 >= 0)/\ num_black lt4 h_4/\ (no_red_red lt4/\ ((False -> ~rb_root_color lt4 true)/\ (~False -> (h_4 = 0 -> ~rb_root_color lt4 false)))))/\ (exists inv_6, ((inv_6 >= 0/\ inv_6 = (inv - 2))/\ (exists h_5, (((h_5 >= 0/\ ((False -> (h_5 + h_5) = inv_6)/\ (~False -> ((h_5 + h_5) + 1) = inv_6)))/\ h_5 = (h - 1))/\ (exists rt4, (((inv_6 < inv/\ inv_6 >= 0)/\ num_black rt4 h_5/\ (no_red_red rt4/\ ((False -> ~rb_root_color rt4 true)/\ (~False -> (h_5 = 0 -> ~rb_root_color rt4 false)))))/\ rb_root_color v false/\ (rb_root v rt/\ (rb_lch v lt4/\ rb_rch v rt4)))))))))))))))))))))))))))))%Z.

@@ -24,7 +24,7 @@ let abductive_infer_cty uctx cty1 cty2 =
           l
   in
   match cty1 with
-  | Cty { nty; phi } ->
+  | Cty { nty; phi } -> (
       let v = default_v #: nty in
       let vars = v :: vars in
       let features = mk_features (Feature.get_template ()) vars in
@@ -38,8 +38,9 @@ let abductive_infer_cty uctx cty1 cty2 =
         in
         res
       in
-      let phi = abductive_infer_subtyping_query ~features ~verifier in
-      Cty { nty; phi }
+      let phi' = abductive_infer_subtyping_query ~features ~verifier in
+      match cty2 with
+      | Cty { nty; phi } -> Cty { nty; phi = smart_add_to phi' phi })
 
 let abductive_infer_rty uctx rty1 rty2 =
   match (rty1, rty2) with

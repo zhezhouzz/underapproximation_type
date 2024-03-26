@@ -82,8 +82,15 @@ let instantiate_template vars { bvars; body } =
   features
 
 let mk_features templates vars =
+  let vars = List.filter (fun x -> not (String.equal x.x "inv")) vars in
   let features =
     List.concat @@ List.map (instantiate_template vars) templates
+  in
+  let features =
+    features
+    @ List.filter_map
+        (fun x -> match x.ty with Nt.Ty_bool -> Some (AVar x) | _ -> None)
+        vars
   in
   let () =
     Env.show_debug_queries @@ fun _ ->
