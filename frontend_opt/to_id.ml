@@ -31,4 +31,6 @@ let id_of_pattern pattern =
   | Ppat_var ident -> ident.txt
   | Ppat_any -> "_"
   | Ppat_construct (name, None) -> longid_to_id name
-  | _ -> _failatwith __FILE__ __LINE__ "die"
+  | _ ->
+      Printf.printf "[%s::%i] %s" __FILE__ __LINE__ (layout_ pattern);
+      _failatwith __FILE__ __LINE__ "die"

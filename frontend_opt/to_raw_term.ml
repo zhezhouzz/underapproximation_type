@@ -80,6 +80,7 @@ let constructor_to_term_or_op c =
   | "Err" | "Exn" -> C_is_term Err #: (Some Nt.T.Ty_any)
   | "true" | "false" | "()" ->
       C_is_term { x = Const (string_to_constant c); ty = None }
+  (* | "[]" -> C_is_term { x = Const (string_to_constant c); ty = None } *)
   | name -> (
       match string_to_op_opt name with
       | None -> _failatwith __FILE__ __LINE__ "die: pat"
@@ -145,6 +146,7 @@ let typed_raw_term_of_expr expr =
               let args = aux args in
               match args.x with Tu es -> es | _ -> [ args ])
         in
+        (* let () = Printf.printf "longid_to_id c: %s\n" (longid_to_id c) in *)
         let c = constructor_to_term_or_op @@ longid_to_id c in
         match c with
         | C_is_term tm -> tm
@@ -192,6 +194,13 @@ let typed_raw_term_of_expr expr =
                       args = List.map term_force_var args;
                       exp = aux case.pc_rhs;
                     }
+              (* | Const (Dt (op, [])) -> *)
+              (*     Matchcase *)
+              (*       { *)
+              (*         constructor = { x = op; ty = None }; *)
+              (*         args = []; *)
+              (*         exp = aux case.pc_rhs; *)
+              (*       } *)
               | _ -> _failatwith __FILE__ __LINE__ "?")
             match_cases
         in

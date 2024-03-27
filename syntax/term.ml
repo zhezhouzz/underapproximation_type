@@ -264,7 +264,10 @@ let value_to_term v = (CVal v) #: v.ty
 let term_to_value e =
   match e.x with
   | CVal v -> v.x #: e.ty
-  | _ -> _failatwith __FILE__ __LINE__ "die"
+  | _ ->
+      Printf.printf "%s\n"
+        (Sexplib.Sexp.to_string @@ sexp_of_term Nt.sexp_of_t e.x);
+      _failatwith __FILE__ __LINE__ "die"
 
 let id_to_value v = (VVar v) #: v.ty
 let id_to_term v = value_to_term @@ id_to_value v
@@ -291,3 +294,25 @@ let mk_app appf apparg = (CApp { appf; apparg }) #: (Nt.get_retty appf.ty)
 
 let mk_appop op appopargs =
   (CAppOp { op; appopargs }) #: (snd @@ Nt.destruct_arr_tp op.ty)
+
+let get_constant_from_typed_value v =
+  match v.x with VConst c -> Some c | _ -> None
+
+let get_constants_from_typed_values v =
+  let cs = List.filter_map get_constant_from_typed_value v in
+  if List.length cs == List.length v then Some cs else None
+
+let rec term_to_const_opt e =
+  match e.x with
+  | CVal v -> value_to_const_opt v
+  | CAppOp { op; appopargs } -> (
+      match op.x with
+      | DtConstructor opname -> (
+          match get_constants_from_typed_values appopargs with
+          | Some cs -> Some (Dt (opname, cs)) #: e.ty
+          | None -> None)
+      | _ -> None)
+  | _ -> None
+
+and value_to_const_opt v =
+  match v.x with VConst c -> Some c #: v.ty | _ -> None

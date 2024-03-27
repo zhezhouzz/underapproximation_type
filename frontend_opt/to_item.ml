@@ -58,8 +58,7 @@ let ocaml_structure_item_to_item structure =
                {
                  name =
                    name
-                   #: (Some
-                         (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body.x));
+                   #: (Some (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body));
                  if_rec = get_if_rec flag;
                  body;
                }

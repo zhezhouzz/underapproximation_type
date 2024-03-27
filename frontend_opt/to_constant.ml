@@ -12,6 +12,7 @@ let string_to_constant = function
   | "true" -> B true
   | "false" -> B false
   | "()" -> U
+  | "[]" -> Dt ("[]", [])
   | x -> failwith (spf "do not support literal: %s" x)
 
 let rec expr_to_constant e =

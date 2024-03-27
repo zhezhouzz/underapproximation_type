@@ -3,6 +3,12 @@ open Normal_id_typing
 
 type t = Nt.t
 
+let get_constructor_type ctx op =
+  let name = dt_name_for_typectx op in
+  match get_opt ctx name with
+  | Some ty -> ty
+  | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
+
 let bi_typed_op_check (ctx : t ctx) (op : (t option, op) typed) (ty : t) :
     (t, op) typed =
   match op.x with

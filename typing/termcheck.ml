@@ -136,6 +136,28 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
              body = body';
            })
         #: rty
+  | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
+      (* let rec_constraint_cty = apply_rec_arg fixarg in *)
+      let rty' =
+        let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
+        RtyBaseDepPair
+          { argcty; arg = a.x; retty = subst_rty_instance arg (AVar a) retty }
+      in
+      let binding = fixarg.x #: (RtyBase { ou = false; cty = argcty }) in
+      let retty = subst_rty_instance arg (AVar fixarg) retty in
+      let* body' =
+        term_type_check
+          (add_to_rights lrctx [ binding; fixname.x #: rty' ])
+          body retty
+      in
+      Some
+        (VFix
+           {
+             fixname = fixname.x #: rty;
+             fixarg = fixname.x #: binding.ty;
+             body = body';
+           })
+        #: rty
   | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
   | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
 

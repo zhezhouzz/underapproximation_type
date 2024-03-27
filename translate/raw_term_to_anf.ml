@@ -87,7 +87,11 @@ and normalize_get_comp (k : 't cont) (expr : ('t, 't raw_term) typed) :
               (CLetDeTu { tulhs; turhs = rhs; body }) #: body.ty)
             rhs)
   | AppOp (op, es) ->
-      normalize_get_values (fun appopargs -> k (mk_appop op appopargs)) es
+      normalize_get_values
+        (fun appopargs ->
+          let res = mk_appop op appopargs in
+          k res)
+        es
   | App (func, [ arg ]) ->
       normalize_get_value
         (fun appf -> normalize_get_value (fun arg -> k (mk_app appf arg)) arg)
@@ -125,6 +129,11 @@ let normalize_item (item : Nt.t item) =
   match item with
   | MFuncImpRaw { name; if_rec; body } ->
       let body = normalize_term body in
+      (* let body = *)
+      (*   match term_to_const_opt body with *)
+      (*   | None -> body *)
+      (*   | Some c -> (CVal (VConst c.x) #: c.ty) #: c.ty *)
+      (* in *)
       let body =
         if if_rec then lam_to_fix_comp name.x #: body.ty body else body
       in

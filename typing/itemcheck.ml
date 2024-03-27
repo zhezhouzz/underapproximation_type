@@ -4,7 +4,7 @@ open Zzdatatype.Datatype
 
 let item_check (axioms, uctx) imps = function
   | MFuncImp { name; body; _ } ->
-      let body = term_to_value body in
+      (* let body = term_to_value body in *)
       Some (uctx, StrMap.add name.x body imps)
   | MRty { is_assumption = true; name; rty } ->
       Some (add_to_right uctx name #: rty, imps)
@@ -28,7 +28,7 @@ let item_check (axioms, uctx) imps = function
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match
-        Termcheck.value_type_check
+        Termcheck.term_type_check
           { builtin_ctx = uctx; local_ctx = emp; axioms }
           imp rty
       with
@@ -45,7 +45,7 @@ let item_check (axioms, uctx) imps = function
 
 let item_infer (axioms, uctx) imps = function
   | MFuncImp { name; body; _ } ->
-      let body = term_to_value body in
+      (* let body = term_to_value body in *)
       Some (uctx, StrMap.add name.x body imps)
   | MRty { is_assumption = true; name; rty } ->
       Some (add_to_right uctx name #: rty, imps)
@@ -69,7 +69,7 @@ let item_infer (axioms, uctx) imps = function
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match
-        Termsyn.partial_value_type_infer
+        Termsyn.partial_term_type_infer
           { builtin_ctx = uctx; local_ctx = emp; axioms }
           imp rty
       with

@@ -43,7 +43,7 @@ and bi_typed_lit_infer (ctx : t ctx) (lit : (t option, t option lit) typed) :
       (AVar id) #: id.ty
   | AC c -> (
       match lit.ty with
-      | None -> (AC c) #: (infer_constant c)
+      | None -> (AC c) #: (infer_constant ctx c)
       | Some ty -> (AC c) #: ty)
   | ATu l ->
       let l = List.map (bi_typed_lit_infer ctx) l in
