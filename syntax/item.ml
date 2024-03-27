@@ -62,3 +62,17 @@ let fv_item_id e = fv_typed_id_to_id fv_item e
 let typed_fv_item_id e = fv_typed_id_to_id typed_fv_item e
 
 (* Generated from _item.ml *)
+
+let get_rty_by_name (item_e : 't item list) (x : string) =
+  let res =
+    List.filter_map
+      (function
+        | MRty { is_assumption; name; rty } when String.equal name x ->
+            Some (is_assumption, rty)
+        | _ -> None)
+      item_e
+  in
+  match res with
+  | [] -> Sugar._failatwith __FILE__ __LINE__ "die"
+  | [ x ] -> x
+  | _ -> Sugar._failatwith __FILE__ __LINE__ "die"

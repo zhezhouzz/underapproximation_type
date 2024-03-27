@@ -56,7 +56,24 @@ let mk_false = Lit (AC (B false)) #: Nt.bool_ty
 let is_true p = match get_cbool p with Some true -> true | _ -> false
 let is_false p = match get_cbool p with Some false -> true | _ -> false
 
+let eq_prop p1 p2 =
+  Sexplib.Sexp.equal
+    (sexp_of_prop Nt.sexp_of_t p1)
+    (sexp_of_prop Nt.sexp_of_t p2)
+
+open Zzdatatype.Datatype
+
+let unfold_and prop =
+  let rec aux = function
+    | [] -> []
+    | And l :: l' -> aux (l @ l')
+    | prop :: l' -> prop :: aux l'
+  in
+  let l = aux prop in
+  List.slow_rm_dup eq_prop l
+
 let smart_and l =
+  let l = unfold_and l in
   if List.exists is_false l then mk_false
   else
     match List.filter (fun p -> not (is_true p)) l with
@@ -64,7 +81,17 @@ let smart_and l =
     | [ x ] -> x
     | l -> And l
 
+let unfold_or prop =
+  let rec aux = function
+    | [] -> []
+    | Or l :: l' -> aux (l @ l')
+    | prop :: l' -> prop :: aux l'
+  in
+  let l = aux prop in
+  List.slow_rm_dup eq_prop l
+
 let smart_or l =
+  let l = unfold_or l in
   if List.exists is_true l then mk_true
   else
     match List.filter (fun p -> not (is_false p)) l with
@@ -149,6 +176,17 @@ let mk_prop_var_eq_var nty (id, id') =
       in
       Lit lit #: nty
 
+open Sugar
+
+type t = Nt.t
+
+let apply_pi_prop (p : t prop) (lit : (t, t lit) typed) =
+  match p with
+  | Forall { qv; body } ->
+      if Nt.eq qv.ty lit.ty then subst_prop_instance qv.x lit.x body
+      else _failatwith __FILE__ __LINE__ "die"
+  | _ -> _failatwith __FILE__ __LINE__ "die"
+
 (* Cty *)
 let prop_to_cty nty prop = Cty { nty; phi = prop }
 let prop_to_rty ou nty prop = RtyBase { ou; cty = prop_to_cty nty prop }
@@ -165,24 +203,25 @@ let mk_cty_var_eq_var nty (id, c) =
 let mk_rty_var_eq_var nty (id, c) =
   RtyBase { ou = false; cty = mk_cty_var_eq_var nty (id, c) }
 
-open Sugar
-
 let mk_rty_var_eq_v (id, v) =
   match v.x with
   | VConst c -> mk_rty_var_eq_c v.ty (id, c)
   | VVar c -> mk_rty_var_eq_var v.ty (id, c.x)
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
-let union_ctys = function
+let n_to_one_ctys prop_f = function
   | [] -> _failatwith __FILE__ __LINE__ "die"
   | Cty { nty; phi } :: ctys ->
       if List.for_all (function Cty { nty = nty'; _ } -> Nt.eq nty nty') ctys
       then
         let phi =
-          smart_or (phi :: List.map (function Cty { phi; _ } -> phi) ctys)
+          prop_f (phi :: List.map (function Cty { phi; _ } -> phi) ctys)
         in
         Cty { nty; phi }
       else _failatwith __FILE__ __LINE__ "die"
+
+let union_ctys = n_to_one_ctys smart_or
+let intersect_ctys = n_to_one_ctys smart_and
 
 let forall_cty_to_prop = function
   | { x; ty = Cty { nty; phi } }, prop ->
@@ -277,8 +316,6 @@ let and_cty_to_rty cty1 = function
   | RtyBase { ou = false; cty } ->
       RtyBase { ou = false; cty = and_cty_to_cty (cty1, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"
-
-type t = Nt.t
 
 let default_res = "rr"
 

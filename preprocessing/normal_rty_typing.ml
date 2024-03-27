@@ -18,6 +18,9 @@ let bi_typed_rty_check (ctx : t ctx) (rty : t option rty) : t rty =
     | RtyArrArr { argrty; retty } ->
         let argrty = aux ctx argrty in
         RtyArrArr { argrty; retty = aux ctx retty }
+    | RtyGhostArr { argnty; arg; retty } ->
+        let arg' = arg #: argnty in
+        RtyGhostArr { argnty; arg; retty = aux (add_to_right ctx arg') retty }
     | RtyTuple _trtylist0 -> RtyTuple (List.map (aux ctx) _trtylist0)
   in
   aux ctx rty

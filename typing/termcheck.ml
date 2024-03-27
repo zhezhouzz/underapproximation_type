@@ -7,6 +7,17 @@ open Subtyping
 type t = Nt.t
 
 let layout_ty = Nt.layout
+let _rec_arg : t prop option ref = ref None
+let init_rec_arg x = _rec_arg := Some x
+
+let apply_rec_arg arg =
+  match !_rec_arg with
+  | Some p ->
+      let arg = (AVar arg) #: arg.ty in
+      let param = (AVar default_v #: Nt.int_ty) #: Nt.int_ty in
+      let phi = apply_pi_prop (apply_pi_prop p arg) param in
+      Cty { nty = Nt.int_ty; phi }
+  | None -> _failatwith __FILE__ __LINE__ "die"
 
 let _warinning_subtyping_error file line (rty1, rty2) =
   Env.show_debug_typing @@ fun _ ->
@@ -51,7 +62,7 @@ let rec value_type_infer (lrctx : lrctx) (a : (t, t value) typed) :
         let res = _id_type_infer __FILE__ __LINE__ lrctx id.x in
         let rty =
           match res with
-          | RtyBaseArr _ | RtyArrArr _ | RtyBaseDepPair _ -> res
+          | RtyBaseArr _ | RtyArrArr _ | RtyBaseDepPair _ | RtyGhostArr _ -> res
           | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
           | RtyBase _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
         in
@@ -100,17 +111,21 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
       Some (VLam { lamarg; body }) #: rty
   | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
   | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
-      let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
-      let prop = Checkaux.make_order_constraint fixarg a in
-      let retty_a = subst_rty_instance arg (AVar a) retty in
-      let rty_a = RtyBaseArr { argcty; arg = a.x; retty = retty_a } in
-      let rty_a = map_prop_in_retrty (smart_add_to prop) rty_a in
+      let rec_constraint_cty = apply_rec_arg fixarg in
+      let rty' =
+        let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
+        RtyBaseArr
+          {
+            argcty = intersect_ctys [ argcty; rec_constraint_cty ];
+            arg = a.x;
+            retty = subst_rty_instance arg (AVar a) retty;
+          }
+      in
       let binding = fixarg.x #: (RtyBase { ou = true; cty = argcty }) in
       let retty = subst_rty_instance arg (AVar fixarg) retty in
-      (* let body = (subst_term_instance fixarg.x (VVar a) body.x) #: body.ty in *)
       let* body' =
         term_type_check
-          (add_to_rights lrctx [ binding; fixname.x #: rty_a ])
+          (add_to_rights lrctx [ binding; fixname.x #: rty' ])
           body retty
       in
       Some

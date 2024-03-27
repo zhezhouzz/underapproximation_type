@@ -43,9 +43,13 @@ let type_check_ meta_config_file source_file () =
   in
   let _, rty1 = get_rty_by_name code "rty1" in
   let _, rty2 = get_rty_by_name code "rty2" in
-  let ctx = FrontendTyped.{ builtin_ctx; local_ctx = emp; axioms } in
+  let ctx = Typedlang.{ builtin_ctx; local_ctx = emp; axioms } in
   let res = Subtyping.Subrty.sub_rty_bool ctx (rty1, rty2) in
-  let () = FrontendTyped.pprint_typectx_subtyping emp (rty1, rty2) in
+  let () =
+    Typedlang.pprint_typectx_subtyping
+      (fun _ -> Typedlang.pprint_typectx emp)
+      (rty1, rty2)
+  in
   let () = Pp.printf "Result: %b\n" res in
   ()
 
