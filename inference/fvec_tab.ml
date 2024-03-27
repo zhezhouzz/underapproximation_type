@@ -21,6 +21,7 @@ let get_prop_by_filter f { ftab; fvec_tab } =
   let fvecs =
     Hashtbl.fold (fun fv b l -> if f b then fv :: l else l) fvec_tab []
   in
+  (* let _ = Printf.printf "len(fvecs) = %i\n" (List.length fvecs) in *)
   match fvecs with
   | [] -> mk_false
   | _ -> Or (List.map (feature_id_to_prop ftab) fvecs)

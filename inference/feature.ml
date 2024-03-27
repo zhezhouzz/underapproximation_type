@@ -39,7 +39,7 @@ let feature_vec_to_prop (ftab : feature_tab) vec =
         if b then Lit lit else Not (Lit lit))
     @@ List.combine vec ftab
   in
-  And props
+  match props with [] -> mk_true | _ -> And props
 
 let feature_id_to_prop (ftab : feature_tab) id =
   feature_vec_to_prop ftab @@ feature_id_to_vec (List.length ftab) id
