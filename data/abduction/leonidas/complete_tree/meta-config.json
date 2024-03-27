@@ -5,7 +5,7 @@
         // "preprocess",
         // "ntyping",
         // "typing",
-        "queries",
+        // "queries",
         "result",
         "never-use"
     ],
