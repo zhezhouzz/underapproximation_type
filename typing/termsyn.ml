@@ -44,7 +44,7 @@ let rec partial_value_type_infer (uctx : uctx) (a : (t, t value) typed)
         Some (VLam { lamarg; body }) #: rty
     | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
     | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
-        let rec_constraint_cty = apply_rec_arg fixarg in
+        let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
         let rty' =
           let a = { x = Rename.unique arg; ty = fixarg.ty } in
           RtyBaseArr
