@@ -81,7 +81,9 @@ and fv_term (term_e : 't term) =
   | CApp { appf; apparg } -> ([] @ typed_fv_value apparg) @ typed_fv_value appf
   | CAppOp { appopargs; _ } ->
       [] @ List.concat (List.map typed_fv_value appopargs)
-  | CMatch { matched; _ } -> [] @ typed_fv_value matched
+  | CMatch { matched; match_cases } ->
+      (List.concat @@ List.map fv_match_case match_cases)
+      @ typed_fv_value matched
 
 and typed_fv_term (term_e : ('t, 't term) typed) = fv_term term_e.x
 
@@ -149,7 +151,11 @@ and subst_term (string_x : string) f (term_e : 't term) =
       CAppOp
         { op; appopargs = List.map (typed_subst_value string_x f) appopargs }
   | CMatch { matched; match_cases } ->
-      CMatch { matched = typed_subst_value string_x f matched; match_cases }
+      CMatch
+        {
+          matched = typed_subst_value string_x f matched;
+          match_cases = List.map (subst_match_case string_x f) match_cases;
+        }
 
 and typed_subst_term (string_x : string) f (term_e : ('t, 't term) typed) =
   term_e #-> (subst_term string_x f)

@@ -12,13 +12,7 @@
     "logfile": ".log",
     "resfile": ".result",
     "abdfile": ".abd",
-    "abd_templates": [
-        // "template_rb_leaf",
-        "template_eq_0",
-        // "template_num_black_0",
-        "template_black_root",
-        "template_red_root"
-    ],
+    "abd_templates": ["template_leaf", "template_eq_0"],
     "num_quantifier": 0,
     "synth_bound": 3,
     "synth_timeout": "999",

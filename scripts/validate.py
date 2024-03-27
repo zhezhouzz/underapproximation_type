@@ -18,7 +18,7 @@ def run_type_check_aux(f):
 def run_type_check(dir_str):
     if os.path.isdir(dir_str):
         for f in os.listdir(dir_str):
-            run("{}/{}".format(dir_str, f))
+            run_type_check("{}/{}".format(dir_str, f))
     else:
         _, postfix = os.path.splitext(dir_str)
         if postfix == ".ml":
