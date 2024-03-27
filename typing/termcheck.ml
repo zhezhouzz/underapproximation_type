@@ -88,20 +88,24 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
         _warinning_typing_error __FILE__ __LINE__ (layout_typed_value a, rty);
         None)
   | VLam { lamarg; body }, RtyBaseArr { argcty; arg; retty } ->
-      let retty = subst_rty_instance arg (AVar lamarg) retty in
+      let body =
+        body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
+      in
       let argrty = RtyBase { ou = true; cty = argcty } in
       let* body =
-        term_type_check (add_to_right lrctx lamarg.x #: argrty) body retty
+        term_type_check (add_to_right lrctx arg #: argrty) body retty
       in
-      let lamarg = lamarg.x #: argrty in
+      let lamarg = arg #: argrty in
       Some (VLam { lamarg; body }) #: rty
   | VLam { lamarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
-      let retty = subst_rty_instance arg (AVar lamarg) retty in
+      let body =
+        body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
+      in
       let argrty = RtyBase { ou = false; cty = argcty } in
       let* body =
-        term_type_check (add_to_right lrctx lamarg.x #: argrty) body retty
+        term_type_check (add_to_right lrctx arg #: argrty) body retty
       in
-      let lamarg = lamarg.x #: argrty in
+      let lamarg = arg #: argrty in
       Some (VLam { lamarg; body }) #: rty
   | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
       let* body =
@@ -111,9 +115,9 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
       Some (VLam { lamarg; body }) #: rty
   | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
   | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
-      let rec_constraint_cty = apply_rec_arg fixarg in
+      let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
       let rty' =
-        let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
+        let a = { x = Rename.unique arg; ty = fixarg.ty } in
         RtyBaseArr
           {
             argcty = intersect_ctys [ argcty; rec_constraint_cty ];
@@ -121,8 +125,10 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
             retty = subst_rty_instance arg (AVar a) retty;
           }
       in
-      let binding = fixarg.x #: (RtyBase { ou = true; cty = argcty }) in
-      let retty = subst_rty_instance arg (AVar fixarg) retty in
+      let binding = arg #: (RtyBase { ou = true; cty = argcty }) in
+      let body =
+        body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
+      in
       let* body' =
         term_type_check
           (add_to_rights lrctx [ binding; fixname.x #: rty' ])
@@ -151,12 +157,7 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
           body retty
       in
       Some
-        (VFix
-           {
-             fixname = fixname.x #: rty;
-             fixarg = fixname.x #: binding.ty;
-             body = body';
-           })
+        (VFix { fixname = fixname.x #: rty; fixarg = binding; body = body' })
         #: rty
   | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
   | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
