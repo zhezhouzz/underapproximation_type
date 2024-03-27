@@ -56,7 +56,7 @@ let rec partial_value_type_infer (lrctx : lrctx) (a : (t, t value) typed)
         in
         let* body' =
           partial_term_type_infer
-            (add_to_rights uctx [ binding; fixname.x #: rty' ])
+            (add_to_rights lrctx [ binding; fixname.x #: rty' ])
             body retty
         in
         let rty = RtyBaseArr { argcty; arg; retty = body'.ty } in
