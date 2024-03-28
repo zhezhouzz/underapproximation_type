@@ -21,6 +21,6 @@
         "templates": "data/predefined/templates.ml",
         "normal_typing": "data/predefined/normal_typing.ml",
         "axioms": "data/predefined/axioms.ml",
-        "coverage_typing": "data/predefined/coverage_typing.ml"
+        "coverage_typing": "data/validation/depthtree/builtin_rty.ml"
     }
 }

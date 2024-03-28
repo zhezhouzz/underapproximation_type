@@ -14,13 +14,13 @@
     "abdfile": ".abd",
     "abd_templates": ["template_emp", "template_eq_0"],
     "num_quantifier": 0,
-    "synth_bound": 3,
+    "synth_bound": 2,
     "synth_timeout": "499",
     "prim_path": {
         "data_type_decls": "data/predefined/data_type_decls.ml",
         "templates": "data/predefined/templates.ml",
         "normal_typing": "data/predefined/normal_typing.ml",
         "axioms": "data/predefined/axioms.ml",
-        "coverage_typing": "data/predefined/coverage_typing.ml"
+        "coverage_typing": "data/validation/sizedlist/builtin_rty.ml"
     }
 }
