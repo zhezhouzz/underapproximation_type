@@ -61,10 +61,9 @@ let rec value_type_infer (lrctx : lrctx) (a : (t, t value) typed) :
     | VVar id ->
         let res = _id_type_infer __FILE__ __LINE__ lrctx id.x in
         let rty =
-          match res with
-          | RtyBaseArr _ | RtyArrArr _ | RtyBaseDepPair _ | RtyGhostArr _ -> res
-          | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
-          | RtyBase _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
+          match erase_rty res with
+          | Nt.Ty_arrow _ -> res
+          | _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
         in
         (VVar id.x #: rty) #: rty
     | VConst U -> (VConst U) #: (prop_to_rty false Nt.unit_ty mk_true)
@@ -80,6 +79,10 @@ and value_type_check (lrctx : lrctx) (a : (t, t value) typed) (rty : t rty) :
     (t rty, t rty value) typed option =
   let () = pprint_simple_typectx_judge lrctx (layout_typed_value a, rty) in
   match (a.x, rty) with
+  | _, RtyInter (rty1, rty2) -> (
+      match map2 (value_type_check lrctx a) (rty1, rty2) with
+      | Some res1, Some res2 -> Some res1.x #: (RtyInter (res1.ty, res2.ty))
+      | _ -> None)
   | VConst _, _ | VVar _, _ ->
       let e = value_type_infer lrctx a in
       if sub_rty_bool lrctx (e.ty, rty) then Some e

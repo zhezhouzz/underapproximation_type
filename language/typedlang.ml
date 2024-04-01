@@ -47,6 +47,12 @@ let mk_lit_eq nty (lit1, lit2) =
   let op = "==" #: (Nt.construct_arr_tp ([ nty; nty ], Nt.bool_ty)) in
   AAppOp (op, [ lit1; lit2 ])
 
+let lit_get_mp = function
+  | AAppOp (op, _) when not (Op.is_builtin_op op.x) -> Some op.x
+  | _ -> None
+
+let typed_lit_get_mp lit = lit_get_mp lit.x
+
 (* Prop *)
 let get_cbool prop =
   match prop with Lit { x = AC (Constant.B b); _ } -> Some b | _ -> None
@@ -176,6 +182,22 @@ let mk_prop_var_eq_var nty (id, id') =
       in
       Lit lit #: nty
 
+let prop_get_mp prop =
+  let rec aux prop_e =
+    match prop_e with
+    | Lit lit -> (
+        match typed_lit_get_mp lit with Some mp -> [ mp ] | None -> [])
+    | Implies (p1, p2) -> aux p1 @ aux p2
+    | Ite (p1, p2, p3) -> aux p1 @ aux p2 @ aux p3
+    | Not p1 -> aux p1
+    | And ps -> List.concat (List.map aux ps)
+    | Or ps -> List.concat (List.map aux ps)
+    | Iff (p1, p2) -> aux p1 @ aux p2
+    | Forall { body; _ } -> aux body
+    | Exists { body; _ } -> aux body
+  in
+  List.slow_rm_dup String.equal @@ aux prop
+
 open Sugar
 
 type t = Nt.t
@@ -251,13 +273,13 @@ let map_in_retrty (f : 't rty -> 't rty) t =
   let rec aux t =
     match t with
     | RtyBase _ -> f t
-    | RtyTuple ts -> RtyTuple (List.map aux ts)
+    | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
     | RtyBaseArr { argcty; arg; retty } ->
         RtyBaseArr { argcty; arg; retty = aux retty }
     | RtyBaseDepPair { argcty; arg; retty } ->
         RtyBaseDepPair { argcty; arg; retty = aux retty }
-    | RtyGhostArr { argnty; arg; retty } ->
-        RtyGhostArr { argnty; arg; retty = aux retty }
+    | RtyGhostArr { argcty; arg; retty } ->
+        RtyGhostArr { argcty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
   in
   aux t
@@ -266,13 +288,13 @@ let map_base_in_retrty (f : 't cty -> 't cty) t =
   let rec aux t =
     match t with
     | RtyBase { ou; cty } -> RtyBase { ou; cty = f cty }
-    | RtyTuple ts -> RtyTuple (List.map aux ts)
+    | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
     | RtyBaseArr { argcty; arg; retty } ->
         RtyBaseArr { argcty; arg; retty = aux retty }
     | RtyBaseDepPair { argcty; arg; retty } ->
         RtyBaseDepPair { argcty; arg; retty = aux retty }
-    | RtyGhostArr { argnty; arg; retty } ->
-        RtyGhostArr { argnty; arg; retty = aux retty }
+    | RtyGhostArr { argcty; arg; retty } ->
+        RtyGhostArr { argcty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
   in
   aux t
@@ -317,28 +339,32 @@ let and_cty_to_rty cty1 = function
       RtyBase { ou = false; cty = and_cty_to_cty (cty1, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
-let default_res = "rr"
+let default_res = "r"
 
-let desugar_rty_ret_under rty =
+let _desugar_rty_ret_under rty =
   let rec aux (res : t rty -> t rty) = function
     | RtyBase { ou = true; cty } -> res (RtyBase { ou = true; cty })
     | RtyBase { ou = false; cty = Cty { nty; phi } } ->
+        let default_res = Rename.unique default_res in
         let phi' = mk_prop_var_eq_var nty (default_v, default_res) in
-        let cty = Cty { nty; phi = smart_and [ phi'; phi ] } in
-        let retty = res (RtyBase { ou = true; cty }) in
-        RtyGhostArr { argnty = erase_cty cty; arg = default_res; retty }
+        let cty' = Cty { nty; phi = phi' } in
+        let retty = res (RtyBase { ou = true; cty = cty' }) in
+        RtyGhostArr { argcty = Cty { nty; phi }; arg = default_res; retty }
     | RtyBaseArr { argcty; arg; retty } ->
         aux (fun retty -> RtyBaseArr { argcty; arg; retty }) retty
     | RtyBaseDepPair { argcty; arg; retty } ->
         aux (fun retty -> RtyBaseDepPair { argcty; arg; retty }) retty
     | RtyArrArr { argrty; retty } ->
         aux (fun retty -> RtyArrArr { argrty; retty }) retty
-    | RtyTuple _trtylist0 -> _failatwith __FILE__ __LINE__ "unimp"
-    | RtyGhostArr { argnty; arg; retty } ->
-        aux (fun retty -> RtyGhostArr { argnty; arg; retty }) retty
+    | RtyInter _trtylist0 -> _failatwith __FILE__ __LINE__ "unimp"
+    | RtyGhostArr { argcty; arg; retty } ->
+        aux (fun retty -> RtyGhostArr { argcty; arg; retty }) retty
   in
+  aux (fun rty -> rty) rty
+
+let desugar_rty_ret_under rty =
   match erase_rty rty with
-  | Nt.Ty_arrow _ -> aux (fun rty -> rty) rty
+  | Nt.Ty_arrow _ -> _desugar_rty_ret_under rty
   | _ -> rty
 
 (* uctx *)
@@ -393,7 +419,7 @@ let ctx_list_to_cctx pctx =
     | None -> uqvs
     | Some (pctx, binding) -> (
         match binding.ty with
-        | RtyTuple _ -> _failatwith __FILE__ __LINE__ "unimp"
+        | RtyInter _ -> _failatwith __FILE__ __LINE__ "unimp"
         | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
         | RtyGhostArr _ -> (
             match erase_rty binding.ty with

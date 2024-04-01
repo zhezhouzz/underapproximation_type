@@ -28,10 +28,15 @@ let rec normalize_ctx ctx =
       (fa_ctx, (x #: cty) :: ex_ctx)
 
 let check_query axioms query =
+  (* let query = Simp.peval_prop query in *)
   let () =
     Env.show_debug_queries @@ fun _ ->
     Printf.printf "query: %s\n" (layout_prop_ query)
   in
+  (* let () = *)
+  (*   Env.show_debug_queries @@ fun _ -> *)
+  (*   Printf.printf "simpl query: %s\n" (layout_prop_ (Simp.peval_prop query)) *)
+  (* in *)
   let fvs = fv_prop query in
   let () =
     _assert __FILE__ __LINE__
@@ -41,28 +46,10 @@ let check_query axioms query =
             fvs))
       (0 == List.length fvs)
   in
-  Backend.Smtquery.check_bool (smart_and axioms) query
+  Backend.Smtquery.check_bool axioms query
 
 let aux_sub_cty (axioms, uqvs) cty1 cty2 =
   let fa_ctx, ex_ctx = normalize_ctx uqvs in
-  (* let () = *)
-  (*   Env.show_debug_queries @@ fun _ -> *)
-  (*   Printf.printf "uqvs: %s\n" @@ List.split_by_comma layout_qv uqvs *)
-  (* in *)
-  (* let () = *)
-  (*   Env.show_debug_queries @@ fun _ -> *)
-  (*   Printf.printf "Forall ctx: %s\n" @@ layout_vs Fa fa_ctx *)
-  (* in *)
-  (* let () = *)
-  (*   Env.show_debug_queries @@ fun _ -> *)
-  (*   Printf.printf "Exists ctx: %s\n" @@ layout_vs Ex ex_ctx *)
-  (* in *)
-  let cty1, cty2 =
-    List.fold_right
-      (fun x (cty1, cty2) ->
-        (exists_cty_to_cty (x, cty1), exists_cty_to_cty (x, cty2)))
-      ex_ctx (cty1, cty2)
-  in
   let nty, prop1, prop2 =
     match (cty1, cty2) with
     | Cty { nty = nty1; phi = phi1 }, Cty { nty = nty2; phi = phi2 } ->
@@ -74,14 +61,17 @@ let aux_sub_cty (axioms, uqvs) cty1 cty2 =
     Printf.printf "prop1: %s\nprop2: %s\n" (layout_prop_ prop1)
       (layout_prop_ prop2)
   in
-  let body = smart_implies prop2 prop1 in
+  let query = smart_implies prop1 prop2 in
   let query =
-    match nty with
-    | Nt.Ty_unit -> body
-    | _ -> Forall { qv = default_v #: nty; body }
+    List.fold_right (fun x body -> exists_cty_to_prop (x, body)) ex_ctx query
   in
   let query =
     List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query
+  in
+  let query =
+    match nty with
+    | Nt.Ty_unit -> query
+    | _ -> Forall { qv = default_v #: nty; body = query }
   in
   check_query axioms query
 
@@ -102,18 +92,34 @@ let aux_emptyness (axioms, uqvs) cty =
   (*   List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query *)
   (* in *)
   (* not (check_query axioms (Not query)) *)
-  check_query axioms query
+  check_query axioms (Not query)
 
 type t = Nt.t
 
+let rty_ctx_to_cty_ctx pctx =
+  let rec aux (pctx : (t rty, string) typed list) uqvs =
+    match List.last_destruct_opt pctx with
+    | None -> uqvs
+    | Some (pctx, binding) -> (
+        match binding.ty with
+        | RtyInter _ -> _failatwith __FILE__ __LINE__ "unimp"
+        | RtyGhostArr _ | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ ->
+            aux pctx uqvs
+        | RtyBase { ou; cty } ->
+            let qt = ou_to_qt ou in
+            let x = (qt, binding.x) #: cty in
+            aux pctx (x :: uqvs))
+  in
+  match pctx with Typectx pctx -> aux pctx []
+
 let sub_cty pctx (cty1, cty2) =
-  let ctx = lrctx_to_cctx pctx.local_ctx in
+  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
   aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 
 let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
 let is_nonempty_cty pctx cty =
-  let ctx = lrctx_to_cctx pctx.local_ctx in
+  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
   aux_emptyness (pctx.axioms, ctx) cty
 
 let is_nonempty_rty pctx rty =

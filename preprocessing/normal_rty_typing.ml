@@ -18,9 +18,10 @@ let bi_typed_rty_check (ctx : t ctx) (rty : t option rty) : t rty =
     | RtyArrArr { argrty; retty } ->
         let argrty = aux ctx argrty in
         RtyArrArr { argrty; retty = aux ctx retty }
-    | RtyGhostArr { argnty; arg; retty } ->
-        let arg' = arg #: argnty in
-        RtyGhostArr { argnty; arg; retty = aux (add_to_right ctx arg') retty }
-    | RtyTuple _trtylist0 -> RtyTuple (List.map (aux ctx) _trtylist0)
+    | RtyGhostArr { argcty; arg; retty } ->
+        let argcty = bi_typed_cty_check ctx argcty in
+        let arg' = arg #: (erase_cty argcty) in
+        RtyGhostArr { argcty; arg; retty = aux (add_to_right ctx arg') retty }
+    | RtyInter (rty1, rty2) -> RtyInter (aux ctx rty1, aux ctx rty2)
   in
   aux ctx rty

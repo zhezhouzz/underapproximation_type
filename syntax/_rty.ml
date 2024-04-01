@@ -11,5 +11,6 @@ type 't rty =
       retty : 't rty;
     }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
-  | RtyTuple of 't rty list
+  | RtyInter of 't rty list
+  | RtyGhostArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
 [@@deriving sexp]

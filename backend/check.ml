@@ -60,12 +60,64 @@ let smt_solve ctx assertions =
   let _, res = Sugar.clock (fun () -> solver_result solver) in
   res
 
+let extend =
+  [
+    ("len", [ "hd"; "tl"; "emp" ]);
+    ( "typing",
+      [
+        "is_const";
+        "is_var";
+        "is_abs";
+        "is_app";
+        "num_app";
+        "stlc_ty_nat";
+        "stlc_ty_arr1";
+        "stlc_ty_arr2";
+        "stlc_const";
+        "stlc_id";
+        "stlc_app1";
+        "stlc_app2";
+        "stlc_abs_ty";
+        "stlc_abs_body";
+        "stlc_tyctx_emp";
+        "stlc_tyctx_hd";
+        "stlc_tyctx_tl";
+      ] );
+  ]
+
 let smt_neg_and_solve ctx axioms vc =
   (* let () = *)
   (*   Env.show_debug_queries @@ fun _ -> *)
   (*   Printf.printf "Query: %s\n" @@ Language.Rty.layout_prop vc *)
   (* in *)
-  let assertions = List.map (Propencoding.to_z3 ctx) [ axioms; Not vc ] in
+  let open Lang in
+  let open Typedlang in
+  let current_mps = prop_get_mp vc in
+  let current_mps =
+    List.concat
+    @@ List.map
+         (fun mp ->
+           match
+             List.find_opt (fun (name, _) -> String.equal name mp) extend
+           with
+           | Some (_, res) -> mp :: res
+           | _ -> [ mp ])
+         current_mps
+  in
+  (* let _ = *)
+  (*   Printf.printf "current_mps: %s\n" *)
+  (*     (Zzdatatype.Datatype.StrList.to_string current_mps) *)
+  (* in *)
+  let axioms =
+    List.filter
+      (fun a ->
+        let mps = prop_get_mp a in
+        List.for_all (fun mp -> List.exists (String.equal mp) current_mps) mps)
+      axioms
+  in
+  (* let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in *)
+  (* let () = failwith "end" in *)
+  let assertions = List.map (Propencoding.to_z3 ctx) (axioms @ [ Not vc ]) in
   let time_t, res = Sugar.clock (fun () -> smt_solve ctx assertions) in
   let () =
     Env.show_debug_stat @@ fun _ -> Pp.printf "Z3 solving time: %0.4fs\n" time_t
@@ -75,6 +127,7 @@ let smt_neg_and_solve ctx axioms vc =
 exception SMTTIMEOUT
 
 let debug_counter = ref 0
+let smt_timeout_flag = ref false
 
 (** Unsat means true; otherwise means false *)
 let handle_check_res query_action =
@@ -87,13 +140,15 @@ let handle_check_res query_action =
   (*   if 18 == !debug_counter then failwith "end" *)
   (*   else debug_counter := !debug_counter + 1 *)
   (* in *)
+  smt_timeout_flag := false;
   match res with
   | SmtUnsat -> true
   | SmtSat model ->
-      ( Env.show_debug_queries @@ fun _ ->
+      ( Env.show_log "model" @@ fun _ ->
         Printf.printf "model:\n%s\n"
-        @@ Sugar.short_str 100 @@ Z3.Model.to_string model );
+        @@ Sugar.short_str 1000 @@ Z3.Model.to_string model );
       false
   | Timeout ->
       (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");
+      smt_timeout_flag := true;
       false

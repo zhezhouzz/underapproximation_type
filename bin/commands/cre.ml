@@ -31,28 +31,6 @@ let print_source_code meta_config_file source_file () =
   let _ = preproress meta_config_file source_file () in
   ()
 
-let type_check_ meta_config_file source_file () =
-  let () = Env.load_meta meta_config_file in
-  let code = preproress meta_config_file source_file () in
-  let prim_path = Env.get_prim_path () in
-  let predefine = preproress meta_config_file prim_path.coverage_typing () in
-  let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
-  let axioms = preproress meta_config_file prim_path.axioms () in
-  let axioms =
-    List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms axioms
-  in
-  let _, rty1 = get_rty_by_name code "rty1" in
-  let _, rty2 = get_rty_by_name code "rty2" in
-  let ctx = Typedlang.{ builtin_ctx; local_ctx = emp; axioms } in
-  let res = Subtyping.Subrty.sub_rty_bool ctx (rty1, rty2) in
-  let () =
-    Typedlang.pprint_typectx_subtyping
-      (fun _ -> Typedlang.pprint_typectx emp)
-      (rty1, rty2)
-  in
-  let () = Pp.printf "Result: %b\n" res in
-  ()
-
 let rec_arg = "rec_arg"
 
 let handle_template templates =
@@ -74,6 +52,21 @@ let handle_lemma axioms =
     List.map (fun x -> x.ty) @@ Typing.Itemcheck.gather_axioms axioms
   in
   axioms
+
+let subtype_check_ meta_config_file source_file () =
+  let () = Env.load_meta meta_config_file in
+  let code = preproress meta_config_file source_file () in
+  let prim_path = Env.get_prim_path () in
+  let predefine = preproress meta_config_file prim_path.coverage_typing () in
+  let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
+  let axioms = preproress meta_config_file prim_path.axioms () in
+  let axioms = handle_lemma axioms in
+  let templates = preproress meta_config_file prim_path.templates () in
+  let templates = handle_template templates in
+  let _, rty1 = get_rty_by_name code "rty1" in
+  let _, rty2 = get_rty_by_name code "rty2" in
+  let ctx = Typedlang.{ builtin_ctx; local_ctx = emp; axioms } in
+  Subtyping.Subrty.external_check ctx (rty1, rty2)
 
 let type_check_ meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
@@ -134,5 +127,6 @@ let test =
     [
       ("print-source-code", print_source_code);
       ("type-check", input_config_source "type check" type_check_);
+      ("subtype-check", input_config_source "subtype check" subtype_check_);
       ("type-infer", input_config_source "type infer" type_infer_);
     ]

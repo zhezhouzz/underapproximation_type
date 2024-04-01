@@ -56,7 +56,7 @@ type 't layout_setting = {
   sym_forall : string;
   sym_exists : string;
   layout_typedid : ('t, string) typed -> string;
-  layout_mp : string -> string;
+  layout_op : string -> Op.op;
 }
 
 let detailssetting =
@@ -71,7 +71,7 @@ let detailssetting =
     sym_forall = "∀";
     sym_exists = "∃";
     layout_typedid = Nt.(fun x -> spf "(%s:%s)" x.x (layout x.ty));
-    layout_mp = (fun x -> x);
+    layout_op = default_layout_op;
   }
 
 let psetting =
@@ -87,7 +87,7 @@ let psetting =
     sym_exists = "∃";
     layout_typedid = (fun x -> x.x);
     (* (fun x ->          Printf.spf "(%s:%s)" x.x (Ty.layout x.ty)); *)
-    layout_mp = (fun x -> x);
+    layout_op = pp_layout_op;
   }
 
 let coqsetting =
@@ -102,7 +102,7 @@ let coqsetting =
     sym_forall = "forall ";
     sym_exists = "exists ";
     layout_typedid = (fun x -> x.x);
-    layout_mp = (function "==" -> "=" | x -> x);
+    layout_op = pp_layout_op;
   }
 
 let layout_prop_
@@ -115,10 +115,11 @@ let layout_prop_
       sym_forall;
       sym_exists;
       layout_typedid;
+      layout_op;
       _;
     } =
   let rec layout = function
-    | Lit lit -> (layout_typed_lit lit, true)
+    | Lit lit -> (_layout_typed_lit layout_op lit, true)
     | Implies (p1, p2) ->
         (spf "%s %s %s" (p_layout p1) sym_implies (p_layout p2), false)
     | And [ p ] -> layout p
@@ -147,7 +148,7 @@ let layout_prop_
 let rec prop_to_expr expr =
   let rec aux e =
     match e with
-    | Lit lit -> typed_lit_to_expr lit
+    | Lit lit -> typed_lit_to_expr default_layout_op lit
     | Implies (e1, e2) ->
         mk_op_apply ("implies", List.map prop_to_expr [ e1; e2 ])
     | Ite (e1, e2, e3) ->

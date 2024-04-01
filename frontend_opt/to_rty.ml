@@ -19,19 +19,24 @@ let rec layout_rty = function
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
       | _ -> spf "(%s:{%s}) → %s" arg (layout_cty argcty) (layout_rty retty))
-  | RtyGhostArr { argnty; arg; retty } ->
-      spf "%s:%s ⇢ %s" arg (Nt.layout argnty) (layout_rty retty)
+  | RtyGhostArr { argcty; arg; retty } ->
+      spf "(%s:{%s}) ⇢ %s" arg (layout_cty argcty) (layout_rty retty)
   | RtyBaseDepPair { argcty; arg; retty } -> (
       match arg with
       | "_" -> spf "[%s] → %s" (layout_cty argcty) (layout_rty retty)
       | _ -> spf "(%s:[%s]) → %s" arg (layout_cty argcty) (layout_rty retty))
   | RtyArrArr { argrty; retty } ->
       spf "%s → %s" (layout_rty argrty) (layout_rty retty)
-  | RtyTuple ts -> spf "(%s)" @@ List.split_by_comma layout_rty ts
+  | RtyInter (rty1, rty2) -> spf "%s ⊓ %s" (layout_rty rty1) (layout_rty rty2)
 
 let get_ou expr =
   match expr.pexp_attributes with
   | l when List.exists (fun x -> String.equal x.attr_name.txt "over") l -> true
+  | _ -> false
+
+let get_ghost pat =
+  match pat.ppat_attributes with
+  | l when List.exists (fun x -> String.equal x.attr_name.txt "ghost") l -> true
   | _ -> false
 
 let rec rty_of_expr expr =
@@ -43,18 +48,15 @@ let rec rty_of_expr expr =
   | Pexp_fun (_, rtyexpr, pattern, body) -> (
       let retty = rty_of_expr body in
       match rtyexpr with
-      | None ->
-          let arg, argnty =
-            match To_raw_term.typed_ids_of_pattern pattern with
-            | [ { x; ty = Some ty } ] -> (x, ty)
-            | _ -> _failatwith __FILE__ __LINE__ "die"
-          in
-          RtyGhostArr { argnty; arg; retty }
+      | None -> _failatwith __FILE__ __LINE__ "die"
       | Some rtyexpr -> (
           let arg = id_of_pattern pattern in
           match rty_of_expr rtyexpr with
-          | RtyBase { cty; _ } -> RtyBaseArr { argcty = cty; arg; retty }
-          | RtyTuple _ -> _failatwith __FILE__ __LINE__ "die"
+          | RtyBase { cty; ou = true } ->
+              if get_ghost pattern then RtyGhostArr { argcty = cty; arg; retty }
+              else RtyBaseArr { argcty = cty; arg; retty }
+          | RtyBase { ou = false; _ } -> _failatwith __FILE__ __LINE__ "die"
+          | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
           | argrty -> RtyArrArr { argrty; retty }))
   | Pexp_let (_, [ vb ], body) -> (
       let retty = rty_of_expr body in
@@ -63,9 +65,16 @@ let rec rty_of_expr expr =
       | RtyBase { cty; ou = false } ->
           RtyBaseDepPair { argcty = cty; arg; retty }
       | RtyBase { cty; ou = true } -> RtyBaseArr { argcty = cty; arg; retty }
-      | RtyTuple _ -> _failatwith __FILE__ __LINE__ "die"
+      | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
       | _ -> _failatwith __FILE__ __LINE__ "die")
-  | Pexp_tuple es -> RtyTuple (List.map rty_of_expr es)
+  | Pexp_array ls -> (
+      let htys = List.map rty_of_expr ls in
+      match List.rev htys with
+      | [] | [ _ ] -> failwith "syntax error: empty/singleton intersection type"
+      | rty :: rtys ->
+          List.fold_right
+            (fun rty res -> RtyInter (rty, res))
+            (List.rev rtys) rty)
   | _ ->
       _failatwith __FILE__ __LINE__
         (spf "wrong refinement type: %s" (Pprintast.string_of_expression expr))
