@@ -2,9 +2,10 @@ open Sexplib.Std
 open Mtyped
 module Nt = Normalty.Ntyped
 open Cty
+open Normalty.Connective
 
 type 't rty =
-  | RtyBase of { ou : bool; cty : 't cty }
+  | RtyBase of { ou : qt; cty : 't cty }
   | RtyBaseArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
   | RtyBaseDepPair of {
       argcty : 't cty;
@@ -128,11 +129,3 @@ let rec erase_rty = function
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyInter (rty1, _) -> erase_rty rty1
   | RtyGhostArr { retty; _ } -> erase_rty retty
-
-let ou_to_qt = function
-  | true -> Normalty.Connective.Fa
-  | false -> Normalty.Connective.Ex
-
-let qt_to_ou = function
-  | Normalty.Connective.Fa -> true
-  | Normalty.Connective.Ex -> false

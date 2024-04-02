@@ -106,8 +106,7 @@ let rty_ctx_to_cty_ctx pctx =
         | RtyGhostArr _ | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ ->
             aux pctx uqvs
         | RtyBase { ou; cty } ->
-            let qt = ou_to_qt ou in
-            let x = (qt, binding.x) #: cty in
+            let x = (ou, binding.x) #: cty in
             aux pctx (x :: uqvs))
   in
   match pctx with Typectx pctx -> aux pctx []
@@ -124,5 +123,5 @@ let is_nonempty_cty pctx cty =
 
 let is_nonempty_rty pctx rty =
   match rty with
-  | RtyBase { ou = false; cty } -> is_nonempty_cty pctx cty
+  | RtyBase { ou = Ex; cty } -> is_nonempty_cty pctx cty
   | _ -> false

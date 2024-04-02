@@ -20,7 +20,7 @@ let rec partial_value_type_infer (lrctx : lrctx) (a : (t, t value) typed)
           body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
         in
         (* let retty = subst_rty_instance arg (AVar lamarg) retty in *)
-        let argrty = RtyBase { ou = true; cty = argcty } in
+        let argrty = RtyBase { ou = Fa; cty = argcty } in
         let* body =
           partial_term_type_infer
             (add_to_right lrctx lamarg.x #: argrty)
@@ -50,7 +50,7 @@ let rec partial_value_type_infer (lrctx : lrctx) (a : (t, t value) typed)
               retty = subst_rty_instance arg (AVar a) retty;
             }
         in
-        let binding = arg #: (RtyBase { ou = true; cty = argcty }) in
+        let binding = arg #: (RtyBase { ou = Fa; cty = argcty }) in
         let body =
           body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
         in

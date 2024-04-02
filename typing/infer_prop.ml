@@ -34,7 +34,7 @@ let abductive_infer_cty uctx cty1 cty2 =
 
 let abductive_infer_rty uctx rty1 rty2 =
   match (rty1, rty2) with
-  | RtyBase { ou = false; cty = cty1 }, RtyBase { ou = false; cty = cty2 } ->
+  | RtyBase { ou = Ex; cty = cty1 }, RtyBase { ou = Ex; cty = cty2 } ->
       let cty = abductive_infer_cty uctx cty1 cty2 in
-      RtyBase { ou = false; cty }
+      RtyBase { ou = Ex; cty }
   | _, _ -> _failatwith __FILE__ __LINE__ "unimp"

@@ -1,3 +1,4 @@
+include Normalty.Connective
 include Frontend_opt
 include Mtyped
 include Constant

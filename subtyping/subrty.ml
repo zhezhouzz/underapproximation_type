@@ -9,17 +9,17 @@ let _sub_rty_bool rctx (rty1, rty2) =
     match (rty1, rty2) with
     | RtyGhostArr { argcty; arg; retty }, _ ->
         let rctx =
-          add_to_right rctx arg #: (RtyBase { ou = false; cty = argcty })
+          add_to_right rctx arg #: (RtyBase { ou = Ex; cty = argcty })
         in
         aux rctx (retty, rty2)
     | _, RtyGhostArr { argcty; arg; retty } ->
         let rctx =
-          add_to_right rctx arg #: (RtyBase { ou = true; cty = argcty })
+          add_to_right rctx arg #: (RtyBase { ou = Fa; cty = argcty })
         in
         aux rctx (rty1, retty)
-    | RtyBase { ou = true; cty = cty1 }, RtyBase { ou = true; cty = cty2 } ->
+    | RtyBase { ou = Fa; cty = cty1 }, RtyBase { ou = Fa; cty = cty2 } ->
         Subcty.sub_cty_bool rctx (cty1, cty2)
-    (* | RtyBase { ou = false; cty = cty1 }, RtyBase { ou = false; cty = cty2 } -> *)
+    (* | RtyBase { ou = Ex; cty = cty1 }, RtyBase { ou = Ex; cty = cty2 } -> *)
     (*     Subcty.sub_cty_bool rctx (cty2, cty1) *)
     | ( RtyBaseArr { argcty = argcty1; arg = arg1; retty = retty1 },
         RtyBaseArr { argcty = argcty2; arg = arg2; retty = retty2 } ) ->
@@ -29,7 +29,7 @@ let _sub_rty_bool rctx (rty1, rty2) =
           subst_rty_instance arg2 (AVar arg1 #: (erase_cty argcty1)) retty2
         in
         let rctx =
-          add_to_right rctx arg1 #: (RtyBase { ou = true; cty = argcty2 })
+          add_to_right rctx arg1 #: (RtyBase { ou = Fa; cty = argcty2 })
         in
         aux rctx (retty1, retty2)
     | ( RtyBaseDepPair { argcty = argcty1; arg = arg1; retty = retty1 },
@@ -45,8 +45,8 @@ let _sub_rty_bool rctx (rty1, rty2) =
         let rctx =
           add_to_rights rctx
             [
-              arg2' #: (RtyBase { ou = true; cty = argcty1 });
-              arg1 #: (RtyBase { ou = false; cty = argcty1 });
+              arg2' #: (RtyBase { ou = Fa; cty = argcty1 });
+              arg1 #: (RtyBase { ou = Ex; cty = argcty1 });
             ]
         in
         aux rctx (retty1, retty2)
@@ -70,7 +70,7 @@ let sub_rty_bool rtcx (rty1, rty2) =
   _sub_rty_bool rtcx (_desugar_rty_ret_under rty1, _desugar_rty_ret_under rty2)
 
 let is_nonempty_rty rctx = function
-  | RtyBase { ou = false; cty } -> Subcty.is_nonempty_cty rctx cty
+  | RtyBase { ou = Ex; cty } -> Subcty.is_nonempty_cty rctx cty
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
 let external_check ctx (rty1, rty2) =

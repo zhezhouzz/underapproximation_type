@@ -308,47 +308,47 @@ let union_rtys = function
       let ctys =
         List.map
           (function
-            | RtyBase { ou = false; cty } -> cty
+            | RtyBase { ou = Ex; cty } -> cty
             | _ -> _failatwith __FILE__ __LINE__ "die")
           rtys
       in
-      RtyBase { ou = false; cty = union_ctys ctys }
+      RtyBase { ou = Ex; cty = union_ctys ctys }
 
 let exists_rty_to_cty (x, cty') =
   match x.ty with
-  | RtyBase { ou = false; cty } -> exists_cty_to_cty (x.x #: cty, cty')
+  | RtyBase { ou = Ex; cty } -> exists_cty_to_cty (x.x #: cty, cty')
   | RtyArrArr _ | RtyBaseArr _ -> cty'
   | _ ->
       let () = Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty) in
       _failatwith __FILE__ __LINE__ "die"
 
 let exists_cty_to_rty = function
-  | x, RtyBase { ou = false; cty = cty' } -> exists_cty_to_cty (x, cty')
+  | x, RtyBase { ou = Ex; cty = cty' } -> exists_cty_to_cty (x, cty')
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
 let exists_rty_to_rty = function
-  | x, RtyBase { ou = false; cty } ->
-      RtyBase { ou = false; cty = exists_rty_to_cty (x, cty) }
+  | x, RtyBase { ou = Ex; cty } ->
+      RtyBase { ou = Ex; cty = exists_rty_to_cty (x, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
 let exists_rtys_to_rty bindings rty =
   List.fold_right (fun x res_ty -> exists_rty_to_rty (x, res_ty)) bindings rty
 
 let and_cty_to_rty cty1 = function
-  | RtyBase { ou = false; cty } ->
-      RtyBase { ou = false; cty = and_cty_to_cty (cty1, cty) }
+  | RtyBase { ou = Ex; cty } ->
+      RtyBase { ou = Ex; cty = and_cty_to_cty (cty1, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
 let default_res = "r"
 
 let _desugar_rty_ret_under rty =
   let rec aux (res : t rty -> t rty) = function
-    | RtyBase { ou = true; cty } -> res (RtyBase { ou = true; cty })
-    | RtyBase { ou = false; cty = Cty { nty; phi } } ->
+    | RtyBase { ou = Fa; cty } -> res (RtyBase { ou = Fa; cty })
+    | RtyBase { ou = Ex; cty = Cty { nty; phi } } ->
         let default_res = Rename.unique default_res in
         let phi' = mk_prop_var_eq_var nty (default_v, default_res) in
         let cty' = Cty { nty; phi = phi' } in
-        let retty = res (RtyBase { ou = true; cty = cty' }) in
+        let retty = res (RtyBase { ou = Fa; cty = cty' }) in
         RtyGhostArr { argcty = Cty { nty; phi }; arg = default_res; retty }
     | RtyBaseArr { argcty; arg; retty } ->
         aux (fun retty -> RtyBaseArr { argcty; arg; retty }) retty
@@ -426,8 +426,7 @@ let ctx_list_to_cctx pctx =
             | Nt.Ty_arrow _ -> aux pctx uqvs
             | _ -> _failatwith __FILE__ __LINE__ "die")
         | RtyBase { ou; cty } ->
-            let qt = ou_to_qt ou in
-            let x = (qt, binding.x) #: cty in
+            let x = (ou, binding.x) #: cty in
             aux pctx (x :: uqvs))
   in
   aux pctx []
@@ -436,7 +435,7 @@ let ctx_list_to_base_tvars l =
   List.filter_map
     (fun x ->
       match x.ty with
-      | RtyBase { ou = true; cty } -> Some x.x #: (erase_cty cty)
+      | RtyBase { ou = Fa; cty } -> Some x.x #: (erase_cty cty)
       | _ -> None)
     l
 

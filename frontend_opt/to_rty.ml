@@ -9,12 +9,11 @@ open Rty
 open To_cty
 open To_id
 open Sugar
+open Normalty.Connective
 
 let rec layout_rty = function
-  | RtyBase { ou; cty } -> (
-      match ou_to_qt ou with
-      | Normalty.Connective.Fa -> spf "{%s}" (layout_cty cty)
-      | Normalty.Connective.Ex -> spf "[%s]" (layout_cty cty))
+  | RtyBase { ou = Fa; cty } -> spf "{%s}" (layout_cty cty)
+  | RtyBase { ou = Ex; cty } -> spf "[%s]" (layout_cty cty)
   | RtyBaseArr { argcty; arg; retty } -> (
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
@@ -31,8 +30,8 @@ let rec layout_rty = function
 
 let get_ou expr =
   match expr.pexp_attributes with
-  | l when List.exists (fun x -> String.equal x.attr_name.txt "over") l -> true
-  | _ -> false
+  | l when List.exists (fun x -> String.equal x.attr_name.txt "over") l -> Fa
+  | _ -> Ex
 
 let get_ghost pat =
   match pat.ppat_attributes with
@@ -41,10 +40,7 @@ let get_ghost pat =
 
 let rec rty_of_expr expr =
   match expr.pexp_desc with
-  | Pexp_constraint _ ->
-      let cty = cty_of_expr expr in
-      if get_ou expr then RtyBase { ou = true; cty }
-      else RtyBase { ou = false; cty }
+  | Pexp_constraint _ -> RtyBase { ou = get_ou expr; cty = cty_of_expr expr }
   | Pexp_fun (_, rtyexpr, pattern, body) -> (
       let retty = rty_of_expr body in
       match rtyexpr with
@@ -52,19 +48,18 @@ let rec rty_of_expr expr =
       | Some rtyexpr -> (
           let arg = id_of_pattern pattern in
           match rty_of_expr rtyexpr with
-          | RtyBase { cty; ou = true } ->
+          | RtyBase { cty; ou = Fa } ->
               if get_ghost pattern then RtyGhostArr { argcty = cty; arg; retty }
               else RtyBaseArr { argcty = cty; arg; retty }
-          | RtyBase { ou = false; _ } -> _failatwith __FILE__ __LINE__ "die"
+          | RtyBase { ou = Ex; _ } -> _failatwith __FILE__ __LINE__ "die"
           | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
           | argrty -> RtyArrArr { argrty; retty }))
   | Pexp_let (_, [ vb ], body) -> (
       let retty = rty_of_expr body in
       let arg = id_of_pattern vb.pvb_pat in
       match rty_of_expr vb.pvb_expr with
-      | RtyBase { cty; ou = false } ->
-          RtyBaseDepPair { argcty = cty; arg; retty }
-      | RtyBase { cty; ou = true } -> RtyBaseArr { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = Fa } -> RtyBaseDepPair { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = Ex } -> RtyBaseArr { argcty = cty; arg; retty }
       | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
       | _ -> _failatwith __FILE__ __LINE__ "die")
   | Pexp_array ls -> (
