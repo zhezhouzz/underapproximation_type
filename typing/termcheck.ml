@@ -63,12 +63,12 @@ let rec value_type_infer (lrctx : lrctx) (a : (t, t value) typed) :
         let rty =
           match erase_rty res with
           | Nt.Ty_arrow _ -> res
-          | _ -> mk_rty_var_eq_var a.ty (default_v, id.x)
+          | _ -> mk_rty_var_eq_var true a.ty (default_v, id.x)
         in
         (VVar id.x #: rty) #: rty
-    | VConst U -> (VConst U) #: (prop_to_rty false Nt.unit_ty mk_true)
+    | VConst U -> (VConst U) #: (prop_to_rty true Nt.unit_ty mk_true)
     | VConst c ->
-        let rty = mk_rty_var_eq_c a.ty (default_v, c) in
+        let rty = mk_rty_var_eq_c true a.ty (default_v, c) in
         (VConst c) #: rty
     | VLam _ | VFix _ | VTu _ -> _failatwith __FILE__ __LINE__ "unimp"
   in
@@ -189,12 +189,12 @@ and match_case_type_infer (lrctx : lrctx) (matched : (t, t value) typed)
       in
       let retty =
         match retty with
-        | RtyBase { ou = false; cty = Cty { phi; _ } } ->
+        | RtyBase { ou; cty = Cty { phi; _ } } ->
             let lit =
               Checkaux.typed_value_to_typed_lit __FILE__ __LINE__ matched
             in
             let phi = subst_prop_instance default_v lit.x phi in
-            RtyBase { ou = false; cty = Cty { nty = Nt.unit_ty; phi } }
+            RtyBase { ou; cty = Cty { nty = Nt.unit_ty; phi } }
         | _ -> _failatwith __FILE__ __LINE__ "die"
       in
       let dummy = (Rename.unique "dummy") #: retty in
@@ -215,7 +215,7 @@ and arrow_type_apply (lrctx : lrctx) appf_rty apparg =
       (* NOTE: we need to capture the constraint from the argument type *)
       (* let argrty = and_cty_to_rty argcty apparg.ty in *)
       let argrty =
-        mk_rty_var_eq_v (default_v, apparg.x #: (erase_rty apparg.ty))
+        mk_rty_var_eq_v false (default_v, apparg.x #: (erase_rty apparg.ty))
       in
       let argrty = and_cty_to_rty argcty argrty in
       if is_nonempty_rty lrctx argrty then

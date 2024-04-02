@@ -38,16 +38,15 @@ let[@library] ( - ) =
   let b = (true : [%v: int]) [@over] in
   (v == a - b : [%v: int]) [@under]
 
-let[@library] TT = (true : [%v: unit]) [@under]
-let[@library] True = (v : [%v: bool]) [@under]
-let[@library] False = (not v : [%v: bool]) [@under]
-let[@library] Nil = (emp v : [%v: int list]) [@under]
+let[@library] TT = (true : [%v: unit]) [@over]
+let[@library] True = (v : [%v: bool]) [@over]
+let[@library] False = (not v : [%v: bool]) [@over]
+let[@library] Nil = (emp v : [%v: int list]) [@over]
 
 let[@library] Cons =
   let x = (true : [%v: int]) [@over] in
   let xs = (true : [%v: int list]) [@over] in
-  (* (v == consF a b : [%v: int list]) [@under] *)
-  (hd v x && tl v xs : [%v: int list]) [@under]
+  (hd v x && tl v xs : [%v: int list]) [@over]
 
 let[@library] list_mem =
   let xs = (true : [%v: int list]) [@over] in
