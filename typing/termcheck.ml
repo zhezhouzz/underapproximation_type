@@ -210,6 +210,7 @@ and match_case_type_infer (lrctx : lrctx) (matched : (t, t value) typed)
            { constructor = constructor.x #: constructor_rty; args; exp })
 
 and arrow_type_apply (lrctx : lrctx) appf_rty apparg =
+  (* let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in *)
   match appf_rty with
   | RtyBaseArr { argcty; arg; retty } ->
       (* NOTE: we need to capture the constraint from the argument type *)
