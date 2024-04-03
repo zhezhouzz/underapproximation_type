@@ -209,6 +209,8 @@ let apply_pi_prop (p : t prop) (lit : (t, t lit) typed) =
       else _failatwith __FILE__ __LINE__ "die"
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
+let mapply_pi_prop (p : t prop) lits = List.fold_left apply_pi_prop p lits
+
 (* Cty *)
 let prop_to_cty nty prop = Cty { nty; phi = prop }
 let prop_to_rty ou nty prop = RtyBase { ou; cty = prop_to_cty nty prop }
@@ -263,9 +265,9 @@ let forall_cty_to_cty = function
 let exists_cty_to_cty = function
   | x, Cty { nty; phi } -> Cty { nty; phi = exists_cty_to_prop (x, phi) }
 
-let and_cty_to_cty = function
-  | Cty { phi = phi_x; _ }, Cty { nty; phi } ->
-      Cty { nty; phi = smart_add_to phi_x phi }
+let map_phi_in_cty f = function Cty { nty; phi } -> Cty { nty; phi = f phi }
+let and_prop_to_cty (phi_x, cty) = map_phi_in_cty (smart_add_to phi_x) cty
+let and_cty_to_cty = function Cty { phi; _ }, cty -> and_prop_to_cty (phi, cty)
 
 (* Rty *)
 
@@ -302,44 +304,73 @@ let map_base_in_retrty (f : 't cty -> 't cty) t =
 let map_prop_in_retrty (f : 't prop -> 't prop) t =
   map_base_in_retrty (function Cty { nty; phi } -> Cty { nty; phi = f phi }) t
 
-let union_rtys = function
+let intersect_rtys = function
   | [] -> _failatwith __FILE__ __LINE__ "die"
-  | _ as rtys ->
-      let ctys =
-        List.map
-          (function
-            | RtyBase { ou = Ex; cty } -> cty
-            | _ -> _failatwith __FILE__ __LINE__ "die")
-          rtys
+  | [ rty ] -> rty
+  | rtys ->
+      let len = List.length rtys in
+      let len_lit = (AC (I len)) #: Nt.Ty_int in
+      let v_lit = (AVar default_v #: Nt.Ty_int) #: Nt.Ty_int in
+      let phi =
+        List.fold_left apply_pi_prop
+          (Env.get_statements_by_name "template_forall_n_v_in_0_to_n")
+          [ len_lit; v_lit ]
       in
-      RtyBase { ou = Ex; cty = union_ctys ctys }
+      let argcty = Cty { nty = Nt.Ty_int; phi } in
+      let arg = Rename.unique default_res in
+      let arg_lit = (AVar arg #: Nt.Ty_int) #: Nt.Ty_int in
+      let gvars, ctys =
+        List.fold_left
+          (fun (gvars, ctys) rty ->
+            let gvars', rty = extract_ghost_vars rty in
+            match rty with
+            | RtyBase { ou = Fa; cty } -> (gvars @ gvars', ctys @ [ cty ])
+            | _ -> _failatwith __FILE__ __LINE__ "die")
+          ([], []) rtys
+      in
+      let ctys =
+        List.mapi
+          (fun i cty ->
+            let i_lit = (AC (I i)) #: Nt.Ty_int in
+            let prop' =
+              List.fold_left apply_pi_prop
+                (Env.get_statements_by_name "forall_a_i_a_eq_i")
+                [ arg_lit; i_lit ]
+            in
+            map_phi_in_cty (smart_implies prop') cty)
+          ctys
+      in
+      let retty = RtyBase { ou = Fa; cty = intersect_ctys ctys } in
+      let gvars = (arg #: argcty) :: gvars in
+      construct_ghost_vars gvars retty
 
-let exists_rty_to_cty (x, cty') =
-  match x.ty with
-  | RtyBase { ou = Ex; cty } -> exists_cty_to_cty (x.x #: cty, cty')
-  | RtyArrArr _ | RtyBaseArr _ -> cty'
-  | _ ->
-      let () = Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty) in
-      _failatwith __FILE__ __LINE__ "die"
-
-let exists_cty_to_rty = function
-  | x, RtyBase { ou = Ex; cty = cty' } -> exists_cty_to_cty (x, cty')
+let rec pack_rty_to_rty = function
+  | x, RtyGhostArr { argcty; arg; retty } ->
+      RtyGhostArr { argcty; arg; retty = pack_rty_to_rty (x, retty) }
+  | x, RtyBase { ou; cty } -> (
+      match erase_rty x.ty with
+      | Nt.Ty_arrow _ -> RtyBase { ou; cty }
+      | _ -> (
+          match x.ty with
+          | RtyBase { ou = Ex; cty = cty_x } ->
+              RtyBase { ou; cty = exists_cty_to_cty (x.x #: cty_x, cty) }
+          | RtyBase { ou = Fa; cty = cty_x } ->
+              RtyGhostArr
+                { argcty = cty_x; arg = x.x; retty = RtyBase { ou; cty } }
+          | _ ->
+              let () =
+                Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty)
+              in
+              _failatwith __FILE__ __LINE__ "die"))
   | _ -> _failatwith __FILE__ __LINE__ "die"
 
-let exists_rty_to_rty = function
-  | x, RtyBase { ou = Ex; cty } ->
-      RtyBase { ou = Ex; cty = exists_rty_to_cty (x, cty) }
-  | _ -> _failatwith __FILE__ __LINE__ "die"
-
-let exists_rtys_to_rty bindings rty =
-  List.fold_right (fun x res_ty -> exists_rty_to_rty (x, res_ty)) bindings rty
+let pack_rtys_to_rty bindings rty =
+  List.fold_right (fun x res_ty -> pack_rty_to_rty (x, res_ty)) bindings rty
 
 let and_cty_to_rty cty1 = function
   | RtyBase { ou = Ex; cty } ->
       RtyBase { ou = Ex; cty = and_cty_to_cty (cty1, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"
-
-let default_res = "r"
 
 let _desugar_rty_ret_under rty =
   let rec aux (res : t rty -> t rty) = function
@@ -351,14 +382,14 @@ let _desugar_rty_ret_under rty =
         let retty = res (RtyBase { ou = Fa; cty = cty' }) in
         RtyGhostArr { argcty = Cty { nty; phi }; arg = default_res; retty }
     | RtyBaseArr { argcty; arg; retty } ->
-        aux (fun retty -> RtyBaseArr { argcty; arg; retty }) retty
+        aux (fun retty -> res (RtyBaseArr { argcty; arg; retty })) retty
     | RtyBaseDepPair { argcty; arg; retty } ->
-        aux (fun retty -> RtyBaseDepPair { argcty; arg; retty }) retty
+        aux (fun retty -> res (RtyBaseDepPair { argcty; arg; retty })) retty
     | RtyArrArr { argrty; retty } ->
-        aux (fun retty -> RtyArrArr { argrty; retty }) retty
+        aux (fun retty -> res (RtyArrArr { argrty; retty })) retty
     | RtyInter _trtylist0 -> _failatwith __FILE__ __LINE__ "unimp"
     | RtyGhostArr { argcty; arg; retty } ->
-        aux (fun retty -> RtyGhostArr { argcty; arg; retty }) retty
+        RtyGhostArr { argcty; arg; retty = aux res retty }
   in
   aux (fun rty -> rty) rty
 

@@ -18,6 +18,7 @@
     "synth_timeout": "999",
     "prim_path": {
         "data_type_decls": "data/predefined/data_type_decls.ml",
+        "statements": "data/predefined/statements.ml",
         "templates": "data/predefined/templates.ml",
         "normal_typing": "data/predefined/normal_typing.ml",
         "axioms": "data/predefined/axioms.ml",

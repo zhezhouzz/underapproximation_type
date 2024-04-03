@@ -11,13 +11,11 @@ let _rec_arg : t prop option ref = ref None
 let init_rec_arg x = _rec_arg := Some x
 
 let apply_rec_arg arg =
-  match !_rec_arg with
-  | Some p ->
-      let arg = (AVar arg) #: arg.ty in
-      let param = (AVar default_v #: Nt.int_ty) #: Nt.int_ty in
-      let phi = apply_pi_prop (apply_pi_prop p arg) param in
-      Cty { nty = Nt.int_ty; phi }
-  | None -> _failatwith __FILE__ __LINE__ "die"
+  let p = Env.get_statements_by_name "rec_arg" in
+  let arg = (AVar arg) #: arg.ty in
+  let param = (AVar default_v #: Nt.int_ty) #: Nt.int_ty in
+  let phi = List.fold_left apply_pi_prop p [ arg; param ] in
+  Cty { nty = Nt.int_ty; phi }
 
 let _warinning_subtyping_error file line (rty1, rty2) =
   Env.show_debug_typing @@ fun _ ->
@@ -204,7 +202,7 @@ and match_case_type_infer (lrctx : lrctx) (matched : (t, t value) typed)
       (*   Printf.printf "exists %s\n" *)
       (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
       (* in *)
-      let exp = exp.x #: (exists_rtys_to_rty bindings exp.ty) in
+      let exp = exp.x #: (pack_rtys_to_rty bindings exp.ty) in
       Some
         (CMatchcase
            { constructor = constructor.x #: constructor_rty; args; exp })
@@ -219,18 +217,11 @@ and arrow_type_apply (lrctx : lrctx) appf_rty apparg =
         mk_rty_var_eq_v Ex (default_v, apparg.x #: (erase_rty apparg.ty))
       in
       let argrty = and_cty_to_rty argcty argrty in
-      if is_nonempty_rty lrctx argrty then
-        let tmp_name = Rename.unique arg in
-        let retty =
-          subst_rty_instance arg (AVar tmp_name #: (erase_rty argrty)) retty
-        in
-        Some ([ tmp_name #: argrty ], retty)
-      else (
-        _warinning_subtyping_emptyness_error __FILE__ __LINE__ argrty;
-        _warinning_typing_error __FILE__ __LINE__
-          ( layout_typed_value apparg #-> (map_value erase_rty) #=> erase_rty,
-            argrty );
-        None)
+      let tmp_name = Rename.unique arg in
+      let retty =
+        subst_rty_instance arg (AVar tmp_name #: (erase_rty argrty)) retty
+      in
+      Some ([ tmp_name #: argrty ], retty)
   | RtyArrArr { argrty; retty } ->
       if sub_rty_bool lrctx (apparg.ty, argrty) then Some ([], retty)
       else (
@@ -275,25 +266,25 @@ and term_type_infer (lrctx : lrctx) (a : ('t, 't term) typed) :
     (t rty, t rty term) typed option =
   let res =
     match a.x with
-    | CErr -> Some CErr #: (prop_to_rty Ex a.ty mk_false)
+    | CErr -> Some CErr #: (prop_to_rty Fa a.ty mk_false)
     | CVal v ->
         let v = value_type_infer lrctx v in
         Some (CVal v) #: v.ty
     | CApp _ | CAppOp _ ->
         let* bindings, res = term_type_infer_app lrctx a in
-        Some res.x #: (exists_rtys_to_rty bindings res.ty)
+        Some res.x #: (pack_rtys_to_rty bindings res.ty)
     | CMatch { matched; match_cases } ->
         (* NOTE: we drop unreachable cases *)
         let match_cases =
           List.filter_map (match_case_type_infer lrctx matched) match_cases
         in
         (* let* match_cases = Sugar.opt_list_to_list_opt match_cases in *)
-        let unioned_ty =
-          union_rtys
+        let intersect_ty =
+          intersect_rtys
           @@ List.map (function CMatchcase { exp; _ } -> exp.ty) match_cases
         in
         let matched = value_type_infer lrctx matched in
-        Some (CMatch { matched; match_cases }) #: unioned_ty
+        Some (CMatch { matched; match_cases }) #: intersect_ty
     | CLetDeTu _ -> failwith "unimp"
     | CLetE { rhs; lhs; body } ->
         let* bindings, rhs = term_type_infer_app lrctx rhs in
@@ -304,7 +295,7 @@ and term_type_infer (lrctx : lrctx) (a : ('t, 't term) typed) :
         (*   Printf.printf "CLetE exists %s\n" *)
         (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
         (* in *)
-        Some (CLetE { rhs; lhs; body }) #: (exists_rtys_to_rty bindings body.ty)
+        Some (CLetE { rhs; lhs; body }) #: (pack_rtys_to_rty bindings body.ty)
   in
   let () =
     match res with

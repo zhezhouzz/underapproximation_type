@@ -49,6 +49,16 @@ let check_query axioms query =
   Backend.Smtquery.check_bool axioms query
 
 let aux_sub_cty (axioms, uqvs) cty1 cty2 =
+  let () =
+    Env.show_debug_queries @@ fun _ ->
+    Printf.printf "uqvs: %s\n"
+    @@ List.split_by_comma
+         (fun { x = ou, x; ty = cty } ->
+           spf "%s%s:(%s)"
+             (Normalty.Connective.qt_pretty_layout ou)
+             x (layout_cty cty))
+         uqvs
+  in
   let fa_ctx, ex_ctx = normalize_ctx uqvs in
   let nty, prop1, prop2 =
     match (cty1, cty2) with
@@ -94,31 +104,30 @@ let aux_emptyness (axioms, uqvs) cty =
   (* not (check_query axioms (Not query)) *)
   check_query axioms (Not query)
 
-type t = Nt.t
-
-let rty_ctx_to_cty_ctx pctx =
-  let rec aux (pctx : (t rty, string) typed list) uqvs =
-    match List.last_destruct_opt pctx with
-    | None -> uqvs
-    | Some (pctx, binding) -> (
-        match binding.ty with
-        | RtyInter _ -> _failatwith __FILE__ __LINE__ "unimp"
-        | RtyGhostArr _ | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ ->
-            aux pctx uqvs
-        | RtyBase { ou; cty } ->
-            let x = (ou, binding.x) #: cty in
-            aux pctx (x :: uqvs))
-  in
-  match pctx with Typectx pctx -> aux pctx []
+(* let rty_ctx_to_cty_ctx pctx = *)
+(*   let rec aux (pctx : (t rty, string) typed list) uqvs = *)
+(*     match List.last_destruct_opt pctx with *)
+(*     | None -> uqvs *)
+(*     | Some (pctx, binding) -> ( *)
+(*         match binding.ty with *)
+(*         | RtyInter _ -> _failatwith __FILE__ __LINE__ "unimp" *)
+(*         | RtyGhostArr _ | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ -> *)
+(*             aux pctx uqvs *)
+(*         | RtyBase { ou; cty } -> *)
+(*             let x = (ou, binding.x) #: cty in *)
+(*             aux pctx (x :: uqvs)) *)
+(*   in *)
+(*   match pctx with Typectx pctx -> aux pctx [] *)
 
 let sub_cty pctx (cty1, cty2) =
-  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  let () = pprint_typectx pctx.local_ctx in
+  let ctx = lrctx_to_cctx pctx.local_ctx in
   aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 
 let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
 let is_nonempty_cty pctx cty =
-  let ctx = rty_ctx_to_cty_ctx pctx.local_ctx in
+  let ctx = lrctx_to_cctx pctx.local_ctx in
   aux_emptyness (pctx.axioms, ctx) cty
 
 let is_nonempty_rty pctx rty =

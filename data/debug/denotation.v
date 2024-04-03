@@ -1,4 +1,7 @@
 From Coq Require Import Classes.DecidableClass.
+From Coq Require Import Logic.ClassicalFacts.
+From Coq Require Import Classical.
+
 
 Variable term : Type.
 Variable value : Type.
@@ -10,6 +13,22 @@ Definition denotation_ghost (phi: value -> value -> Prop) (e: term) : Prop := fo
 
 Lemma reduce_dec: forall e v v', reduce e v -> reduce e v' -> v = v'.
 Admitted.
+
+Lemma reduce_terminate: forall e, exists v: value, reduce e v.
+Admitted.
+
+Lemma definition_equal (phi_x: value -> Prop) (phi: value -> value -> Prop) :
+  forall e, (forall v_x, phi_x v_x -> denotation (phi v_x) e) <-> (forall v_x, denotation (fun v => phi_x v_x -> phi v_x v) e).
+Proof.
+  split; unfold denotation; intros.
+  - destruct (classic (phi_x v_x)).
+    + destruct (H v_x H0) as (v & Hr & Hphi).
+      exists v. intuition.
+    + destruct (reduce_terminate e) as (v & Hr).
+      exists v. intuition.
+  - + destruct (H v_x) as (v & Hr & HH).
+      exists v. intuition.
+Qed.
 
 (* Lemma subtyping_ghost (phi1 phi2: value -> value -> Prop) : *)
 (*   (forall v, (exists v1, phi1 v1 v) -> (exists v2, phi2 v2 v)) -> *)

@@ -94,10 +94,10 @@ let gather_uctx l =
   in
   add_to_rights emp l
 
-let gather_axioms l =
+let gather_props l =
   let l =
     List.filter_map
-      (function MAxiom { name; prop } -> Some name #: prop | _ -> None)
+      (function MAxiom { name; prop } -> Some (name, prop) | _ -> None)
       l
   in
   l

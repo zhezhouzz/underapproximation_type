@@ -8,6 +8,7 @@ type prim_path = {
   type_decls : string;
   axioms : string;
   templates : string;
+  statements : string;
 }
 [@@deriving sexp]
 
@@ -20,6 +21,9 @@ type meta_config = {
   num_quantifier : int;
   abd_templates : string list;
   prim_path : prim_path;
+  predefined_templates : (string * Nt.t Prop.prop) list;
+  predefined_axioms : (string * Nt.t Prop.prop) list;
+  predefined_statements : (string * Nt.t Prop.prop) list;
 }
 [@@deriving sexp]
 
@@ -61,6 +65,37 @@ let get_measure () =
 open Json
 open Yojson.Basic.Util
 
+let update_templates templates =
+  let m = get_meta () in
+  let m = { m with predefined_templates = templates } in
+  meta_config := Some m
+
+let get_templates () =
+  let m = get_meta () in
+  List.map snd m.predefined_templates
+
+let get_axioms () =
+  let m = get_meta () in
+  List.map snd m.predefined_axioms
+
+let get_statements_by_name name =
+  let m = get_meta () in
+  match
+    List.find_opt (fun (x, _) -> String.equal name x) m.predefined_statements
+  with
+  | None -> Sugar._failatwith __FILE__ __LINE__ "die"
+  | Some (_, prop) -> prop
+
+let update_statements statements =
+  let m = get_meta () in
+  let m = { m with predefined_statements = statements } in
+  meta_config := Some m
+
+let update_axioms axioms =
+  let m = get_meta () in
+  let m = { m with predefined_axioms = axioms } in
+  meta_config := Some m
+
 let load_meta meta_fname =
   let metaj = load_json meta_fname in
   let mode =
@@ -86,6 +121,7 @@ let load_meta meta_fname =
       coverage_typing = p |> member "coverage_typing" |> to_string;
       type_decls = p |> member "data_type_decls" |> to_string;
       axioms = p |> member "axioms" |> to_string;
+      statements = p |> member "statements" |> to_string;
     }
   in
   meta_config :=
@@ -99,4 +135,7 @@ let load_meta meta_fname =
         abdfile;
         abd_templates;
         num_quantifier;
+        predefined_axioms = [];
+        predefined_templates = [];
+        predefined_statements = [];
       }

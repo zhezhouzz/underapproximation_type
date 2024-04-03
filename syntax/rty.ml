@@ -119,6 +119,21 @@ let typed_subst_rty_instance x instance e =
   subst_f_to_instance typed_subst_rty x instance e
 (* Generated from _rty.ml *)
 
+let rec extract_ghost_vars = function
+  | RtyGhostArr { argcty; arg; retty } ->
+      let gvars, rty = extract_ghost_vars retty in
+      ((arg #: argcty) :: gvars, rty)
+  | rty -> ([], rty)
+
+let rec construct_ghost_vars gvars rty =
+  match gvars with
+  | [] -> rty
+  | x :: gvars ->
+      let rty = construct_ghost_vars gvars rty in
+      if List.exists (fun y -> String.equal y.x x.x) @@ fv_rty rty then
+        RtyGhostArr { argcty = x.ty; arg = x.x; retty = rty }
+      else rty
+
 let rec erase_rty = function
   | RtyBase { cty; _ } -> erase_cty cty
   | RtyBaseArr { argcty; arg; retty } ->
@@ -129,3 +144,5 @@ let rec erase_rty = function
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyInter (rty1, _) -> erase_rty rty1
   | RtyGhostArr { retty; _ } -> erase_rty retty
+
+let default_res = "r"
