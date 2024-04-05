@@ -1,0 +1,73 @@
+\begin{figure}[!ht]
+{\small
+{\normalsize
+\begin{flalign*}
+ &\text{\textbf{Subtyping }} & % \fbox{$\Gamma \vdashover \tau$} \text{ and }
+ \fbox{$ \Gamma \vdash \tau <: \tau$}
+\end{flalign*}}
+ \\ \
+\begin{prooftree}
+\hypo{
+\denotation{\Gamma}(\denotation{\rawnuet{b}{\phi_1}}, \denotation{\rawnuet{b}{\phi_2}})
+}
+\infer1[\textsc{SubBase}]{
+\Gamma \vdash \rawnuet{b}{\phi_1} <: \rawnuet{b}{\phi_2}
+}
+\end{prooftree}
+\quad
+\begin{prooftree}
+\hypo{
+\Gamma \vdash \tau_{21} <: \tau_{11}
+}
+\hypo{
+\Gamma \vdash t_{12}  <: t_{22} 
+}
+\infer2[\textsc{SubArrArr}]{
+\Gamma \vdash x{:}\tau_{11}\sarr t_{12} <: x{:}\tau_{21}\sarr r_{22}
+}
+\end{prooftree}
+\\ \ \\ \ \\ \
+\begin{prooftree}
+\hypo{
+\Gamma \vdash \rawnuet{b}{\phi_2} <: \rawnuet{b}{\phi_1}
+}
+\hypo{
+\Gamma, x{:}\rawnuet{b}{\phi_2} \vdash t_{1}  <: t_{2} 
+}
+\infer2[\textsc{SubOParam}]{
+\Gamma \vdash x{:}\rawnuet{b}{\phi_1}\sarr t_{1} <: x{:}\rawnuet{b}{\phi_2}\sarr t_{2}
+}
+\end{prooftree}
+\\ \ \\ \ \\ \
+\begin{prooftree}
+\hypo{
+\Gamma \vdash \rawnuut{b}{\phi_2} <: \rawnuut{b}{\phi_1}
+}
+\hypo{
+\Gamma, x{:}\rawnuet{b}{\phi_1} \vdash t_{1} <: t_{2} 
+}
+\infer2[\textsc{SubUParam}]{
+\Gamma \vdash x{:}\rawnuut{b}{\phi_1}\sarr t_{1} <: x{:}\rawnuut{b}{\phi_2}\sarr t_{2}
+}
+\end{prooftree}
+\\ \ \\ \ \\ \
+\begin{prooftree}
+\hypo{
+\Gamma, x{:}\rawnuet{b}{\top} \vdash \tau_1 <: \tau_2
+}
+\infer1[\textsc{SubGhost1}]{
+\Gamma \vdash \tau_1 <: x{:}b \garr \tau_2
+}
+\end{prooftree}
+\quad
+\begin{prooftree}
+\hypo{
+\Gamma, x{:}\rawnuut{b}{\top} \vdash \tau_1 <: \tau_2
+}
+\infer1[\textsc{SubGhost2}]{
+\Gamma \vdash x{:}b\garr \tau_1 <: \tau_2
+}
+\end{prooftree}
+}
+\caption{Auxiliary Type rules.}\label{fig:aux-typing-rules}
+\end{figure}

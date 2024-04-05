@@ -18,8 +18,9 @@ let rec layout_rty = function
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
       | _ -> spf "(%s:{%s}) → %s" arg (layout_cty argcty) (layout_rty retty))
-  | RtyGhostArr { argcty; arg; retty } ->
-      spf "(%s:{%s}) ⇢ %s" arg (layout_cty argcty) (layout_rty retty)
+  | RtyGhostArr { argnty; arg; retty } ->
+      (* spf "(%s:{%s}) ⇢ %s" arg (layout_cty argcty) (layout_rty retty) *)
+      spf "%s:%s ⇢ %s" arg (Nt.layout argnty) (layout_rty retty)
   | RtyBaseDepPair { argcty; arg; retty } -> (
       match arg with
       | "_" -> spf "[%s] → %s" (layout_cty argcty) (layout_rty retty)
@@ -44,13 +45,20 @@ let rec rty_of_expr expr =
   | Pexp_fun (_, rtyexpr, pattern, body) -> (
       let retty = rty_of_expr body in
       match rtyexpr with
-      | None -> _failatwith __FILE__ __LINE__ "die"
+      | None -> (
+          match pattern.ppat_desc with
+          | Ppat_constraint (x, ty) ->
+              let arg = id_of_pattern x in
+              let argnty = Nt.core_type_to_t ty in
+              RtyGhostArr { argnty; arg; retty }
+          | _ -> _failatwith __FILE__ __LINE__ "die")
       | Some rtyexpr -> (
           let arg = id_of_pattern pattern in
           match rty_of_expr rtyexpr with
           | RtyBase { cty; ou = Fa } ->
-              if get_ghost pattern then RtyGhostArr { argcty = cty; arg; retty }
-              else RtyBaseArr { argcty = cty; arg; retty }
+              (* if get_ghost pattern then RtyGhostArr { argcty = cty; arg; retty } *)
+              (* else *)
+              RtyBaseArr { argcty = cty; arg; retty }
           | RtyBase { ou = Ex; _ } -> _failatwith __FILE__ __LINE__ "die"
           | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
           | argrty -> RtyArrArr { argrty; retty }))

@@ -187,12 +187,12 @@ and match_case_type_infer (lrctx : lrctx) (matched : (t, t value) typed)
       in
       let retty =
         match retty with
-        | RtyBase { ou; cty = Cty { phi; _ } } ->
+        | RtyBase { cty = Cty { phi; _ }; _ } ->
             let lit =
               Checkaux.typed_value_to_typed_lit __FILE__ __LINE__ matched
             in
             let phi = subst_prop_instance default_v lit.x phi in
-            RtyBase { ou; cty = Cty { nty = Nt.unit_ty; phi } }
+            RtyBase { ou = Ex; cty = Cty { nty = Nt.unit_ty; phi } }
         | _ -> _failatwith __FILE__ __LINE__ "die"
       in
       let dummy = (Rename.unique "dummy") #: retty in

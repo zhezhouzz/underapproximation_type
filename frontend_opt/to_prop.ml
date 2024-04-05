@@ -70,7 +70,11 @@ let detailssetting =
     sym_iff = "<=>";
     sym_forall = "∀";
     sym_exists = "∃";
-    layout_typedid = Nt.(fun x -> spf "(%s:%s)" x.x (layout x.ty));
+    layout_typedid =
+      Nt.(
+        fun x ->
+          spf "(%s:%s)" x.x
+            (match x.ty with None -> "?" | Some ty -> layout ty));
     layout_op = default_layout_op;
   }
 
@@ -259,4 +263,6 @@ let prop_of_expr expr =
 
 let layout_prop__raw x = Pprintast.string_of_expression @@ prop_to_expr x
 let layout_prop = layout_prop_ psetting
+
+(* let layout_prop = layout_prop_ detailssetting *)
 let layout_prop_to_coq = layout_prop_ coqsetting

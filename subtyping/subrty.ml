@@ -6,19 +6,23 @@ open Sugar
 
 let _sub_rty_bool rctx (rty1, rty2) =
   let rec aux rctx (rty1, rty2) =
-    let () =
-      Printf.printf "rty1: %s --- rty2: %s\n" (layout_rty rty1)
-        (layout_rty rty2)
-    in
+    (* let () = *)
+    (*   Printf.printf "rty1: %s --- rty2: %s\n" (layout_rty rty1) *)
+    (*     (layout_rty rty2) *)
+    (* in *)
     match (rty1, rty2) with
-    | RtyGhostArr { argcty; arg; retty }, _ ->
+    | RtyGhostArr { argnty; arg; retty }, _ ->
         let rctx =
-          add_to_right rctx arg #: (RtyBase { ou = Ex; cty = argcty })
+          add_to_right rctx
+            arg
+            #: (RtyBase { ou = Ex; cty = Cty { nty = argnty; phi = mk_true } })
         in
         aux rctx (retty, rty2)
-    | _, RtyGhostArr { argcty; arg; retty } ->
+    | _, RtyGhostArr { argnty; arg; retty } ->
         let rctx =
-          add_to_right rctx arg #: (RtyBase { ou = Fa; cty = argcty })
+          add_to_right rctx
+            arg
+            #: (RtyBase { ou = Fa; cty = Cty { nty = argnty; phi = mk_true } })
         in
         aux rctx (rty1, retty)
     | RtyBase { ou = Fa; cty = cty1 }, RtyBase { ou = Fa; cty = cty2 } ->

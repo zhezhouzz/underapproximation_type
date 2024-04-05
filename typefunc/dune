@@ -1,0 +1,11 @@
+(library
+ (name typefunc)
+ (wrapped false)
+ (modules
+   litfunc
+   propfunc
+   typefunc
+ )
+ (preprocess (pps ppx_optcomp ppx_compare ppx_sexp_conv))
+ (libraries language)
+)

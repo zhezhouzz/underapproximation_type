@@ -49,16 +49,16 @@ let check_query axioms query =
   Backend.Smtquery.check_bool axioms query
 
 let aux_sub_cty (axioms, uqvs) cty1 cty2 =
-  let () =
-    Env.show_debug_queries @@ fun _ ->
-    Printf.printf "uqvs: %s\n"
-    @@ List.split_by_comma
-         (fun { x = ou, x; ty = cty } ->
-           spf "%s%s:(%s)"
-             (Normalty.Connective.qt_pretty_layout ou)
-             x (layout_cty cty))
-         uqvs
-  in
+  (* let () = *)
+  (*   Env.show_debug_queries @@ fun _ -> *)
+  (*   Printf.printf "uqvs: %s\n" *)
+  (*   @@ List.split_by_comma *)
+  (*        (fun { x = ou, x; ty = cty } -> *)
+  (*          spf "%s%s:(%s)" *)
+  (*            (Normalty.Connective.qt_pretty_layout ou) *)
+  (*            x (layout_cty cty)) *)
+  (*        uqvs *)
+  (* in *)
   let fa_ctx, ex_ctx = normalize_ctx uqvs in
   let nty, prop1, prop2 =
     match (cty1, cty2) with
@@ -120,7 +120,7 @@ let aux_emptyness (axioms, uqvs) cty =
 (*   match pctx with Typectx pctx -> aux pctx [] *)
 
 let sub_cty pctx (cty1, cty2) =
-  let () = pprint_typectx pctx.local_ctx in
+  (* let () = pprint_typectx pctx.local_ctx in *)
   let ctx = lrctx_to_cctx pctx.local_ctx in
   aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 

@@ -8,10 +8,14 @@ type t = Nt.t
 let rec bi_typed_lit_check (ctx : t ctx) (lit : (t option, t option lit) typed)
     (ty : t) : (t, t lit) typed =
   match (lit.x, ty) with
-  | AC _, _ | AVar _, _ ->
+  | AC _, _ ->
       let lit = bi_typed_lit_infer ctx lit in
       let _ = Nt._type_unify __FILE__ __LINE__ lit.ty ty in
       lit.x #: ty
+  | AVar x, _ ->
+      let lit = bi_typed_lit_infer ctx lit in
+      let ty = Nt._type_unify __FILE__ __LINE__ lit.ty ty in
+      (AVar x.x #: ty) #: ty
   | ATu l, Nt.Ty_tuple tys ->
       let l =
         List.map (fun (x, ty) -> bi_typed_lit_check ctx x ty)

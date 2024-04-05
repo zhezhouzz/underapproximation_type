@@ -11,12 +11,22 @@ let constant_to_z3 ctx c =
   | B b -> bool_to_z3 ctx b
   | I i -> int_to_z3 ctx i
 
+open Zzdatatype.Datatype
+
 let rec typed_lit_to_z3 ctx lit =
   match lit.x with
   | ATu _ | AProj _ -> _failatwith __FILE__ __LINE__ "die"
   | AC c -> constant_to_z3 ctx c
-  | AVar x -> tpedvar_to_z3 ctx (x.ty, x.x)
+  | AVar x -> tpedvar_to_z3 ctx (lit.ty, x.x)
   | AAppOp (op, args) -> (
+      (* let () = *)
+      (*   Printf.printf "%s\n" *)
+      (*   @@ List.split_by_comma *)
+      (*        (fun x -> *)
+      (*          spf "%s:%s" (Typedlang.layout_lit x.x) *)
+      (*            (Sexplib.Sexp.to_string @@ Nt.sexp_of_t x.ty)) *)
+      (*        args *)
+      (* in *)
       let args = List.map (typed_lit_to_z3 ctx) args in
       match (op.x, args) with
       | "==", [ a; b ] -> Boolean.mk_eq ctx a b
