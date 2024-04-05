@@ -1,5 +1,5 @@
-open Lang
-open Typedlang
+open Language
+open Rctx
 open Zzdatatype.Datatype
 open Sugar
 open Subtyping
@@ -34,7 +34,7 @@ let _warinning_typing_error file line (str, rty) =
 
 let sub_rty_bool lrctx (t1, t2) =
   let _ =
-    pprint_typectx_subtyping
+    Tyctx.pprint_typectx_subtyping
       (fun () -> pprint_linear_typectx lrctx.local_ctx)
       (t1, t2)
   in
@@ -42,7 +42,9 @@ let sub_rty_bool lrctx (t1, t2) =
 
 let is_nonempty_rty lrctx t1 =
   let _ =
-    pprint_typectx_nonempty (fun () -> pprint_linear_typectx lrctx.local_ctx) t1
+    Tyctx.pprint_typectx_nonempty
+      (fun () -> pprint_linear_typectx lrctx.local_ctx)
+      t1
   in
   true
 (* Subrty.is_nonempty_rty lrctx t1 *)

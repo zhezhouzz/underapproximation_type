@@ -1,5 +1,4 @@
-open Lang
-open Typedlang
+open Language
 
 (* open Sugar *)
 open Feature

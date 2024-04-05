@@ -1,5 +1,5 @@
-open Lang
-open Typedlang
+open Language
+open Rctx
 open Sugar
 open Inference
 open Feature

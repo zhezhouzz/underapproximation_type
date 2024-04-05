@@ -1,12 +1,11 @@
 open Z3
 open Z3aux
-open Lang
+open Language
 open Sugar
 
 let constant_to_z3 ctx c =
-  let open Constant in
   match c with
-  | U | Tu _ | Dt _ ->
+  | U | CTu _ | Dt _ ->
       _failatwith __FILE__ __LINE__ "unimp complex constant encoding"
   | B b -> bool_to_z3 ctx b
   | I i -> int_to_z3 ctx i

@@ -1,4 +1,4 @@
-open Op
+open Syntax
 open Sugar
 
 let string_to_op_opt str =

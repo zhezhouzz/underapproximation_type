@@ -2,15 +2,13 @@ open Ocaml5_parser
 open Parsetree
 open Sugar
 open Mutils
-open Mtyped
-module Nt = Normalty.Frontend
-(* open Syntax.NTyped *)
+open Syntax
 
 let opt_typed_id_to_pattern id =
   let pat = string_to_pattern id.x in
   match id.ty with
   | None -> pat
-  | Some ty -> typed_to_pattern (pat, Nt.t_to_core_type ty)
+  | Some ty -> typed_to_pattern (pat, Normalty.Frontend.t_to_core_type ty)
 
 let opt_typed_ids_to_pattern ids =
   tuple_to_pattern (List.map opt_typed_id_to_pattern ids)

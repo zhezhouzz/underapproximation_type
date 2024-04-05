@@ -1,4 +1,4 @@
-open Lang
+include Frontend_opt
 
 let layout_constant = To_constant.layout_constant
 let layout_constants = To_constant.layout_constants

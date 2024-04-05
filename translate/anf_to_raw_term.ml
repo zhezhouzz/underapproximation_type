@@ -1,7 +1,4 @@
-open Raw_term
-open Term
-open Item
-open Mtyped
+open Syntax
 
 let rec typed_value_to_typed_raw_term (value_e : ('t, 't value) typed) =
   match value_e.x with

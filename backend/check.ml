@@ -90,8 +90,7 @@ let smt_neg_and_solve ctx axioms vc =
   (*   Env.show_debug_queries @@ fun _ -> *)
   (*   Printf.printf "Query: %s\n" @@ Language.Rty.layout_prop vc *)
   (* in *)
-  let open Lang in
-  let open Typedlang in
+  let open Language in
   let current_mps = prop_get_mp vc in
   let current_mps =
     List.concat

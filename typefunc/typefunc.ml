@@ -1,2 +1,0 @@
-include Litfunc
-include Propfunc

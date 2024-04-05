@@ -1,8 +1,9 @@
 open Core
 open Caux
-open Lang
+open Syntax
 open Zzdatatype.Datatype
 open Preprocessing.Normal_item_typing
+open Frontend_opt
 open To_item
 open Raw_term_to_anf
 
@@ -13,7 +14,7 @@ let preproress meta_config_file source_file () =
   let s1 = parse ~sourcefile:prim_path.type_decls in
   let s2 = parse ~sourcefile:prim_path.normal_typing in
   let init_normal_ctx =
-    struct_mk_ctx Typectx.emp (ocaml_structure_to_items (s1 @ s2))
+    struct_mk_ctx emp (ocaml_structure_to_items (s1 @ s2))
   in
   let code =
     ocaml_structure_to_items
@@ -75,7 +76,7 @@ let subtype_check_ meta_config_file source_file () =
   let _, rty1 = get_rty_by_name code "rty1" in
   let _, rty2 = get_rty_by_name code "rty2" in
   let ctx =
-    Typedlang.{ builtin_ctx; local_ctx = emp; axioms = Env.get_axioms () }
+    Language.Rctx.{ builtin_ctx; local_ctx = emp; axioms = Env.get_axioms () }
   in
   Subtyping.Subrty.external_check ctx (rty1, rty2)
 
@@ -108,7 +109,7 @@ let print_erase_code meta_config_file source_file () =
     @@ Ocaml5_parser.Frontend.parse ~sourcefile:source_file
   in
   let code = List.map item_erase code in
-  let _ = Printf.printf "%s\n" (Rawlang.layout_structure code) in
+  let _ = Printf.printf "%s\n" (Language.Rawlang.layout_structure code) in
   ()
 
 let input_config_source message f =

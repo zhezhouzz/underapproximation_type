@@ -1,4 +1,4 @@
-open Lang
+open Language
 open Normal_prop_typing
 
 let bi_typed_cty_check (ctx : t ctx) (cty : t option cty) : t cty =

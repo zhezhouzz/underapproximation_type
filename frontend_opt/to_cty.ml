@@ -1,12 +1,8 @@
 open Ocaml5_parser
 open Parsetree
-open Mtyped
+open Syntax
 open Mutils
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Cty
-open Lit
-open Prop
 open To_constant
 open To_prop
 open Sugar

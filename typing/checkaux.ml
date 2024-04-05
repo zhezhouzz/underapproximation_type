@@ -1,4 +1,4 @@
-open Lang
+open Language
 open Sugar
 
 let make_order_constraint a x =

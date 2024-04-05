@@ -1,10 +1,6 @@
 open Ocaml5_parser
-open Mtyped
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Raw_term
-open Lit
-open Op
+open Syntax
 open To_op
 open To_raw_term
 open Sugar

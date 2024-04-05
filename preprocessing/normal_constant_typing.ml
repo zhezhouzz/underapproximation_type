@@ -1,4 +1,4 @@
-open Lang
+open Language
 open Sugar
 open Normal_op_typing
 
@@ -8,7 +8,7 @@ let rec infer_constant ctx (c : constant) =
   | U -> Ty_unit
   | I _ -> Ty_int
   | B _ -> Ty_bool
-  | Tu l -> Ty_tuple (List.map (infer_constant ctx) l)
+  | CTu l -> Ty_tuple (List.map (infer_constant ctx) l)
   | Dt (op, args) ->
       let args = List.map (infer_constant ctx) args in
       let ty = get_constructor_type ctx op in

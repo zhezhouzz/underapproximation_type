@@ -21,9 +21,9 @@ type meta_config = {
   num_quantifier : int;
   abd_templates : string list;
   prim_path : prim_path;
-  predefined_templates : (string * Nt.t Prop.prop) list;
-  predefined_axioms : (string * Nt.t Prop.prop) list;
-  predefined_statements : (string * Nt.t Prop.prop) list;
+  predefined_templates : (string * Nt.t Syntax.prop) list;
+  predefined_axioms : (string * Nt.t Syntax.prop) list;
+  predefined_statements : (string * Nt.t Syntax.prop) list;
 }
 [@@deriving sexp]
 

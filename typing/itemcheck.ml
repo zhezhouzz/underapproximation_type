@@ -1,4 +1,6 @@
-open Lang
+open Language
+
+(* open Rctx *)
 open Sugar
 open Zzdatatype.Datatype
 
@@ -23,13 +25,12 @@ let item_check (axioms, uctx) imps = function
       in
       let () =
         Env.show_debug_typing @@ fun _ ->
-        Pp.printf "@{<bold>check against with:@} %s\n"
-          (Typedlang.layout_rty rty)
+        Pp.printf "@{<bold>check against with:@} %s\n" (layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match
         Termcheck.term_type_check
-          { builtin_ctx = uctx; local_ctx = emp; axioms }
+          Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms }
           imp rty
       with
       | Some _ ->
@@ -64,13 +65,12 @@ let item_infer (axioms, uctx) imps = function
       in
       let () =
         Env.show_debug_typing @@ fun _ ->
-        Pp.printf "@{<bold>partial infer against with:@} %s\n"
-          (Typedlang.layout_rty rty)
+        Pp.printf "@{<bold>partial infer against with:@} %s\n" (layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       match
         Termsyn.partial_term_type_infer
-          { builtin_ctx = uctx; local_ctx = emp; axioms }
+          Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms }
           imp rty
       with
       | Some _ ->

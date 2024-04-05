@@ -1,10 +1,8 @@
 open Ocaml5_parser
 open Parsetree
-open Mtyped
+open Syntax
 open Mutils
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Prop
 open To_raw_term
 open To_lit
 open To_notation
@@ -56,7 +54,7 @@ type 't layout_setting = {
   sym_forall : string;
   sym_exists : string;
   layout_typedid : ('t, string) typed -> string;
-  layout_op : string -> Op.op;
+  layout_op : string -> op;
 }
 
 let detailssetting =

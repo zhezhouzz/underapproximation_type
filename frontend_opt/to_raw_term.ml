@@ -1,12 +1,9 @@
 (* module MetaEnv = Env *)
 open Ocaml5_parser
 open Mutils
-open Mtyped
 open Parsetree
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Raw_term
-open Op
+open Syntax
 open To_id
 open To_constant
 open To_op

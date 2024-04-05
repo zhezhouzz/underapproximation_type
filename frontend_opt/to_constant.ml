@@ -5,8 +5,7 @@ open Sugar
 open Zzdatatype.Datatype
 open To_id
 open To_op
-open Op
-open Constant
+open Syntax
 
 let string_to_constant = function
   | "true" -> B true
@@ -22,14 +21,14 @@ let rec expr_to_constant e =
          (Pprintast.string_of_expression e))
   in
   match e.pexp_desc with
-  | Pexp_tuple es -> Tu (List.map expr_to_constant es)
+  | Pexp_tuple es -> CTu (List.map expr_to_constant es)
   | Pexp_construct (id, e) -> (
       let name = longid_to_id id in
       match e with
       | None -> string_to_constant name
       | Some e -> (
           match (string_to_op name, expr_to_constant e) with
-          | DtConstructor op, Tu es -> Dt (op, es)
+          | DtConstructor op, CTu es -> Dt (op, es)
           | _, _ -> mk_exn ()))
   | Pexp_constant (Pconst_integer (istr, None)) -> I (int_of_string istr)
   | _ -> mk_exn ()
@@ -44,7 +43,7 @@ let constant_to_expr v =
         desc_to_ocamlexpr
           (Pexp_constant (Pconst_integer (string_of_int i, None)))
     | Dt (op, vs) -> mk_construct (op, List.map aux vs)
-    | Tu l -> desc_to_ocamlexpr (Pexp_tuple (List.map aux l))
+    | CTu l -> desc_to_ocamlexpr (Pexp_tuple (List.map aux l))
   in
   aux v
 

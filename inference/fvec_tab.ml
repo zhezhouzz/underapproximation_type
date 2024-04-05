@@ -1,6 +1,6 @@
 open Sugar
 open Feature
-open Typedlang
+open Language
 
 type t = { ftab : feature_tab; fvec_tab : (int, label) Hashtbl.t }
 

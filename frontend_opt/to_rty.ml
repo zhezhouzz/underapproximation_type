@@ -1,11 +1,7 @@
 open Ocaml5_parser
 open Parsetree
-(* open Mtyped *)
-
-(* open Mutils *)
+open Syntax
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Rty
 open To_cty
 open To_id
 open Sugar

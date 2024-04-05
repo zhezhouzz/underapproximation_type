@@ -1,10 +1,8 @@
 open Ocaml5_parser
 open Parsetree
-open Mtyped
+open Syntax
 open Mutils
 open Zzdatatype.Datatype
-module Nt = Normalty.Frontend
-open Item
 open To_raw_term
 open To_rty
 open To_prop
@@ -57,8 +55,7 @@ let ocaml_structure_item_to_item structure =
              MFuncImpRaw
                {
                  name =
-                   name
-                   #: (Some (Raw_term.__get_lam_term_ty __FILE__ __LINE__ body));
+                   name #: (Some (__get_lam_term_ty __FILE__ __LINE__ body));
                  if_rec = get_if_rec flag;
                  body;
                }

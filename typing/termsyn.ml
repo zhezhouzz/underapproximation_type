@@ -1,5 +1,5 @@
-open Lang
-open Typedlang
+open Language
+open Rctx
 
 (* open Zzdatatype.Datatype *)
 open Sugar

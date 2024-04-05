@@ -1,7 +1,4 @@
-open Raw_term
-open Term
-open Item
-open Mtyped
+open Syntax
 open Sugar
 
 type 't cont = ('t, 't term) typed -> ('t, 't term) typed

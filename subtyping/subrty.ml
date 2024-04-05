@@ -1,5 +1,5 @@
-open Lang
-open Typedlang
+open Language
+open Rctx
 
 (* open Zzdatatype.Datatype *)
 open Sugar
@@ -87,7 +87,7 @@ let external_check ctx (rty1, rty2) =
   let () = Printf.printf "%s <: %s\n" (layout_rty rty1) (layout_rty rty2) in
   let res = sub_rty_bool ctx (rty1, rty2) in
   let () =
-    pprint_typectx_subtyping (fun _ -> pprint_typectx emp) (rty1, rty2)
+    Tyctx.pprint_typectx_subtyping (fun _ -> pprint_typectx emp) (rty1, rty2)
   in
   let () = Printf.printf "Result: %b\n" res in
   ()

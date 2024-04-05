@@ -1,4 +1,4 @@
-open Lang
+open Language
 open Normal_cty_typing
 
 type t = Nt.t

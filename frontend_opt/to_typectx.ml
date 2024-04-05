@@ -1,17 +1,16 @@
-open Mtyped
-module Nt = Normalty.Frontend
-open Sugar
+open Syntax
 open Zzdatatype.Datatype
+open Sugar
 
 let layout_typectx (layout : 'a -> string) ctx : string =
   match ctx with
-  | Typectx.Typectx l ->
+  | Typectx l ->
       List.split_by_comma (fun { x; ty } -> spf "%s:%s" x (layout ty)) l
 
 let pprint_typectx f ctx =
   Env.show_debug_typing (fun _ ->
       match ctx with
-      | Typectx.Typectx ctx ->
+      | Typectx ctx ->
           if List.length ctx == 0 then Pp.printf "@{<green>∅@}"
           else
             List.iter

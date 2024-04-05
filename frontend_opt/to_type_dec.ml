@@ -1,7 +1,6 @@
 open Ocaml5_parser
 open Parsetree
-open Item
-open Constructor_declaration
+open Syntax
 module Type = Normalty.Frontend
 open Sugar
 
