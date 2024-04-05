@@ -102,14 +102,14 @@ let intersect_rtys = function
                 (Env.get_statements_by_name "forall_a_i_a_eq_i")
                 [ arg_lit; i_lit ]
             in
-            map_phi_in_cty (smart_implies prop') cty)
+            map_phi_in_cty (smart_add_to prop') cty)
           ctys
       in
       let retty =
         RtyBase
           {
             ou = Fa;
-            cty = map_phi_in_cty (smart_add_to phi) @@ intersect_ctys ctys;
+            cty = map_phi_in_cty (smart_implies phi) @@ union_ctys ctys;
           }
       in
       let gvars = (arg #: Nt.Ty_int) :: gvars in
@@ -118,21 +118,22 @@ let intersect_rtys = function
 let rec pack_rty_to_rty = function
   | x, RtyGhostArr { argnty; arg; retty } ->
       RtyGhostArr { argnty; arg; retty = pack_rty_to_rty (x, retty) }
-  | x, RtyBase { ou; cty } -> (
+  | x, RtyBase { ou = Fa; cty } -> (
       match erase_rty x.ty with
-      | Nt.Ty_arrow _ -> RtyBase { ou; cty }
+      | Nt.Ty_arrow _ -> RtyBase { ou = Fa; cty }
       | _ -> (
           match x.ty with
-          | RtyBase { ou = Ex; cty = cty_x } ->
-              RtyBase { ou; cty = exists_cty_to_cty (x.x #: cty_x, cty) }
-          | RtyBase { ou = Fa; cty = Cty { nty; phi } } ->
+          | RtyBase { ou = Fa; cty = cty_x } ->
+              RtyBase { ou = Fa; cty = exists_cty_to_cty (x.x #: cty_x, cty) }
+          | RtyBase { ou = Ex; cty = Cty { nty; phi } } ->
               let phi = subst_prop_instance default_v (AVar x.x #: nty) phi in
               RtyGhostArr
                 {
                   argnty = nty;
                   arg = x.x;
                   retty =
-                    RtyBase { ou; cty = map_phi_in_cty (smart_implies phi) cty };
+                    RtyBase
+                      { ou = Fa; cty = map_phi_in_cty (smart_implies phi) cty };
                 }
           | _ ->
               let () =
@@ -145,6 +146,5 @@ let pack_rtys_to_rty bindings rty =
   List.fold_right (fun x res_ty -> pack_rty_to_rty (x, res_ty)) bindings rty
 
 let and_cty_to_rty cty1 = function
-  | RtyBase { ou = Ex; cty } ->
-      RtyBase { ou = Ex; cty = and_cty_to_cty (cty1, cty) }
+  | RtyBase { ou; cty } -> RtyBase { ou; cty = and_cty_to_cty (cty1, cty) }
   | _ -> _failatwith __FILE__ __LINE__ "die"

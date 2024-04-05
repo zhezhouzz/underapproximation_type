@@ -13,7 +13,7 @@ let abductive_infer_subtyping_query ~(features : t lit list)
   | Some res -> res
 
 let abductive_infer_cty uctx cty1 cty2 =
-  let vars = lrctx_to_base_tvars uctx in
+  let vars = rctx_to_base_tvars uctx in
   match cty1 with
   | Cty { nty; phi } ->
       let v = default_v #: nty in

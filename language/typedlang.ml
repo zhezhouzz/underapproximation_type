@@ -67,3 +67,13 @@ let eq_prop p1 p2 =
   Sexplib.Sexp.equal
     (sexp_of_prop Nt.sexp_of_t p1)
     (sexp_of_prop Nt.sexp_of_t p2)
+
+(* Cty *)
+
+let mk_cty_true nty = Cty { nty; phi = mk_true }
+let mk_cty_false nty = Cty { nty; phi = mk_false }
+
+(* Rty *)
+
+let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty }
+let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty }

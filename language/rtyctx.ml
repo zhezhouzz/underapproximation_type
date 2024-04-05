@@ -8,7 +8,7 @@ type t = Nt.t
 
 (* open Sugar *)
 
-type lrctx = {
+type rctx = {
   builtin_ctx : t rty ctx;
   local_ctx : t rty ctx;
   axioms : t prop list;
@@ -38,14 +38,14 @@ let add_to_right_label { builtin_ctx; local_ctx; axioms } x =
 let add_to_right { builtin_ctx; local_ctx; axioms } x =
   { builtin_ctx; local_ctx = add_to_right local_ctx x; axioms }
 
-let add_to_rights lrctx l = List.fold_left add_to_right lrctx l
+let add_to_rights rctx l = List.fold_left add_to_right rctx l
 
 let get_opt { builtin_ctx; local_ctx; _ } id =
   match get_opt local_ctx id with
   | None -> get_opt builtin_ctx id
   | Some res -> Some res
 
-let lrctx_to_cctx pctx = ctx_list_to_cctx (to_ctx_list pctx)
+let rctx_to_cctx pctx = ctx_list_to_cctx (to_ctx_list pctx)
 
-let lrctx_to_base_tvars uctx =
+let rctx_to_base_tvars uctx =
   ctx_list_to_base_tvars (to_ctx_list uctx.local_ctx)

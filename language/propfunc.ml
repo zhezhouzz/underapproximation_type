@@ -98,8 +98,6 @@ let smart_pi (qv, xprop) prop =
             Forall { qv; body }
           else body)
 
-(* let template_eq = "forall v == " *)
-
 let mk_prop_var_eq_c nty (id, c) =
   match c with
   | U -> mk_true

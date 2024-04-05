@@ -14,8 +14,8 @@ let layout_vs qt uqvs =
   @@ List.map (fun { x; ty } -> { x = (qt, x); ty }) uqvs
 
 (* let layout_prop_ = layout_prop_to_smtlib2 *)
-(* let layout_prop_ = layout_prop_to_coq *)
-let layout_prop_ = layout_prop
+let layout_prop_ = layout_prop_to_coq
+(* let layout_prop_ = layout_prop *)
 
 let rec normalize_ctx ctx =
   match ctx with
@@ -121,13 +121,13 @@ let aux_emptyness (axioms, uqvs) cty =
 
 let sub_cty pctx (cty1, cty2) =
   (* let () = pprint_typectx pctx.local_ctx in *)
-  let ctx = lrctx_to_cctx pctx.local_ctx in
+  let ctx = rctx_to_cctx pctx.local_ctx in
   aux_sub_cty (pctx.axioms, ctx) cty1 cty2
 
 let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
 let is_nonempty_cty pctx cty =
-  let ctx = lrctx_to_cctx pctx.local_ctx in
+  let ctx = rctx_to_cctx pctx.local_ctx in
   aux_emptyness (pctx.axioms, ctx) cty
 
 let is_nonempty_rty pctx rty =

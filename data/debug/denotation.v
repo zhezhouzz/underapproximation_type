@@ -17,6 +17,22 @@ Admitted.
 Lemma reduce_terminate: forall e, exists v: value, reduce e v.
 Admitted.
 
+Lemma intersection (phi1 phi2: value -> Prop): forall e v1 v2, not (v1 = v2) ->
+    denotation_ghost (fun vx v => (vx = v1 /\ phi1 v) \/ (vx = v2 /\ phi2 v) \/ (not (vx = v1) /\ not (vx = v2))) e <->
+      denotation phi1 e /\ denotation phi2 e.
+Proof.
+  split; unfold denotation_ghost; unfold denotation; intros.
+  - destruct (H0 v1) as (v & Hv & HH). destruct (H0 v2) as (v' & Hv' & HH').
+    assert (v = v'). eapply reduce_dec; eauto. subst.
+    intuition; subst; try contradiction.
+    + exists v'. intuition.
+    + exists v'. intuition.
+  - destruct H0 as ((v & Hr & H1) & (v' & Hr' & H2)).
+    assert (v = v'). eapply reduce_dec; eauto. subst.
+    exists v'. intuition.
+    destruct (classic (v0 = v1)); destruct (classic (v0 = v2)); intuition; try contradiction.
+Qed.
+
 Lemma definition_equal (phi_x: value -> Prop) (phi: value -> value -> Prop) :
   forall e, (forall v_x, phi_x v_x -> denotation (phi v_x) e) <-> (forall v_x, denotation (fun v => phi_x v_x -> phi v_x v) e).
 Proof.
