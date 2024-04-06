@@ -8,25 +8,12 @@ open Sugar
 type t = Nt.t
 
 let prop_to_cty nty prop = Cty { nty; phi = prop }
-let prop_to_rty ou nty prop = RtyBase { ou; cty = prop_to_cty nty prop }
 
 let mk_cty_var_eq_c nty (id, c) =
   Cty { nty; phi = mk_prop_var_eq_c nty (id, c) }
 
 let mk_cty_var_eq_var nty (id, c) =
   Cty { nty; phi = mk_prop_var_eq_var nty (id, c) }
-
-let mk_rty_var_eq_c ou nty (id, c) =
-  RtyBase { ou; cty = mk_cty_var_eq_c nty (id, c) }
-
-let mk_rty_var_eq_var ou nty (id, c) =
-  RtyBase { ou; cty = mk_cty_var_eq_var nty (id, c) }
-
-let mk_rty_var_eq_v ou (id, v) =
-  match v.x with
-  | VConst c -> mk_rty_var_eq_c ou v.ty (id, c)
-  | VVar c -> mk_rty_var_eq_var ou v.ty (id, c.x)
-  | _ -> _failatwith __FILE__ __LINE__ "die"
 
 let n_to_one_ctys prop_f = function
   | [] -> _failatwith __FILE__ __LINE__ "die"

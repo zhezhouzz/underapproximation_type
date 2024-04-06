@@ -8,8 +8,12 @@ open Sugar
 open Normalty.Connective
 
 let rec layout_rty = function
-  | RtyBase { ou = Fa; cty } -> spf "{%s}" (layout_cty cty)
-  | RtyBase { ou = Ex; cty } -> spf "[%s]" (layout_cty cty)
+  | RtyBase { ou; cty; er } -> (
+      match (ou, er) with
+      | Fa, Lit { x = AC (B false); _ } -> spf "{%s}" (layout_cty cty)
+      | Ex, Lit { x = AC (B false); _ } -> spf "[%s]" (layout_cty cty)
+      | Fa, _ -> spf "{%s ‖ %s}" (To_prop.layout_prop er) (layout_cty cty)
+      | Ex, _ -> _failatwith __FILE__ __LINE__ "die")
   | RtyBaseArr { argcty; arg; retty } -> (
       match arg with
       | "_" -> spf "{%s} → %s" (layout_cty argcty) (layout_rty retty)
@@ -37,7 +41,16 @@ let get_ghost pat =
 
 let rec rty_of_expr expr =
   match expr.pexp_desc with
-  | Pexp_constraint _ -> RtyBase { ou = get_ou expr; cty = cty_of_expr expr }
+  | Pexp_tuple [ er; cty ] ->
+      let er = To_prop.prop_of_expr er in
+      RtyBase { ou = get_ou cty; cty = cty_of_expr cty; er }
+  | Pexp_constraint _ ->
+      RtyBase
+        {
+          ou = get_ou expr;
+          cty = cty_of_expr expr;
+          er = Lit (AC (B false)) #: (Some Nt.bool_ty);
+        }
   | Pexp_fun (_, rtyexpr, pattern, body) -> (
       let retty = rty_of_expr body in
       match rtyexpr with
@@ -51,7 +64,7 @@ let rec rty_of_expr expr =
       | Some rtyexpr -> (
           let arg = id_of_pattern pattern in
           match rty_of_expr rtyexpr with
-          | RtyBase { cty; ou = Fa } ->
+          | RtyBase { cty; ou = Fa; _ } ->
               (* if get_ghost pattern then RtyGhostArr { argcty = cty; arg; retty } *)
               (* else *)
               RtyBaseArr { argcty = cty; arg; retty }
@@ -62,8 +75,9 @@ let rec rty_of_expr expr =
       let retty = rty_of_expr body in
       let arg = id_of_pattern vb.pvb_pat in
       match rty_of_expr vb.pvb_expr with
-      | RtyBase { cty; ou = Fa } -> RtyBaseArr { argcty = cty; arg; retty }
-      | RtyBase { cty; ou = Ex } -> RtyBaseDepPair { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = Fa; _ } -> RtyBaseArr { argcty = cty; arg; retty }
+      | RtyBase { cty; ou = Ex; _ } ->
+          RtyBaseDepPair { argcty = cty; arg; retty }
       | RtyInter _ -> _failatwith __FILE__ __LINE__ "die"
       | _ -> _failatwith __FILE__ __LINE__ "die")
   | Pexp_array ls -> (

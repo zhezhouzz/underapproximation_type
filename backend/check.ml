@@ -63,6 +63,7 @@ let smt_solve ctx assertions =
 let extend =
   [
     ("len", [ "hd"; "tl"; "emp" ]);
+    ("uniq", [ "hd"; "tl"; "emp" ]);
     ( "typing",
       [
         "is_const";
@@ -84,6 +85,8 @@ let extend =
         "stlc_tyctx_tl";
       ] );
   ]
+
+let _filter_ax = false
 
 let smt_neg_and_solve ctx axioms vc =
   (* let () = *)
@@ -108,11 +111,13 @@ let smt_neg_and_solve ctx axioms vc =
   (*     (Zzdatatype.Datatype.StrList.to_string current_mps) *)
   (* in *)
   let axioms =
-    List.filter
-      (fun a ->
-        let mps = prop_get_mp a in
-        List.for_all (fun mp -> List.exists (String.equal mp) current_mps) mps)
-      axioms
+    if _filter_ax then
+      List.filter
+        (fun a ->
+          let mps = prop_get_mp a in
+          List.for_all (fun mp -> List.exists (String.equal mp) current_mps) mps)
+        axioms
+    else axioms
   in
   (* let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in *)
   (* let () = failwith "end" in *)

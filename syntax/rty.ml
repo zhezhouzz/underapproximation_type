@@ -2,10 +2,11 @@ open Sexplib.Std
 open Mtyped
 module Nt = Normalty.Ntyped
 open Cty
+open Prop
 open Normalty.Connective
 
 type 't rty =
-  | RtyBase of { ou : qt; cty : 't cty }
+  | RtyBase of { ou : qt; cty : 't cty; er : 't prop }
   | RtyBaseArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
   | RtyBaseDepPair of {
       argcty : 't cty;
@@ -20,7 +21,7 @@ type 't rty =
 (* NOTE: modified *)
 let rec fv_rty (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { cty; _ } -> [] @ fv_cty cty
+  | RtyBase { cty; er; _ } -> [] @ fv_cty cty @ fv_prop er
   | RtyBaseArr { argcty; arg; retty } ->
       let res = [] @ fv_rty retty in
       let res =
@@ -52,7 +53,9 @@ and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 
 let rec subst_rty (string_x : string) f (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { ou; cty } -> RtyBase { ou; cty = subst_cty string_x f cty }
+  | RtyBase { ou; cty; er } ->
+      RtyBase
+        { ou; cty = subst_cty string_x f cty; er = subst_prop string_x f er }
   | RtyBaseArr { argcty; arg; retty } ->
       if String.equal arg string_x then
         RtyBaseArr { argcty = subst_cty string_x f argcty; arg; retty }
@@ -90,7 +93,8 @@ and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
 
 let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { ou; cty } -> RtyBase { ou; cty = map_cty f cty }
+  | RtyBase { ou; cty; er } ->
+      RtyBase { ou; cty = map_cty f cty; er = map_prop f er }
   | RtyBaseArr { argcty; arg; retty } ->
       RtyBaseArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
   | RtyBaseDepPair { argcty; arg; retty } ->

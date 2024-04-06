@@ -1,42 +1,42 @@
 let[@library] ( == ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a == b) : [%v: bool]) [@under]
+  (iff v (a == b) : [%v: bool]) [@over]
 
 let[@library] ( != ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a != b) : [%v: bool]) [@under]
+  (iff v (a != b) : [%v: bool]) [@over]
 
 let[@library] ( < ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a < b) : [%v: bool]) [@under]
+  (iff v (a < b) : [%v: bool]) [@over]
 
 let[@library] ( > ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a > b) : [%v: bool]) [@under]
+  (iff v (a > b) : [%v: bool]) [@over]
 
 let[@library] ( <= ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a <= b) : [%v: bool]) [@under]
+  (iff v (a <= b) : [%v: bool]) [@over]
 
 let[@library] ( >= ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a >= b) : [%v: bool]) [@under]
+  (iff v (a >= b) : [%v: bool]) [@over]
 
 let[@library] ( + ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (v == a + b : [%v: int]) [@under]
+  (v == a + b : [%v: int]) [@over]
 
 let[@library] ( - ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (v == a - b : [%v: int]) [@under]
+  (v == a - b : [%v: int]) [@over]
 
 let[@library] TT = (true : [%v: unit]) [@over]
 let[@library] True = (v : [%v: bool]) [@over]

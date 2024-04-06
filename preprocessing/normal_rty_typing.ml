@@ -1,11 +1,18 @@
 open Language
 open Normal_cty_typing
+open Normal_prop_typing
 
 type t = Nt.t
 
 let bi_typed_rty_check (ctx : t ctx) (rty : t option rty) : t rty =
   let rec aux ctx = function
-    | RtyBase { ou; cty } -> RtyBase { ou; cty = bi_typed_cty_check ctx cty }
+    | RtyBase { ou; cty; er } ->
+        RtyBase
+          {
+            ou;
+            cty = bi_typed_cty_check ctx cty;
+            er = bi_typed_prop_check ctx er;
+          }
     | RtyBaseArr { argcty; arg; retty } ->
         let argcty = bi_typed_cty_check ctx argcty in
         let arg' = arg #: (erase_cty argcty) in

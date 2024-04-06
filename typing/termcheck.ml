@@ -99,7 +99,7 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
       let body =
         body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
       in
-      let argrty = RtyBase { ou = Fa; cty = argcty } in
+      let argrty = RtyBase { ou = Fa; cty = argcty; er = mk_false } in
       let* body =
         term_type_check (add_to_right rctx arg #: argrty) body retty
       in
@@ -108,7 +108,7 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
       let body =
         body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
       in
-      let argrty = RtyBase { ou = Ex; cty = argcty } in
+      let argrty = RtyBase { ou = Ex; cty = argcty; er = mk_false } in
       let* body =
         term_type_check (add_to_right rctx arg #: argrty) body retty
       in
@@ -130,7 +130,7 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
             retty = subst_rty_instance arg (AVar a) retty;
           }
       in
-      let binding = arg #: (RtyBase { ou = Fa; cty = argcty }) in
+      let binding = arg #: (RtyBase { ou = Fa; cty = argcty; er = mk_false }) in
       let body =
         body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
       in
@@ -153,7 +153,9 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         RtyBaseDepPair
           { argcty; arg = a.x; retty = subst_rty_instance arg (AVar a) retty }
       in
-      let binding = fixarg.x #: (RtyBase { ou = Ex; cty = argcty }) in
+      let binding =
+        fixarg.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
+      in
       let retty = subst_rty_instance arg (AVar fixarg) retty in
       let* body' =
         term_type_check
@@ -180,7 +182,9 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
             match rty with
             | RtyBaseArr { argcty; arg; retty } ->
                 let retty = subst_rty_instance arg (AVar x) retty in
-                let x = x.x #: (RtyBase { ou = Fa; cty = argcty }) in
+                let x =
+                  x.x #: (RtyBase { ou = Fa; cty = argcty; er = mk_false })
+                in
                 (args @ [ x ], retty)
             | RtyArrArr { argrty; retty } ->
                 let x = x.x #: argrty in
@@ -190,12 +194,12 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
       in
       let retty =
         match retty with
-        | RtyBase { cty = Cty { phi; _ }; _ } ->
+        | RtyBase { cty = Cty { phi; _ }; er; _ } ->
             let lit =
               Checkaux.typed_value_to_typed_lit __FILE__ __LINE__ matched
             in
             let phi = subst_prop_instance default_v lit.x phi in
-            RtyBase { ou = Fa; cty = Cty { nty = Nt.unit_ty; phi } }
+            RtyBase { ou = Fa; cty = Cty { nty = Nt.unit_ty; phi }; er }
         | _ -> _failatwith __FILE__ __LINE__ "die"
       in
       let dummy = (Rename.unique "dummy") #: retty in
@@ -213,6 +217,7 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
 and arrow_type_apply (rctx : rctx) appf_rty apparg =
   (* let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in *)
   match appf_rty with
+  (* | RtyGhostArr { argnty; arg; retty } -> *)
   | RtyBaseArr { argcty; arg; retty } ->
       (* NOTE: we need to capture the constraint from the argument type *)
       (* let argrty = and_cty_to_rty argcty apparg.ty in *)
@@ -269,7 +274,7 @@ and term_type_infer (rctx : rctx) (a : ('t, 't term) typed) :
     (t rty, t rty term) typed option =
   let res =
     match a.x with
-    | CErr -> Some CErr #: (prop_to_rty Fa a.ty mk_false)
+    | CErr -> Some CErr #: (prop_to_er_rty Fa a.ty mk_true)
     | CVal v ->
         let v = value_type_infer rctx v in
         Some (CVal v) #: v.ty
@@ -311,12 +316,11 @@ and term_type_check (rctx : rctx) (y : ('t, 't term) typed) (rty : t rty) :
     (t rty, t rty term) typed option =
   let () = pprint_simple_typectx_judge rctx (layout_typed_term y, rty) in
   match y.x with
-  | CErr -> Some CErr #: rty
   | CLetDeTu _ -> failwith "unimp"
   | CVal v ->
       let* v = value_type_check rctx v rty in
       Some (CVal v) #: rty
-  | CApp _ | CAppOp _ | CMatch _ ->
+  | CErr | CApp _ | CAppOp _ | CMatch _ ->
       let* x = term_type_infer rctx y in
       (* let () = failwith "end" in *)
       if sub_rty_bool rctx (x.ty, rty) then Some x.x #: rty

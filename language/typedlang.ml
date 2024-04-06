@@ -75,5 +75,5 @@ let mk_cty_false nty = Cty { nty; phi = mk_false }
 
 (* Rty *)
 
-let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty }
-let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty }
+let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty; er = mk_false }
+(* let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty } *)

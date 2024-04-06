@@ -55,7 +55,7 @@ let ctx_list_to_cctx pctx =
             match erase_rty binding.ty with
             | Nt.Ty_arrow _ -> aux pctx uqvs
             | _ -> _failatwith __FILE__ __LINE__ "die")
-        | RtyBase { ou; cty } ->
+        | RtyBase { ou; cty; _ } ->
             let x = (ou, binding.x) #: cty in
             aux pctx (x :: uqvs))
   in
@@ -65,6 +65,6 @@ let ctx_list_to_base_tvars l =
   List.filter_map
     (fun x ->
       match x.ty with
-      | RtyBase { ou = Fa; cty } -> Some x.x #: (erase_cty cty)
+      | RtyBase { ou = Fa; cty; _ } -> Some x.x #: (erase_cty cty)
       | _ -> None)
     l

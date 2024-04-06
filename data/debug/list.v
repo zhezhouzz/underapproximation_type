@@ -19,6 +19,13 @@ Lemma list_emp_is_uniq (l: IL) : (emp l) -> (uniq l).
 Admitted.
 #[export] Hint Resolve list_emp_is_uniq : core.
 
+Lemma test2: (forall v, (exists x, (exists s, (uniq s/\ (exists r_0, (~~r_0/\ ((r_0/\ emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) -> (~uniq v/\ list_mem v x))))))))%Z.
+Proof.
+  intros.
+  destruct list_emp_ex as (l0 & Hl0). exists 0%Z, l0.
+  intuition. exists True. intuition.
+
+
 Lemma test1: (
 forall v, (exists x, (exists s, (uniq s/\ (exists r_0, ((0 <= r_0/\ r_0 < 2/\ (r_0 = 0 -> (emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))))/\ (r_0 = 1 -> False)) -> (~uniq v/\ list_mem v x)))))))%Z.
 Proof.
