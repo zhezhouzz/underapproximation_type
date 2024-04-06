@@ -10,6 +10,18 @@ type 't lit =
   | AAppOp of ('t, string) typed * ('t, 't lit) typed list
 [@@deriving sexp]
 
+let rec stale_lit (lit_e : 't lit) =
+  match lit_e with
+  | AC _ -> []
+  | AVar _t_stringtyped0 -> [] @ [ _t_stringtyped0.x ]
+  | ATu _t__tlittypedlist0 ->
+      [] @ List.concat (List.map typed_stale_lit _t__tlittypedlist0)
+  | AProj (_t__tlittyped0, _) -> [] @ typed_stale_lit _t__tlittyped0
+  | AAppOp (_, _t__tlittypedlist1) ->
+      [] @ List.concat (List.map typed_stale_lit _t__tlittypedlist1)
+
+and typed_stale_lit (lit_e : ('t, 't lit) typed) = stale_lit lit_e.x
+
 let rec fv_lit (lit_e : 't lit) =
   match lit_e with
   | AC _ -> []

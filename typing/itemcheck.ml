@@ -1,4 +1,5 @@
 open Language
+open Checkaux
 
 (* open Rctx *)
 open Sugar
@@ -28,11 +29,9 @@ let item_check (axioms, uctx) imps = function
         Pp.printf "@{<bold>check against with:@} %s\n" (layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
-      match
-        Termcheck.term_type_check
-          Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms }
-          imp rty
-      with
+      let rctx = Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms } in
+      let rty = alpha_renaming_rty_term rctx imp rty in
+      match Termcheck.term_type_check rctx imp rty with
       | Some _ ->
           ( Env.show_debug_typing @@ fun _ ->
             Pp.printf "@{<bold>@{<yellow>Task %s, type check succeeded@}@}\n"
@@ -68,11 +67,9 @@ let item_infer (axioms, uctx) imps = function
         Pp.printf "@{<bold>partial infer against with:@} %s\n" (layout_rty rty)
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
-      match
-        Termsyn.partial_term_type_infer
-          Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms }
-          imp rty
-      with
+      let rctx = Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms } in
+      let rty = alpha_renaming_rty_term rctx imp rty in
+      match Termsyn.partial_term_type_infer rctx imp rty with
       | Some _ ->
           ( Env.show_debug_typing @@ fun _ ->
             Pp.printf "@{<bold>@{<yellow>Task %s, type infer succeeded@}@}\n"

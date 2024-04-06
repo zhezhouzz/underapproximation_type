@@ -45,6 +45,46 @@ and 't match_case =
     }
 [@@deriving sexp]
 
+let rec stale_value (value_e : 't value) =
+  match value_e with
+  | VConst _ -> []
+  | VVar _t_stringtyped0 -> [] @ [ _t_stringtyped0.x ]
+  | VLam { lamarg; body } -> ([] @ typed_stale_term body) @ [ lamarg.x ]
+  | VFix { fixname; fixarg; body } ->
+      ([] @ typed_stale_term body) @ [ fixarg.x ] @ [ fixname.x ]
+  | VTu _t__tvaluetypedlist0 ->
+      [] @ List.concat (List.map typed_stale_value _t__tvaluetypedlist0)
+
+and typed_stale_value (value_e : ('t, 't value) typed) = stale_value value_e.x
+
+and stale_term (term_e : 't term) =
+  match term_e with
+  | CErr -> []
+  | CVal _t__tvaluetyped0 -> [] @ typed_stale_value _t__tvaluetyped0
+  | CLetE { rhs; lhs; body } ->
+      ([] @ typed_stale_term body) @ [ lhs.x ] @ typed_stale_term rhs
+  | CLetDeTu { turhs; tulhs; body } ->
+      ([] @ typed_stale_term body)
+      @ List.map (fun x -> x.x) tulhs
+      @ typed_stale_value turhs
+  | CApp { appf; apparg } ->
+      ([] @ typed_stale_value apparg) @ typed_stale_value appf
+  | CAppOp { appopargs; _ } ->
+      [] @ List.concat (List.map typed_stale_value appopargs)
+  | CMatch { matched; match_cases } ->
+      (List.concat @@ List.map stale_match_case match_cases)
+      @ typed_stale_value matched
+
+and typed_stale_term (term_e : ('t, 't term) typed) = stale_term term_e.x
+
+and stale_match_case (match_case_e : 't match_case) =
+  match match_case_e with
+  | CMatchcase { args; exp; _ } ->
+      ([] @ typed_stale_term exp) @ List.map (fun x -> x.x) args
+
+and typed_stale_match_case (match_case_e : ('t, 't match_case) typed) =
+  stale_match_case match_case_e.x
+
 let rec fv_value (value_e : 't value) =
   match value_e with
   | VConst _ -> []

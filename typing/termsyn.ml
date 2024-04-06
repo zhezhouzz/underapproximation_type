@@ -1,5 +1,6 @@
 open Language
 open Rctx
+open Checkaux
 
 (* open Zzdatatype.Datatype *)
 open Sugar

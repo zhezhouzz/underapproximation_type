@@ -37,6 +37,44 @@ and 't raw_match_case =
     }
 [@@deriving sexp]
 
+let rec stale_raw_term (raw_term_e : 't raw_term) =
+  match raw_term_e with
+  | Var _t_stringtyped0 -> [] @ [ _t_stringtyped0.x ]
+  | Const _ -> []
+  | Lam { lamarg; lambody } ->
+      ([] @ typed_stale_raw_term lambody) @ [ lamarg.x ]
+  | Err -> []
+  | Let { rhs; lhs; letbody; _ } ->
+      ([] @ typed_stale_raw_term letbody)
+      @ List.map (fun x -> x.x) lhs
+      @ typed_stale_raw_term rhs
+  | App (_t__traw_termtyped0, _t__traw_termtypedlist1) ->
+      ([] @ List.concat (List.map typed_stale_raw_term _t__traw_termtypedlist1))
+      @ typed_stale_raw_term _t__traw_termtyped0
+  | AppOp (_, _t__traw_termtypedlist1) ->
+      [] @ List.concat (List.map typed_stale_raw_term _t__traw_termtypedlist1)
+  | Ite (_t__traw_termtyped0, _t__traw_termtyped1, _t__traw_termtyped2) ->
+      (([] @ typed_stale_raw_term _t__traw_termtyped2)
+      @ typed_stale_raw_term _t__traw_termtyped1)
+      @ typed_stale_raw_term _t__traw_termtyped0
+  | Tu _t__traw_termtypedlist0 ->
+      [] @ List.concat (List.map typed_stale_raw_term _t__traw_termtypedlist0)
+  | Match { matched; match_cases } ->
+      ([] @ List.concat (List.map stale_raw_match_case match_cases))
+      @ typed_stale_raw_term matched
+
+and typed_stale_raw_term (raw_term_e : ('t, 't raw_term) typed) =
+  stale_raw_term raw_term_e.x
+
+and stale_raw_match_case (raw_match_case_e : 't raw_match_case) =
+  match raw_match_case_e with
+  | Matchcase { args; exp; _ } ->
+      ([] @ typed_stale_raw_term exp) @ List.map (fun x -> x.x) args
+
+and typed_stale_raw_match_case
+    (raw_match_case_e : ('t, 't raw_match_case) typed) =
+  stale_raw_match_case raw_match_case_e.x
+
 let rec fv_raw_term (raw_term_e : 't raw_term) =
   match raw_term_e with
   | Var _t_stringtyped0 -> [] @ [ _t_stringtyped0 ]

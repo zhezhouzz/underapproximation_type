@@ -158,3 +158,51 @@ let and_cty_to_rty cty1 = function
   | RtyBase { ou; cty; er } ->
       RtyBase { ou; cty = and_cty_to_cty (cty1, cty); er }
   | _ -> _failatwith __FILE__ __LINE__ "die"
+
+let alpha_renaming_rty_in_scope (scope : string list) (rty : t rty) =
+  let scope = List.slow_rm_dup String.equal scope in
+  let renaming name =
+    if List.exists (String.equal name) scope then Some (Rename.unique name)
+    else None
+  in
+  let rec aux = function
+    | RtyBase _ as rty -> rty
+    | RtyGhostArr { argnty; arg; retty } -> (
+        let retty = aux retty in
+        match renaming arg with
+        | None -> RtyGhostArr { argnty; arg; retty }
+        | Some arg' ->
+            RtyGhostArr
+              {
+                argnty;
+                arg = arg';
+                retty = subst_rty_instance arg (AVar arg' #: argnty) retty;
+              })
+    | RtyBaseArr { argcty; arg; retty } -> (
+        let retty = aux retty in
+        match renaming arg with
+        | None -> RtyBaseArr { argcty; arg; retty }
+        | Some arg' ->
+            RtyBaseArr
+              {
+                argcty;
+                arg = arg';
+                retty =
+                  subst_rty_instance arg (AVar arg' #: (erase_cty argcty)) retty;
+              })
+    | RtyBaseDepPair { argcty; arg; retty } -> (
+        let retty = aux retty in
+        match renaming arg with
+        | None -> RtyBaseDepPair { argcty; arg; retty }
+        | Some arg' ->
+            RtyBaseDepPair
+              {
+                argcty;
+                arg = arg';
+                retty =
+                  subst_rty_instance arg (AVar arg' #: (erase_cty argcty)) retty;
+              })
+    | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
+  in
+  aux rty

@@ -1,62 +1,10 @@
 open Language
 open Rctx
+open Checkaux
 open Zzdatatype.Datatype
 open Sugar
-open Subtyping
-
-type t = Nt.t
-
-let layout_ty = Nt.layout
-let _rec_arg : t prop option ref = ref None
-let init_rec_arg x = _rec_arg := Some x
-
-let apply_rec_arg arg =
-  let p = Env.get_statements_by_name "rec_arg" in
-  let arg = (AVar arg) #: arg.ty in
-  let param = (AVar default_v #: Nt.int_ty) #: Nt.int_ty in
-  let phi = List.fold_left apply_pi_prop p [ arg; param ] in
-  Cty { nty = Nt.int_ty; phi }
-
-let _warinning_subtyping_error file line (rty1, rty2) =
-  Env.show_debug_typing @@ fun _ ->
-  Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s <: %s\n" file line
-    (layout_rty rty1) (layout_rty rty2)
-
-let _warinning_subtyping_emptyness_error file line rty1 =
-  Env.show_debug_typing @@ fun _ ->
-  Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s is empty type\n" file line
-    (layout_rty rty1)
-
-let _warinning_typing_error file line (str, rty) =
-  Env.show_debug_typing @@ fun _ ->
-  Pp.printf "@{<bold>Type Error at [%s::%i]:@} %s : %s\n" file line str
-    (layout_rty rty)
-
-let sub_rty_bool rctx (t1, t2) =
-  let _ =
-    Tyctx.pprint_typectx_subtyping
-      (fun () -> pprint_linear_typectx rctx.local_ctx)
-      (t1, t2)
-  in
-  Subrty.sub_rty_bool rctx (t1, t2)
-
-let is_nonempty_rty rctx t1 =
-  let _ =
-    Tyctx.pprint_typectx_nonempty
-      (fun () -> pprint_linear_typectx rctx.local_ctx)
-      t1
-  in
-  true
-
-let _id_type_infer file line (rctx : rctx) (id : string) : t rty =
-  match get_opt rctx id with
-  | None -> _failatwith file line (spf "cannot find %s in type context" id)
-  | Some res -> res
-
-let const_type_infer nty (c : constant) =
-  match c with
-  | U -> prop_to_rty Fa Nt.unit_ty mk_true
-  | _ -> mk_rty_var_eq_c Fa nty (default_v, c)
+(* open Subtyping *)
+(* type t = Nt.t *)
 
 let rec value_type_infer (rctx : rctx) (a : (t, t value) typed) :
     (t rty, t rty value) typed =
@@ -73,100 +21,106 @@ let rec value_type_infer (rctx : rctx) (a : (t, t value) typed) :
     | VConst c -> (VConst c) #: (const_type_infer a.ty c)
     | VLam _ | VFix _ | VTu _ -> _failatwith __FILE__ __LINE__ "unimp"
   in
+  let res = res #=> (alpha_renaming_rty_value rctx a) in
   let () = pprint_simple_typectx_infer rctx (layout_typed_value a, res.ty) in
   res
 
 and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
     (t rty, t rty value) typed option =
   let () = pprint_simple_typectx_judge rctx (layout_typed_value a, rty) in
-  match (a.x, rty) with
-  | _, RtyGhostArr { argnty; arg; retty } ->
-      value_type_check
-        (add_to_right rctx arg #: (prop_to_rty Fa argnty mk_true))
-        a retty
-  | _, RtyInter (rty1, rty2) ->
-      let* a1 = value_type_check rctx a rty1 in
-      let* a2 = value_type_check rctx a rty2 in
-      Some a1.x #: (RtyInter (a1.ty, a2.ty))
-  | VConst _, _ | VVar _, _ ->
-      let e = value_type_infer rctx a in
-      if sub_rty_bool rctx (e.ty, rty) then Some e
-      else (
-        _warinning_subtyping_error __FILE__ __LINE__ (e.ty, rty);
-        _warinning_typing_error __FILE__ __LINE__ (layout_typed_value a, rty);
-        None)
-  | VLam { lamarg; body }, RtyBaseArr { argcty; arg; retty } ->
-      let body =
-        body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
-      in
-      let argrty = RtyBase { ou = Fa; cty = argcty; er = mk_false } in
-      let* body =
-        term_type_check (add_to_right rctx arg #: argrty) body retty
-      in
-      Some (VLam { lamarg = arg #: argrty; body }) #: rty
-  | VLam { lamarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
-      let body =
-        body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
-      in
-      let argrty = RtyBase { ou = Ex; cty = argcty; er = mk_false } in
-      let* body =
-        term_type_check (add_to_right rctx arg #: argrty) body retty
-      in
-      Some (VLam { lamarg = arg #: argrty; body }) #: rty
-  | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
-      let* body =
-        term_type_check (add_to_right rctx lamarg.x #: argrty) body retty
-      in
-      Some (VLam { lamarg = lamarg.x #: argrty; body }) #: rty
-  | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
-  | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
-      let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
-      let rty' =
-        let a = { x = Rename.unique arg; ty = fixarg.ty } in
-        RtyBaseArr
-          {
-            argcty = intersect_ctys [ argcty; rec_constraint_cty ];
-            arg = a.x;
-            retty = subst_rty_instance arg (AVar a) retty;
-          }
-      in
-      let binding = arg #: (RtyBase { ou = Fa; cty = argcty; er = mk_false }) in
-      let body =
-        body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
-      in
-      let* body' =
-        term_type_check
-          (add_to_rights rctx [ binding; fixname.x #: rty' ])
-          body retty
-      in
-      Some
-        (VFix
-           {
-             fixname = fixname.x #: rty;
-             fixarg = fixname.x #: binding.ty;
-             body = body';
-           })
-        #: rty
-  | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
-      let rty' =
-        let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
-        RtyBaseDepPair
-          { argcty; arg = a.x; retty = subst_rty_instance arg (AVar a) retty }
-      in
-      let binding =
-        fixarg.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
-      in
-      let retty = subst_rty_instance arg (AVar fixarg) retty in
-      let* body' =
-        term_type_check
-          (add_to_rights rctx [ binding; fixname.x #: rty' ])
-          body retty
-      in
-      Some
-        (VFix { fixname = fixname.x #: rty; fixarg = binding; body = body' })
-        #: rty
-  | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
-  | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
+  let res =
+    match (a.x, rty) with
+    | _, RtyGhostArr { argnty; arg; retty } ->
+        value_type_check
+          (add_to_right rctx arg #: (prop_to_rty Fa argnty mk_true))
+          a retty
+    | _, RtyInter (rty1, rty2) ->
+        let* a1 = value_type_check rctx a rty1 in
+        let* a2 = value_type_check rctx a rty2 in
+        Some a1.x #: (RtyInter (a1.ty, a2.ty))
+    | VConst _, _ | VVar _, _ ->
+        let e = value_type_infer rctx a in
+        if sub_rty_bool rctx (e.ty, rty) then Some e
+        else (
+          _warinning_subtyping_error __FILE__ __LINE__ (e.ty, rty);
+          _warinning_typing_error __FILE__ __LINE__ (layout_typed_value a, rty);
+          None)
+    | VLam { lamarg; body }, RtyBaseArr { argcty; arg; retty } ->
+        let body =
+          body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
+        in
+        let argrty = RtyBase { ou = Fa; cty = argcty; er = mk_false } in
+        let* body =
+          term_type_check (add_to_right rctx arg #: argrty) body retty
+        in
+        Some (VLam { lamarg = arg #: argrty; body }) #: rty
+    | VLam { lamarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
+        let body =
+          body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
+        in
+        let argrty = RtyBase { ou = Ex; cty = argcty; er = mk_false } in
+        let* body =
+          term_type_check (add_to_right rctx arg #: argrty) body retty
+        in
+        Some (VLam { lamarg = arg #: argrty; body }) #: rty
+    | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
+        let* body =
+          term_type_check (add_to_right rctx lamarg.x #: argrty) body retty
+        in
+        Some (VLam { lamarg = lamarg.x #: argrty; body }) #: rty
+    | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
+    | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
+        let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
+        let rty' =
+          let a = { x = Rename.unique arg; ty = fixarg.ty } in
+          RtyBaseArr
+            {
+              argcty = intersect_ctys [ argcty; rec_constraint_cty ];
+              arg = a.x;
+              retty = subst_rty_instance arg (AVar a) retty;
+            }
+        in
+        let binding =
+          arg #: (RtyBase { ou = Fa; cty = argcty; er = mk_false })
+        in
+        let body =
+          body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
+        in
+        let* body' =
+          term_type_check
+            (add_to_rights rctx [ binding; fixname.x #: rty' ])
+            body retty
+        in
+        Some
+          (VFix
+             {
+               fixname = fixname.x #: rty;
+               fixarg = fixname.x #: binding.ty;
+               body = body';
+             })
+          #: rty
+    | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
+        let rty' =
+          let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
+          RtyBaseDepPair
+            { argcty; arg = a.x; retty = subst_rty_instance arg (AVar a) retty }
+        in
+        let binding =
+          fixarg.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
+        in
+        let retty = subst_rty_instance arg (AVar fixarg) retty in
+        let* body' =
+          term_type_check
+            (add_to_rights rctx [ binding; fixname.x #: rty' ])
+            body retty
+        in
+        Some
+          (VFix { fixname = fixname.x #: rty; fixarg = binding; body = body' })
+          #: rty
+    | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
+    | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
+  in
+  res
 
 and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
     (x : t match_case) : t rty match_case option =
@@ -195,9 +149,7 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
       let retty =
         match retty with
         | RtyBase { cty = Cty { phi; _ }; er; _ } ->
-            let lit =
-              Checkaux.typed_value_to_typed_lit __FILE__ __LINE__ matched
-            in
+            let lit = typed_value_to_typed_lit __FILE__ __LINE__ matched in
             let phi = subst_prop_instance default_v lit.x phi in
             RtyBase { ou = Fa; cty = Cty { nty = Nt.unit_ty; phi }; er }
         | _ -> _failatwith __FILE__ __LINE__ "die"

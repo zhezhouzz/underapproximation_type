@@ -15,6 +15,21 @@ type 't prop =
   | Exists of { qv : (('t, string) typed[@bound]); body : 't prop }
 [@@deriving sexp]
 
+let rec stale_prop (prop_e : 't prop) =
+  match prop_e with
+  | Lit _t__tlittyped0 -> [] @ typed_stale_lit _t__tlittyped0
+  | Implies (_tprop0, _tprop1) -> ([] @ stale_prop _tprop1) @ stale_prop _tprop0
+  | Ite (_tprop0, _tprop1, _tprop2) ->
+      (([] @ stale_prop _tprop2) @ stale_prop _tprop1) @ stale_prop _tprop0
+  | Not _tprop0 -> [] @ stale_prop _tprop0
+  | And _tproplist0 -> [] @ List.concat (List.map stale_prop _tproplist0)
+  | Or _tproplist0 -> [] @ List.concat (List.map stale_prop _tproplist0)
+  | Iff (_tprop0, _tprop1) -> ([] @ stale_prop _tprop1) @ stale_prop _tprop0
+  | Forall { qv; body } -> ([] @ stale_prop body) @ [ qv.x ]
+  | Exists { qv; body } -> ([] @ stale_prop body) @ [ qv.x ]
+
+and typed_stale_prop (prop_e : ('t, 't prop) typed) = stale_prop prop_e.x
+
 let rec fv_prop (prop_e : 't prop) =
   match prop_e with
   | Lit _t__tlittyped0 -> [] @ typed_fv_lit _t__tlittyped0

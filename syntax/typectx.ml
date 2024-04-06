@@ -29,3 +29,4 @@ let add_to_right : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
   | None -> ( match ctx with Typectx l -> Typectx (l @ [ { x; ty } ]))
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l
+let stale_ctx = function Typectx l -> List.map (fun x -> x.x) l

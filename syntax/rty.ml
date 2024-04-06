@@ -18,6 +18,23 @@ type 't rty =
   | RtyGhostArr of { argnty : Nt.t; arg : (string[@bound]); retty : 't rty }
 [@@deriving sexp]
 
+let rec stale_rty (rty_e : 't rty) =
+  match rty_e with
+  | RtyBase { cty; er; _ } -> [] @ stale_cty cty @ stale_prop er
+  | RtyBaseArr { argcty; arg; retty } ->
+      let res = [] @ stale_rty retty in
+      res @ stale_cty argcty @ [ arg ]
+  | RtyBaseDepPair { argcty; arg; retty } ->
+      let res = [] @ stale_rty retty in
+      res @ stale_cty argcty @ [ arg ]
+  | RtyArrArr { argrty; retty } -> ([] @ stale_rty retty) @ stale_rty argrty
+  | RtyInter (rty1, rty2) -> stale_rty rty1 @ stale_rty rty2
+  | RtyGhostArr { argnty; arg; retty } ->
+      let res = [] @ stale_rty retty in
+      res @ [ arg ]
+
+and typed_stale_rty (rty_e : ('t, 't rty) typed) = stale_rty rty_e.x
+
 (* NOTE: modified *)
 let rec fv_rty (rty_e : 't rty) =
   match rty_e with

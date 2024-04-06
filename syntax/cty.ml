@@ -19,6 +19,11 @@ let rec fv_cty (cty_e : 't cty) =
 
 and typed_fv_cty (cty_e : ('t, 't cty) typed) = fv_cty cty_e.x
 
+let rec stale_cty (cty_e : 't cty) =
+  match cty_e with Cty { phi; nty } -> [] @ stale_prop phi @ [ default_v ]
+
+and typed_stale_cty (cty_e : ('t, 't cty) typed) = stale_cty cty_e.x
+
 let rec subst_cty (string_x : string) f (cty_e : 't cty) =
   match cty_e with
   | Cty { nty; phi } -> Cty { nty; phi = subst_prop string_x f phi }
