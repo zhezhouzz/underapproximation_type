@@ -1,57 +1,57 @@
 let[@library] ( == ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a == b) : [%v: bool]) [@over]
+  (iff v (a == b) : [%v: bool]) [@under]
 
 let[@library] ( != ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a != b) : [%v: bool]) [@over]
+  (iff v (a != b) : [%v: bool]) [@under]
 
 let[@library] ( < ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a < b) : [%v: bool]) [@over]
+  (iff v (a < b) : [%v: bool]) [@under]
 
 let[@library] ( > ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a > b) : [%v: bool]) [@over]
+  (iff v (a > b) : [%v: bool]) [@under]
 
 let[@library] ( <= ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a <= b) : [%v: bool]) [@over]
+  (iff v (a <= b) : [%v: bool]) [@under]
 
 let[@library] ( >= ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (iff v (a >= b) : [%v: bool]) [@over]
+  (iff v (a >= b) : [%v: bool]) [@under]
 
 let[@library] ( + ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (v == a + b : [%v: int]) [@over]
+  (v == a + b : [%v: int]) [@under]
 
 let[@library] ( - ) =
   let a = (true : [%v: int]) [@over] in
   let b = (true : [%v: int]) [@over] in
-  (v == a - b : [%v: int]) [@over]
+  (v == a - b : [%v: int]) [@under]
 
-let[@library] TT = (true : [%v: unit]) [@over]
-let[@library] True = (v : [%v: bool]) [@over]
-let[@library] False = (not v : [%v: bool]) [@over]
-let[@library] Nil = (emp v : [%v: int list]) [@over]
+let[@library] TT = (true : [%v: unit]) [@under]
+let[@library] True = (v : [%v: bool]) [@under]
+let[@library] False = (not v : [%v: bool]) [@under]
+let[@library] Nil = (emp v : [%v: int list]) [@under]
 
 let[@library] Cons =
   let x = (true : [%v: int]) [@over] in
   let xs = (true : [%v: int list]) [@over] in
-  (hd v x && tl v xs : [%v: int list]) [@over]
+  (hd v x && tl v xs : [%v: int list]) [@under]
 
 let[@library] list_mem =
   let xs = (true : [%v: int list]) [@over] in
   let x = (true : [%v: int]) [@over] in
-  (v == list_mem xs x : [%v: bool]) [@over]
+  (v == list_mem xs x : [%v: bool]) [@under]
 
 let[@library] Leaf = (leaf v : [%v: int tree]) [@under]
 

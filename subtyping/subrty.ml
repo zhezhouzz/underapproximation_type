@@ -17,13 +17,14 @@ let _sub_rty_bool rctx (rty1, rty2) =
     | _, RtyGhostArr { argnty; arg; retty } ->
         let rctx = add_to_right rctx arg #: (prop_to_rty Fa argnty mk_true) in
         aux rctx (rty1, retty)
-    | ( RtyBase { ou = Fa; cty = cty1; er = er1 },
-        RtyBase { ou = Fa; cty = cty2; er = er2 } ) ->
-        Subcty.sub_prop rctx (er1, er2)
-        && Subcty.sub_cty_bool
-             (add_to_right rctx
-                (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit (Not er1)))
-             (cty1, cty2)
+    | RtyBase { ou = Fa; cty = cty1; _ }, RtyBase { ou = Fa; cty = cty2; _ } ->
+        (* Subcty.sub_prop rctx (er1, er2) *)
+        (* && *)
+        Subcty.sub_cty_bool rctx (cty1, cty2)
+    | RtyBase { ou = Ex; cty = cty1; _ }, RtyBase { ou = Ex; cty = cty2; _ } ->
+        (* Subcty.sub_prop rctx (er1, er2) *)
+        (* && *)
+        Subcty.sub_cty_bool rctx (cty2, cty1)
     | ( RtyBaseArr { argcty = argcty1; arg = arg1; retty = retty1 },
         RtyBaseArr { argcty = argcty2; arg = arg2; retty = retty2 } ) ->
         Subcty.sub_cty_bool rctx (argcty2, argcty1)
@@ -71,7 +72,10 @@ let _sub_rty_bool rctx (rty1, rty2) =
   aux rctx (rty1, rty2)
 
 let sub_rty_bool rtcx (rty1, rty2) =
-  _sub_rty_bool rtcx (_desugar_rty_ret_under rty1, _desugar_rty_ret_under rty2)
+  (* let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in *)
+  (* let () = Printf.printf "Desugar:\n" in *)
+  (* let () = Printf.printf "%s <: %s\n" (layout_rty rty1) (layout_rty rty2) in *)
+  _sub_rty_bool rtcx (rty1, rty2)
 
 let is_nonempty_rty _ = _failatwith __FILE__ __LINE__ "die"
 (* function *)
@@ -80,9 +84,6 @@ let is_nonempty_rty _ = _failatwith __FILE__ __LINE__ "die"
 
 let external_check ctx (rty1, rty2) =
   let () = Printf.printf "Subtyping:\n" in
-  let () = Printf.printf "%s <: %s\n" (layout_rty rty1) (layout_rty rty2) in
-  let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in
-  let () = Printf.printf "Desugar:\n" in
   let () = Printf.printf "%s <: %s\n" (layout_rty rty1) (layout_rty rty2) in
   let res = sub_rty_bool ctx (rty1, rty2) in
   let () =

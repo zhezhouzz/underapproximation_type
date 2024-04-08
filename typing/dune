@@ -6,6 +6,6 @@
    checkaux
    termcheck
    infer_prop
-   termsyn
+   ; termsyn
    itemcheck
  ))

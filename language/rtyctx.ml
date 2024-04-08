@@ -59,3 +59,6 @@ let rctx_to_cctx pctx = ctx_list_to_cctx (to_ctx_list pctx)
 
 let rctx_to_base_tvars uctx =
   ctx_list_to_base_tvars (to_ctx_list uctx.local_ctx)
+
+let update_rty_by_name ctx name f =
+  map_in_local_ctx ctx (fun ctx -> update_rty_by_name ctx name f)

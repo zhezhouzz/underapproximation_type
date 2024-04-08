@@ -123,35 +123,53 @@ let rec intersect_rtys = function
 let rec pack_rty_to_rty = function
   | x, RtyGhostArr { argnty; arg; retty } ->
       RtyGhostArr { argnty; arg; retty = pack_rty_to_rty (x, retty) }
-  | x, RtyBase { ou = Fa; cty; er } -> (
+  | x, RtyBase { ou = Ex; cty; er } -> (
       match erase_rty x.ty with
       | Nt.Ty_arrow _ -> RtyBase { ou = Fa; cty; er }
       | _ -> (
           match x.ty with
-          | RtyBase { ou = Fa; cty = cty_x; er = er_x } when is_false er_x ->
+          | RtyBase { ou = Ex; cty = cty_x; er = er_x } when is_false er_x ->
               RtyBase
-                { ou = Fa; cty = exists_cty_to_cty (x.x #: cty_x, cty); er }
-          | RtyBase { ou = Ex; cty = Cty { nty; phi }; er = er_x }
-            when is_false er_x ->
-              let phi = subst_prop_instance default_v (AVar x.x #: nty) phi in
-              RtyGhostArr
-                {
-                  argnty = nty;
-                  arg = x.x;
-                  retty =
-                    RtyBase
-                      {
-                        ou = Fa;
-                        cty = map_phi_in_cty (smart_implies phi) cty;
-                        er;
-                      };
-                }
+                { ou = Ex; cty = exists_cty_to_cty (x.x #: cty_x, cty); er }
           | _ ->
               let () =
                 Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty)
               in
               _failatwith __FILE__ __LINE__ "die"))
   | _ -> _failatwith __FILE__ __LINE__ "die"
+
+(* let rec pack_rty_to_rty = function *)
+(*   | x, RtyGhostArr { argnty; arg; retty } -> *)
+(*       RtyGhostArr { argnty; arg; retty = pack_rty_to_rty (x, retty) } *)
+(*   | x, RtyBase { ou; cty; er } -> ( *)
+(*       match erase_rty x.ty with *)
+(*       | Nt.Ty_arrow _ -> RtyBase { ou = Fa; cty; er } *)
+(*       | _ -> ( *)
+(*           match x.ty with *)
+(*           | RtyBase { ou = ou'; cty = cty_x; er = er_x } when is_false er_x  -> *)
+(*               RtyBase *)
+(*                 { ou = Fa; cty = exists_cty_to_cty (x.x #: cty_x, cty); er } *)
+(*           | RtyBase { ou = Ex; cty = Cty { nty; phi }; er = er_x } *)
+(*             when is_false er_x -> *)
+(*               let phi = subst_prop_instance default_v (AVar x.x #: nty) phi in *)
+(*               RtyGhostArr *)
+(*                 { *)
+(*                   argnty = nty; *)
+(*                   arg = x.x; *)
+(*                   retty = *)
+(*                     RtyBase *)
+(*                       { *)
+(*                         ou = Fa; *)
+(*                         cty = map_phi_in_cty (smart_implies phi) cty; *)
+(*                         er; *)
+(*                       }; *)
+(*                 } *)
+(*           | _ -> *)
+(*               let () = *)
+(*                 Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty) *)
+(*               in *)
+(*               _failatwith __FILE__ __LINE__ "die")) *)
+(*   | _ -> _failatwith __FILE__ __LINE__ "die" *)
 
 let pack_rtys_to_rty bindings rty =
   List.fold_right (fun x res_ty -> pack_rty_to_rty (x, res_ty)) bindings rty

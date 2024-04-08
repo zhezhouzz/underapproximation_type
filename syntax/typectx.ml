@@ -25,7 +25,8 @@ let get_opt ctx name =
 let add_to_right : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
  fun ctx { x; ty } ->
   match get_opt ctx x with
-  | Some _ -> _failatwith __FILE__ __LINE__ "duplicate adding to ctx"
+  | Some _ ->
+      _failatwith __FILE__ __LINE__ (spf "duplicate adding to ctx (%s)" x)
   | None -> ( match ctx with Typectx l -> Typectx (l @ [ { x; ty } ]))
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l

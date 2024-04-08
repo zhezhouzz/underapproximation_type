@@ -14,8 +14,8 @@ let layout_vs qt uqvs =
   @@ List.map (fun { x; ty } -> { x = (qt, x); ty }) uqvs
 
 (* let layout_prop_ = layout_prop_to_smtlib2 *)
-let layout_prop_ = layout_prop_to_coq
-(* let layout_prop_ = layout_prop *)
+(* let layout_prop_ = layout_prop_to_coq *)
+let layout_prop_ = layout_prop
 
 let rec normalize_ctx ctx =
   match ctx with

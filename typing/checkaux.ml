@@ -79,5 +79,5 @@ let _id_type_infer file line (rctx : rctx) (id : string) : t rty =
 
 let const_type_infer nty (c : constant) =
   match c with
-  | U -> prop_to_rty Fa Nt.unit_ty mk_true
-  | _ -> mk_rty_var_eq_c Fa nty (default_v, c)
+  | U -> prop_to_rty Ex Nt.unit_ty mk_true
+  | _ -> mk_rty_var_eq_c Ex nty (default_v, c)

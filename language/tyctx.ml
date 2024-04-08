@@ -68,3 +68,11 @@ let ctx_list_to_base_tvars l =
       | RtyBase { ou = Fa; cty; _ } -> Some x.x #: (erase_cty cty)
       | _ -> None)
     l
+
+let update_rty_by_name (ctx : t rty ctx) name f =
+  match ctx with
+  | Typectx l ->
+      Typectx
+        (List.map
+           (fun x -> if String.equal x.x name then x.x #: (f x.ty) else x)
+           l)

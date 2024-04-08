@@ -69,7 +69,8 @@ let item_infer (axioms, uctx) imps = function
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       let rctx = Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms } in
       let rty = alpha_renaming_rty_term rctx imp rty in
-      match Termsyn.partial_term_type_infer rctx imp rty with
+      (* match Termsyn.partial_term_type_infer rctx imp rty with *)
+      match None with
       | Some _ ->
           ( Env.show_debug_typing @@ fun _ ->
             Pp.printf "@{<bold>@{<yellow>Task %s, type infer succeeded@}@}\n"
