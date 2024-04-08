@@ -13,11 +13,13 @@ let mk_rty_var_eq_c ou nty (id, c) =
 let mk_rty_var_eq_var ou nty (id, c) =
   RtyBase { ou; cty = mk_cty_var_eq_var nty (id, c); er = mk_false }
 
-let mk_rty_var_eq_v ou (id, v) =
+let mk_rty_var_eq_v ou nty (id, v) =
   match v.x with
-  | VConst c -> mk_rty_var_eq_c ou v.ty (id, c)
-  | VVar c -> mk_rty_var_eq_var ou v.ty (id, c.x)
+  | VConst c -> mk_rty_var_eq_c ou nty (id, c)
+  | VVar c -> mk_rty_var_eq_var ou nty (id, c.x)
   | _ -> _failatwith __FILE__ __LINE__ "die"
+
+let cty_to_rty ou cty = RtyBase { ou; cty; er = mk_false }
 
 let prop_to_rty ou nty prop =
   RtyBase { ou; cty = prop_to_cty nty prop; er = mk_false }

@@ -2,7 +2,7 @@ open Syntax
 open Frontend_opt
 open Typedlang
 open Tyctx
-open Zzdatatype.Datatype
+(* open Zzdatatype.Datatype *)
 
 type t = Nt.t
 
@@ -35,10 +35,20 @@ let pprint_simple_typectx_infer ctx (e, rty) =
 let add_to_right_label { builtin_ctx; local_ctx; axioms } x =
   { builtin_ctx; local_ctx = add_to_right local_ctx x; axioms }
 
-let add_to_right { builtin_ctx; local_ctx; axioms } x =
-  { builtin_ctx; local_ctx = add_to_right local_ctx x; axioms }
+let map_in_local_ctx { builtin_ctx; local_ctx; axioms } f =
+  { builtin_ctx; local_ctx = f local_ctx; axioms }
 
-let add_to_rights rctx l = List.fold_left add_to_right rctx l
+let add_to_right ctx x =
+  map_in_local_ctx ctx (fun local_ctx -> add_to_right local_ctx x)
+
+let add_to_rights ctx l =
+  map_in_local_ctx ctx (fun local_ctx -> add_to_rights local_ctx l)
+
+let add_to_left ctx x =
+  map_in_local_ctx ctx (fun local_ctx -> add_to_left local_ctx x)
+
+let add_to_lefts ctx l =
+  map_in_local_ctx ctx (fun local_ctx -> add_to_lefts local_ctx l)
 
 let get_opt { builtin_ctx; local_ctx; _ } id =
   match get_opt local_ctx id with

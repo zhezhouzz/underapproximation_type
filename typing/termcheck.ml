@@ -122,8 +122,8 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
   in
   res
 
-and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
-    (x : t match_case) : t rty match_case option =
+and match_case_type_check (rctx : rctx) (matched : (t, t value) typed)
+    (x : t match_case) (rty : t rty) : t rty match_case option =
   match x with
   | CMatchcase { constructor; args; exp } ->
       let constructor_rty =
@@ -156,69 +156,76 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
       in
       let dummy = (Rename.unique "dummy") #: retty in
       let bindings = args @ [ dummy ] in
-      let* exp = term_type_infer (add_to_rights rctx bindings) exp in
+      let* exp = term_type_check (add_to_rights rctx bindings) exp rty in
       (* let _ = *)
       (*   Printf.printf "exists %s\n" *)
       (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
       (* in *)
-      let exp = exp.x #: (pack_rtys_to_rty bindings exp.ty) in
       Some
         (CMatchcase
            { constructor = constructor.x #: constructor_rty; args; exp })
 
-and arrow_type_apply (rctx : rctx) appf_rty apparg =
+and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
   (* let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in *)
+  let apparg' = value_type_infer rctx apparg in
   match appf_rty with
-  (* | RtyGhostArr { argnty; arg; retty } -> *)
+  | RtyGhostArr { argnty; arg; retty } ->
+      let arg = arg #: (prop_to_rty Fa argnty mk_true) in
+      Some (add_to_left rctx arg, apparg', retty)
   | RtyBaseArr { argcty; arg; retty } ->
       (* NOTE: we need to capture the constraint from the argument type *)
-      (* let argrty = and_cty_to_rty argcty apparg.ty in *)
-      let argrty =
-        mk_rty_var_eq_v Fa (default_v, apparg.x #: (erase_rty apparg.ty))
+      let constraint_rty =
+        match argcty with
+        | Cty { nty; phi } ->
+            let phi = subst_prop_instance default_v (AVar arg #: nty) phi in
+            prop_to_rty Fa Nt.Ty_unit phi
       in
-      let argrty = and_cty_to_rty argcty argrty in
-      let tmp_name = Rename.unique arg in
-      let retty =
-        subst_rty_instance arg (AVar tmp_name #: (erase_rty argrty)) retty
-      in
-      Some ([ tmp_name #: argrty ], retty)
+      let tmp = (Rename.unique "tmp") #: constraint_rty in
+      let lit = typed_value_to_typed_lit __FILE__ __LINE__ apparg in
+      let retty = subst_rty_instance arg lit.x retty in
+      Some (add_to_right rctx tmp, apparg', retty)
+  | RtyBaseDepPair { argcty; arg; retty } ->
+      (* NOTE: we need to capture the constraint from the argument type *)
+      let arg = arg #: (cty_to_rty Fa argcty) in
+      let constraint_rty = mk_rty_var_eq_v Fa Nt.Ty_unit (arg.x, apparg) in
+      let tmp = (Rename.unique "tmp") #: constraint_rty in
+      Some (add_to_left (add_to_right rctx tmp) arg, apparg', retty)
   | RtyArrArr { argrty; retty } ->
-      if sub_rty_bool rctx (apparg.ty, argrty) then Some ([], retty)
+      if sub_rty_bool rctx (apparg'.ty, argrty) then Some (rctx, apparg', retty)
       else (
-        _warinning_subtyping_error __FILE__ __LINE__ (apparg.ty, argrty);
+        _warinning_subtyping_error __FILE__ __LINE__ (apparg'.ty, argrty);
         _warinning_typing_error __FILE__ __LINE__
-          ( layout_typed_value apparg #-> (map_value erase_rty) #=> erase_rty,
+          ( layout_typed_value apparg' #-> (map_value erase_rty) #=> erase_rty,
             argrty );
         None)
   | _ -> _failatwith __FILE__ __LINE__ "type error: not an arrow type"
 
 and term_type_infer_app (rctx : rctx) (a : ('t, 't term) typed) :
-    ((t rty, string) typed list * (t rty, t rty term) typed) option =
+    (rctx * (t rty, t rty term) typed) option =
   let res =
     match a.x with
     | CApp { appf; apparg } ->
-        let appf, apparg = map2 (value_type_infer rctx) (appf, apparg) in
-        let* bindings, retty = arrow_type_apply rctx appf.ty apparg in
-        Some (bindings, (CApp { appf; apparg }) #: retty)
+        let appf = value_type_infer rctx appf in
+        let* rctx, apparg, retty = arrow_type_apply rctx appf.ty apparg in
+        Some (rctx, (CApp { appf; apparg }) #: retty)
     | CAppOp { op; appopargs } ->
         let op_rty =
           _id_type_infer __FILE__ __LINE__ rctx (op_name_for_typectx op.x)
         in
         let op = op.x #: op_rty in
-        let appopargs = List.map (value_type_infer rctx) appopargs in
-        let* bindings, res =
+        let* rctx, appopargs, retty =
           List.fold_left
             (fun res apparg ->
-              let* bindings, op_rty = res in
-              let* bindings', op_rty = arrow_type_apply rctx op_rty apparg in
-              Some (bindings @ bindings', op_rty))
-            (Some ([], op_rty))
+              let* rctx, appopargs, op_rty = res in
+              let* rctx, apparg, op_rty = arrow_type_apply rctx op_rty apparg in
+              Some (rctx, appopargs @ [ apparg ], op_rty))
+            (Some (rctx, [], op_rty))
             appopargs
         in
-        Some (bindings, (CAppOp { op; appopargs }) #: res)
+        Some (rctx, (CAppOp { op; appopargs }) #: retty)
     | _ ->
-        let* res = term_type_infer rctx a in
-        Some ([], res)
+        let* rty = term_type_infer rctx a in
+        Some (rctx, rty)
   in
   res
 
@@ -230,32 +237,9 @@ and term_type_infer (rctx : rctx) (a : ('t, 't term) typed) :
     | CVal v ->
         let v = value_type_infer rctx v in
         Some (CVal v) #: v.ty
-    | CApp _ | CAppOp _ ->
-        let* bindings, res = term_type_infer_app rctx a in
-        Some res.x #: (pack_rtys_to_rty bindings res.ty)
-    | CMatch { matched; match_cases } ->
-        (* NOTE: we drop unreachable cases *)
-        let match_cases =
-          List.filter_map (match_case_type_infer rctx matched) match_cases
-        in
-        (* let* match_cases = Sugar.opt_list_to_list_opt match_cases in *)
-        let intersect_ty =
-          intersect_rtys
-          @@ List.map (function CMatchcase { exp; _ } -> exp.ty) match_cases
-        in
-        let matched = value_type_infer rctx matched in
-        Some (CMatch { matched; match_cases }) #: intersect_ty
+    | CMatch _ | CApp _ | CAppOp _ | CLetE _ ->
+        _failatwith __FILE__ __LINE__ "die"
     | CLetDeTu _ -> failwith "unimp"
-    | CLetE { rhs; lhs; body } ->
-        let* bindings, rhs = term_type_infer_app rctx rhs in
-        let lhs = lhs.x #: rhs.ty in
-        let bindings = bindings @ [ lhs ] in
-        let* body = term_type_infer (add_to_rights rctx bindings) body in
-        (* let _ = *)
-        (*   Printf.printf "CLetE exists %s\n" *)
-        (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
-        (* in *)
-        Some (CLetE { rhs; lhs; body }) #: (pack_rtys_to_rty bindings body.ty)
   in
   let () =
     match res with
@@ -272,7 +256,7 @@ and term_type_check (rctx : rctx) (y : ('t, 't term) typed) (rty : t rty) :
   | CVal v ->
       let* v = value_type_check rctx v rty in
       Some (CVal v) #: rty
-  | CErr | CApp _ | CAppOp _ | CMatch _ ->
+  | CErr ->
       let* x = term_type_infer rctx y in
       (* let () = failwith "end" in *)
       if sub_rty_bool rctx (x.ty, rty) then Some x.x #: rty
@@ -280,11 +264,29 @@ and term_type_check (rctx : rctx) (y : ('t, 't term) typed) (rty : t rty) :
         _warinning_subtyping_error __FILE__ __LINE__ (x.ty, rty);
         _warinning_typing_error __FILE__ __LINE__ (layout_typed_term y, rty);
         None)
+  | CApp _ | CAppOp _ ->
+      let* rctx', x = term_type_infer_app rctx y in
+      if sub_rty_bool rctx' (x.ty, rty) then Some x.x #: rty
+      else (
+        _warinning_subtyping_error __FILE__ __LINE__ (x.ty, rty);
+        _warinning_typing_error __FILE__ __LINE__ (layout_typed_term y, rty);
+        None)
+  | CMatch { matched; match_cases } ->
+      (* NOTE: we drop unreachable cases *)
+      let match_cases =
+        List.filter_map
+          (fun case -> match_case_type_check rctx matched case rty)
+          match_cases
+      in
+      let matched = value_type_infer rctx matched in
+      if List.length match_cases == 0 then (
+        _warinning_typing_error __FILE__ __LINE__ (layout_typed_term y, rty);
+        None)
+      else Some (CMatch { matched; match_cases }) #: rty
   | CLetE { rhs; lhs; body } ->
-      let* bindings, rhs = term_type_infer_app rctx rhs in
+      let* rctx, rhs = term_type_infer_app rctx rhs in
       let lhs = lhs.x #: rhs.ty in
-      let bindings = bindings @ [ lhs ] in
-      let* body = term_type_check (add_to_rights rctx bindings) body rty in
+      let* body = term_type_check (add_to_right rctx lhs) body rty in
       (* let _ = *)
       (*   Printf.printf "CLetE exists %s\n" *)
       (*   @@ List.split_by_comma (fun x -> x.x) bindings *)

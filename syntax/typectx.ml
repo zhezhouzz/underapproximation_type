@@ -29,4 +29,12 @@ let add_to_right : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
   | None -> ( match ctx with Typectx l -> Typectx (l @ [ { x; ty } ]))
 
 let add_to_rights ctx l = List.fold_left add_to_right ctx l
+
+let add_to_left : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
+ fun ctx { x; ty } ->
+  match get_opt ctx x with
+  | Some _ -> _failatwith __FILE__ __LINE__ "duplicate adding to ctx"
+  | None -> ( match ctx with Typectx l -> Typectx ({ x; ty } :: l))
+
+let add_to_lefts ctx l = List.fold_right (fun x ctx -> add_to_left ctx x) l ctx
 let stale_ctx = function Typectx l -> List.map (fun x -> x.x) l
