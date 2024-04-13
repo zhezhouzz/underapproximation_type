@@ -5,8 +5,8 @@ let[@library] bar =
   (v > 0 : [%v: int]) [@under]
 
 let foo (n : int) : int =
-  let (m : int) = n in
-  if m > 0 then 0 else bar n
+  let (y : int) = bar n in
+  0
 
 let[@assert] foo =
   let n = (true : [%v: int]) [@under] in

@@ -160,3 +160,16 @@ let rec erase_rty = function
   | RtyGhostArr { retty; _ } -> erase_rty retty
 
 let default_res = "r"
+
+let flip_base = function
+  | RtyBase { ou = Fa; cty; er } -> RtyBase { ou = Ex; cty; er }
+  | RtyBase { ou = Ex; cty; er } -> RtyBase { ou = Fa; cty; er }
+  | _ as rty -> rty
+
+let rty_to_cty = function
+  | RtyBase { cty; _ } -> cty
+  | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
+
+let rty_to_ou = function
+  | RtyBase { ou; _ } -> ou
+  | _ -> Sugar._failatwith __FILE__ __LINE__ "die"

@@ -4,7 +4,7 @@ let _failwithmodel file line msg model =
   raise (FailWithModel (Printf.sprintf "[%s:%i] %s" file line msg, model))
 
 let ctx =
-  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "4999") ]
+  Z3.mk_context [ ("model", "true"); ("proof", "false"); ("timeout", "999") ]
 
 let _check axiom q =
   Check.(handle_check_res (fun () -> smt_neg_and_solve ctx axiom q))

@@ -75,15 +75,35 @@ let prop_is_v_eq_lit prop v =
 let smart_sigma (qv, xprop) prop =
   match qv.ty with
   | Nt.Ty_unit -> smart_add_to xprop prop
-  | _ -> (
-      match prop_is_v_eq_lit xprop qv.x with
-      | Some lit -> subst_prop_instance qv.x lit.x prop
-      | None ->
-          let body = smart_add_to xprop prop in
-          let fv = fv_prop body in
-          if List.exists (fun y -> String.equal qv.x y.x) fv then
-            Exists { qv; body }
-          else body)
+  | _ ->
+      let body = smart_add_to xprop prop in
+      let body =
+        match body with
+        | And l -> (
+            let l' = List.filter_map (fun p -> prop_is_v_eq_lit p qv.x) l in
+            match l' with
+            | [ lit ] -> subst_prop_instance qv.x lit.x body
+            | _ -> body)
+        | _ -> body
+      in
+      let fv = fv_prop body in
+      if List.exists (fun y -> String.equal qv.x y.x) fv then
+        Exists { qv; body }
+      else body
+
+(* ( *)
+(*   match prop_is_v_eq_lit xprop qv.x with *)
+(*   | Some lit -> subst_prop_instance qv.x lit.x prop *)
+(*   | None -> *)
+(*     (match prop_is_v_eq_lit prop qv.x with *)
+(*      | Some lit -> *)
+(*        subst_prop_instance qv.x lit.x prop *)
+(*      | None -> *)
+(*       let body = smart_add_to xprop prop in *)
+(*       let fv = fv_prop body in *)
+(*       if List.exists (fun y -> String.equal qv.x y.x) fv then *)
+(*         Exists { qv; body } *)
+(*       else body)) *)
 
 let smart_pi (qv, xprop) prop =
   match qv.ty with

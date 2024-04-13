@@ -94,12 +94,14 @@ and bi_term_check (ctx : t ctx) (x : t option raw_term) (ty : t) :
       let matched = bi_typed_term_infer ctx matched in
       let handle_case = function
         | Matchcase { constructor; args; exp } ->
-            (* let constructor_ty = *)
-            (*   Nt.construct_arr_tp *)
-            (*     (List.map (fun _ -> Nt.Ty_unknown) args, matched.ty) *)
-            (* in *)
+            let constructor_ty =
+              Nt._type_unify __FILE__ __LINE__
+                (Nt.construct_arr_tp
+                   (List.map (fun _ -> Nt.Ty_unknown) args, matched.ty))
+                (get_constructor_type ctx constructor.x)
+            in
             let constructor =
-              constructor.x #: (get_constructor_type ctx constructor.x)
+              constructor.x #: constructor_ty
               (* bi_typed_id_check ctx constructor constructor_ty *)
             in
             let argsty, _ = Nt.destruct_arr_tp constructor.ty in
@@ -183,9 +185,13 @@ and bi_term_infer (ctx : t ctx) (x : t option raw_term) : (t, t raw_term) typed
               Nt.construct_arr_tp
                 (List.map (fun _ -> Nt.Ty_unknown) args, matched.ty)
             in
+            (* let () = Printf.printf "%s\n" (Nt.layout constructor_ty) in *)
             let constructor =
               bi_typed_id_check ctx constructor constructor_ty
             in
+            (* let () = *)
+            (*   Printf.printf "%s\n" (List.split_by_comma layout_typed_raw_term args) *)
+            (* in *)
             let argsty, _ = Nt.destruct_arr_tp constructor.ty in
             let args =
               List.map (fun (x, ty) -> x.x #: ty)

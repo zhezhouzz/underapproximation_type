@@ -30,7 +30,7 @@ let item_check (axioms, uctx) imps = function
       in
       let _ = Nt._type_unify __FILE__ __LINE__ imp.ty (erase_rty rty) in
       let rctx = Rctx.{ builtin_ctx = uctx; local_ctx = emp; axioms } in
-      let rty = alpha_renaming_rty_term rctx imp rty in
+      (* let rty = alpha_renaming_rty_term rctx imp rty in *)
       match Termcheck.term_type_check rctx imp rty with
       | Some _ ->
           ( Env.show_debug_typing @@ fun _ ->
