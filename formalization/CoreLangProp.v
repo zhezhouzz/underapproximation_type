@@ -123,6 +123,17 @@ Proof.
     my_set_solver.
 Qed.
 
+Lemma close_var_fv_tm:
+  forall (v: tm) (x: atom) (k: nat), fv ({k <~ x} v) = (fv v) ∖ {[x]}.
+Proof.
+  apply (tm_mutual_rec
+           (fun (v: value) => forall (x: atom) (k: nat), fv ({k <~ x} v) = (fv v) ∖ {[x]})
+           (fun (e: tm) => forall (x: atom) (k: nat), fv ({k <~ x} e) = (fv e) ∖ {[x]})
+        ); simpl; intros; auto;
+    try var_dec_solver;
+    my_set_solver.
+Qed.
+
 Lemma subst_fresh_value: forall (v: value) (x:atom) (u: value),
     x ∉ (fv v) -> {x := u} v = v.
 Proof with eauto.
@@ -886,14 +897,14 @@ Proof.
                    (fun (e: value) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
                    (fun (e: tm) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
                 ); split; simpl; intros; auto;
-    repeat match goal with
+    repeat (simpl in *; match goal with
     | [H: body (treturn (vlam _ _)) |- _ ] => invclear H
     | [|- body (treturn (vlam _ _))] => auto_exists_L; intros a; intros; specialize_with a
     | [H: context [(treturn (vlam _ _)) ^^ _] |- _ ] => simpl in H
     | [|- context [(treturn (vlam _ _)) ^^ _] ] => simpl
     | [H: lc (treturn (vlam _ _)) |- _ ] => rewrite lc_abs_iff_body in H; auto
     | [|- lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
-    end.
+    end).
 Qed.
 
 Lemma close_rm_fv_tm: forall x (e: tm) k, x ∉ fv ({k <~ x} e).
@@ -963,6 +974,13 @@ Lemma lc_fresh_var_implies_body: forall e (x: atom),
 Proof.
   intros.
   apply (body_lc_after_close_tm x) in H0. rewrite close_open_var_tm in H0; auto.
+Qed.
+
+Lemma lc_fresh_var_implies_body_value: forall (e: value) (x: atom),
+    x # e -> lc (e ^^^ x) -> body e.
+Proof.
+  intros.
+  apply (body_lc_after_close_value x) in H0. rewrite close_open_var_value in H0; auto.
 Qed.
 
 Lemma open_not_in_eq_tm (x : atom) (t : tm) k :

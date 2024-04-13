@@ -58,30 +58,6 @@ Coercion vconst : constant >-> value.
 Coercion vfvar : atom >-> value.
 Coercion treturn : value >-> tm.
 
-(** A: the open/closed value *)
-(** B: the AST Type *)
-Class Substable VAL AST  : Type := {
-    substitute: atom -> VAL -> AST -> AST;
-    fv: AST -> aset;
-  }.
-
-Definition closed {A AST: Type} (v: AST) {H : Substable A AST} := fv v ≡ ∅.
-
-Class Ast VAL AST {H: Substable VAL AST} : Type :=
-  {
-    open : nat -> VAL -> AST -> AST;
-    close : atom -> nat -> AST -> AST;
-  }.
-
-Notation "'{' k '~>' s '}' e" := (open k s e) (at level 20, k constr).
-Notation "'{' k '~~>' s '}' e" := (open k (vfvar s) e) (at level 20, k constr).
-Notation "e '^^' s" := (open 0 s e) (at level 20).
-Notation "e '^^^' s" := (open 0 (vfvar s) e) (at level 20).
-Notation "'{' s '<~' x '}' e" := (close x s e) (at level 20, s constr).
-Notation "x '\' e" := (close x 0 e) (at level 20).
-Notation "'{' x ':=' s '}' t" := (substitute x s t) (at level 20).
-Notation "x # s" := (x ∉ stale s) (at level 40).
-
 (** * Locally nameless representation related definitions *)
 
 (** open *)
@@ -161,48 +137,76 @@ with tm_subst (x : atom) (s : value) (e : tm): tm :=
        | tmatchb v e1 e2 => tmatchb (value_subst x s v) (tm_subst x s e1) (tm_subst x s e2)
        end.
 
-#[export] Instance value_substable : Substable value value :=
+(** locally closed *)
+Inductive lc: tm -> Prop  :=
+| lc_const: forall (c: constant), lc c
+| lc_vfvar: forall (a: atom), lc (vfvar a)
+| lc_vlam: forall T e (L: aset), (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (vlam T e)
+| lc_vfix: forall Tf e (L: aset), (forall (f:atom), f ∉ L -> lc (open_tm 0 (vfvar f) e)) -> lc (vfix Tf e)
+| lc_tlete: forall (e1 e2: tm) (L: aset),
+    lc e1 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e2)) -> lc (tlete e1 e2)
+| lc_tletapp: forall (v1 v2: value) e (L: aset),
+    lc v1 -> lc v2 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (tletapp v1 v2 e)
+| lc_tletop: forall op (v1: value) e (L: aset),
+    lc v1 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (tletop op v1 e)
+| lc_tmatchb: forall (v: value) e1 e2, lc v -> lc e1 -> lc e2 -> lc (tmatchb v e1 e2).
+
+Global Hint Constructors lc: core.
+
+Definition body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e).
+
+(** TypeClass *)
+Class Substable AST  : Type := {
+    substitute: atom -> value -> AST -> AST;
+    fv: AST -> aset;
+  }.
+
+Class Ast AST {H: Substable AST} : Type :=
+  {
+    open : nat -> value -> AST -> AST;
+    close : atom -> nat -> AST -> AST;
+    ast_lc : AST -> Prop;
+    ast_body : AST -> Prop;
+  }.
+
+Definition closed {AST: Type} (v: AST) {H : Substable AST} := fv v ≡ ∅.
+Notation "'{' k '~>' s '}' e" := (open k s e) (at level 20, k constr).
+Notation "'{' k '~~>' s '}' e" := (open k (vfvar s) e) (at level 20, k constr).
+Notation "e '^^' s" := (open 0 s e) (at level 20).
+Notation "e '^^^' s" := (open 0 (vfvar s) e) (at level 20).
+Notation "'{' s '<~' x '}' e" := (close x s e) (at level 20, s constr).
+Notation "x '\' e" := (close x 0 e) (at level 20).
+Notation "'{' x ':=' s '}' t" := (substitute x s t) (at level 20).
+Notation "x # s" := (x ∉ stale s) (at level 40).
+
+#[export] Instance value_substable : Substable value :=
   {
     substitute := value_subst;
     fv := fv_value;
   }.
 
-#[export] Instance tm_substable : Substable value tm :=
+#[export] Instance tm_substable : Substable tm :=
   {
     substitute := tm_subst;
     fv := fv_tm;
   }.
 
-#[export] Instance value_ast : Ast value value :=
+#[export] Instance value_ast : Ast value :=
   {
     open := open_value;
     close := close_value;
+    ast_lc := lc;
+    ast_body := body;
   }.
 
-#[export] Instance tm_ast : Ast value tm :=
+#[export] Instance tm_ast : Ast tm :=
   {
     open := open_tm;
     close := close_tm;
+    ast_lc := lc;
+    ast_body := body;
   }.
 
-(** locally closed *)
-Inductive lc: tm -> Prop  :=
-| lc_const: forall (c: constant), lc c
-| lc_vfvar: forall (a: atom), lc (vfvar a)
-| lc_vlam: forall T e (L: aset), (forall (x: atom), x ∉ L -> lc (e ^^^ x)) -> lc (vlam T e)
-| lc_vfix: forall Tf e (L: aset), (forall (f:atom), f ∉ L -> lc (e ^^^ f)) -> lc (vfix Tf e)
-| lc_tlete: forall (e1 e2: tm) (L: aset),
-    lc e1 -> (forall (x: atom), x ∉ L -> lc (e2 ^^^ x)) -> lc (tlete e1 e2)
-| lc_tletapp: forall (v1 v2: value) e (L: aset),
-    lc v1 -> lc v2 -> (forall (x: atom), x ∉ L -> lc (e ^^^ x)) -> lc (tletapp v1 v2 e)
-| lc_tletop: forall op (v1: value) e (L: aset),
-    lc v1 -> (forall (x: atom), x ∉ L -> lc (e ^^^ x)) -> lc (tletop op v1 e)
-| lc_tmatchb: forall (v: value) e1 e2, lc v -> lc e1 -> lc e2 -> lc (tmatchb v e1 e2).
-
-Global Hint Constructors lc: core.
-
-Definition body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> lc (e ^^^ x).
-
-(* Syntax Suger *)
+(** Syntax Suger *)
 Definition mk_app_e_v (e: tm) (v: value) :=
   tlete e (tletapp (vbvar 0) v (vbvar 0)).
