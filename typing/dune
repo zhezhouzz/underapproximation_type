@@ -5,6 +5,7 @@
  (modules
    checkaux
    termcheck
+   termrefine
    infer_prop
    ; termsyn
    itemcheck

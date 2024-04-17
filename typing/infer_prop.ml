@@ -38,3 +38,30 @@ let abductive_infer_rty uctx rty1 rty2 =
       let cty = abductive_infer_cty uctx cty1 cty2 in
       RtyBase { ou = Ex; cty; er }
   | _, _ -> _failatwith __FILE__ __LINE__ "unimp"
+
+let abduce_overlap_cty uctx cty1 cty2 =
+  let vars = rctx_to_base_tvars uctx in
+  match cty1 with
+  | Cty { nty; phi } ->
+      let v = default_v #: nty in
+      let vars = v :: vars in
+      let features = mk_features (Feature.get_template ()) vars in
+      let verifier prop =
+        let phi = smart_or [ prop; phi ] in
+        let cty1 = Cty { nty; phi } in
+        let res = Subtyping.Subcty.sub_cty_bool uctx (cty1, cty2) in
+        let () =
+          Env.show_debug_queries @@ fun _ ->
+          Pp.printf "@{<bold>@{<orange>Verifier:@} %b@}\n" res
+        in
+        res
+      in
+      let phi = abductive_infer_subtyping_query ~features ~verifier in
+      Cty { nty; phi }
+
+let abduce_overlap_rty uctx rty1 rty2 =
+  match (rty1, rty2) with
+  | RtyBase { ou = Ex; cty = cty1; er }, RtyBase { ou = Fa; cty = cty2; _ } ->
+      let cty = abduce_overlap_cty uctx cty1 cty2 in
+      RtyBase { ou = Ex; cty; er }
+  | _, _ -> _failatwith __FILE__ __LINE__ "unimp"

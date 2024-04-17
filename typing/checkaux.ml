@@ -62,7 +62,24 @@ let sub_rty_bool rctx (t1, t2) =
       (fun () -> pprint_linear_typectx rctx.local_ctx)
       (t1, t2)
   in
-  Subrty.sub_rty_bool rctx (t1, t2)
+  let res = Subrty.sub_rty_bool rctx (t1, t2) in
+  let () =
+    Env.show_debug_typing @@ fun _ -> Pp.printf "Result: @{<bold>%b@}\n" res
+  in
+  res
+
+let overlap_rty_opt rctx (t1, t2) =
+  let _ =
+    Tyctx.pprint_typectx_overlaptyping
+      (fun () -> pprint_linear_typectx rctx.local_ctx)
+      (t1, t2)
+  in
+  let rty = Overlaprty.overlap_rty_opt rctx (t1, t2) in
+  let () =
+    Env.show_debug_typing @@ fun _ ->
+    Pp.printf "Result: @{<bold>%s@}\n" (opt_layout layout_rty rty)
+  in
+  rty
 
 let is_nonempty_rty rctx t1 =
   let _ =

@@ -37,6 +37,13 @@ let pprint_typectx_subtyping ctx (r1, r2) =
       Pp.printf "⊢ @{<hi_magenta>%s@} <: @{<cyan>%s@}\n\n" (layout_rty r1)
         (layout_rty r2))
 
+let pprint_typectx_overlaptyping ctx (r1, r2) =
+  Env.show_debug_typing (fun _ ->
+      let () = Pp.printf "@{<bold>Overlaping Check:@}\n" in
+      ctx ();
+      Pp.printf "⊢ @{<hi_magenta>%s@} ⋐ @{<cyan>%s@}\n\n" (layout_rty r1)
+        (layout_rty r2))
+
 let pprint_typectx_nonempty ctx r1 =
   Env.show_debug_typing (fun _ ->
       let () = Pp.printf "@{<bold>None-mptyness Check:@}\n" in

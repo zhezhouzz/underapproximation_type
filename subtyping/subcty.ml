@@ -78,7 +78,7 @@ let aux_sub_prop (axioms, uqvs) prop1 prop2 =
   in
   check_query axioms query
 
-let aux_emptyness (axioms, uqvs) cty =
+let aux_nonemptyness (axioms, uqvs) cty =
   let fa_ctx, ex_ctx = normalize_ctx uqvs in
   let nty, body = match cty with Cty { nty; phi } -> (nty, phi) in
   let body =
@@ -87,15 +87,13 @@ let aux_emptyness (axioms, uqvs) cty =
     | _ -> Exists { qv = default_v #: nty; body }
   in
   let query =
-    List.fold_right
-      (fun x cty -> exists_cty_to_prop (x, cty))
-      (fa_ctx @ ex_ctx) body
+    List.fold_right (fun x cty -> exists_cty_to_prop (x, cty)) ex_ctx body
   in
-  (* let query = *)
-  (*   List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query *)
-  (* in *)
+  let query =
+    List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query
+  in
   (* not (check_query axioms (Not query)) *)
-  check_query axioms (Not query)
+  check_query axioms query
 
 let sub_prop pctx (phi1, phi2) =
   let () = pprint_typectx pctx.local_ctx in
@@ -119,4 +117,8 @@ let sub_cty_bool pctx (cty1, cty2) = sub_cty pctx (cty1, cty2)
 
 let is_nonempty_cty pctx cty =
   let ctx = rctx_to_cctx pctx.local_ctx in
-  aux_emptyness (pctx.axioms, ctx) cty
+  aux_nonemptyness (pctx.axioms, ctx) cty
+
+let is_nonempty_cty_opt pctx cty =
+  let ctx = rctx_to_cctx pctx.local_ctx in
+  if aux_nonemptyness (pctx.axioms, ctx) cty then Some cty else None

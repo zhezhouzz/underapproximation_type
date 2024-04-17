@@ -122,7 +122,12 @@ let smt_neg_and_solve ctx axioms vc =
   (* let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in *)
   (* let () = failwith "end" in *)
   let assertions = List.map (Propencoding.to_z3 ctx) (axioms @ [ Not vc ]) in
-  let time_t, res = Sugar.clock (fun () -> smt_solve ctx assertions) in
+  let time_t, res =
+    Sugar.clock (fun () ->
+        match smt_solve ctx [ Propencoding.to_z3 ctx (Not vc) ] with
+        | SmtUnsat -> SmtUnsat
+        | _ -> smt_solve ctx assertions)
+  in
   let () =
     Env.show_debug_stat @@ fun _ -> Pp.printf "Z3 solving time: %0.4fs\n" time_t
   in
@@ -147,11 +152,12 @@ let handle_check_res query_action =
   smt_timeout_flag := false;
   match res with
   | SmtUnsat -> true
-  | SmtSat model ->
-      ( Env.show_log "model" @@ fun _ ->
-        Printf.printf "model:\n%s\n"
-        @@ Sugar.short_str 1000 @@ Z3.Model.to_string model );
-      false
+  | SmtSat _ -> false
+  (* | SmtSat model -> *)
+  (*     ( Env.show_log "model" @@ fun _ -> *)
+  (*       Printf.printf "model:\n%s\n" *)
+  (*       @@ Sugar.short_str 1000 @@ Z3.Model.to_string model ); *)
+  (*     false *)
   | Timeout ->
       (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");
       smt_timeout_flag := true;

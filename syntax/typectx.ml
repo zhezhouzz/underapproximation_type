@@ -39,3 +39,12 @@ let add_to_left : 'a. 'a ctx -> ('a, string) typed -> 'a ctx =
 
 let add_to_lefts ctx l = List.fold_right (fun x ctx -> add_to_left ctx x) l ctx
 let stale_ctx = function Typectx l -> List.map (fun x -> x.x) l
+
+let diff_ctx = function
+  | Typectx l1, Typectx l2 ->
+      let rec aux = function
+        | [], l -> l
+        | x :: xs, y :: ys when String.equal x.x y.x -> aux (xs, ys)
+        | _, _ -> _failatwith __FILE__ __LINE__ "die"
+      in
+      aux (l1, l2)

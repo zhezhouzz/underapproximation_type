@@ -89,43 +89,53 @@ let desugar_rty_ret_under rty =
   | Nt.Ty_arrow _ -> _desugar_rty_ret_under rty
   | _ -> rty
 
+(* let rec intersect_rtys = function *)
+(*   | [] -> _failatwith __FILE__ __LINE__ "die" *)
+(*   | [ rty ] -> rty *)
+(*   | rty1 :: rtys' -> *)
+(*       let rty2 = intersect_rtys rtys' in *)
+(*       let arg = Rename.unique default_res in *)
+(*       let arg_lit = (AVar arg #: Nt.Ty_bool) #: Nt.Ty_bool in *)
+(*       (\* let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in *\) *)
+(*       (\* let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in *\) *)
+(*       (\* let destr rty = *\) *)
+(*       (\*   let gvars', rty = extract_ghost_vars rty in *\) *)
+(*       (\*   match rty with *\) *)
+(*       (\*   | RtyBase { ou = Fa; cty; er } -> (gvars', cty, er) *\) *)
+(*       (\*   | _ -> _failatwith __FILE__ __LINE__ "die" *\) *)
+(*       (\* in *\) *)
+(*       (\* let (gvars1, cty1, er1), (gvars2, cty2, er2) = map2 destr (rty1, rty2) in *\) *)
+(*       let cty1 = map_phi_in_cty (smart_add_to (Lit arg_lit)) cty1 in *)
+(*       let cty2 = map_phi_in_cty (smart_add_to (Not (Lit arg_lit))) cty2 in *)
+(*       (\* let er1 = (smart_add_to (Lit arg_lit)) er1 in *\) *)
+(*       (\* let er2 = (smart_add_to (Not (Lit arg_lit))) er2 in *\) *)
+(*       let retty = *)
+(*         RtyBase { ou = Ex; cty = union_ctys [ cty1; cty2 ]; er = mk_false } *)
+(*       in *)
+(*       retty *)
+(* (\* let gvars = (arg #: Nt.Ty_bool) :: (gvars1 @ gvars2) in *\) *)
+(* (\* construct_ghost_vars gvars retty *\) *)
+
 let rec intersect_rtys = function
   | [] -> _failatwith __FILE__ __LINE__ "die"
   | [ rty ] -> rty
-  | rty1 :: rtys' ->
+  | rty1 :: rtys' -> (
       let rty2 = intersect_rtys rtys' in
-      let arg = Rename.unique default_res in
-      let arg_lit = (AVar arg #: Nt.Ty_bool) #: Nt.Ty_bool in
-      let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in
-      let rty1, rty2 = map2 _desugar_rty_ret_under (rty1, rty2) in
-      let destr rty =
-        let gvars', rty = extract_ghost_vars rty in
-        match rty with
-        | RtyBase { ou = Fa; cty; er } -> (gvars', cty, er)
-        | _ -> _failatwith __FILE__ __LINE__ "die"
-      in
-      let (gvars1, cty1, er1), (gvars2, cty2, er2) = map2 destr (rty1, rty2) in
-      let cty1 = map_phi_in_cty (smart_add_to (Lit arg_lit)) cty1 in
-      let cty2 = map_phi_in_cty (smart_add_to (Not (Lit arg_lit))) cty2 in
-      let er1 = (smart_add_to (Lit arg_lit)) er1 in
-      let er2 = (smart_add_to (Not (Lit arg_lit))) er2 in
-      let retty =
-        RtyBase
-          {
-            ou = Fa;
-            cty = union_ctys [ cty1; cty2 ];
-            er = smart_or [ er1; er2 ];
-          }
-      in
-      let gvars = (arg #: Nt.Ty_bool) :: (gvars1 @ gvars2) in
-      construct_ghost_vars gvars retty
+      match (rty1, rty2) with
+      | RtyBase { ou = Ex; cty = cty1; _ }, RtyBase { ou = Ex; cty = cty2; _ }
+        ->
+          RtyBase { ou = Ex; cty = union_ctys [ cty1; cty2 ]; er = mk_false }
+      | _, _ -> _failatwith __FILE__ __LINE__ "die")
+
+(* let gvars = (arg #: Nt.Ty_bool) :: (gvars1 @ gvars2) in *)
+(* construct_ghost_vars gvars retty *)
 
 let rec pack_rty_to_rty = function
   | x, RtyGhostArr { argnty; arg; retty } ->
       RtyGhostArr { argnty; arg; retty = pack_rty_to_rty (x, retty) }
   | x, RtyBase { ou = Ex; cty; er } -> (
       match erase_rty x.ty with
-      | Nt.Ty_arrow _ -> RtyBase { ou = Fa; cty; er }
+      | Nt.Ty_arrow _ -> RtyBase { ou = Ex; cty; er }
       | _ -> (
           match x.ty with
           | RtyBase { ou = Ex; cty = cty_x; er = er_x } when is_false er_x ->
@@ -136,7 +146,11 @@ let rec pack_rty_to_rty = function
                 Printf.printf "Fatal Error: %s:%s\n" x.x (layout_rty x.ty)
               in
               _failatwith __FILE__ __LINE__ "die"))
-  | _ -> _failatwith __FILE__ __LINE__ "die"
+  | x, rty ->
+      let () =
+        Printf.printf "Ex (%s: %s).%s\n" x.x (layout_rty x.ty) (layout_rty rty)
+      in
+      _failatwith __FILE__ __LINE__ "die"
 
 (* let rec pack_rty_to_rty = function *)
 (*   | x, RtyGhostArr { argnty; arg; retty } -> *)
@@ -226,3 +240,20 @@ let alpha_renaming_rty_in_scope (scope : string list) (rty : t rty) =
     | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
   in
   aux rty
+
+let destruct_over_rty_to_ctys_params rty =
+  let rec aux = function
+    | RtyBase _ as rty -> ([], rty)
+    | RtyBaseArr { argcty; arg; retty } ->
+        let params, rty = aux retty in
+        ((arg #: argcty) :: params, rty)
+    | RtyArrArr { retty; _ } -> aux retty
+    | _ -> _failatwith __FILE__ __LINE__ "die"
+  in
+  aux rty
+
+let unknown = "φ"
+
+(* let mk_unknowns rty = *)
+(*   let args, rty = destruct_over_rty_to_ctys_params rty in *)
+(*   let rec aux  *)

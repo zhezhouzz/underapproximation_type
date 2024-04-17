@@ -66,7 +66,7 @@ let load_predefined_prop meta_config_file prim_path =
   let () = update_statements (Typing.Itemcheck.gather_props statements) in
   ()
 
-let subtype_check_ meta_config_file source_file () =
+let direct_check_ mode meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code = preproress meta_config_file source_file () in
   let prim_path = Env.get_prim_path () in
@@ -78,9 +78,12 @@ let subtype_check_ meta_config_file source_file () =
   let ctx =
     Language.Rctx.{ builtin_ctx; local_ctx = emp; axioms = Env.get_axioms () }
   in
-  Subtyping.Subrty.external_check ctx (rty1, rty2)
+  match mode with
+  | "subtyping" -> Subtyping.Subrty.external_check ctx (rty1, rty2)
+  | "overlap" -> Subtyping.Overlaprty.external_check ctx (rty1, rty2)
+  | _ -> failwith "unknown mode"
 
-let type_check_ meta_config_file source_file () =
+let type_check_ mode meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code = preproress meta_config_file source_file () in
   let prim_path = Env.get_prim_path () in
@@ -88,18 +91,9 @@ let type_check_ meta_config_file source_file () =
   let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
   let () = load_predefined_prop meta_config_file prim_path in
   let () = Inference.Feature.init_template (Env.get_templates ()) in
-  let _ = Typing.Itemcheck.struc_check (Env.get_axioms (), builtin_ctx) code in
-  ()
-
-let type_infer_ meta_config_file source_file () =
-  let () = Env.load_meta meta_config_file in
-  let code = preproress meta_config_file source_file () in
-  let prim_path = Env.get_prim_path () in
-  let predefine = preproress meta_config_file prim_path.coverage_typing () in
-  let builtin_ctx = Typing.Itemcheck.gather_uctx predefine in
-  let () = load_predefined_prop meta_config_file prim_path in
-  let () = Inference.Feature.init_template (Env.get_templates ()) in
-  let _ = Typing.Itemcheck.struc_infer (Env.get_axioms (), builtin_ctx) code in
+  let _ =
+    Typing.Itemcheck.struc_check mode (Env.get_axioms (), builtin_ctx) code
+  in
   ()
 
 let print_erase_code meta_config_file source_file () =
@@ -127,10 +121,15 @@ let print_source_code =
     ]
 
 let test =
+  let open Typing.Itemcheck in
   Command.group ~summary:"Poirot"
     [
       ("print-source-code", print_source_code);
-      ("type-check", input_config_source "type check" type_check_);
-      ("subtype-check", input_config_source "subtype check" subtype_check_);
-      ("type-infer", input_config_source "type infer" type_infer_);
+      ("type-check", input_config_source "type check" (type_check_ TypeCheck));
+      ("type-infer", input_config_source "type infer" (type_check_ TypeInfer));
+      ("type-refine", input_config_source "type refine" (type_check_ TypeRefine));
+      ( "subtype-check",
+        input_config_source "subtype check" (direct_check_ "subtyping") );
+      ( "overlap-check",
+        input_config_source "overlaping check" (direct_check_ "overlap") );
     ]

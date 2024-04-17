@@ -54,6 +54,9 @@ let lit_get_mp = function
 
 let typed_lit_get_mp lit = lit_get_mp lit.x
 
+let eq_lit p1 p2 =
+  Sexplib.Sexp.equal (sexp_of_lit Nt.sexp_of_t p1) (sexp_of_lit Nt.sexp_of_t p2)
+
 (* Prop *)
 let get_cbool prop =
   match prop with Lit { x = AC (B b); _ } -> Some b | _ -> None
