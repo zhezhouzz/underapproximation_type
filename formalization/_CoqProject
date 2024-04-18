@@ -4,3 +4,5 @@ Tactics.v
 CoreLang.v
 NamelessTactics.v
 CoreLangProp.v
+CoreLangClass.v
+OperationalSemantics.v

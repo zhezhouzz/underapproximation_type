@@ -138,22 +138,22 @@ with tm_subst (x : atom) (s : value) (e : tm): tm :=
        end.
 
 (** locally closed *)
-Inductive lc: tm -> Prop  :=
-| lc_const: forall (c: constant), lc c
-| lc_vfvar: forall (a: atom), lc (vfvar a)
-| lc_vlam: forall T e (L: aset), (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (vlam T e)
-| lc_vfix: forall Tf e (L: aset), (forall (f:atom), f ∉ L -> lc (open_tm 0 (vfvar f) e)) -> lc (vfix Tf e)
+Inductive tm_lc: tm -> Prop  :=
+| lc_const: forall (c: constant), tm_lc c
+| lc_vfvar: forall (a: atom), tm_lc (vfvar a)
+| lc_vlam: forall T e (L: aset), (forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e)) -> tm_lc (vlam T e)
+| lc_vfix: forall Tf e (L: aset), (forall (f:atom), f ∉ L -> tm_lc (open_tm 0 (vfvar f) e)) -> tm_lc (vfix Tf e)
 | lc_tlete: forall (e1 e2: tm) (L: aset),
-    lc e1 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e2)) -> lc (tlete e1 e2)
+    tm_lc e1 -> (forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e2)) -> tm_lc (tlete e1 e2)
 | lc_tletapp: forall (v1 v2: value) e (L: aset),
-    lc v1 -> lc v2 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (tletapp v1 v2 e)
+    tm_lc v1 -> tm_lc v2 -> (forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e)) -> tm_lc (tletapp v1 v2 e)
 | lc_tletop: forall op (v1: value) e (L: aset),
-    lc v1 -> (forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e)) -> lc (tletop op v1 e)
-| lc_tmatchb: forall (v: value) e1 e2, lc v -> lc e1 -> lc e2 -> lc (tmatchb v e1 e2).
+    tm_lc v1 -> (forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e)) -> tm_lc (tletop op v1 e)
+| lc_tmatchb: forall (v: value) e1 e2, tm_lc v -> tm_lc e1 -> tm_lc e2 -> tm_lc (tmatchb v e1 e2).
 
-Global Hint Constructors lc: core.
+Global Hint Constructors tm_lc: core.
 
-Definition body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> lc (open_tm 0 (vfvar x) e).
+Definition tm_body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e).
 
 (** TypeClass *)
 Class Substable AST  : Type := {
@@ -165,8 +165,8 @@ Class Ast AST {H: Substable AST} : Type :=
   {
     open : nat -> value -> AST -> AST;
     close : atom -> nat -> AST -> AST;
-    ast_lc : AST -> Prop;
-    ast_body : AST -> Prop;
+    lc : AST -> Prop;
+    body : AST -> Prop;
   }.
 
 Definition closed {AST: Type} (v: AST) {H : Substable AST} := fv v ≡ ∅.
@@ -195,16 +195,16 @@ Notation "x # s" := (x ∉ stale s) (at level 40).
   {
     open := open_value;
     close := close_value;
-    ast_lc := lc;
-    ast_body := body;
+    lc := tm_lc;
+    body := tm_body;
   }.
 
 #[export] Instance tm_ast : Ast tm :=
   {
     open := open_tm;
     close := close_tm;
-    ast_lc := lc;
-    ast_body := body;
+    lc := tm_lc;
+    body := tm_body;
   }.
 
 (** Syntax Suger *)

@@ -11,24 +11,24 @@ Class AstProp AST `{Stale aset AST} `{Ast AST} : Type :=
     open_fv': forall (v: AST) (u: value) (k: nat), fv v ⊆ fv ({k ~> u} v);
     close_var_fv: forall (v: AST) (x: atom) (k: nat), fv ({k <~ x} v) = (fv v) ∖ {[x]};
     subst_fresh: forall (e: AST) (x:atom) (u: value), x ∉ (fv e) -> {x := u} e = e;
-    open_rec_lc: forall (v: value) (u: AST) (k: nat), ast_lc u -> {k ~> v} u = u;
+    open_rec_lc: forall (v: value) (u: AST) (k: nat), lc u -> {k ~> v} u = u;
     subst_open: forall (v: AST) (x:atom) (u: value) (w: value) (k: nat),
-      ast_lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v));
+      lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v));
     close_var_rename: forall x y (e: AST) k, y ∉ (fv e) -> {k <~ x} e = {k <~ y} ({x := (vfvar y)} e);
-    subst_lc: forall x (u: value) (t: AST), ast_lc t -> ast_lc u -> ast_lc ({x := u} t);
-    open_close_var: forall (x: atom) (t: AST), ast_lc t -> {0 ~~> x} ({0 <~ x} t) = t;
+    subst_lc: forall x (u: value) (t: AST), lc t -> lc u -> lc ({x := u} t);
+    open_close_var: forall (x: atom) (t: AST), lc t -> {0 ~~> x} ({0 <~ x} t) = t;
     subst_intro: forall (v: AST) (x:atom) (w: value) (k: nat),
-      x # v -> ast_lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v);
+      x # v -> lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v);
     subst_open_var: forall x y (u: value) (t: AST) (k: nat),
-      x <> y -> ast_lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t));
-    subst_body: forall x (u: value) (t: AST), ast_body t -> ast_lc u -> ast_body ({x := u} t);
-    open_lc: forall (u: value) (t: AST), ast_body t -> ast_lc u -> ast_lc ({0 ~> u} t);
+      x <> y -> lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t));
+    subst_body: forall x (u: value) (t: AST), body t -> lc u -> body ({x := u} t);
+    open_lc: forall (u: value) (t: AST), body t -> lc u -> lc ({0 ~> u} t);
     open_with_fresh_include_fv: forall (x: atom) (e: AST) k,
       x ∉ fv e -> ({[x]} ∪ fv e) ⊆ ({[x]} ∪ fv ({k ~~> x} e));
     subst_as_close_open_: forall (x: atom) (u: value) (e: AST) (k: nat),
       {k ~> u} e = e -> {k ~> u} ({k <~ x} e) = {x := u} e;
     subst_as_close_open: forall (x: atom) (u: value) (e: AST),
-      ast_lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e;
+      lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e;
     close_fresh_rec: forall (x: atom) (e: AST) (k: nat), x ∉ fv e -> { k <~ x} e = e;
     subst_close: ∀ (x y: atom) u,
       x ∉ fv u -> x <> y -> forall (e: AST) k, {k <~ x} ({y := u } e) = {y := u } ({k <~ x} e);
@@ -43,14 +43,15 @@ Class AstProp AST `{Stale aset AST} `{Ast AST} : Type :=
     close_rm_fv: forall x (e: AST) k, x ∉ fv ({k <~ x} e);
     close_then_subst_same: forall x v_x (e: AST), ({x := v_x } (x \ e)) = (x \ e);
     subst_open_closed: ∀ (v : AST) (x : atom) (u w : value) (k : nat),
-      closed u -> ast_lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v);
-    body_lc_after_close: forall (x: atom) (e: AST), ast_lc e -> ast_body ({0 <~ x} e);
-    lc_fresh_var_implies_body: forall (e: AST) (x: atom), x # e -> ast_lc (e ^^^ x) -> ast_body e;
+      closed u -> lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v);
+    body_lc_after_close: forall (x: atom) (e: AST), lc e -> body ({0 <~ x} e);
+    lc_fresh_var_implies_body: forall (e: AST) (x: atom), x # e -> lc (e ^^^ x) -> body e;
     open_not_in_eq: forall (x : atom) (t : AST) k, x # {k ~~> x} t -> forall e, t = {k ~> e} t;
-    lc_subst: forall x (u: value) (t: AST), ast_lc ({x := u} t) -> ast_lc u -> ast_lc t;
-    open_swap: forall (t: AST) i j (u v: value), ast_lc u -> ast_lc v -> i <> j -> {i ~> v} ({j ~> u} t) = {j ~> u} ({i ~> v} t);
-    open_lc_respect: forall (t: AST) (u v : value) k, ast_lc ({k ~> u} t) -> ast_lc u -> ast_lc v -> ast_lc ({k ~> v} t);
-    open_idemp: forall u (v: value) (t: AST) (k: nat), ast_lc v -> {k ~> u} ({k ~> v} t) = ({k ~> v} t);
+    lc_subst: forall x (u: value) (t: AST), lc ({x := u} t) -> lc u -> lc t;
+    open_swap: forall (t: AST) i j (u v: value), lc u -> lc v -> i <> j -> {i ~> v} ({j ~> u} t) = {j ~> u} ({i ~> v} t);
+    open_lc_respect: forall (t: AST) (u v : value) k, lc ({k ~> u} t) -> lc u -> lc v -> lc ({k ~> v} t);
+    open_idemp: forall u (v: value) (t: AST) (k: nat), lc v -> {k ~> u} ({k ~> v} t) = ({k ~> v} t);
+    lc_implies_body: forall (e: AST), lc e -> body e;
   }.
 
 Import CoreLangProp.
@@ -92,6 +93,7 @@ Import CoreLangProp.
     open_swap :=     open_swap_value;
     open_lc_respect :=     open_lc_respect_value;
     open_idemp :=     open_value_idemp;
+    lc_implies_body := lc_implies_body_value;
   }.
 
 #[export] Instance tm_astprop : AstProp tm :=
@@ -131,4 +133,55 @@ Import CoreLangProp.
     open_swap :=     open_swap_tm;
     open_lc_respect :=     open_lc_respect_tm;
     open_idemp :=     open_tm_idemp;
+    lc_implies_body := lc_implies_body_tm;
   }.
+
+(** We will not simpl the type class interfaces; unless we explictly unfold it. *)
+
+Arguments substitute: simpl never.
+Arguments fv: simpl never.
+Arguments open: simpl never.
+Arguments close: simpl never.
+Arguments lc: simpl never.
+Arguments body: simpl never.
+
+(** MNF *)
+Definition lete_lc_body: forall e1 e, lc (tlete e1 e) <-> lc e1 /\ body e := lete_lc_body.
+Definition letapp_lc_body: forall (v1 v2: value) e, lc (tletapp v1 v2 e) <-> lc v1 /\ lc v2 /\ body e := letapp_lc_body.
+Definition leteffop_lc_body: forall op (v1: value) e, lc (tletop op v1 e) <-> lc v1 /\ body e := leteffop_lc_body.
+Definition lc_abs_iff_body: forall T (e: tm), lc (vlam T e) <-> body e := lc_abs_iff_body.
+Definition lc_fix_iff_body: forall T e, lc (vfix T e) <-> body e := lc_fix_iff_body.
+Definition body_vbvar_0: body (vbvar 0) := body_vbvar_0.
+
+Import NamelessTactics.
+Import Tactics.
+
+Ltac lc_normalize_one :=
+  match goal with
+  | [H: lc ?e, H': context [ open _ _ ?e ]  |- _ ] => rewrite open_rec_lc in H'; auto
+  | [H: lc ?e |- context [ open _ _ ?e ] ] => rewrite open_rec_lc; auto
+  end.
+
+Ltac lc_solver_ast :=
+  simp_hyps;
+  repeat (match goal with
+          | [ |- body (treturn (vbvar 0))] => apply body_vbvar_0
+          | [ |- body (vbvar 0)] => apply body_vbvar_0
+          | [ |- lc (vfvar _)] => constructor
+          | [ |- lc (vconst _)] => constructor
+          | [ |- lc (tmatchb _ _ _)] => apply lc_tmatchb; intuition
+          | [ |- lc (tletapp _ _ _)] => rewrite letapp_lc_body; intuition
+          | [ |- lc (tletop _ _ _)] => rewrite leteffop_lc_body; intuition
+          | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
+          | [ |- lc (vfix _ _)] => rewrite lc_fix_iff_body; auto
+          | [ |- lc (vlam _ _)] => rewrite lc_abs_iff_body; auto
+          | [H: lc (tlete _ ?e) |- body ?e ] => rewrite lete_lc_body in H; simp_hyps; auto
+          | [H: lc (tletapp _ _ ?e) |- body ?e ] => rewrite letapp_lc_body in H; simp_hyps; auto
+          | [H: lc (treturn (vlam _ ?e)) |- body ?e ] => rewrite lc_abs_iff_body in H; simp_hyps; auto
+          | [H: lc (treturn (vfix _ ?e)) |- body ?e ] => rewrite lc_fix_iff_body in H; simp_hyps; auto
+          | [H: lc (tletapp ?e _ _) |- lc ?e ] => rewrite letapp_lc_body in H; simp_hyps; auto
+          | [H: lc (tletapp _ ?e _) |- lc ?e ] => rewrite letapp_lc_body in H; simp_hyps; auto
+          | [H: lc ?e |- body ?e] => apply lc_implies_body; auto
+          | [H: lc ?e |- lc ( open 0 _ ?e)] => rewrite open_rec_lc; auto
+          | [H: body ?e |- lc ( open 0 _ ?e)] => apply open_lc; auto
+          end; try lc_normalize_one); auto.

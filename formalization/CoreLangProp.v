@@ -24,23 +24,23 @@ Ltac specialize_L :=
   | [ H : forall (x: atom), x ∉ ?L -> _ |- _] => specialize (H (fv_of_set L) (fv_of_set_fresh L))
   end.
 
-Lemma lc_exfalso: forall bn, ~ lc (vbvar bn).
+Lemma lc_exfalso: forall bn, ~ tm_lc (vbvar bn).
 Proof.
   intros bn HF. inversion HF.
 Qed.
 
-Lemma body_exfalso: forall bn, ~ body (vbvar (S bn)).
+Lemma body_exfalso: forall bn, ~ tm_body (vbvar (S bn)).
 Proof.
   intros bn HF. inversion HF. specialize_L. inversion H.
 Qed.
 
 Ltac solve_lc_exfalso :=
   match goal with
-    | [ H: lc (treturn (vbvar ?n)) |- _ ] => exfalso; apply (lc_exfalso n); auto
-    | [ H: body (treturn (vbvar (S ?n))) |- _ ] => exfalso; apply (body_exfalso n); auto
+    | [ H: tm_lc (treturn (vbvar ?n)) |- _ ] => exfalso; apply (lc_exfalso n); auto
+    | [ H: tm_body (treturn (vbvar (S ?n))) |- _ ] => exfalso; apply (body_exfalso n); auto
   end.
 
-Lemma lc_abs_iff_body: forall T e, lc (vlam T e) <-> body e.
+Lemma lc_abs_iff_body: forall T e, tm_lc (vlam T e) <-> tm_body e.
 Proof.
   split; unfold body; intros.
   - inversion H; subst. exists L. auto.
@@ -209,7 +209,7 @@ Proof.
   intros. inversion H. auto.
 Qed.
 
-Lemma open_rec_lc_tm: forall (v: value) (u: tm) (k: nat), lc u -> {k ~> v} u = u.
+Lemma open_rec_lc_tm: forall (v: value) (u: tm) (k: nat), tm_lc u -> {k ~> v} u = u.
 Proof with eauto.
   intros. generalize dependent k.
   induction H; simpl; intros; auto;
@@ -229,20 +229,20 @@ Proof with eauto.
          apply fact1_tm with (j := 0) (v:= vfvar y); auto; auto_apply; my_set_solver).
 Qed.
 
-Lemma open_rec_lc_value: forall (v: value) (u: value) (k: nat), lc u -> {k ~> v} u = u.
+Lemma open_rec_lc_value: forall (v: value) (u: value) (k: nat), tm_lc u -> {k ~> v} u = u.
 Proof with eauto.
   intros.
   apply open_rec_lc_tm with (v:=v) (k:=k) in H. simpl in H. apply treturn_eq in H. auto.
 Qed.
 
 Lemma subst_open_value: forall (v: value) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)).
+    tm_lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)).
 Proof with eauto.
   apply (value_mutual_rec
            (fun (v: value) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)))
+                tm_lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)))
            (fun (e: tm) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> {x := w} ({k ~> u} e) = ({k ~> {x := w} u} ({x := w} e)))
+                tm_lc w -> {x := w} ({k ~> u} e) = ({k ~> {x := w} u} ({x := w} e)))
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto);
     try repeat match goal with
                | [H: context [ tm_subst _ _ _ = _ ] |- _ ] => rewrite H; auto
@@ -257,13 +257,13 @@ Proof with eauto.
 Qed.
 
 Lemma subst_open_tm: forall (v: tm) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)).
+    tm_lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)).
 Proof with eauto.
   apply (tm_mutual_rec
            (fun (v: value) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)))
+                tm_lc w -> {x := w} ({k ~> u} v) = ({k ~> {x := w} u} ({x := w} v)))
            (fun (e: tm) => forall (x:atom) (u: value) (w: value) (k: nat),
-                lc w -> {x := w} ({k ~> u} e) = ({k ~> {x := w} u} ({x := w} e)))
+                tm_lc w -> {x := w} ({k ~> u} e) = ({k ~> {x := w} u} ({x := w} e)))
         ); simpl; intros; eauto; try (repeat rewrite_by_set_solver; auto);
     try repeat match goal with
                | [H: context [ tm_subst _ _ _ = _ ] |- _ ] => rewrite H; auto
@@ -345,13 +345,13 @@ Proof with auto.
   - auto_eq_post; rewrite H1; auto; set_solver.
 Qed.
 
-Lemma subst_lc_tm: forall x (u: value) (t: tm), lc t -> lc u -> lc ({x := u} t).
+Lemma subst_lc_tm: forall x (u: value) (t: tm), tm_lc t -> tm_lc u -> tm_lc ({x := u} t).
 Proof with auto.
   intros x u t Hlct.
   induction Hlct; simpl; intros; auto; try (constructor; auto);
     try (auto_exists_L; intros; repeat split;
          repeat match goal with
-                | [ H : context [lc _] |- lc (_ _ (vfvar ?x) _)] =>
+                | [ H : context [tm_lc _] |- tm_lc (_ _ (vfvar ?x) _)] =>
                     specialize (H x);
                     rewrite subst_open_tm in H; auto; simpl in H;
                     rewrite decide_False in H; my_set_solver
@@ -359,13 +359,13 @@ Proof with auto.
   - repeat var_dec_solver.
 Qed.
 
-Lemma subst_lc_value: forall x (u: value) (t: value), lc t -> lc u -> lc ({x := u} (treturn t)).
+Lemma subst_lc_value: forall x (u: value) (t: value), tm_lc t -> tm_lc u -> tm_lc ({x := u} (treturn t)).
 Proof with auto.
   intros x u t Hlct.
   induction Hlct; simpl; intros; auto; try (constructor; auto);
     try (auto_exists_L; intros; repeat split;
          repeat match goal with
-           | [ H : context [lc _] |- lc (_ _ (vfvar ?x) _)] =>
+           | [ H : context [tm_lc _] |- tm_lc (_ _ (vfvar ?x) _)] =>
                specialize (H x);
                rewrite subst_open_tm in H; auto; simpl in H;
                rewrite decide_False in H; my_set_solver
@@ -387,7 +387,7 @@ Proof.
   - repeat var_dec_solver.
 Qed.
 
-Lemma open_close_var_tm: forall (x: atom) (t: tm), lc t -> {0 ~~> x} ({0 <~ x} t) = t.
+Lemma open_close_var_tm: forall (x: atom) (t: tm), tm_lc t -> {0 ~~> x} ({0 <~ x} t) = t.
 Proof.
   intros. apply open_close_var_tm_aux. apply open_rec_lc_tm; auto.
 Qed.
@@ -406,7 +406,7 @@ Proof.
   - repeat var_dec_solver.
 Qed.
 
-Lemma open_close_var_value: forall (x: atom) (t: value), lc t -> {0 ~~> x} ({0 <~ x} t) = t.
+Lemma open_close_var_value: forall (x: atom) (t: value), tm_lc t -> {0 ~~> x} ({0 <~ x} t) = t.
 Proof.
   intros. apply open_close_var_value_aux. apply open_rec_lc_value; auto.
 Qed.
@@ -415,7 +415,7 @@ Qed.
 
 Lemma subst_intro_tm: forall (v: tm) (x:atom) (w: value) (k: nat),
     x # v ->
-    lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v).
+    tm_lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v).
 Proof.
   intros; simpl.
   specialize (subst_open_tm v x x w k) as J.
@@ -425,7 +425,7 @@ Qed.
 
 Lemma subst_intro_value: forall (v: value) (x:atom) (w: value) (k: nat),
     x # v ->
-    lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v).
+    tm_lc w -> {x := w} ({k ~~> x} v) = ({k ~> w} v).
 Proof.
   intros; simpl.
   specialize (subst_open_value v x x w k) as J.
@@ -434,20 +434,20 @@ Proof.
 Qed.
 
 Lemma subst_open_var_tm: forall x y (u: value) (t: tm) (k: nat),
-    x <> y -> lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t)).
+    x <> y -> tm_lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t)).
 Proof.
   intros.
   rewrite subst_open_tm; auto. simpl. rewrite decide_False; auto.
 Qed.
 
 Lemma subst_open_var_value: forall x y (u: value) (t: value) (k: nat),
-    x <> y -> lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t)).
+    x <> y -> tm_lc u -> {x := u} ({k ~~> y} t) = ({k ~~> y} ({x := u} t)).
 Proof.
   intros.
   rewrite subst_open_value; auto. simpl. rewrite decide_False; auto.
 Qed.
 
-Lemma subst_body_tm: forall x (u: value) (t: tm), body t -> lc u -> body ({x := u} t).
+Lemma subst_body_tm: forall x (u: value) (t: tm), tm_body t -> tm_lc u -> tm_body ({x := u} t).
 Proof with auto.
   intros.
   destruct H. auto_exists_L; intros; repeat split; auto.
@@ -455,7 +455,7 @@ Proof with auto.
   apply subst_lc_tm; auto. apply H. my_set_solver. my_set_solver.
 Qed.
 
-Lemma subst_body_value: forall x (u: value) (t: value), body t -> lc u -> body ({x := u} t).
+Lemma subst_body_value: forall x (u: value) (t: value), tm_body t -> tm_lc u -> tm_body ({x := u} t).
 Proof with auto.
   intros.
   destruct H. auto_exists_L; intros; repeat split; auto. simpl.
@@ -463,7 +463,7 @@ Proof with auto.
   apply subst_lc_value; auto. apply H. my_set_solver. my_set_solver.
 Qed.
 
-Lemma open_lc_tm: forall (u: value) (t: tm), body t -> lc u -> lc ({0 ~> u} t).
+Lemma open_lc_tm: forall (u: value) (t: tm), tm_body t -> tm_lc u -> tm_lc ({0 ~> u} t).
 Proof.
   intros. destruct H.
   let acc := collect_stales tt in pose acc.
@@ -474,7 +474,7 @@ Proof.
   my_set_solver. my_set_solver.
 Qed.
 
-Lemma open_lc_value: forall (u: value) (t: value), body t -> lc u -> lc ({0 ~> u} t).
+Lemma open_lc_value: forall (u: value) (t: value), tm_body t -> tm_lc u -> tm_lc ({0 ~> u} t).
 Proof.
   intros. destruct H.
   let acc := collect_stales tt in pose acc.
@@ -523,60 +523,60 @@ Ltac solve_let_lc_body H :=
   split; intros; try repeat split; auto;
     inversion H; subst; auto;
     try destruct_hyp_conj; try match goal with
-    | [ H: body _ |- _ ] => inversion H; subst; clear H
-    (* | [ H: lc _ |- _ ] => inversion H; subst; clear H *)
+    | [ H: tm_body _ |- _ ] => inversion H; subst; clear H
+    (* | [ H: tm_lc _ |- _ ] => inversion H; subst; clear H *)
     end;
     auto_exists_L; intros; repeat split; auto;
     auto_apply; my_set_solver.
 
-Lemma lete_lc_body: forall e1 e, lc (tlete e1 e) <-> lc e1 /\ body e.
+Lemma lete_lc_body: forall e1 e, tm_lc (tlete e1 e) <-> tm_lc e1 /\ tm_body e.
 Proof.
   solve_let_lc_body H.
 Qed.
 
-Lemma letapp_lc_body: forall (v1 v2: value) e, lc (tletapp v1 v2 e) <-> lc v1 /\ lc v2 /\ body e.
+Lemma letapp_lc_body: forall (v1 v2: value) e, tm_lc (tletapp v1 v2 e) <-> tm_lc v1 /\ tm_lc v2 /\ tm_body e.
 Proof.
   solve_let_lc_body H.
 Qed.
 
-Lemma leteffop_lc_body: forall op (v1: value) e, lc (tletop op v1 e) <-> lc v1 /\ body e.
+Lemma leteffop_lc_body: forall op (v1: value) e, tm_lc (tletop op v1 e) <-> tm_lc v1 /\ tm_body e.
 Proof.
   solve_let_lc_body H.
 Qed.
 
-Lemma lc_fix_iff_body: forall T e, lc (vfix T e) <-> body e.
+Lemma lc_fix_iff_body: forall T e, tm_lc (vfix T e) <-> tm_body e.
 Proof.
   split; unfold body; intros.
   - inversion H; subst. exists L. auto.
   - destruct H as (L & HL). econstructor. apply HL.
 Qed.
 
-Lemma lc_implies_body_tm: forall (e: tm), lc e -> body e.
+Lemma lc_implies_body_tm: forall (e: tm), tm_lc e -> tm_body e.
 Proof. intros. exists ∅; intros; rewrite open_rec_lc_tm; auto.
 Qed.
 
-Lemma lc_implies_body_value: forall (e: value), lc e -> body e.
+Lemma lc_implies_body_value: forall (e: value), tm_lc e -> tm_body e.
 Proof. intros. exists ∅; intros. rewrite open_rec_lc_tm; auto.
 Qed.
 
 Ltac lc_solver :=
   repeat match goal with
-    | [ |- lc (treturn (vfvar _))] => constructor
-    | [ |- lc (tmatchb _ _ _)] => apply lc_tmatchb; (repeat split; auto)
-    | [ |- lc (tletapp _ _ _)] => rewrite letapp_lc_body; (repeat split; auto)
-    | [ |- lc (tletop _ _ _)] => rewrite leteffop_lc_body; (repeat split; auto)
-    | [ |- lc (tlete _ _)] => rewrite lete_lc_body; split; auto
-    | [ |- lc (treturn (vfix _ _))] => rewrite lc_fix_iff_body; auto
-    | [ |- lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
-    | [H: lc (tlete _ ?e) |- body ?e ] => rewrite lete_lc_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc (tletapp _ _ ?e) |- body ?e ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc (treturn (vlam _ ?e)) |- body ?e ] => rewrite lc_abs_iff_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc (treturn (vfix _ ?e)) |- body ?e ] => rewrite lc_fix_iff_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc (tletapp ?e _ _) |- lc (treturn ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc (tletapp _ ?e _) |- lc (treturn ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
-    | [H: lc ?e |- body ?e] => apply lc_implies_body_tm; auto
-    | [H: lc ?e |- lc ( open_tm 0 _ ?e)] => rewrite open_rec_lc_tm; auto
-    | [|- body _ ] => eexists; auto_exists_L_intros
+    | [ |- tm_lc (treturn (vfvar _))] => constructor
+    | [ |- tm_lc (tmatchb _ _ _)] => apply lc_tmatchb; (repeat split; auto)
+    | [ |- tm_lc (tletapp _ _ _)] => rewrite letapp_lc_body; (repeat split; auto)
+    | [ |- tm_lc (tletop _ _ _)] => rewrite leteffop_lc_body; (repeat split; auto)
+    | [ |- tm_lc (tlete _ _)] => rewrite lete_lc_body; split; auto
+    | [ |- tm_lc (treturn (vfix _ _))] => rewrite lc_fix_iff_body; auto
+    | [ |- tm_lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
+    | [H: tm_lc (tlete _ ?e) |- tm_body ?e ] => rewrite lete_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc (tletapp _ _ ?e) |- tm_body ?e ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc (treturn (vlam _ ?e)) |- tm_body ?e ] => rewrite lc_abs_iff_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc (treturn (vfix _ ?e)) |- tm_body ?e ] => rewrite lc_fix_iff_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc (tletapp ?e _ _) |- tm_lc (treturn ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc (tletapp _ ?e _) |- tm_lc (treturn ?e) ] => rewrite letapp_lc_body in H; repeat destruct_hyp_conj; auto
+    | [H: tm_lc ?e |- tm_body ?e] => apply lc_implies_body_tm; auto
+    | [H: tm_lc ?e |- tm_lc ( open_tm 0 _ ?e)] => rewrite open_rec_lc_tm; auto
+    | [|- tm_body _ ] => eexists; auto_exists_L_intros
     end.
 
 Lemma subst_as_close_open_tm_: forall (x: atom) (u: value) (e: tm) (k: nat),
@@ -640,14 +640,14 @@ Proof.
 Qed.
 
 Lemma subst_as_close_open_tm: forall (x: atom) (u: value) (e: tm),
-    lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e.
+    tm_lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e.
 Proof.
   intros. eapply subst_as_close_open_tm_.
   rewrite open_rec_lc_tm; auto.
 Qed.
 
 Lemma subst_as_close_open_value: forall (x: atom) (u: value) (e: value),
-    lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e.
+    tm_lc e -> {0 ~> u} ({0 <~ x} e) = {x := u} e.
 Proof.
   intros. eapply subst_as_close_open_value_.
   rewrite open_rec_lc_value; auto.
@@ -826,21 +826,21 @@ Proof.
         ); simpl; intros; auto; repeat var_dec_solver; set_solver.
 Qed.
 
-Lemma body_vbvar_0: body (vbvar 0).
+Lemma body_vbvar_0: tm_body (vbvar 0).
 Proof.
   unfold body. exists ∅. intros. constructor.
 Qed.
 
 Global Hint Resolve body_vbvar_0: core.
 
-Lemma lc_tletapp: forall (v x: value), lc v -> lc x -> lc (tletapp v x (vbvar 0)).
+Lemma lc_tletapp: forall (v x: value), tm_lc v -> tm_lc x -> tm_lc (tletapp v x (vbvar 0)).
 Proof.
   intros. auto_exists_L; simpl; intros; auto.
 Qed.
 
 Global Hint Resolve lc_tletapp: core.
 
-Lemma body_tletapp_0: forall (v: value), lc v -> body (tletapp v (vbvar 0) (vbvar 0)).
+Lemma body_tletapp_0: forall (v: value), tm_lc v -> tm_body (tletapp v (vbvar 0) (vbvar 0)).
 Proof.
   intros. auto_exists_L; intros. simpl.
   rewrite open_rec_lc_value; auto.
@@ -891,20 +891,26 @@ Proof.
 Qed.
 
 Lemma body_vlam_eq: forall e T1 T2,
-    body (vlam T1 e) <-> body (vlam T2 e).
+    tm_body (vlam T1 e) <-> tm_body (vlam T2 e).
 Proof.
   apply (tm_mutual_rec
-                   (fun (e: value) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
-                   (fun (e: tm) => forall T1 T2, body (vlam T1 e) <-> body (vlam T2 e))
-                ); split; simpl; intros; auto;
+                   (fun (e: value) => forall T1 T2, tm_body (vlam T1 e) <-> tm_body (vlam T2 e))
+                   (fun (e: tm) => forall T1 T2, tm_body (vlam T1 e) <-> tm_body (vlam T2 e))
+                ); split; intros; auto;
     repeat (simpl in *; match goal with
-    | [H: body (treturn (vlam _ _)) |- _ ] => invclear H
-    | [|- body (treturn (vlam _ _))] => auto_exists_L; intros a; intros; specialize_with a
-    | [H: context [(treturn (vlam _ _)) ^^ _] |- _ ] => simpl in H
-    | [|- context [(treturn (vlam _ _)) ^^ _] ] => simpl
-    | [H: lc (treturn (vlam _ _)) |- _ ] => rewrite lc_abs_iff_body in H; auto
-    | [|- lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
-    end).
+            | [H: tm_body (treturn (vlam _ _)) |- _ ] => invclear H
+            | [|- tm_body (treturn (vlam _ _))] => auto_exists_L; intros a; intros; specialize_with a
+            | [H: context [(treturn (vlam _ _)) ^^ _] |- _ ] => simpl in H
+            | [|- context [(treturn (vlam _ _)) ^^ _] ] => simpl
+            | [H: tm_lc (treturn (vlam _ _)) |- _ ] => rewrite lc_abs_iff_body in H; auto
+            | [|- tm_lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
+            | [H: tm_body (treturn (vlam _ _)) |- _ ] => invclear H
+            | [|- tm_body (treturn (vlam _ _))] => auto_exists_L; intros a; intros; specialize_with a
+            | [H: context [(treturn (vlam _ _)) ^^ _] |- _ ] => simpl in H
+            | [|- context [(treturn (vlam _ _)) ^^ _] ] => simpl
+            | [H: tm_lc (treturn (vlam _ _)) |- _ ] => rewrite lc_abs_iff_body in H; auto
+            | [|- tm_lc (treturn (vlam _ _))] => rewrite lc_abs_iff_body; auto
+            end; simpl).
 Qed.
 
 Lemma close_rm_fv_tm: forall x (e: tm) k, x ∉ fv ({k <~ x} e).
@@ -940,7 +946,7 @@ Qed.
 Lemma subst_open_tm_closed:
   ∀ (v : tm) (x : atom) (u w : value) (k : nat),
     closed u ->
-    lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v).
+    tm_lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v).
 Proof.
   intros. rewrite subst_open_tm; auto.
   rewrite (subst_fresh_value); eauto. set_solver.
@@ -949,20 +955,20 @@ Qed.
 Lemma subst_open_value_closed:
   ∀ (v : value) (x : atom) (u w : value) (k : nat),
     closed u ->
-    lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v).
+    tm_lc w → {x := w } ({k ~> u} v) = {k ~> u} ({x := w } v).
 Proof.
   intros. rewrite subst_open_value; auto.
   rewrite (subst_fresh_value); eauto. set_solver.
 Qed.
 
-Lemma body_lc_after_close_tm: forall (x: atom) e, lc e -> body ({0 <~ x} e).
+Lemma body_lc_after_close_tm: forall (x: atom) e, tm_lc e -> tm_body ({0 <~ x} e).
 Proof.
   intros. unfold body. auto_exists_L. intros.
   rewrite subst_as_close_open_tm; auto.
   apply subst_lc_tm; auto.
 Qed.
 
-Lemma body_lc_after_close_value: forall (x: atom) (e: value), lc e -> body ({0 <~ x} e).
+Lemma body_lc_after_close_value: forall (x: atom) (e: value), tm_lc e -> tm_body ({0 <~ x} e).
 Proof.
   intros. unfold body. auto_exists_L. intros. simpl.
   rewrite subst_as_close_open_value; auto.
@@ -970,14 +976,14 @@ Proof.
 Qed.
 
 Lemma lc_fresh_var_implies_body: forall e (x: atom),
-  x # e -> lc (e ^^^ x) -> body e.
+  x # e -> tm_lc (e ^^^ x) -> tm_body e.
 Proof.
   intros.
   apply (body_lc_after_close_tm x) in H0. rewrite close_open_var_tm in H0; auto.
 Qed.
 
 Lemma lc_fresh_var_implies_body_value: forall (e: value) (x: atom),
-    x # e -> lc (e ^^^ x) -> body e.
+    x # e -> tm_lc (e ^^^ x) -> tm_body e.
 Proof.
   intros.
   apply (body_lc_after_close_value x) in H0. rewrite close_open_var_value in H0; auto.
@@ -997,7 +1003,7 @@ Proof.
   case_decide; subst. my_set_solver. eauto.
 Qed.
 
-Lemma lc_subst_tm: forall x (u: value) (t: tm), lc ({x := u} t) -> lc u -> lc t.
+Lemma lc_subst_tm: forall x (u: value) (t: tm), tm_lc ({x := u} t) -> tm_lc u -> tm_lc t.
 Proof.
   intros.
   remember ({x:=u} t).
@@ -1008,7 +1014,7 @@ Proof.
       | H : _ = {_ := _} ?t |- _ => destruct t; simpl in *; simplify_eq
       | H : _ = tm_subst _ _ ?t |- _ => destruct t; simpl in *; simplify_eq
       | H : _ = value_subst _ _ ?v |- _ => destruct v; simpl in *; simplify_eq
-      end; eauto using lc.
+      end; eauto using tm_lc.
   all:
   econstructor; eauto;
   let x := fresh "x" in
@@ -1018,7 +1024,7 @@ Proof.
   eauto.
 Qed.
 
-Lemma lc_subst_value: forall x (u: value) (v: value), lc ({x := u} v) -> lc u -> lc v.
+Lemma lc_subst_value: forall x (u: value) (v: value), tm_lc ({x := u} v) -> tm_lc u -> tm_lc v.
 Proof.
   intros.
   sinvert H;
@@ -1027,7 +1033,7 @@ Proof.
       | H : _ = {_ := _} ?t |- _ => destruct t; simpl in *; simplify_eq
       | H : _ = tm_subst _ _ ?t |- _ => destruct t; simpl in *; simplify_eq
       | H : _ = value_subst _ _ ?v |- _ => destruct v; simpl in *; simplify_eq
-      end; eauto using lc.
+      end; eauto using tm_lc.
   all:
   econstructor; eauto;
   let x := fresh "x" in
@@ -1038,13 +1044,13 @@ Proof.
 Qed.
 
 Lemma open_swap_tm: forall (t: tm) i j (u v: value),
-    lc u ->
-    lc v ->
+    tm_lc u ->
+    tm_lc v ->
     i <> j ->
     {i ~> v} ({j ~> u} t) = {j ~> u} ({i ~> v} t)
 with open_swap_value: forall (t: value) i j (u v: value),
-    lc u ->
-    lc v ->
+    tm_lc u ->
+    tm_lc v ->
     i <> j ->
     {i ~> v} ({j ~> u} t) = {j ~> u} ({i ~> v} t).
 Proof.
@@ -1057,10 +1063,10 @@ Proof.
 Qed.
 
 Lemma open_lc_respect_tm: forall (t: tm) (u v : value) k,
-    lc ({k ~> u} t) ->
-    lc u ->
-    lc v ->
-    lc ({k ~> v} t).
+    tm_lc ({k ~> u} t) ->
+    tm_lc u ->
+    tm_lc v ->
+    tm_lc ({k ~> v} t).
 Proof.
   intros * H. remember ({k ~> u} t) as t'.
   generalize dependent t. revert k.
@@ -1076,7 +1082,7 @@ Proof.
       end; eauto.
   all:
   econstructor;
-    change (lc (open_value ?k ?u ?v)) with (lc (open_tm k u v)); eauto;
+    change (tm_lc (open_value ?k ?u ?v)) with (tm_lc (open_tm k u v)); eauto;
   let x := fresh "x" in
   let acc := collect_stales tt in instantiate (1 := acc); intros x **; simpl;
   repeat specialize_with x;
@@ -1084,10 +1090,10 @@ Proof.
 Qed.
 
 Lemma open_lc_respect_value: forall (t: value) (u v : value) k,
-    lc ({k ~> u} t) ->
-    lc u ->
-    lc v ->
-    lc ({k ~> v} t).
+    tm_lc ({k ~> u} t) ->
+    tm_lc u ->
+    tm_lc v ->
+    tm_lc ({k ~> v} t).
 Proof.
   intros * H. remember (treturn ({k ~> u} t)) as t'.
   generalize dependent t. revert k.
@@ -1106,10 +1112,10 @@ Proof.
 Qed.
 
 Lemma open_tm_idemp: forall u (v: value) (t: tm) (k: nat),
-    lc v ->
+    tm_lc v ->
     {k ~> u} ({k ~> v} t) = ({k ~> v} t)
 with open_value_idemp: forall u (v: value) (t: value) (k: nat),
-    lc v ->
+    tm_lc v ->
     {k ~> u} ({k ~> v} t) = ({k ~> v} t).
 Proof.
   all: destruct t; intros; simpl; f_equal; eauto.
