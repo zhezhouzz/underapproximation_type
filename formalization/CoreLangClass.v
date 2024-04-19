@@ -185,3 +185,31 @@ Ltac lc_solver_ast :=
           | [H: lc ?e |- lc ( open 0 _ ?e)] => rewrite open_rec_lc; auto
           | [H: body ?e |- lc ( open 0 _ ?e)] => apply open_lc; auto
           end; try lc_normalize_one); auto.
+
+Lemma fold_open_value (k: nat) (f: value) (v_x: value) : open_value k f v_x = open k f v_x.
+Proof. unfold open; auto. Qed.
+
+Lemma fold_open_tm (k: nat) (f: value) (v_x: tm) : open_tm k f v_x = open k f v_x.
+Proof. unfold open; auto. Qed.
+
+Lemma fold_lc_tm (e: tm): tm_lc e = lc e.
+Proof. unfold lc; auto. Qed.
+
+Ltac fold_nameless :=
+  repeat match goal with
+    | [H: context [ open_tm _ _ _ ] |- _ ] => setoid_rewrite fold_open_tm in H
+    | [H: _ |- context [ open_tm _ _ _ ]  ] => setoid_rewrite fold_open_tm
+    | [H: context [ open_value _ _ _ ] |- _ ] => setoid_rewrite fold_open_value in H
+    | [H: _ |- context [ open_value _ _ _ ]  ] => setoid_rewrite fold_open_value
+    | [H: tm_lc _ |- _ ] => rewrite fold_lc_tm in H
+    | [H: _ |- tm_lc _ ] => rewrite fold_lc_tm
+    end.
+
+Ltac nameless_eval:=
+  repeat lc_normalize_one;
+  simpl in *;
+  repeat match goal with
+    | [H: context [ open _ _ _ ] |- _ ] => unfold open in H; simpl in H
+    | [H: _ |- context [ open _ _ _ ]  ] => unfold open; simpl
+    end; fold_nameless;
+  repeat lc_normalize_one.

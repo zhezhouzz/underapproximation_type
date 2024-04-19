@@ -6,3 +6,5 @@ NamelessTactics.v
 CoreLangProp.v
 CoreLangClass.v
 OperationalSemantics.v
+BasicTyping.v
+BasicTypingProp.v
