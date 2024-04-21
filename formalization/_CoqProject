@@ -8,3 +8,4 @@ CoreLangClass.v
 OperationalSemantics.v
 BasicTyping.v
 BasicTypingProp.v
+BasicTypingClass.v
