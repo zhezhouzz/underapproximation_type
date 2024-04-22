@@ -1,7 +1,7 @@
 From stdpp Require Import mapset.
 From stdpp Require Import natmap.
 From stdpp Require Import fin vector.
-From CT Require Import CoreLangProp.
+From CT Require Import CoreLangClass.
 
 Import Atom.
 Import CoreLang.
@@ -106,8 +106,8 @@ Definition qualifier_open (k: nat) (s: value) (ϕ: qualifier) : qualifier :=
       qual (vmap (open_value k s) vals) prop
   end.
 
-Notation "'{' k '~q>' s '}' e" := (qualifier_open k s e) (at level 20, k constr).
-Notation "e '^q^' s" := (qualifier_open 0 s e) (at level 20).
+(* Notation "'{' k '~>' s '}' e" := (qualifier_open k s e) (at level 20, k constr). *)
+(* Notation "e '^^' s" := (qualifier_open 0 s e) (at level 20). *)
 
 Definition qualifier_subst (x: atom) (v: value) (ϕ: qualifier) : qualifier :=
   match ϕ with
@@ -115,19 +115,38 @@ Definition qualifier_subst (x: atom) (v: value) (ϕ: qualifier) : qualifier :=
       qual (vmap (value_subst x v) vals) prop
   end.
 
-Notation "'{' x ':=' s '}q'" := (qualifier_subst x s) (at level 20, format "{ x := s }q", x constr).
+(* Notation "'{' x ':=' s '}'" := (qualifier_subst x s) (at level 20, format "{ x := s }", x constr). *)
 
 Inductive lc_qualifier : qualifier -> Prop :=
 | lc_qual n vals prop :
   Vector.Forall (fun v => lc (treturn v)) vals ->
   lc_qualifier (@qual n vals prop).
 
+Definition body_qualifier := fun (ϕ: qualifier) => (exists L : aset, forall x : atom, x ∉ L -> lc_qualifier (qualifier_open 0 x ϕ)).
+
+(** never used *)
+Definition _close_qualifier (x: atom) (n: nat) (ϕ: qualifier) := ϕ.
+
+#[export] Instance qualifier_substable : Substable qualifier :=
+  {
+    substitute := qualifier_subst;
+    fv := qualifier_fv;
+  }.
+
+#[export] Instance qualifier_ast : Ast qualifier :=
+  {
+    open := qualifier_open;
+    lc := lc_qualifier;
+    body := body_qualifier;
+    close := _close_qualifier;
+  }.
+
 Lemma subst_commute_qualifier : forall x (u_x: value) y (u_y: value) ϕ,
     x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
-    {x := u_x }q ({y := u_y }q ϕ) = {y := u_y }q ({x := u_x }q ϕ).
+    {x := u_x } ({y := u_y } ϕ) = {y := u_y } ({x := u_x } ϕ).
 Proof.
   intros.
-  destruct ϕ.
+  destruct ϕ. unfold substitute.
   simpl.
   f_equal.
   rewrite !Vector.map_map.
@@ -136,9 +155,9 @@ Proof.
 Qed.
 
 Lemma subst_fresh_qualifier: forall (ϕ: qualifier) (x:atom) (u: value),
-    x ∉ (qualifier_fv ϕ) -> {x := u}q ϕ = ϕ.
+    x ∉ (qualifier_fv ϕ) -> {x := u} ϕ = ϕ.
 Proof.
-  intros.
+  intros. unfold substitute.
   destruct ϕ.
   simpl in *.
   f_equal.
@@ -150,7 +169,7 @@ Proof.
 Qed.
 
 Lemma open_fv_qualifier (ϕ : qualifier) (v : value) k :
-  qualifier_fv ({k ~q> v} ϕ) ⊆ qualifier_fv ϕ ∪ fv_value v.
+  qualifier_fv ({k ~> v} ϕ) ⊆ fv_value v ∪ qualifier_fv ϕ.
 Proof.
   destruct ϕ.
   simpl. clear. induction vals; simpl. easy.
@@ -159,7 +178,7 @@ Proof.
 Qed.
 
 Lemma open_fv_qualifier' (ϕ : qualifier) (v : value) k :
-  qualifier_fv ϕ ⊆ qualifier_fv ({k ~q> v} ϕ).
+  qualifier_fv ϕ ⊆ qualifier_fv ({k ~> v} ϕ).
 Proof.
   intros. destruct ϕ.
   simpl. clear. induction vals; simpl. easy.
@@ -178,8 +197,9 @@ Proof.
 Qed.
 
 Lemma qualifier_and_open k v q1 q2 :
-  {k ~q> v} (q1 & q2) = ({k ~q> v} q1) & ({k ~q> v} q2).
+  {k ~> v} (q1 & q2) = ({k ~> v} q1) & ({k ~> v} q2).
 Proof.
+  unfold open.
   destruct q1, q2. simpl. f_equal.
   (* Need a lemma [map_app] for vector. *)
   clear.
@@ -188,8 +208,9 @@ Proof.
 Qed.
 
 Lemma qualifier_and_subst x v q1 q2 :
-  {x := v}q (q1 & q2) = ({x := v}q q1) & ({x := v}q q2).
+  {x := v} (q1 & q2) = ({x := v} q1) & ({x := v} q2).
 Proof.
+  unfold open. unfold substitute.
   destruct q1, q2. simpl. f_equal.
   (* Need a lemma [map_app] for vector. *)
   clear.
@@ -228,8 +249,9 @@ Qed.
 
 Lemma open_subst_same_qualifier: forall x y (ϕ : qualifier) k,
     x # ϕ ->
-    {x := y }q ({k ~q> x} ϕ) = {k ~q> y} ϕ.
+    {x := y } ({k ~> x} ϕ) = {k ~> y} ϕ.
 Proof.
+  unfold substitute. unfold open.
   destruct ϕ. cbn. intros.
   f_equal. clear - H.
   (* A better proof should simply reduce to vector facts. Don't bother yet. *)
@@ -240,8 +262,9 @@ Proof.
 Qed.
 
 Lemma subst_open_qualifier: forall (ϕ: qualifier) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w}q ({k ~q> u} ϕ) = ({k ~q> {x := w} u} ({x := w}q ϕ)).
+    lc w -> {x := w} ({k ~> u} ϕ) = ({k ~> {x := w} u} ({x := w} ϕ)).
 Proof.
+  unfold open. unfold substitute.
   destruct ϕ. cbn. intros.
   f_equal.
   rewrite !Vector.map_map.
@@ -252,16 +275,14 @@ Qed.
 Lemma subst_open_qualifier_closed:
   ∀ (ϕ : qualifier) (x : atom) (u w : value) (k : nat),
     closed u ->
-    lc w → {x := w }q ({k ~q> u} ϕ) = {k ~q> u} ({x := w }q ϕ).
+    lc w → {x := w } ({k ~> u} ϕ) = {k ~> u} ({x := w } ϕ).
 Proof.
   intros. rewrite subst_open_qualifier; auto.
   rewrite (subst_fresh); eauto. set_solver.
 Qed.
 
-Import CoreLangProp.
-
 Lemma subst_lc_qualifier : forall x (u: value) (ϕ: qualifier),
-    lc_qualifier ϕ -> lc u -> lc_qualifier ({x := u}q ϕ).
+    lc_qualifier ϕ -> lc u -> lc_qualifier ({x := u} ϕ).
 Proof.
   destruct 1. intros Hu.
   econstructor.
@@ -269,11 +290,11 @@ Proof.
   rewrite Vector.to_list_map.
   rewrite Forall_map.
   eapply Forall_impl; eauto.
-  simpl. intros. apply subst_lc_value; fold_nameless; eauto.
+  simpl. intros. fold_nameless. eapply subst_lc; eauto.
 Qed.
 
 Lemma subst_open_var_qualifier: forall x y (u: value) (ϕ: qualifier) (k: nat),
-    x <> y -> lc u -> {x := u}q ({k ~q> y} ϕ) = ({k ~q> y} ({x := u}q ϕ)).
+    x <> y -> lc u -> {x := u} ({k ~> y} ϕ) = ({k ~> y} ({x := u} ϕ)).
 Proof.
   intros.
   rewrite subst_open_qualifier; auto. nameless_eval. rewrite decide_False; auto.
@@ -282,29 +303,32 @@ Qed.
 Lemma fv_of_subst_qualifier_closed:
   forall x (u : value) (ϕ: qualifier),
     closed u ->
-    qualifier_fv ({x := u }q ϕ) = qualifier_fv ϕ ∖ {[x]}.
+    qualifier_fv ({x := u } ϕ) = qualifier_fv ϕ ∖ {[x]}.
 Proof.
   destruct ϕ; simpl. clear. induction vals; simpl; intros.
   my_set_solver.
-  rewrite fv_of_subst_value_closed by eauto.
+  fold_nameless.
+  rewrite fv_of_subst_closed by eauto.
   my_set_solver.
 Qed.
 
 Lemma open_not_in_eq_qualifier (x : atom) (ϕ : qualifier) k :
-  x # {k ~q> x} ϕ ->
-  forall e, ϕ = {k ~q> e} ϕ.
+  x # {k ~> x} ϕ ->
+  forall e, ϕ = {k ~> e} ϕ.
 Proof.
+  unfold open.
   destruct ϕ. simpl. intros.
   f_equal.
   clear - H.
   induction vals; simpl; eauto.
-  f_equal. apply open_not_in_eq_value with x. my_set_solver.
+  f_equal. fold_nameless. apply open_not_in_eq with x. my_set_solver.
   auto_apply. my_set_solver.
 Qed.
 
 Lemma lc_subst_qualifier:
-  forall x (u: value) (ϕ: qualifier), lc_qualifier ({x := u}q ϕ) -> lc u -> lc_qualifier ϕ.
+  forall x (u: value) (ϕ: qualifier), lc_qualifier ({x := u} ϕ) -> lc u -> lc_qualifier ϕ.
 Proof.
+  unfold substitute.
   intros.
   sinvert H.
   destruct ϕ. simpl in *. simplify_eq.
@@ -317,30 +341,34 @@ Proof.
 Qed.
 
 Lemma open_rec_lc_qualifier: forall (v: value) (ϕ: qualifier) (k: nat),
-    lc_qualifier ϕ -> {k ~q> v} ϕ = ϕ.
+    lc_qualifier ϕ -> {k ~> v} ϕ = ϕ.
 Proof.
+  unfold open.
   destruct 1. simpl. f_equal.
   rewrite <- Vector.map_id.
   apply Vector.map_ext_in.
   rewrite Vector.Forall_forall in H.
-  intros. apply open_rec_lc_value; fold_nameless; eauto.
+  intros. fold_nameless. apply open_rec_lc; eauto. apply H; auto.
 Qed.
 
 Lemma open_qualifier_idemp: forall u (v: value) (ϕ: qualifier) (k: nat),
     lc v ->
-    {k ~q> u} ({k ~q> v} ϕ) = ({k ~q> v} ϕ).
+    {k ~> u} ({k ~> v} ϕ) = ({k ~> v} ϕ).
 Proof.
+  unfold open.
   destruct ϕ; intros. simpl.
   f_equal.
   rewrite Vector.map_map.
   apply Vector.map_ext_in.
-  eauto using open_value_idemp.
+  intros. fold_nameless.
+  rewrite open_idemp; eauto.
 Qed.
 
 Lemma subst_intro_qualifier: forall (ϕ: qualifier) (x:atom) (w: value) (k: nat),
     x # ϕ ->
-    lc w -> {x := w}q ({k ~q> x} ϕ) = ({k ~q> w} ϕ).
+    lc w -> {x := w} ({k ~> x} ϕ) = ({k ~> w} ϕ).
 Proof.
+  unfold open. unfold substitute.
   intros.
   specialize (subst_open_qualifier ϕ x x w k) as J.
   nameless_eval. rewrite decide_True in J; auto.
@@ -349,16 +377,17 @@ Qed.
 
 Lemma open_lc_qualifier: forall (u: value) (ϕ: qualifier),
     (* don't body defining body yet. *)
-    (exists L : aset, forall x : atom, x ∉ L -> lc_qualifier (ϕ ^q^ x)) ->
+    body_qualifier ϕ ->
     lc u ->
-    lc_qualifier ({0 ~q> u} ϕ).
+    lc_qualifier ({0 ~> u} ϕ).
 Proof.
+  unfold open.
   intros. destruct H.
   let acc := collect_stales tt in pose acc.
   pose (Atom.fv_of_set a).
   assert (a0 ∉ a). apply Atom.fv_of_set_fresh.
   erewrite <- subst_intro_qualifier; auto. instantiate (1:= a0).
-  apply subst_lc_qualifier; auto. apply H.
+  apply subst_lc_qualifier; eauto. apply H.
   my_set_solver. my_set_solver.
 Qed.
 
@@ -366,20 +395,22 @@ Lemma open_swap_qualifier: forall (ϕ: qualifier) i j (u v: value),
     lc u ->
     lc v ->
     i <> j ->
-    {i ~q> v} ({j ~q> u} ϕ) = {j ~q> u} ({i ~q> v} ϕ).
+    {i ~> v} ({j ~> u} ϕ) = {j ~> u} ({i ~> v} ϕ).
 Proof.
+  unfold open.
   destruct ϕ. intros. simpl.
   f_equal. rewrite !Vector.map_map.
   apply Vector.map_ext.
-  eauto using open_swap_value.
+  intros. fold_nameless. rewrite open_swap; eauto.
 Qed.
 
 Lemma open_lc_respect_qualifier: forall (ϕ: qualifier) (u v : value) k,
-    lc_qualifier ({k ~q> u} ϕ) ->
+    lc_qualifier ({k ~> u} ϕ) ->
     lc u ->
     lc v ->
-    lc_qualifier ({k ~q> v} ϕ).
+    lc_qualifier ({k ~> v} ϕ).
 Proof.
+  unfold open.
   intros. sinvert H.
   destruct ϕ. simpl in *. simplify_eq.
   econstructor.
@@ -387,8 +418,8 @@ Proof.
   rewrite Vector.to_list_map in *.
   rewrite Forall_map in *.
   eapply Forall_impl; eauto.
-  nameless_eval; eauto. intros. unfold lc in *. simpl in *.
-  eapply open_lc_respect_value; eauto.
+  nameless_eval; eauto. intros.
+  fold_nameless. eapply open_lc_respect; eauto.
 Qed.
 
 Arguments qualifier_and : simpl never.

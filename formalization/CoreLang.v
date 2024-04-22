@@ -155,6 +155,10 @@ Global Hint Constructors tm_lc: core.
 
 Definition tm_body (e: tm) := exists (L: aset), forall (x: atom), x ∉ L -> tm_lc (open_tm 0 (vfvar x) e).
 
+Definition value_lc (v: value) := tm_lc (treturn v).
+
+Definition value_body (v: value) := tm_body (treturn v).
+
 (** TypeClass *)
 Class Substable AST  : Type := {
     substitute: atom -> value -> AST -> AST;
@@ -195,8 +199,8 @@ Notation "x # s" := (x ∉ stale s) (at level 40).
   {
     open := open_value;
     close := close_value;
-    lc := tm_lc;
-    body := tm_body;
+    lc := value_lc;
+    body := value_body;
   }.
 
 #[export] Instance tm_ast : Ast tm :=
