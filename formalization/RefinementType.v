@@ -114,7 +114,7 @@ Definition body_rty (e: rty) := exists (L: aset), forall (x: atom), x ∉ L -> l
 
 (* Notation "'{' x ':=' s '}'" := (rty_subst x s) (at level 20, format "{ x := s }", x constr). *)
 (* Notation "'{' x ':=' s '}a'" := (am_subst x s) (at level 20, format "{ x := s }a", x constr). *)
-(* Notation "'{' x ':=' s '}h'" := (rty_subst x s) (at level 20, format "{ x := s }h", x constr). *)
+(* Notation "'{' x ':=' s '}'" := (rty_subst x s) (at level 20, format "{ x := s }", x constr). *)
 (** Closed under free variable set *)
 Inductive closed_rty (d : aset) (ρ: rty): Prop :=
 | closed_rty_: lc_rty ρ -> rty_fv ρ ⊆ d -> closed_rty d ρ.
@@ -204,97 +204,38 @@ Proof.
   by apply not_elem_of_dom.
 Qed.
 
-Lemma subst_commute_am : forall x u_x y u_y a,
-    x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
-    {x := u_x }a ({y := u_y }a a) = {y := u_y }a ({x := u_x }a a).
+Lemma subst_commute_rty : forall x (u_x: value) y (u_y: value) (ρ: rty),
+    x <> y -> x ∉ fv u_y -> y ∉ fv u_x ->
+    {x := u_x } ({y := u_y } ρ) = {y := u_y } ({x := u_x } ρ).
 Proof.
-  intros.
-  induction a; simpl; eauto; f_equal; eauto using subst_commute_qualifier.
-Qed.
-
-Lemma subst_commute_rty : forall x u_x y u_y ρ,
-    x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
-    {x := u_x } ({y := u_y } ρ) = {y := u_y } ({x := u_x } ρ)
-with subst_commute_rty : forall x u_x y u_y τ,
-    x <> y -> x ∉ fv_value u_y -> y ∉ fv_value u_x ->
-    {x := u_x }h ({y := u_y }h τ) = {y := u_y }h ({x := u_x }h τ).
-Proof.
-  destruct ρ; simpl; intros; f_equal;
-    eauto using subst_commute_qualifier, subst_commute_am.
-  destruct τ; simpl; intros; f_equal;
-    eauto using subst_commute_qualifier, subst_commute_am.
-Qed.
-
-Lemma subst_fresh_am: forall (a: am) (x:atom) (u: value),
-    x # a -> {x := u}a a = a.
-Proof.
-  intros. induction a; simpl in *; eauto; repeat f_equal;
-    eauto using subst_fresh_qualifier;
-    auto_apply; try my_set_solver.
+  unfold substitute.
+  induction ρ; simpl; intros; f_equal;
+    eauto using subst_commute_qualifier.
 Qed.
 
 Lemma subst_fresh_rty: forall (ρ: rty) (x:atom) (u: value),
-    x # ρ -> {x := u} ρ = ρ
-with subst_fresh_rty: forall (τ: rty) (x:atom) (u: value),
-    x # τ -> {x := u}h τ = τ.
+    x # ρ -> {x := u} ρ = ρ.
 Proof.
-  destruct ρ; simpl; intros; f_equal; eauto using subst_fresh_qualifier;
+  unfold substitute.
+  induction ρ; simpl; intros; f_equal; eauto using subst_fresh_qualifier;
     auto_apply; my_set_solver.
-  destruct τ; simpl; intros; f_equal;
-    solve [ auto_apply; my_set_solver
-          | apply subst_fresh_am; my_set_solver ].
-Qed.
-
-Lemma open_fv_am (a : am) (v : value) k :
-  am_fv ({k ~> v} a) ⊆ am_fv a ∪ fv_value v.
-Proof.
-  induction a; simpl; eauto using open_fv_qualifier;
-    repeat my_set_solver.
-Qed.
-
-Lemma open_fv_am' (a : am) (v : value) k :
-  am_fv a ⊆ am_fv ({k ~> v} a).
-Proof.
-  induction a; simpl; eauto using open_fv_qualifier';
-    my_set_solver.
 Qed.
 
 Lemma open_fv_rty (ρ : rty) (v : value) k :
-  rty_fv ({k ~> v} ρ) ⊆ rty_fv ρ ∪ fv_value v
-with open_fv_rty (τ : rty) (v : value) k :
-  rty_fv ({k ~> v} τ) ⊆ rty_fv τ ∪ fv_value v.
+  rty_fv ({k ~> v} ρ) ⊆ fv v ∪ rty_fv ρ.
 Proof.
-  all: revert k.
-  destruct ρ; simpl; intros; eauto using open_fv_qualifier.
+  unfold open.
+  revert k.
+  induction ρ; simpl; intros; fold_nameless_qualifier; try apply open_fv.
   etrans. apply union_mono; eauto. my_set_solver.
-  destruct τ; simpl; intros.
-  etrans. repeat apply union_mono; eauto using open_fv_am. my_set_solver.
-  etrans. repeat apply union_mono; eauto. my_set_solver.
 Qed.
 
 Lemma open_fv_rty' (ρ : rty) (v : value) k :
-  rty_fv ρ ⊆ rty_fv ({k ~> v} ρ)
-with open_fv_rty' (τ : rty) (v : value) k :
-  rty_fv τ ⊆ rty_fv ({k ~> v} τ).
+  rty_fv ρ ⊆ rty_fv ({k ~> v} ρ).
 Proof.
   all: revert k.
-  destruct ρ; simpl; intros; eauto using open_fv_qualifier';
+  induction ρ; simpl; intros; eauto using open_fv_qualifier';
     repeat apply union_mono; eauto.
-  destruct τ; simpl; intros;
-    repeat apply union_mono; eauto using open_fv_am'.
-Qed.
-
-Lemma open_subst_same_am: forall x y (a : am) k,
-    x # a ->
-    {x := y }a ({k ~> x} a) = {k ~> y} a.
-Proof.
-  induction a; cbn; intros; eauto.
-  f_equal. eauto using open_subst_same_qualifier.
-  all:
-  repeat
-    match goal with
-    | H : forall k, _ # _ -> _ =_ |- _ => rewrite H by my_set_solver; eauto
-    end.
 Qed.
 
 Lemma not_in_union_list {A C} `{SemiSet A C} (x : A) (ss : list C):
@@ -307,226 +248,106 @@ Qed.
 
 Lemma open_subst_same_rty: forall x y (ρ : rty) k,
     x # ρ ->
-    {x := y } ({k ~> x} ρ) = {k ~> y} ρ
-with open_subst_same_rty: forall x y (τ : rty) k,
-    x # τ ->
-    {x := y }h ({k ~> x} τ) = {k ~> y} τ.
+    {x := y } ({k ~> x} ρ) = {k ~> y} ρ.
 Proof.
-  destruct ρ; simpl; intros; f_equal; eauto using open_subst_same_qualifier;
+  unfold substitute. unfold open.
+  induction ρ; simpl; intros; f_equal; eauto using open_subst_same_qualifier;
     auto_apply; my_set_solver.
-  destruct τ; simpl; intros; f_equal;
-    solve [ auto_apply; my_set_solver
-          | apply open_subst_same_am; my_set_solver ].
-Qed.
-
-Lemma subst_open_am: forall (a: am) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w}a ({k ~> u} a) = ({k ~> {x := w}v u} ({x := w}a a)).
-Proof.
-  induction a; cbn; intros; eauto.
-  f_equal. eauto using subst_open_qualifier.
-  all:
-  repeat
-    match goal with
-    | H : context [lc _ -> _] |- _ => rewrite H by my_set_solver; eauto
-    end.
 Qed.
 
 Lemma subst_open_rty: forall (ρ: rty) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w} ({k ~> u} ρ) = ({k ~> {x := w}v u} ({x := w} ρ))
-with subst_open_rty: forall (τ: rty) (x:atom) (u: value) (w: value) (k: nat),
-    lc w -> {x := w}h ({k ~> u} τ) = ({k ~> {x := w}v u} ({x := w}h τ)).
+    lc w -> {x := w} ({k ~> u} ρ) = ({k ~> {x := w} u} ({x := w} ρ)).
 Proof.
-  destruct ρ; simpl; intros; f_equal; eauto using subst_open_qualifier.
-  destruct τ; simpl; intros; f_equal; eauto using subst_open_am.
+  unfold substitute. unfold open.
+  induction ρ; simpl; intros; f_equal; eauto using subst_open_qualifier.
 Qed.
 
 Lemma subst_open_rty_closed:
   ∀ (ρ : rty) (x : atom) (u w : value) (k : nat),
-    closed_value u ->
+    closed u ->
     lc w → {x := w } ({k ~> u} ρ) = {k ~> u} ({x := w } ρ).
 Proof.
-  intros. rewrite subst_open_rty; auto.
-  rewrite (subst_fresh_value); eauto. set_solver.
-Qed.
-
-Lemma subst_open_am_closed:
-  ∀ (a : am) (x : atom) (u w : value) (k : nat),
-    closed_value u ->
-    lc w → {x := w }a ({k ~> u} a) = {k ~> u} ({x := w }a a).
-Proof.
-  intros. rewrite subst_open_am; auto.
-  rewrite (subst_fresh_value); eauto. set_solver.
-Qed.
-
-Lemma subst_open_rty_closed:
-  ∀ (τ : rty) (x : atom) (u w : value) (k : nat),
-    closed_value u ->
-    lc w → {x := w }h ({k ~> u} τ) = {k ~> u} ({x := w }h τ).
-Proof.
-  intros. rewrite subst_open_rty; auto.
-  rewrite (subst_fresh_value); eauto. set_solver.
-Qed.
-
-Lemma subst_open_var_am: forall x y (u: value) (a: am) (k: nat),
-    x <> y -> lc u -> {x := u}a ({k ~> y} a) = ({k ~> y} ({x := u}a a)).
-Proof.
-  intros.
-  rewrite subst_open_am; auto. simpl. rewrite decide_False; auto.
+  unfold substitute. unfold open.
+  intros. simpl. rewrite subst_open_rty; auto.
+  rewrite (subst_fresh); eauto. set_solver.
 Qed.
 
 Lemma subst_open_var_rty: forall x y (u: value) (ρ: rty) (k: nat),
     x <> y -> lc u -> {x := u} ({k ~> y} ρ) = ({k ~> y} ({x := u} ρ)).
 Proof.
   intros.
-  rewrite subst_open_rty; auto. simpl. rewrite decide_False; auto.
-Qed.
-
-Lemma subst_open_var_rty: forall x y (u: value) (τ: rty) (k: nat),
-    x <> y -> lc u -> {x := u}h ({k ~> y} τ) = ({k ~> y} ({x := u}h τ)).
-Proof.
-  intros.
-  rewrite subst_open_rty; auto. simpl. rewrite decide_False; auto.
-Qed.
-
-Lemma subst_lc_am : forall x (u: value) (a: am),
-    lc_am a -> lc u -> lc_am ({x := u}a a).
-Proof.
-  induction 1; intros Hu; eauto using lc_am.
-  econstructor.
-  auto_exists_L_intros.
-  specialize_with x0.
-  specialize_with y.
-  rewrite <- !subst_open_var_qualifier by (eauto; my_set_solver).
-  eauto using subst_lc_qualifier.
+  rewrite subst_open_rty; auto. unfold open. unfold substitute. simpl. rewrite decide_False; auto.
 Qed.
 
 Lemma subst_lc_rty : forall x (u: value) (ρ: rty),
-    lc_rty ρ -> lc u -> lc_rty ({x := u} ρ)
-with subst_lc_rty : forall x (u: value) (τ: rty),
-    lc_rty τ -> lc u -> lc_rty ({x := u}h τ).
+    lc_rty ρ -> lc u -> lc_rty ({x := u} ρ).
 Proof.
-  all: destruct 1; intros; simpl; econstructor; eauto using subst_lc_am;
-    instantiate_atom_listctx.
+  unfold substitute.
+  induction 1; intros; simpl in *; auto_exists_L; intros.
   - rewrite <- subst_open_var_qualifier by (eauto; my_set_solver);
-      eauto using subst_lc_qualifier.
+      apply subst_lc_qualifier; eauto. apply H. my_set_solver.
+  - rewrite <- subst_open_var_qualifier by (eauto; my_set_solver);
+      apply subst_lc_qualifier; eauto. apply H. my_set_solver.
   - rewrite <- subst_open_var_rty by (eauto; my_set_solver); eauto.
-  - rewrite <- subst_open_var_rty by (eauto; my_set_solver); eauto.
-Qed.
-
-Lemma fv_of_subst_am_closed:
-  forall x (u : value) (a: am),
-    closed_value u ->
-    am_fv ({x := u }a a) = (am_fv a ∖ {[x]}).
-Proof.
-  induction a; simpl; eauto using fv_of_subst_qualifier_closed; my_set_solver.
+    auto_apply; (eauto; my_set_solver).
 Qed.
 
 Lemma fv_of_subst_rty_closed:
   forall x (u : value) (ρ: rty),
-    closed_value u ->
-    rty_fv ({x := u } ρ) = (rty_fv ρ ∖ {[x]})
-with fv_of_subst_rty_closed:
-  forall x (u : value) (τ: rty),
-    closed_value u ->
-    rty_fv ({x := u }h τ) = (rty_fv τ ∖ {[x]}).
+    closed u ->
+    rty_fv ({x := u } ρ) = (rty_fv ρ ∖ {[x]}).
 Proof.
-  destruct ρ; simpl; intros; eauto using fv_of_subst_qualifier_closed.
-  rewrite !fv_of_subst_rty_closed, !fv_of_subst_rty_closed by eauto.
+  unfold substitute.
+  induction ρ; simpl in *; intros; eauto using fv_of_subst_qualifier_closed.
+  rewrite IHρ1, IHρ2 by eauto.
   my_set_solver.
-  destruct τ; simpl; intros.
-  rewrite !fv_of_subst_am_closed, !fv_of_subst_rty_closed by eauto.
-  my_set_solver.
-  rewrite !fv_of_subst_rty_closed by eauto.
-  my_set_solver.
-Qed.
-
-Lemma open_not_in_eq_am (x : atom) (a : am) k :
-  x # {k ~> x} a ->
-  forall e, a = {k ~> e} a.
-Proof.
-  induction a; simpl; intros; eauto.
-  f_equal. eapply open_not_in_eq_qualifier. my_set_solver.
-  all: f_equal; auto_apply; my_set_solver.
 Qed.
 
 Lemma open_not_in_eq_rty (x : atom) (ρ : rty) k :
   x # {k ~> x} ρ ->
-  forall e, ρ = {k ~> e} ρ
-with open_not_in_eq_rty (x : atom) (τ : rty) k :
-  x # {k ~> x} τ ->
-  forall e, τ = {k ~> e} τ.
+  forall e, ρ = {k ~> e} ρ.
 Proof.
-  all: revert k; specialize (open_not_in_eq_rty x); specialize (open_not_in_eq_rty x).
-  destruct ρ; simpl; intros; f_equal; eauto using open_not_in_eq_qualifier;
+  unfold open. unfold substitute.
+  revert k.
+  induction ρ; simpl in *; intros; f_equal; eauto using open_not_in_eq_qualifier;
     auto_apply; my_set_solver.
-  destruct τ; simpl; intros; f_equal;
-    solve [ auto_apply; my_set_solver
-          | apply (open_not_in_eq_am x); my_set_solver ].
 Qed.
 
 Lemma subst_intro_rty: forall (ρ: rty) (x:atom) (w: value) (k: nat),
     x # ρ ->
     lc w -> {x := w} ({k ~> x} ρ) = ({k ~> w} ρ).
 Proof.
-  intros.
+  unfold open. unfold substitute.
+  intros. simpl.
   specialize (subst_open_rty ρ x x w k) as J.
+  unfold open in J. unfold substitute in J.
   simpl in J. rewrite decide_True in J; auto.
   rewrite J; auto. rewrite subst_fresh_rty; auto.
 Qed.
 
-Lemma lc_subst_am:
-  forall x (u: value) (a: am), lc_am ({x := u}a a) -> lc u -> lc_am a.
+Lemma lc_subst_rty: forall x (u: value) (ρ: rty), lc_rty ({x := u} ρ) -> lc u -> lc_rty ρ.
 Proof.
+  unfold substitute. simpl.
   intros.
-  remember (({x:=u}a) a).
-  generalize dependent a.
-  induction H; intros;
-      match goal with
-      | H : _ = {_:=_}a ?a |- _ => destruct a; simpl in *; simplify_eq
-      end; eauto using lc_am.
-  econstructor.
-  auto_exists_L_intros. specialize_with x0. specialize_with y.
-  rewrite <- !subst_open_var_qualifier in H by (eauto; my_set_solver).
-  eauto using lc_subst_qualifier.
-Qed.
-
-Lemma lc_subst_rty: forall x (u: value) (ρ: rty), lc_rty ({x := u} ρ) -> lc u -> lc_rty ρ
-with lc_subst_rty: forall x (u: value) (τ: rty), lc_rty ({x := u}h τ) -> lc u -> lc_rty τ.
-Proof.
-  intros.
-  remember (({x:=u}) ρ).
+  remember (rty_subst x u ρ).
   generalize dependent ρ.
-  destruct H; intros ρ' **; destruct ρ'; simpl in *; simplify_eq;
-    econstructor; eauto;
-    instantiate_atom_listctx.
-  rewrite <- subst_open_var_qualifier in * by (eauto; my_set_solver);
-    eauto using lc_subst_qualifier.
-  rewrite <- subst_open_var_rty in * by (eauto; my_set_solver); eauto.
-  rewrite <- subst_open_var_rty in * by (eauto; my_set_solver); eauto.
-
-  intros.
-  remember (({x:=u}h) τ).
-  generalize dependent τ.
-  destruct H; intros τ' **; destruct τ'; simpl in *; simplify_eq;
-    econstructor; eauto using lc_subst_am.
-Qed.
-
-Lemma open_am_idemp: forall u (v: value) (a: am) (k: nat),
-    lc v ->
-    {k ~> u} ({k ~> v} a) = ({k ~> v} a).
-Proof.
-  induction a; intros; simpl; f_equal; eauto using open_qualifier_idemp.
+  induction H; intros ρ' **; destruct ρ'; simpl in *; simplify_eq; auto_exists_L; intros.
+  + specialize (H x0).
+    rewrite <- subst_open_var_qualifier in * by (eauto; my_set_solver).
+    eapply lc_subst_qualifier; eauto. apply H. my_set_solver.
+  + specialize (H x0).
+    rewrite <- subst_open_var_qualifier in * by (eauto; my_set_solver).
+    eapply lc_subst_qualifier; eauto. apply H. my_set_solver.
+  + repeat specialize_with x0.
+    apply H2. rewrite subst_open_var_rty; eauto. my_set_solver.
 Qed.
 
 Lemma open_rty_idemp: forall u (v: value) (ρ: rty) (k: nat),
     lc v ->
-    {k ~> u} ({k ~> v} ρ) = {k ~> v} ρ
-with open_rty_idemp: forall u (v: value)  (τ: rty) (k: nat),
-    lc v ->
-    {k ~> u} ({k ~> v} τ) = {k ~> v} τ.
+    {k ~> u} ({k ~> v} ρ) = {k ~> v} ρ.
 Proof.
-  destruct ρ; intros; simpl; f_equal; eauto using open_qualifier_idemp.
-  destruct τ; intros; simpl; f_equal; eauto using open_am_idemp.
+  unfold open. unfold substitute.
+  induction ρ; intros; simpl; f_equal; eauto using open_qualifier_idemp.
 Qed.
 
 Lemma closed_rty_subseteq_proper s1 s2 ρ :
@@ -536,16 +357,4 @@ Lemma closed_rty_subseteq_proper s1 s2 ρ :
 Proof.
   intros. sinvert H. split. eauto.
   my_set_solver.
-Qed.
-
-Lemma closed_rty_hoare_congr d ρ a b :
-  closed_rty d ρ ->
-  closed_am d a ->
-  closed_am d b ->
-  closed_rty d (<[ a ] ρ [ b ]>).
-Proof.
-  inversion 1. inversion 1. inversion 1.
-  econstructor.
-  econstructor; eauto.
-  simpl. my_set_solver.
 Qed.
