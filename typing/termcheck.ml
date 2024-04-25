@@ -73,6 +73,8 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         term_type_check
           (add_to_rights rctx [ binding; fixname.x #: rty' ])
           body retty
+    | VFix { fixname; fixarg; body }, RtyGhostArr { argnty; arg; retty } ->
+      (* let right_rty = retty in *)
     | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
         let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
         let rty' =
