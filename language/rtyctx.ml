@@ -68,61 +68,46 @@ let flip_by_name ctx name = update_rty_by_name ctx name flip_base
 open Zzdatatype.Datatype
 open Sugar
 
-let pack_under_ctx ctx (cty : t cty) =
+(* NOTE: pack_and_flip (x:[p1(v)], y:[p2(x, v)])([p3(y, v)]) =
+   (x:{p1(v)}, y:{p2(x, v)})([exists x.p1(x) /\ exists y.p2(x, y) /\ p3(y, v)]) *)
+
+let pack_and_flip ctx (cty : t cty) =
   let get_fv (cty : t cty) = List.map _get_x @@ fv_cty cty in
   let rec aux (ctx : (t rty, string) typed list) cty =
     let fvs = get_fv cty in
     match fvs with
-    | [] -> ([], cty)
+    | [] -> (ctx, cty)
     | _ -> (
         match List.last_destruct_opt ctx with
-        | None -> Sugar._failatwith __FILE__ __LINE__ "die"
+        | None -> (ctx, cty)
+        | Some (ctx, x) when List.exists (String.equal x.x) fvs -> (
+            match x.ty with
+            | RtyBase { ou = Fa; _ } ->
+                let ctx, cty = aux ctx cty in
+                (ctx @ [ x ], cty)
+            | RtyBase { ou = Ex; cty = x_cty; er } ->
+                let cty = Ctyfunc.exists_cty_to_cty (x.x #: x_cty, cty) in
+                let x = x.x #: (RtyBase { ou = Fa; cty = x_cty; er }) in
+                let ctx, cty = aux ctx cty in
+                (ctx @ [ x ], cty)
+            | _ ->
+                let () = Printf.printf "%s:%s\n" x.x (layout_rty x.ty) in
+                _failatwith __FILE__ __LINE__ "die")
         | Some (ctx, x) ->
-            if List.exists (String.equal x.x) fvs then
-              let self_fvs = List.map _get_x @@ fv_rty x.ty in
-              let cty =
-                match x.ty with
-                | RtyBase { ou = Ex; cty = x_cty; _ } ->
-                    Ctyfunc.exists_cty_to_cty (x.x #: x_cty, cty)
-                | _ ->
-                    let () = Printf.printf "%s:%s\n" x.x (layout_rty x.ty) in
-                    _failatwith __FILE__ __LINE__ "die"
-              in
-              match self_fvs with
-              | [] ->
-                  let res, cty = aux ctx cty in
-                  (res @ [ x.x ], cty)
-              | _ -> aux ctx cty
-            else aux ctx cty)
+            let ctx, cty = aux ctx cty in
+            (ctx @ [ x ], cty))
   in
-  match ctx.local_ctx with Typectx ctx -> aux ctx cty
+  match ctx.local_ctx with
+  | Typectx local_ctx ->
+      let local_ctx, cty = aux local_ctx cty in
+      ({ ctx with local_ctx = Typectx local_ctx }, cty)
 
-(* let track_original_randomness_from_fvs ctx fvs = *)
-(*   let rec aux ctx fvs = *)
-(*     (\* let _ = pprint_typectx (Typectx ctx) in *\) *)
-(*     (\* let _ = Printf.printf "%s\n" (StrList.to_string fvs) in *\) *)
-(*     match fvs with *)
-(*     | [] -> [] *)
-(*     | _ -> ( *)
-(*         match List.last_destruct_opt ctx with *)
-(*         | None -> Sugar._failatwith __FILE__ __LINE__ "die" *)
-(*         | Some (ctx, x) -> *)
-(*             if List.exists (String.equal x.x) fvs then *)
-(*               let fvs = List.remove_elt String.equal x.x fvs in *)
-(*               let self_fvs = List.map _get_x @@ fv_rty x.ty in *)
-(*               match self_fvs with *)
-(*               | [] -> aux ctx fvs @ [ x.x ] *)
-(*               | _ -> aux ctx (fvs @ self_fvs) *)
-(*             else aux ctx fvs) *)
-(*   in *)
-(*   match ctx.local_ctx with Typectx ctx -> aux ctx fvs *)
-
-let track_original_randomness_from_cty ctx cty =
-  let origins, cty = pack_under_ctx ctx cty in
-  (List.fold_left flip_by_name ctx origins, cty)
+(* let track_original_randomness_from_cty ctx cty = *)
+(*   let origins, cty = pack_and_flip ctx cty in *)
+(*   (List.fold_left flip_by_name ctx origins, cty) *)
 
 let consume_rty ctx = function
   | RtyBase { ou = Ex; cty; er } ->
-      let ctx, cty = track_original_randomness_from_cty ctx cty in
+      let ctx, cty = pack_and_flip ctx cty in
       (ctx, RtyBase { ou = Ex; cty; er })
   | _ -> Sugar._failatwith __FILE__ __LINE__ "die"

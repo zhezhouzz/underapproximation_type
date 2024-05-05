@@ -26,7 +26,7 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
   let () = pprint_simple_typectx_judge rctx (layout_typed_value a, rty) in
   let res =
     match (a.x, rty) with
-    | _, RtyGhostArr _ -> _failatwith __FILE__ __LINE__ "die"
+    (* | _, RtyGhostArr _ -> _failatwith __FILE__ __LINE__ "die" *)
     | _, RtyInter (rty1, rty2) ->
         let* _ = value_type_check rctx a rty1 in
         let* _ = value_type_check rctx a rty2 in
@@ -73,29 +73,61 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         term_type_check
           (add_to_rights rctx [ binding; fixname.x #: rty' ])
           body retty
-    | VFix { fixname; fixarg; body }, RtyGhostArr { argnty; arg; retty } ->
-      (* let right_rty = retty in *)
-    | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
-        let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
-        let rty' =
-          let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in
-          RtyBaseDepPair
-            {
-              (* argcty = intersect_ctys [ argcty; rec_constraint_cty ]; *)
-              argcty = intersect_ctys [ rec_constraint_cty ];
-              arg = a.x;
-              retty = subst_rty_instance arg (AVar a) retty;
-            }
+    | VFix { fixname; fixarg; body }, RtyGhostArr { argnty; arg; retty }
+      when Nt.eq argnty Nt.Ty_int ->
+        (* NOTE: We assume the index type is nature number *)
+        let phi =
+          apply_pi_prop
+            (Env.get_statements_by_name "natrual_number")
+            (mk_typed_lit_by_id default_v #: argnty)
         in
-        let binding =
-          arg #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
+        let index = arg #: (mk_rty Fa @@ mk_cty argnty phi) in
+        let rctx = add_to_left rctx index in
+        let self_rty =
+          let arg' = Rename.unique arg in
+          let retty' = subst_rty_instance arg (AVar arg' #: argnty) retty in
+          let rty = RtyGhostArr { argnty; arg = arg'; retty = retty' } in
+          let phi' =
+            List.fold_left apply_pi_prop
+              (Env.get_statements_by_name "rec_arg")
+              [
+                mk_typed_lit_by_id arg #: argnty;
+                mk_typed_lit_by_id arg' #: argnty;
+              ]
+          in
+          map_rty_on_result_type rty (fun rty ->
+              map_rty_on_cty rty (fun cty ->
+                  map_cty_on_phi cty (fun phi -> smart_and [ phi; phi' ])))
         in
-        let body =
-          body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
-        in
-        term_type_check
-          (add_to_rights rctx [ binding; fixname.x #: rty' ])
-          body retty
+        let binding = [ fixname.x #: self_rty ] in
+        (* let () = Printf.printf "%s\n" index'.x in *)
+        (* let () = Printf.printf "%s\n" fixname.x in *)
+        (* let () = Printf.printf "%s\n" arg in *)
+        value_type_check
+          (add_to_rights rctx binding)
+          (VLam { lamarg = fixarg; body }) #: fixname.ty
+          retty
+    (* | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } -> *)
+    (*     let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in *)
+    (*     let rty' = *)
+    (*       let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in *)
+    (*       RtyBaseDepPair *)
+    (*         { *)
+    (*           (\* argcty = intersect_ctys [ argcty; rec_constraint_cty ]; *\) *)
+    (*           argcty = intersect_ctys [ rec_constraint_cty ]; *)
+    (*           arg = a.x; *)
+    (*           retty = subst_rty_instance arg (AVar a) retty; *)
+    (*         } *)
+    (*     in *)
+    (*     let binding = *)
+    (*       arg #: (RtyBase { ou = Ex; cty = argcty; er = mk_false }) *)
+    (*     in *)
+    (*     let body = *)
+    (*       body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty)) *)
+    (*     in *)
+    (*     term_type_check *)
+    (*       (add_to_rights rctx [ binding; fixname.x #: rty' ]) *)
+    (*       body retty *)
     | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
     | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
   in
@@ -162,43 +194,137 @@ and match_case_type_check (rctx : rctx) (matched : (t, t value) typed)
       (* in *)
       Some ()
 
+and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
+    (x : t match_case) : t rty option =
+  match x with
+  | CMatchcase { constructor; args; exp } ->
+      let constructor_rty =
+        _id_type_infer __FILE__ __LINE__ rctx
+          (dt_name_for_typectx constructor.x)
+      in
+      let args, retty =
+        List.fold_left
+          (fun (args, rty) x ->
+            match rty with
+            | RtyBaseArr { argcty; arg; retty } ->
+                let retty = subst_rty_instance arg (AVar x) retty in
+                let x =
+                  x.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
+                in
+                (args @ [ x ], retty)
+            | RtyArrArr { argrty; retty } ->
+                let x = x.x #: argrty in
+                (args @ [ x ], retty)
+            | _ -> _failatwith __FILE__ __LINE__ "die")
+          ([], constructor_rty) args
+      in
+      let retcty, _ =
+        match retty with
+        | RtyBase { cty; er; ou = Ex } -> (cty, er)
+        | _ -> _failatwith __FILE__ __LINE__ "die"
+      in
+      let rctx', retcty =
+        match args with
+        | [] -> (
+            match retcty with
+            | Cty { phi; _ } ->
+                let lit = typed_value_to_typed_lit __FILE__ __LINE__ matched in
+                let cty =
+                  Cty
+                    {
+                      nty = Ty_unit;
+                      phi = subst_prop_instance default_v lit.x phi;
+                    }
+                in
+                (rctx, cty))
+        | _ ->
+            let rctx', matched_rty =
+              consume_rty rctx (value_type_infer rctx matched)
+            in
+            let matched_cty = rty_to_cty matched_rty in
+            let cty = intersect_ctys [ matched_cty; retcty ] in
+            (rctx', cty)
+      in
+      let forward_ctx =
+        add_to_rights rctx'
+          (args @ [ (Rename.unique "tmp") #: (mk_rty Fa retcty) ])
+      in
+      let* rty = term_type_infer forward_ctx exp in
+      (* let _ = *)
+      (*   Printf.printf "exists %s\n" *)
+      (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
+      (* in *)
+      Some
+        (pack_rtys_to_rty
+           (args @ [ (Rename.unique "tmp") #: (mk_rty Ex retcty) ])
+           rty)
+
 and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
   (* let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in *)
   match appf_rty with
-  | RtyGhostArr _ -> _failatwith __FILE__ __LINE__ "die"
+  | RtyGhostArr { argnty; arg; retty } ->
+    let forward_rctx =
+      add_to_right rctx
+        (Rename.unique "tmp") #: (prop_to_rty Fa Nt.Ty_unit phi)
+    in
   | RtyBaseArr { argcty; arg; retty } ->
       (* NOTE: we need to capture the constraint from the argument type *)
       let lit = typed_value_to_typed_lit __FILE__ __LINE__ apparg in
       let retty = subst_rty_instance arg lit.x retty in
-      let rctx' =
-        match argcty with
-        | Cty { phi; _ } ->
-            if is_true phi then rctx
-            else
-              let phi =
-                subst_prop_instance default_v
-                  (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x phi
-              in
-              let constraint_rty = prop_to_rty Ex Nt.Ty_unit phi in
-              let tmp = (Rename.unique "tmp") #: constraint_rty in
-              add_to_right rctx tmp
+      let phi =
+        subst_prop_instance default_v
+          (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x
+        @@ get_cty_prop argcty
       in
-      Some (rctx', retty)
+      if is_true phi then Some (rctx, [], retty)
+      else
+        let forward_rctx =
+          add_to_right rctx
+            (Rename.unique "tmp") #: (prop_to_rty Fa Nt.Ty_unit phi)
+        in
+        let backward_binding =
+          [ (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit phi) ]
+        in
+        Some (forward_rctx, backward_binding, retty)
+  (* | RtyBaseDepPair { argcty; arg; retty } -> *)
+  (*     let apparg_rty = value_type_infer rctx apparg in *)
+  (*     let argrty = cty_to_rty Ex argcty in *)
+  (*     if sub_rty_bool rctx (apparg_rty, argrty) then *)
+  (*       let retty = pack_rty_to_rty (arg #: argrty, retty) in *)
+  (*       let rctx', _ = consume_rty rctx apparg_rty in *)
+  (*       let constrain_rty = *)
+  (*         mk_rty Fa *)
+  (*         @@ subst_cty_instance default_v *)
+  (*              (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x argcty *)
+  (*       in *)
+  (*       let rctx' = add_to_right rctx' (Rename.unique "tmp") #: constrain_rty in *)
+  (*       Some (rctx', retty) *)
+  (*     else ( *)
+  (*       _warinning_subtyping_error __FILE__ __LINE__ (apparg_rty, argrty); *)
+  (*       _warinning_typing_error __FILE__ __LINE__ *)
+  (*         (layout_typed_value apparg, argrty); *)
+  (*       None) *)
   | RtyBaseDepPair { argcty; arg; retty } ->
       let apparg_rty = value_type_infer rctx apparg in
       let argrty = cty_to_rty Ex argcty in
-      if sub_rty_bool rctx (apparg_rty, argrty) then
-        let retty = pack_rty_to_rty (arg #: argrty, retty) in
-        let rctx', _ = consume_rty rctx apparg_rty in
-        Some (rctx', retty)
-      else (
-        _warinning_subtyping_error __FILE__ __LINE__ (apparg_rty, argrty);
-        _warinning_typing_error __FILE__ __LINE__
-          (layout_typed_value apparg, argrty);
-        None)
+      let retty = pack_rty_to_rty (arg #: argrty, retty) in
+      let rctx', _ = consume_rty rctx apparg_rty in
+      let phi =
+        subst_prop_instance default_v
+          (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x
+        @@ get_cty_prop argcty
+      in
+      let forward_rctx =
+        add_to_right rctx'
+          (Rename.unique "tmp") #: (prop_to_rty Fa Nt.Ty_unit phi)
+      in
+      let backward_rctx =
+        [ (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit phi) ]
+      in
+      Some (forward_rctx, backward_rctx, retty)
   | RtyArrArr { argrty; retty } ->
       let apparg_rty = value_type_infer rctx apparg in
-      if sub_rty_bool rctx (apparg_rty, argrty) then Some (rctx, retty)
+      if sub_rty_bool rctx (apparg_rty, argrty) then Some (rctx, [], retty)
       else (
         _warinning_subtyping_error __FILE__ __LINE__ (apparg_rty, argrty);
         _warinning_typing_error __FILE__ __LINE__
@@ -207,76 +333,81 @@ and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
   | _ -> _failatwith __FILE__ __LINE__ "type error: not an arrow type"
 
 and term_type_infer_app (rctx : rctx) (a : ('t, 't term) typed) :
-    (rctx * t rty) option =
+    (rctx * (t rty, string) typed list * t rty) option =
   let res =
     match a.x with
     | CApp { appf; apparg } ->
         let appf_rty = value_type_infer rctx appf in
-        let* rctx', retty = arrow_type_apply rctx appf_rty apparg in
-        Some (rctx', retty)
+        let* forward_rctx, backward_bindings, retty =
+          arrow_type_apply rctx appf_rty apparg
+        in
+        Some (forward_rctx, backward_bindings, retty)
     | CAppOp { op; appopargs } ->
         let op_rty =
           _id_type_infer __FILE__ __LINE__ rctx (op_name_for_typectx op.x)
         in
-        let* rctx, retty =
+        let* rctx, backward_bindings, retty =
           List.fold_left
             (fun res apparg ->
-              let* rctx, op_rty = res in
-              let* rctx, op_rty = arrow_type_apply rctx op_rty apparg in
-              Some (rctx, op_rty))
-            (Some (rctx, op_rty))
+              let* rctx, backward_bindings, op_rty = res in
+              let* rctx, backward_bindings', op_rty =
+                arrow_type_apply rctx op_rty apparg
+              in
+              Some (rctx, backward_bindings @ backward_bindings', op_rty))
+            (Some (rctx, [], op_rty))
             appopargs
         in
-        Some (rctx, retty)
+        Some (rctx, backward_bindings, retty)
     | _ ->
-        let rty = term_type_infer rctx a in
-        Some (rctx, rty)
+        let* rty = term_type_infer rctx a in
+        Some (rctx, [], rty)
   in
   res
 
-and term_type_infer (rctx : rctx) (a : ('t, 't term) typed) : t rty =
+and term_type_infer (rctx : rctx) (y : ('t, 't term) typed) : t rty option =
   let rty =
-    match a.x with
+    match y.x with
     | CErr -> _failatwith __FILE__ __LINE__ "die"
-    | CVal v -> value_type_infer rctx v
-    | CMatch _ | CApp _ | CAppOp _ | CLetE _ ->
-        _failatwith __FILE__ __LINE__ "die"
+    | CVal v -> Some (value_type_infer rctx v)
+    | CApp _ | CAppOp _ ->
+        let* _, bindings, rty' = term_type_infer_app rctx y in
+        Some (pack_rtys_to_rty bindings rty')
+    | CLetE { rhs; lhs; body } ->
+        let* rctx', bindings, rty' = term_type_infer_app rctx rhs in
+        let lhs = lhs.x #: rty' in
+        let* rty' = term_type_infer (add_to_right rctx' lhs) body in
+        Some (pack_rtys_to_rty (lhs :: bindings) rty')
+    | CMatch { matched; match_cases } -> (
+        let rtys =
+          List.filter_map
+            (fun case -> match_case_type_infer rctx matched case)
+            match_cases
+        in
+        match rtys with [] -> None | _ -> Some (intersect_rtys rtys))
     | CLetDeTu _ -> failwith "unimp"
   in
-  let () = pprint_simple_typectx_infer rctx (layout_typed_term a, rty) in
+  let () =
+    match rty with
+    | Some rty -> pprint_simple_typectx_infer rctx (layout_typed_term y, rty)
+    | None -> ()
+  in
   rty
 
 and term_type_check (rctx : rctx) (y : ('t, 't term) typed) (rty : t rty) :
     unit option =
-  let () = pprint_simple_typectx_judge rctx (layout_typed_term y, rty) in
+  let () =
+    match y.x with
+    | CVal _ -> ()
+    | _ -> pprint_simple_typectx_judge rctx (layout_typed_term y, rty)
+  in
   match y.x with
   | CLetDeTu _ -> failwith "unimp"
   | CVal v -> value_type_check rctx v rty
   | CErr -> _failatwith __FILE__ __LINE__ "unimp"
-  | CApp _ | CAppOp _ ->
-      let* rctx', rty' = term_type_infer_app rctx y in
-      if sub_rty_bool rctx' (rty', rty) then Some ()
+  | _ ->
+      let* rty' = term_type_infer rctx y in
+      if sub_rty_bool rctx (rty', rty) then Some ()
       else (
         _warinning_subtyping_error __FILE__ __LINE__ (rty', rty);
         _warinning_typing_error __FILE__ __LINE__ (layout_typed_term y, rty);
         None)
-  | CMatch { matched; match_cases } ->
-      (* NOTE: we drop unreachable cases *)
-      let match_cases =
-        List.filter_map
-          (fun case -> match_case_type_check rctx matched case rty)
-          match_cases
-      in
-      if List.length match_cases == 0 then (
-        _warinning_typing_error __FILE__ __LINE__ (layout_typed_term y, rty);
-        None)
-      else Some ()
-  | CLetE { rhs; lhs; body } ->
-      let* rctx', rty' = term_type_infer_app rctx rhs in
-      let lhs = lhs.x #: rty' in
-      let* _ = term_type_check (add_to_right rctx' lhs) body rty in
-      (* let _ = *)
-      (*   Printf.printf "CLetE exists %s\n" *)
-      (*   @@ List.split_by_comma (fun x -> x.x) bindings *)
-      (* in *)
-      Some ()

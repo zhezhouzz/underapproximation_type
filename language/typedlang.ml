@@ -73,10 +73,42 @@ let eq_prop p1 p2 =
 
 (* Cty *)
 
+let mk_cty nty phi = Cty { nty; phi }
 let mk_cty_true nty = Cty { nty; phi = mk_true }
 let mk_cty_false nty = Cty { nty; phi = mk_false }
+let get_cty_prop = function Cty { phi; _ } -> phi
+
+let map_cty_on_phi cty f =
+  match cty with Cty { nty; phi } -> Cty { nty; phi = f phi }
 
 (* Rty *)
 
+let mk_rty ou cty = RtyBase { ou; cty; er = mk_false }
 let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty; er = mk_false }
 (* let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty } *)
+
+let map_rty_on_result_type rty f =
+  let rec aux rty =
+    match rty with
+    | RtyBase _ -> f rty
+    | RtyBaseArr { argcty; arg; retty } ->
+        RtyBaseArr { argcty; arg; retty = aux retty }
+    | RtyBaseDepPair { argcty; arg; retty } ->
+        RtyBaseDepPair { argcty; arg; retty = aux retty }
+    | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
+    | RtyGhostArr { argnty; arg; retty } ->
+        RtyGhostArr { argnty; arg; retty = aux retty }
+  in
+  aux rty
+
+let map_rty_on_cty rty f =
+  (* let () = Printf.printf "%s\n" (layout_rty rty) in *)
+  match rty with
+  | RtyBase { ou; er; cty } -> RtyBase { ou; er; cty = f cty }
+  | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
+
+let alpha_renaming x rty =
+  let x' = Rename.unique x.x in
+  let rty' = subst_rty_instance x.x (AVar x' #: x.ty) rty in
+  (x' #: x.ty, rty')
