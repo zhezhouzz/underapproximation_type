@@ -15,6 +15,7 @@ let bi_typed_id_infer (ctx : t ctx) (x : (t option, string) typed) :
   | Some ty -> { ty; x = x.x }
   | None ->
       let layout_ct_opt = function None -> "none" | Some ty -> Nt.layout ty in
+      let () = Printf.printf "Normal typing error at variable \"%s\"\n" x.x in
       let () =
         Printf.printf "(%s: %s) =? %s\n" x.x
           (layout_ct_opt (get_opt ctx x.x))

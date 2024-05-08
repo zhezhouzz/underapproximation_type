@@ -1,72 +1,53 @@
 (** int list *)
 
-(** basic *)
-
-(* let[@axiom] list_emp_no_hd (l : int list) (x : int) = *)
-(*   (emp l) #==> (not (hd l x)) *)
-
-(* let[@axiom] list_emp_no_tl (l : int list) (l1 : int list) = *)
-(*   (emp l) #==> (not (tl l l1)) *)
-
-(* let[@axiom] list_emp_ex ((l [@exists]) : int list) = emp l *)
-
-(* let[@axiom] list_no_emp_exists_tl (l : int list) ((l1 [@exists]) : int list) = *)
-(*   (not (emp l)) #==> (tl l l1) *)
-
-(* let[@axiom] list_no_emp_exists_hd (l : int list) ((x [@exists]) : int) = *)
-(*   (not (emp l)) #==> (hd l x) *)
-
-(* let[@axiom] list_hd_no_emp (l : int list) (x : int) = *)
-(*   (hd l x) #==> (not (emp l)) *)
-
-(* let[@axiom] list_tl_no_emp (l : int list) (l1 : int list) = *)
-(*   (tl l l1) #==> (not (emp l)) *)
-
-let[@axiom] list_ex_single_uniq (h : int) ((l [@exists]) : int list)
-    ((t [@exists]) : int list) =
-  hd l h && tl l t && emp t && len l 1 && uniq l
-
-let[@axiom] list_ex_emp_uniq ((l [@exists]) : int list) = emp l && uniq l
-
-let[@axiom] list_single_uniq_destruct (l : int list) ((h [@exists]) : int)
-    ((t [@exists]) : int list) =
-  (len l 1 && uniq l) #==> (hd l h && tl l t && emp t)
-
-let[@axiom] list_nonemp_uniq_destruct (l : int list) ((h [@exists]) : int)
-    ((t [@exists]) : int list) =
-  ((not (emp l)) && uniq l) #==> (hd l h && tl l t && uniq t)
-
 (** len *)
 
-let[@axiom] list_len_0_is_emp (l : int list) = (len l 0) #==> (emp l)
+let[@axiom] list_sorted_any_len (i : int) ((l [@exists]) : int list) =
+  (i >= 0) #==> (len l i && sorted l)
 
-(** list_mem *)
+let[@axiom] list_destruct_non_emp (l : int list) ((h [@exists]) : int)
+    ((t [@exists]) : int list) =
+  (not (emp l)) #==> (hd l h && tl l t)
 
-(* let[@axiom] list_hd_is_mem (l : int list) (u : int) = *)
-(*   (hd l u) #==> (list_mem l u) *)
+let[@axiom] list_len_not_zero_not_emp (l : int list) (i : int) =
+  (len l i && not (i == 0)) #==> (not (emp l))
 
-(* let[@axiom] list_emp_no_mem (l : int list) (u : int) = *)
-(*   (emp l) #==> (not (list_mem l u)) *)
+let[@axiom] list_len_zero_is_emp (l : int list) = (len l 0) #==> (emp l)
 
-(* let[@axiom] list_tl_mem (l : int list) (l1 : int list) (u : int) = *)
-(*   (tl l l1 && list_mem l1 u) #==> (list_mem l u) *)
+let[@axiom] list_len_tl_len (l : int list) (l' : int list) (i : int) =
+  (len l (i + 1) && tl l l') #==> (len l' i)
 
-(* let[@axiom] list_cons_mem (l : int list) (l1 : int list) (u : int) = *)
-(*   (tl l l1 && list_mem l u) #==> (list_mem l1 u || hd l u) *)
+let[@axiom] list_sorted_tl_sorted (l : int list) (l' : int list) =
+  (sorted l && tl l l') #==> (sorted l')
 
-(** unique *)
+let[@axiom] list_sorted_fst_second_lt (l : int list) (h : int) (t : int list)
+    (h' : int) =
+  (sorted l && hd l h && tl l t && hd t h') #==> (h < h')
 
-(* let[@axiom] list_emp_unique (l : int list) = (emp l) #==> (uniq l) *)
-(* let[@axiom] list_emp_ex ((l [@exists]) : int list) = uniq l *)
+(** uniq *)
 
-(* let[@axiom] list_tl_unique (l : int list) (l1 : int list) = *)
-(*   (tl l l1 && uniq l) #==> (uniq l1) *)
+let[@axiom] list_uniq_any_len (i : int) ((l [@exists]) : int list) =
+  (i >= 0) #==> (len l i && uniq l)
 
-(* let[@axiom] list_hd_unique (l : int list) (l1 : int list) (x : int) = *)
-(*   (tl l l1 && uniq l && hd l1 x) #==> (not (list_mem l1 x)) *)
+let[@axiom] list_uniq_not_mem (l : int list) ((x [@exists]) : int) =
+  (uniq l) #==> (not (list_mem l x))
 
-(* let[@axiom] list_unique_hd_tl (l : int list) (l1 : int list) = *)
-(*   (tl l l1 && emp l1) #==> (uniq l) *)
+let[@axiom] list_uniq_tl_uniq (l : int list) (l' : int list) =
+  (uniq l && tl l l') #==> (uniq l')
 
-(* let[@axiom] list_unique_hd_tl (l : int list) (x : int) (l1 : int list) = *)
-(*   (hd l x && tl l l1 && uniq l1 && not (list_mem l1 x)) #==> (uniq l) *)
+let[@axiom] list_uniq_hd_not_in_tl (l : int list) (h : int) (l' : int list) =
+  (uniq l && tl l l' && hd l h) #==> (not (list_mem l' h))
+
+let[@axiom] list_uniq_fst_second_not_eq (l : int list) (h : int) (t : int list)
+    (h' : int) =
+  (uniq l && hd l h && tl l t && hd t h') #==> (not (h == h'))
+
+let[@axiom] list_mem_hd_or_tl (l : int list) (h : int) (t : int list) (u : int)
+    =
+  (list_mem l u && hd l h && tl l t) #==> (list_mem t u || u == h)
+
+let[@axiom] list_mem_tl_also_l (l : int list) (t : int list) (u : int) =
+  (list_mem t u && tl l t) #==> (list_mem l u)
+
+let[@axiom] list_hd_is_mem (l : int list) (u : int) =
+  (hd l u) #==> (list_mem l u)

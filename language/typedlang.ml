@@ -18,6 +18,11 @@ let layout_prop_to_smtlib2 prop =
 
 let layout_cty cty = To_cty.layout_cty @@ map_cty some cty
 let layout_rty rty = To_rty.layout_rty @@ map_rty some rty
+let layout_binding x = Printf.sprintf "%s:%s" x.x (layout_rty x.ty)
+
+let layout_bindings xs =
+  Zzdatatype.Datatype.List.split_by_comma layout_binding xs
+
 let layout_raw_term e = To_raw_term.layout_raw_term @@ map_raw_term some e
 
 let layout_typed_raw_term e =
@@ -85,7 +90,7 @@ let map_cty_on_phi cty f =
 
 let mk_rty ou cty = RtyBase { ou; cty; er = mk_false }
 let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty; er = mk_false }
-(* let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty } *)
+let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty; er = mk_false }
 
 let map_rty_on_result_type rty f =
   let rec aux rty =

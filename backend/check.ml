@@ -86,7 +86,7 @@ let extend =
       ] );
   ]
 
-let _filter_ax = false
+let _filter_ax = true
 
 let smt_neg_and_solve ctx axioms vc =
   (* let () = *)
@@ -119,7 +119,7 @@ let smt_neg_and_solve ctx axioms vc =
         axioms
     else axioms
   in
-  (* let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in *)
+  let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in
   (* let () = failwith "end" in *)
   let assertions = List.map (Propencoding.to_z3 ctx) (axioms @ [ Not vc ]) in
   let time_t, res =
