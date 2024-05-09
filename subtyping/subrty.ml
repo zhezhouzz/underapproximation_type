@@ -11,11 +11,11 @@ let _sub_rty_bool rctx (rty1, rty2) =
     (*     (layout_rty rty2) *)
     (* in *)
     match (rty1, rty2) with
-    | RtyGhostArr { argnty; arg; retty }, _ ->
-        let rctx = add_to_right rctx arg #: (prop_to_rty Ex argnty mk_true) in
+    | RtyGhostArr { argcty; arg; retty }, _ ->
+        let rctx = add_to_right rctx arg #: (cty_to_rty Ex argcty) in
         aux rctx (retty, rty2)
-    | _, RtyGhostArr { argnty; arg; retty } ->
-        let rctx = add_to_right rctx arg #: (prop_to_rty Fa argnty mk_true) in
+    | _, RtyGhostArr { argcty; arg; retty } ->
+        let rctx = add_to_right rctx arg #: (cty_to_rty Fa argcty) in
         aux rctx (rty1, retty)
     | RtyBase { ou = Fa; cty = cty1; _ }, RtyBase { ou = Fa; cty = cty2; _ } ->
         (* Subcty.sub_prop rctx (er1, er2) *)
@@ -33,8 +33,7 @@ let _sub_rty_bool rctx (rty1, rty2) =
           subst_rty_instance arg2 (AVar arg1 #: (erase_cty argcty1)) retty2
         in
         let rctx =
-          add_to_right rctx
-            arg1 #: (RtyBase { ou = Fa; cty = argcty2; er = mk_false })
+          add_to_right rctx arg1 #: (RtyBase { ou = Fa; cty = argcty2 })
         in
         aux rctx (retty1, retty2)
     | ( RtyBaseDepPair { argcty = argcty1; arg = arg1; retty = retty1 },
@@ -50,19 +49,14 @@ let _sub_rty_bool rctx (rty1, rty2) =
         let rctx =
           add_to_rights rctx
             [
-              arg2' #: (RtyBase { ou = Fa; cty = argcty1; er = mk_false });
-              arg1 #: (RtyBase { ou = Ex; cty = argcty1; er = mk_false });
+              arg2' #: (RtyBase { ou = Fa; cty = argcty1 });
+              arg1 #: (RtyBase { ou = Ex; cty = argcty1 });
             ]
         in
         aux rctx (retty1, retty2)
     | ( RtyArrArr { argrty = argrty1; retty = retty1 },
         RtyArrArr { argrty = argrty2; retty = retty2 } ) ->
         aux rctx (argrty2, argrty1) && aux rctx (retty1, retty2)
-    | RtyInter (rty11, rty12), _ ->
-        (* NOTE: safe, but find of weak, is there more complete solution? *)
-        aux rctx (rty11, rty2) || aux rctx (rty12, rty2)
-    | _, RtyInter (rty21, rty22) ->
-        aux rctx (rty1, rty21) && aux rctx (rty1, rty22)
     | _, _ ->
         let () =
           Printf.printf "%s <: %s\n" (layout_rty rty1) (layout_rty rty2)

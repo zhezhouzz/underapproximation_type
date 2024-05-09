@@ -2,9 +2,6 @@
 
 (** len *)
 
-let[@axiom] list_sorted_any_len (i : int) ((l [@exists]) : int list) =
-  (i >= 0) #==> (len l i && sorted l)
-
 let[@axiom] list_destruct_non_emp (l : int list) ((h [@exists]) : int)
     ((t [@exists]) : int list) =
   (not (emp l)) #==> (hd l h && tl l t)
@@ -14,8 +11,8 @@ let[@axiom] list_len_not_zero_not_emp (l : int list) (i : int) =
 
 let[@axiom] list_len_zero_is_emp (l : int list) = (len l 0) #==> (emp l)
 
-let[@axiom] list_len_tl_len (l : int list) (l' : int list) (i : int) =
-  (len l (i + 1) && tl l l') #==> (len l' i)
+let[@axiom] list_len_tl_len2 (l : int list) (l' : int list) (i : int) =
+  (len l i && tl l l') #==> (len l' (i - 1))
 
 let[@axiom] list_sorted_tl_sorted (l : int list) (l' : int list) =
   (sorted l && tl l l') #==> (sorted l')
@@ -26,8 +23,9 @@ let[@axiom] list_sorted_fst_second_lt (l : int list) (h : int) (t : int list)
 
 (** uniq *)
 
-let[@axiom] list_uniq_any_len (i : int) ((l [@exists]) : int list) =
-  (i >= 0) #==> (len l i && uniq l)
+let[@axiom] list_uniq_destruct_non_emp (l : int list) ((h [@exists]) : int)
+    ((t [@exists]) : int list) =
+  ((not (emp l)) && uniq l) #==> (hd l h && tl l t)
 
 let[@axiom] list_uniq_not_mem (l : int list) ((x [@exists]) : int) =
   (uniq l) #==> (not (list_mem l x))

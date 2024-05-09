@@ -6,7 +6,7 @@ open Prop
 open Normalty.Connective
 
 type 't rty =
-  | RtyBase of { ou : qt; cty : 't cty; er : 't prop }
+  | RtyBase of { ou : qt; cty : 't cty }
   | RtyBaseArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
   | RtyBaseDepPair of {
       argcty : 't cty;
@@ -14,13 +14,12 @@ type 't rty =
       retty : 't rty;
     }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
-  | RtyInter of ('t rty * 't rty)
-  | RtyGhostArr of { argnty : Nt.t; arg : (string[@bound]); retty : 't rty }
+  | RtyGhostArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
 [@@deriving sexp]
 
 let rec stale_rty (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { cty; er; _ } -> [] @ stale_cty cty @ stale_prop er
+  | RtyBase { cty; _ } -> [] @ stale_cty cty
   | RtyBaseArr { argcty; arg; retty } ->
       let res = [] @ stale_rty retty in
       res @ stale_cty argcty @ [ arg ]
@@ -28,17 +27,16 @@ let rec stale_rty (rty_e : 't rty) =
       let res = [] @ stale_rty retty in
       res @ stale_cty argcty @ [ arg ]
   | RtyArrArr { argrty; retty } -> ([] @ stale_rty retty) @ stale_rty argrty
-  | RtyInter (rty1, rty2) -> stale_rty rty1 @ stale_rty rty2
-  | RtyGhostArr { argnty; arg; retty } ->
+  | RtyGhostArr { argcty; arg; retty } ->
       let res = [] @ stale_rty retty in
-      res @ [ arg ]
+      res @ stale_cty argcty @ [ arg ]
 
 and typed_stale_rty (rty_e : ('t, 't rty) typed) = stale_rty rty_e.x
 
 (* NOTE: modified *)
 let rec fv_rty (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { cty; er; _ } -> [] @ fv_cty cty @ fv_prop er
+  | RtyBase { cty; _ } -> [] @ fv_cty cty
   | RtyBaseArr { argcty; arg; retty } ->
       let res = [] @ fv_rty retty in
       let res =
@@ -56,23 +54,20 @@ let rec fv_rty (rty_e : 't rty) =
       in
       res @ fv_cty argcty
   | RtyArrArr { argrty; retty } -> ([] @ fv_rty retty) @ fv_rty argrty
-  | RtyInter (rty1, rty2) -> fv_rty rty1 @ fv_rty rty2
-  | RtyGhostArr { argnty; arg; retty } ->
+  | RtyGhostArr { argcty; arg; retty } ->
       let res = [] @ fv_rty retty in
       let res =
         List.filter_map
           (fun x -> if String.equal arg x.x then None else Some x)
           res
       in
-      res
+      res @ fv_cty argcty
 
 and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 
 let rec subst_rty (string_x : string) f (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { ou; cty; er } ->
-      RtyBase
-        { ou; cty = subst_cty string_x f cty; er = subst_prop string_x f er }
+  | RtyBase { ou; cty } -> RtyBase { ou; cty = subst_cty string_x f cty }
   | RtyBaseArr { argcty; arg; retty } ->
       if String.equal arg string_x then
         RtyBaseArr { argcty = subst_cty string_x f argcty; arg; retty }
@@ -99,28 +94,31 @@ let rec subst_rty (string_x : string) f (rty_e : 't rty) =
           argrty = subst_rty string_x f argrty;
           retty = subst_rty string_x f retty;
         }
-  | RtyInter (rty1, rty2) ->
-      RtyInter (subst_rty string_x f rty1, subst_rty string_x f rty2)
-  | RtyGhostArr { argnty; arg; retty } ->
-      if String.equal arg string_x then RtyGhostArr { argnty; arg; retty }
-      else RtyGhostArr { argnty; arg; retty = subst_rty string_x f retty }
+  | RtyGhostArr { argcty; arg; retty } ->
+      if String.equal arg string_x then
+        RtyGhostArr { argcty = subst_cty string_x f argcty; arg; retty }
+      else
+        RtyGhostArr
+          {
+            argcty = subst_cty string_x f argcty;
+            arg;
+            retty = subst_rty string_x f retty;
+          }
 
 and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
   rty_e #-> (subst_rty string_x f)
 
 let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
   match rty_e with
-  | RtyBase { ou; cty; er } ->
-      RtyBase { ou; cty = map_cty f cty; er = map_prop f er }
+  | RtyBase { ou; cty } -> RtyBase { ou; cty = map_cty f cty }
   | RtyBaseArr { argcty; arg; retty } ->
       RtyBaseArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
   | RtyBaseDepPair { argcty; arg; retty } ->
       RtyBaseDepPair { argcty = map_cty f argcty; arg; retty = map_rty f retty }
   | RtyArrArr { argrty; retty } ->
       RtyArrArr { argrty = map_rty f argrty; retty = map_rty f retty }
-  | RtyInter (rty1, rty2) -> RtyInter (map_rty f rty1, map_rty f rty2)
-  | RtyGhostArr { argnty; arg; retty } ->
-      RtyGhostArr { argnty; arg; retty = map_rty f retty }
+  | RtyGhostArr { argcty; arg; retty } ->
+      RtyGhostArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
 
 and typed_map_rty (f : 't -> 's) (rty_e : ('t, 't rty) typed) =
   rty_e #=> f #-> (map_rty f)
@@ -134,9 +132,9 @@ let typed_subst_rty_instance x instance e =
 (* Generated from _rty.ml *)
 
 let rec extract_ghost_vars = function
-  | RtyGhostArr { argnty; arg; retty } ->
+  | RtyGhostArr { argcty; arg; retty } ->
       let gvars, rty = extract_ghost_vars retty in
-      ((arg #: argnty) :: gvars, rty)
+      ((arg #: argcty) :: gvars, rty)
   | rty -> ([], rty)
 
 let rec construct_ghost_vars gvars rty =
@@ -145,7 +143,7 @@ let rec construct_ghost_vars gvars rty =
   | x :: gvars ->
       let rty = construct_ghost_vars gvars rty in
       if List.exists (fun y -> String.equal y.x x.x) @@ fv_rty rty then
-        RtyGhostArr { argnty = x.ty; arg = x.x; retty = rty }
+        RtyGhostArr { argcty = x.ty; arg = x.x; retty = rty }
       else rty
 
 let rec erase_rty = function
@@ -156,14 +154,13 @@ let rec erase_rty = function
       Nt.mk_arr (erase_cty argcty) (erase_rty retty)
   | RtyArrArr { argrty; retty } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
-  | RtyInter (rty1, _) -> erase_rty rty1
   | RtyGhostArr { retty; _ } -> erase_rty retty
 
 let default_res = "r"
 
 let flip_base = function
-  | RtyBase { ou = Fa; cty; er } -> RtyBase { ou = Ex; cty; er }
-  | RtyBase { ou = Ex; cty; er } -> RtyBase { ou = Fa; cty; er }
+  | RtyBase { ou = Fa; cty } -> RtyBase { ou = Ex; cty }
+  | RtyBase { ou = Ex; cty } -> RtyBase { ou = Fa; cty }
   | _ as rty -> rty
 
 let rty_to_cty = function

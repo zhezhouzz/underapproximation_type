@@ -88,9 +88,9 @@ let map_cty_on_phi cty f =
 
 (* Rty *)
 
-let mk_rty ou cty = RtyBase { ou; cty; er = mk_false }
-let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty; er = mk_false }
-let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty; er = mk_false }
+let mk_rty ou cty = RtyBase { ou; cty }
+let mk_rty_true ou nty = RtyBase { ou; cty = mk_cty_true nty }
+let mk_rty_false ou nty = RtyBase { ou; cty = mk_cty_false nty }
 
 let map_rty_on_result_type rty f =
   let rec aux rty =
@@ -101,16 +101,15 @@ let map_rty_on_result_type rty f =
     | RtyBaseDepPair { argcty; arg; retty } ->
         RtyBaseDepPair { argcty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
-    | RtyInter (rty1, rty2) -> RtyInter (aux rty1, aux rty2)
-    | RtyGhostArr { argnty; arg; retty } ->
-        RtyGhostArr { argnty; arg; retty = aux retty }
+    | RtyGhostArr { argcty; arg; retty } ->
+        RtyGhostArr { argcty; arg; retty = aux retty }
   in
   aux rty
 
 let map_rty_on_cty rty f =
   (* let () = Printf.printf "%s\n" (layout_rty rty) in *)
   match rty with
-  | RtyBase { ou; er; cty } -> RtyBase { ou; er; cty = f cty }
+  | RtyBase { ou; cty } -> RtyBase { ou; cty = f cty }
   | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
 
 let alpha_renaming x rty =

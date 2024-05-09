@@ -56,7 +56,6 @@ let ctx_list_to_cctx pctx =
     | None -> uqvs
     | Some (pctx, binding) -> (
         match binding.ty with
-        | RtyInter _ -> _failatwith __FILE__ __LINE__ "unimp"
         | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
         | RtyGhostArr _ -> (
             match erase_rty binding.ty with

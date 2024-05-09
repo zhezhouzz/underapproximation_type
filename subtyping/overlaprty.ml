@@ -11,11 +11,11 @@ let _overlap_rty_opt rctx (rty1, rty2) =
     (*     (layout_rty rty2) *)
     (* in *)
     match (rty1, rty2) with
-    | RtyBase { ou = Ex; cty = cty1; er }, RtyBase { ou = Fa; cty = cty2; _ } ->
+    | RtyBase { ou = Ex; cty = cty1 }, RtyBase { ou = Fa; cty = cty2; _ } ->
         let* cty =
           Subcty.is_nonempty_cty_opt rctx (intersect_ctys [ cty1; cty2 ])
         in
-        Some (RtyBase { ou = Ex; cty; er })
+        Some (RtyBase { ou = Ex; cty })
     | ( RtyBaseArr { argcty = argcty1; arg = arg1; retty = retty1 },
         RtyBaseArr { argcty = argcty2; arg = arg2; retty = retty2 } ) ->
         let* argcty =
@@ -25,8 +25,7 @@ let _overlap_rty_opt rctx (rty1, rty2) =
           subst_rty_instance arg2 (AVar arg1 #: (erase_cty argcty1)) retty2
         in
         let rctx =
-          add_to_right rctx
-            arg1 #: (RtyBase { ou = Fa; cty = argcty; er = mk_false })
+          add_to_right rctx arg1 #: (RtyBase { ou = Fa; cty = argcty })
         in
         let* retty = aux rctx (retty1, retty2) in
         Some (RtyBaseArr { argcty; arg = arg1; retty })
@@ -37,8 +36,7 @@ let _overlap_rty_opt rctx (rty1, rty2) =
             subst_rty_instance arg2 (AVar arg1 #: (erase_cty argcty1)) retty2
           in
           let rctx =
-            add_to_right rctx
-              arg1 #: (RtyBase { ou = Ex; cty = argcty1; er = mk_false })
+            add_to_right rctx arg1 #: (RtyBase { ou = Ex; cty = argcty1 })
           in
           let* retty = aux rctx (retty1, retty2) in
           Some (RtyBaseDepPair { argcty = argcty1; arg = arg1; retty })

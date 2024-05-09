@@ -26,11 +26,6 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
   let () = pprint_simple_typectx_judge rctx (layout_typed_value a, rty) in
   let res =
     match (a.x, rty) with
-    (* | _, RtyGhostArr _ -> _failatwith __FILE__ __LINE__ "die" *)
-    | _, RtyInter (rty1, rty2) ->
-        let* _ = value_type_check rctx a rty1 in
-        let* _ = value_type_check rctx a rty2 in
-        Some ()
     | VConst _, _ | VVar _, _ ->
         let rty' = value_type_infer rctx a in
         if sub_rty_bool rctx (rty', rty) then Some ()
@@ -42,13 +37,13 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         let body =
           body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
         in
-        let argrty = RtyBase { ou = Fa; cty = argcty; er = mk_false } in
+        let argrty = RtyBase { ou = Fa; cty = argcty } in
         term_type_check (add_to_right rctx arg #: argrty) body retty
     | VLam { lamarg; body }, RtyBaseDepPair { argcty; arg; retty } ->
         let body =
           body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
         in
-        let argrty = RtyBase { ou = Ex; cty = argcty; er = mk_false } in
+        let argrty = RtyBase { ou = Ex; cty = argcty } in
         term_type_check (add_to_right rctx arg #: argrty) body retty
     | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
         term_type_check (add_to_right rctx lamarg.x #: argrty) body retty
@@ -64,40 +59,35 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
               retty = subst_rty_instance arg (AVar a) retty;
             }
         in
-        let binding =
-          arg #: (RtyBase { ou = Fa; cty = argcty; er = mk_false })
-        in
+        let binding = arg #: (RtyBase { ou = Fa; cty = argcty }) in
         let body =
           body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty))
         in
         term_type_check
           (add_to_rights rctx [ binding; fixname.x #: rty' ])
           body retty
-    | VFix { fixname; fixarg; body }, RtyGhostArr { argnty; arg; retty }
-      when Nt.eq argnty Nt.Ty_int ->
+    | VFix { fixname; fixarg; body }, RtyGhostArr { argcty; arg; retty }
+      when Nt.eq (erase_cty argcty) Nt.Ty_int ->
         (* NOTE: We assume the index type is nature number *)
-        let phi =
-          apply_pi_prop
-            (Env.get_statements_by_name "natrual_number")
-            (mk_typed_lit_by_id default_v #: argnty)
-        in
-        let index = arg #: (mk_rty Fa @@ mk_cty argnty phi) in
+        let argnty = erase_cty argcty in
+        let index = arg #: (mk_rty Fa @@ argcty) in
         let rctx = add_to_left rctx index in
         let self_rty =
-          let arg' = Rename.unique arg in
-          let retty' = subst_rty_instance arg (AVar arg' #: argnty) retty in
-          let rty = RtyGhostArr { argnty; arg = arg'; retty = retty' } in
+          (* let arg' = Rename.unique arg in *)
+          (* let retty' = subst_rty_instance arg (AVar arg' #: argnty) retty in *)
           let phi' =
             List.fold_left apply_pi_prop
               (Env.get_statements_by_name "rec_arg")
               [
                 mk_typed_lit_by_id arg #: argnty;
-                mk_typed_lit_by_id arg' #: argnty;
+                mk_typed_lit_by_id default_v #: argnty;
               ]
           in
-          map_rty_on_result_type rty (fun rty ->
-              map_rty_on_cty rty (fun cty ->
-                  map_cty_on_phi cty (fun phi -> smart_and [ phi; phi' ])))
+          let argcty' =
+            map_cty_on_phi argcty (fun phi -> smart_add_to phi' phi)
+          in
+          let rty = RtyGhostArr { argcty = argcty'; arg; retty } in
+          rty
         in
         let binding = [ fixname.x #: self_rty ] in
         (* let () = Printf.printf "%s\n" index'.x in *)
@@ -107,27 +97,6 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
           (add_to_rights rctx binding)
           (VLam { lamarg = fixarg; body }) #: fixname.ty
           retty
-    (* | VFix { fixname; fixarg; body }, RtyBaseDepPair { argcty; arg; retty } -> *)
-    (*     let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in *)
-    (*     let rty' = *)
-    (*       let a = { x = Rename.unique fixarg.x; ty = fixarg.ty } in *)
-    (*       RtyBaseDepPair *)
-    (*         { *)
-    (*           (\* argcty = intersect_ctys [ argcty; rec_constraint_cty ]; *\) *)
-    (*           argcty = intersect_ctys [ rec_constraint_cty ]; *)
-    (*           arg = a.x; *)
-    (*           retty = subst_rty_instance arg (AVar a) retty; *)
-    (*         } *)
-    (*     in *)
-    (*     let binding = *)
-    (*       arg #: (RtyBase { ou = Ex; cty = argcty; er = mk_false }) *)
-    (*     in *)
-    (*     let body = *)
-    (*       body #-> (subst_term_instance fixarg.x (VVar arg #: fixarg.ty)) *)
-    (*     in *)
-    (*     term_type_check *)
-    (*       (add_to_rights rctx [ binding; fixname.x #: rty' ]) *)
-    (*       body retty *)
     | VFix _, _ -> _failatwith __FILE__ __LINE__ ""
     | VTu _, _ -> _failatwith __FILE__ __LINE__ ""
   in
@@ -149,9 +118,7 @@ and match_case_type_check (rctx : rctx) (matched : (t, t value) typed)
             match rty with
             | RtyBaseArr { argcty; arg; retty } ->
                 let retty = subst_rty_instance arg (AVar x) retty in
-                let x =
-                  x.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
-                in
+                let x = x.x #: (RtyBase { ou = Ex; cty = argcty }) in
                 (args @ [ x ], retty)
             | RtyArrArr { argrty; retty } ->
                 let x = x.x #: argrty in
@@ -159,11 +126,7 @@ and match_case_type_check (rctx : rctx) (matched : (t, t value) typed)
             | _ -> _failatwith __FILE__ __LINE__ "die")
           ([], constructor_rty) args
       in
-      let retcty, er =
-        match retty with
-        | RtyBase { cty; er; ou = Ex } -> (cty, er)
-        | _ -> _failatwith __FILE__ __LINE__ "die"
-      in
+      let retcty = rty_to_cty retty in
       let rctx', retty =
         match args with
         | [] -> (
@@ -177,14 +140,14 @@ and match_case_type_check (rctx : rctx) (matched : (t, t value) typed)
                       phi = subst_prop_instance default_v lit.x phi;
                     }
                 in
-                (rctx, RtyBase { cty; er; ou = Ex }))
+                (rctx, RtyBase { cty; ou = Ex }))
         | _ ->
             let rctx', matched_rty =
               consume_rty rctx (value_type_infer rctx matched)
             in
             let matched_cty = rty_to_cty matched_rty in
             let cty = intersect_ctys [ matched_cty; retcty ] in
-            (rctx', RtyBase { cty; er; ou = Ex })
+            (rctx', RtyBase { cty; ou = Ex })
       in
       let bindings = args @ [ (Rename.unique "tmp") #: retty ] in
       let* _ = term_type_check (add_to_rights rctx' bindings) exp rty in
@@ -208,9 +171,7 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
             match rty with
             | RtyBaseArr { argcty; arg; retty } ->
                 let retty = subst_rty_instance arg (AVar x) retty in
-                let x =
-                  x.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
-                in
+                let x = x.x #: (RtyBase { ou = Ex; cty = argcty }) in
                 (args @ [ x ], retty)
             | RtyArrArr { argrty; retty } ->
                 let x = x.x #: argrty in
@@ -264,9 +225,10 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
 and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
   let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in
   match appf_rty with
-  | RtyGhostArr { argnty; arg; retty } ->
+  | RtyGhostArr { argcty; arg; retty } ->
+      let argnty = erase_cty argcty in
       let arg', appf_rty' = alpha_renaming arg #: argnty retty in
-      let bindings = [ arg'.x #: (prop_to_rty Ex arg'.ty mk_true) ] in
+      let bindings = [ arg'.x #: (cty_to_rty Ex argcty) ] in
       let rctx' = add_to_rights rctx bindings in
       let* forward_rctx, backward_binding, retty =
         arrow_type_apply rctx' appf_rty' apparg

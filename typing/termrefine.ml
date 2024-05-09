@@ -39,7 +39,7 @@ and value_type_refine (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         let body =
           body #-> (subst_term_instance lamarg.x (VVar arg #: lamarg.ty))
         in
-        let argrty = RtyBase { ou = Ex; cty = argcty; er = mk_false } in
+        let argrty = RtyBase { ou = Ex; cty = argcty } in
         let* retty =
           term_type_refine (add_to_right rctx arg #: argrty) body retty
         in
@@ -164,9 +164,7 @@ and match_case_type_refine (rctx : rctx) (matched : (t, t value) typed)
             match rty with
             | RtyBaseArr { argcty; arg; retty } ->
                 let retty = subst_rty_instance arg (AVar x) retty in
-                let x =
-                  x.x #: (RtyBase { ou = Ex; cty = argcty; er = mk_false })
-                in
+                let x = x.x #: (RtyBase { ou = Ex; cty = argcty }) in
                 (args @ [ x ], retty)
             | RtyArrArr { argrty; retty } ->
                 let x = x.x #: argrty in
@@ -174,11 +172,7 @@ and match_case_type_refine (rctx : rctx) (matched : (t, t value) typed)
             | _ -> _failatwith __FILE__ __LINE__ "die")
           ([], constructor_rty) args
       in
-      let retcty, er =
-        match retty with
-        | RtyBase { cty; er; ou = Ex } -> (cty, er)
-        | _ -> _failatwith __FILE__ __LINE__ "die"
-      in
+      let retcty = rty_to_cty retty in
       let rctx', retty =
         match args with
         | [] -> (
@@ -192,14 +186,14 @@ and match_case_type_refine (rctx : rctx) (matched : (t, t value) typed)
                       phi = subst_prop_instance default_v lit.x phi;
                     }
                 in
-                (rctx, RtyBase { cty; er; ou = Ex }))
+                (rctx, RtyBase { cty; ou = Ex }))
         | _ ->
             let rctx', matched_rty =
               consume_rty rctx (value_type_infer rctx matched)
             in
             let matched_cty = rty_to_cty matched_rty in
             let cty = intersect_ctys [ matched_cty; retcty ] in
-            (rctx', RtyBase { cty; er; ou = Ex })
+            (rctx', RtyBase { cty; ou = Ex })
       in
       let bindings = args @ [ (Rename.unique "tmp") #: retty ] in
       let* rty = term_type_refine (add_to_rights rctx' bindings) exp rty in

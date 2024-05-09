@@ -34,9 +34,9 @@ let abductive_infer_cty uctx cty1 cty2 =
 
 let abductive_infer_rty uctx rty1 rty2 =
   match (rty1, rty2) with
-  | RtyBase { ou = Ex; cty = cty1; er }, RtyBase { ou = Ex; cty = cty2; _ } ->
+  | RtyBase { ou = Ex; cty = cty1 }, RtyBase { ou = Ex; cty = cty2; _ } ->
       let cty = abductive_infer_cty uctx cty1 cty2 in
-      RtyBase { ou = Ex; cty; er }
+      RtyBase { ou = Ex; cty }
   | _, _ -> _failatwith __FILE__ __LINE__ "unimp"
 
 let abduce_overlap_cty uctx cty1 cty2 =
@@ -61,7 +61,7 @@ let abduce_overlap_cty uctx cty1 cty2 =
 
 let abduce_overlap_rty uctx rty1 rty2 =
   match (rty1, rty2) with
-  | RtyBase { ou = Ex; cty = cty1; er }, RtyBase { ou = Fa; cty = cty2; _ } ->
+  | RtyBase { ou = Ex; cty = cty1 }, RtyBase { ou = Fa; cty = cty2; _ } ->
       let cty = abduce_overlap_cty uctx cty1 cty2 in
-      RtyBase { ou = Ex; cty; er }
+      RtyBase { ou = Ex; cty }
   | _, _ -> _failatwith __FILE__ __LINE__ "unimp"

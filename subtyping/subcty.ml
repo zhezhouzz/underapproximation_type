@@ -67,12 +67,19 @@ let aux_sub_prop (axioms, uqvs) prop1 prop2 =
     Printf.printf "prop1: %s\nprop2: %s\n" (layout_prop_ prop1)
       (layout_prop_ prop2)
   in
-  let query = smart_implies prop1 prop2 in
-  let uqvs, query = remove_unit_in_ctx (uqvs, query) in
+  let uqvs, _ = remove_unit_in_ctx (uqvs, smart_implies prop1 prop2) in
   let fa_ctx, ex_ctx = normalize_ctx uqvs in
-  let query =
-    List.fold_right (fun x body -> exists_cty_to_prop (x, body)) ex_ctx query
+  let () =
+    let fvs = fv_prop_id prop1 in
+    let ex_ids = List.map _get_x ex_ctx in
+    _assert __FILE__ __LINE__
+      "the result type should not contain existing bindings"
+      (List.is_empty @@ List.interset String.equal fvs ex_ids)
   in
+  let prop2' =
+    List.fold_right (fun x body -> exists_cty_to_prop (x, body)) ex_ctx prop2
+  in
+  let query = smart_implies prop1 prop2' in
   let query =
     List.fold_right (fun x body -> forall_cty_to_prop (x, body)) fa_ctx query
   in

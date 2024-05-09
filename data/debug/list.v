@@ -24,8 +24,8 @@ Ltac z_simpl :=
   | |- context [(?a - ?b + ?b)%Z]  =>  rewrite Z.sub_add
   end.
 
-Lemma list_uniq_any_len (i: int): (i >= 0 -> exists (l: IL), len l i /\ uniq l)%Z.
-Admitted.
+(* Lemma list_uniq_any_len (i: int): (i >= 0 -> exists (l: IL), len l i /\ uniq l)%Z. *)
+(* Admitted. *)
 
 (* Lemma list_uniq_any_len_with_hd (i: int) (h: int): (i > 0 -> exists (l: IL) (l': IL), len l i /\ hd l h /\ tl l l' /\ uniq l' /\ uniq l)%Z. *)
 (* Admitted. *)
@@ -71,22 +71,22 @@ Admitted.
 Lemma list_len_zero_is_emp (l: IL): (len l 0 -> emp l)%Z.
 Admitted.
 
-Lemma uniq_query2: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z.
-Proof.
+Lemma uniq_query3: (forall i, (0 < i -> (forall v, ((uniq v/\ len v i) -> (exists s, (uniq s/\ len s (i - 1)/\ (exists x, (~list_mem s x/\ ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (i_1 < i/\ 0 < i_1/\ uniq t/\ len t (i_1 - 1)/\ (exists x_3, (uniq x_3/\ len x_3 i_1/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z.
+  Proof.
   intros.
-  destruct (classic (uniq v /\ len v (i + 1)%Z)).
-  2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition.
-       destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. }
+  (* destruct (classic (uniq v /\ len v i)). *)
+  (* 2: { destruct (list_uniq_any_len (i - 1)%Z) as (s & Hs). lia. exists s. intuition. *)
+  (*      destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. } *)
   assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
   destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto.
   assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. }
   assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. }
-  assert (len t i). { eapply list_len_tl_len; intuition; eauto. }
-  destruct (classic (i = 0%Z)); subst.
+  assert (len t (i - 1)%Z). { eapply list_len_tl_len; intuition; try z_simpl; eauto. }
+  destruct (classic (i = 1%Z)); subst.
   - exists t. intuition. exists h. intuition.
     assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. }
     left. intuition. exists t. intuition.
-  - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. }
+  - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
     destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto.
     exists t. intuition.
     exists h. intuition.
@@ -95,40 +95,69 @@ Proof.
     exists (i - 1)%Z. intuition.
     apply list_uniq_tl_uniq with (l := t); intuition; eauto.
     eapply list_len_tl_len; intuition; try z_simpl; eauto.
-    exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto.
-    eapply list_uniq_hd_not_in_tl in H11; eauto.
+    exists t. intuition.
+    (* eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
+    eapply list_uniq_hd_not_in_tl in H9; eauto.
 Qed.
 
-Lemma uniq_query: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)/\ (forall u, (list_mem v u <-> (list_mem s u \/ u = x)))) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ (forall u, (list_mem x_3 u <-> (list_mem t u \/ u = h)))/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z.
-Proof.
-  intros.
-  destruct (classic (uniq v /\ len v (i + 1)%Z)).
-  2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition.
-       destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. }
-  assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
-  destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto.
-  assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. }
-  assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. }
-  assert (len t i). { eapply list_len_tl_len; intuition; eauto. }
-  destruct (classic (i = 0%Z)); subst.
-  - exists t. intuition. exists h. intuition.
-    assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. }
-    left. intuition. exists t. intuition.
-  - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. }
-    destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto.
-    exists t. intuition.
-    exists h. intuition.
-    assert (not (h = h')). { eapply list_uniq_fst_second_not_eq; intuition; eauto. }
-    right. exists h', t'. intuition.
-    exists (i - 1)%Z. intuition.
-    apply list_uniq_tl_uniq with (l := t); intuition; eauto.
-    eapply list_len_tl_len; intuition; try z_simpl; eauto.
-    exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto.
-    eapply list_mem_hd_or_tl; eauto.
-    eapply list_mem_tl_also_l; eauto.
-    subst. eapply list_hd_is_mem; eauto.
-    eapply list_uniq_hd_not_in_tl in H12; eauto.
-Qed.
+(* Lemma uniq_query2: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z. *)
+(* Proof. *)
+(*   intros. *)
+(*   destruct (classic (uniq v /\ len v (i + 1)%Z)). *)
+(*   2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition. *)
+(*        destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. } *)
+(*   assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. } *)
+(*   destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto. *)
+(*   assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. } *)
+(*   assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. } *)
+(*   assert (len t i). { eapply list_len_tl_len; intuition; eauto. } *)
+(*   destruct (classic (i = 0%Z)); subst. *)
+(*   - exists t. intuition. exists h. intuition. *)
+(*     assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. } *)
+(*     left. intuition. exists t. intuition. *)
+(*   - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. } *)
+(*     destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto. *)
+(*     exists t. intuition. *)
+(*     exists h. intuition. *)
+(*     assert (not (h = h')). { eapply list_uniq_fst_second_not_eq; intuition; eauto. } *)
+(*     right. exists h', t'. intuition. *)
+(*     exists (i - 1)%Z. intuition. *)
+(*     apply list_uniq_tl_uniq with (l := t); intuition; eauto. *)
+(*     eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
+(*     exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
+(*     eapply list_uniq_hd_not_in_tl in H11; eauto. *)
+(* Qed. *)
+
+(* Lemma uniq_query: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)/\ (forall u, (list_mem v u <-> (list_mem s u \/ u = x)))) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ (forall u, (list_mem x_3 u <-> (list_mem t u \/ u = h)))/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z. *)
+(* Proof. *)
+(*   intros. *)
+(*   destruct (classic (uniq v /\ len v (i + 1)%Z)). *)
+(*   2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition. *)
+(*        destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. } *)
+(*   assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. } *)
+(*   destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto. *)
+(*   assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. } *)
+(*   assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. } *)
+(*   assert (len t i). { eapply list_len_tl_len; intuition; eauto. } *)
+(*   destruct (classic (i = 0%Z)); subst. *)
+(*   - exists t. intuition. exists h. intuition. *)
+(*     assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. } *)
+(*     left. intuition. exists t. intuition. *)
+(*   - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. } *)
+(*     destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto. *)
+(*     exists t. intuition. *)
+(*     exists h. intuition. *)
+(*     assert (not (h = h')). { eapply list_uniq_fst_second_not_eq; intuition; eauto. } *)
+(*     right. exists h', t'. intuition. *)
+(*     exists (i - 1)%Z. intuition. *)
+(*     apply list_uniq_tl_uniq with (l := t); intuition; eauto. *)
+(*     eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
+(*     exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
+(*     eapply list_mem_hd_or_tl; eauto. *)
+(*     eapply list_mem_tl_also_l; eauto. *)
+(*     subst. eapply list_hd_is_mem; eauto. *)
+(*     eapply list_uniq_hd_not_in_tl in H12; eauto. *)
+(* Qed. *)
 
 
 Lemma list_sorted_any_len (i: int): (i >= 0 ->  exists (l: IL), len l i /\ sorted l)%Z.

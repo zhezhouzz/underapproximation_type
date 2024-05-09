@@ -85,9 +85,9 @@ let pack_and_flip ctx (cty : t cty) =
             | RtyBase { ou = Fa; _ } ->
                 let ctx, cty = aux ctx cty in
                 (ctx @ [ x ], cty)
-            | RtyBase { ou = Ex; cty = x_cty; er } ->
+            | RtyBase { ou = Ex; cty = x_cty } ->
                 let cty = Ctyfunc.exists_cty_to_cty (x.x #: x_cty, cty) in
-                let x = x.x #: (RtyBase { ou = Fa; cty = x_cty; er }) in
+                let x = x.x #: (RtyBase { ou = Fa; cty = x_cty }) in
                 let ctx, cty = aux ctx cty in
                 (ctx @ [ x ], cty)
             | _ ->
@@ -107,7 +107,7 @@ let pack_and_flip ctx (cty : t cty) =
 (*   (List.fold_left flip_by_name ctx origins, cty) *)
 
 let consume_rty ctx = function
-  | RtyBase { ou = Ex; cty; er } ->
+  | RtyBase { ou = Ex; cty } ->
       let ctx, cty = pack_and_flip ctx cty in
-      (ctx, RtyBase { ou = Ex; cty; er })
+      (ctx, RtyBase { ou = Ex; cty })
   | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
