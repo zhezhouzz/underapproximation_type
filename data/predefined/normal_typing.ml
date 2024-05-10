@@ -26,6 +26,8 @@ val dummy : unit
 (* method predicates *)
 (* for lists *)
 val len : 'a list -> int -> bool
+val lenlt : 'a list -> int -> bool
+val lenlte : 'a list -> int -> bool
 val emp : 'a list -> bool
 val hd : 'a list -> 'a -> bool
 val tl : 'a list -> 'a list -> bool

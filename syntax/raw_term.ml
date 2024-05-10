@@ -255,19 +255,21 @@ let typed_subst_raw_match_case_instance x instance e =
 (* Generated from _raw_term.ml *)
 open Sugar
 
-let __get_lam_term_ty file line raw_term =
+let _get_lam_term_ty raw_term =
   let rec aux raw_term =
     match raw_term.ty with
-    | Some ty -> ty
+    | Some ty -> Some ty
     | None -> (
         match raw_term.x with
         | Lam { lamarg; lambody } ->
-            let t1 =
-              match lamarg.ty with
-              | Some t1 -> t1
-              | None -> _failatwith file line "__get_lam_term_ty"
-            in
-            Nt.mk_arr t1 (aux lambody)
-        | _ -> _failatwith file line "__get_lam_term_ty")
+            let* t1 = lamarg.ty in
+            let* t2 = aux lambody in
+            Some (Nt.mk_arr t1 t2)
+        | _ -> None)
   in
   aux raw_term
+
+let __get_lam_term_ty file line raw_term =
+  match _get_lam_term_ty raw_term with
+  | None -> _failatwith file line "__get_lam_term_ty"
+  | Some t -> t

@@ -159,6 +159,7 @@ let handle_check_res query_action =
   (*       @@ Sugar.short_str 1000 @@ Z3.Model.to_string model ); *)
   (*     false *)
   | Timeout ->
-      (Env.show_debug_queries @@ fun _ -> Pp.printf "@{<bold>SMTTIMEOUT@}\n");
+      ( Env.show_debug_queries @@ fun _ ->
+        Pp.printf "@{<bold>@{<orange>SMTTIMEOUT@}@}\n" );
       smt_timeout_flag := true;
       false

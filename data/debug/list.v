@@ -10,6 +10,8 @@ Variable IL: Type.
 Variable emp: IL -> Prop.
 Variable hd: IL -> int -> Prop.
 Variable len: IL -> int -> Prop.
+Variable lenlt: IL -> int -> Prop.
+Variable lenlte: IL -> int -> Prop.
 Variable tl: IL -> IL -> Prop.
 Variable list_mem: IL -> int -> Prop.
 Variable uniq: IL -> Prop.
@@ -71,6 +73,54 @@ Admitted.
 Lemma list_len_zero_is_emp (l: IL): (len l 0 -> emp l)%Z.
 Admitted.
 
+Lemma list_sorted_any_len (i: int): (i >= 0 ->  exists (l: IL), len l i /\ sorted l)%Z.
+Admitted.
+
+Lemma list_destruct (l: IL): (emp l \/ exists (h: int), exists (t: IL), hd l h /\ tl l t)%Z.
+Admitted.
+
+Lemma list_sorted_tl_sorted (l: IL) (l': IL): (sorted l /\ tl l l' -> sorted l')%Z.
+Admitted.
+
+Lemma list_sorted_fst_second_lt (l: IL) (h: int) (t: IL) (h': int): (sorted l /\ hd l h /\ tl l t /\ hd t h' -> h < h')%Z.
+Admitted.
+
+Lemma list_singleton_list_sorted (l: IL): (len l 1 -> sorted l)%Z.
+Admitted.
+
+Lemma list_singleton_list_uniq (l: IL): (len l 1 -> uniq l)%Z.
+Admitted.
+
+Lemma list_singleton_list_ex (h: int): (exists (l: IL) (l': IL), len l 1 /\ hd l h /\ tl l l' /\ len l' 0)%Z.
+Admitted
+
+Lemma list_len_lenlte (l: IL) (n: int) (m: int): (len l n /\ n <= m -> lenlte l m)%Z.
+Admitted.
+
+Lemma sorted_union: (forall i, (2 <= i -> (forall v, ((sorted v/\ len v i) -> (exists s1, (sorted s1/\ lenlte s1 i/\ (exists s2, (sorted s2/\ lenlte s2 i/\ (exists h1, (exists t1, (hd s1 h1/\ tl s1 t1/\ (exists h2, (exists t2, (hd s2 h2/\ tl s2 t2/\ ~h1 = h2/\ h1 < h2/\ (exists i_1, (i_1 < i/\ 1 <= i_1/\ sorted t1/\ lenlte t1 i_1/\ (exists x_3, (sorted x_3/\ len x_3 i_1/\ sorted s2/\ lenlte s2 i_1/\ hd v h1/\ tl v x_3))))))))))))))))))%Z.
+Proof.
+  intros.
+  assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
+  destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto.
+  assert (sorted t). { eapply list_sorted_tl_sorted; intuition; eauto. }
+  assert (len t (i - 1)%Z). { eapply list_len_tl_len; intuition; try z_simpl; eauto. }
+  destruct (list_singleton_list_ex h) as (s1 & t1 & Hs1).
+  assert (sorted s1). { apply list_singleton_list_sorted; intuition. }
+  exists s1. intuition. apply list_len_lenlte with 1%Z; intuition; eauto.
+  exists t. intuition. apply list_len_lenlte with (i - 1)%Z; intuition; eauto.
+  exists h, t1. intuition.
+  assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
+  destruct (list_destruct_non_emp t) as (h2 & t2 & Hh2 & Ht2); auto.
+  assert (h < h2)%Z. { eapply list_sorted_fst_second_lt; intuition; eauto. }
+  exists h2, t2. intuition.
+  exists (i - 1)%Z. intuition. apply list_sorted_tl_sorted with s1; intuition; eauto.
+  apply list_len_lenlte with 0%Z; intuition; eauto.
+  exists t. intuition.
+  eapply list_len_lenlte; intuition; eauto.
+Qed.
+
+
+
 Lemma uniq_query3: (forall i, (0 < i -> (forall v, ((uniq v/\ len v i) -> (exists s, (uniq s/\ len s (i - 1)/\ (exists x, (~list_mem s x/\ ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (i_1 < i/\ 0 < i_1/\ uniq t/\ len t (i_1 - 1)/\ (exists x_3, (uniq x_3/\ len x_3 i_1/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z.
   Proof.
   intros.
@@ -99,78 +149,6 @@ Lemma uniq_query3: (forall i, (0 < i -> (forall v, ((uniq v/\ len v i) -> (exist
     (* eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
     eapply list_uniq_hd_not_in_tl in H9; eauto.
 Qed.
-
-(* Lemma uniq_query2: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z. *)
-(* Proof. *)
-(*   intros. *)
-(*   destruct (classic (uniq v /\ len v (i + 1)%Z)). *)
-(*   2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition. *)
-(*        destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. } *)
-(*   assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. } *)
-(*   destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto. *)
-(*   assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. } *)
-(*   assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. } *)
-(*   assert (len t i). { eapply list_len_tl_len; intuition; eauto. } *)
-(*   destruct (classic (i = 0%Z)); subst. *)
-(*   - exists t. intuition. exists h. intuition. *)
-(*     assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. } *)
-(*     left. intuition. exists t. intuition. *)
-(*   - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. } *)
-(*     destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto. *)
-(*     exists t. intuition. *)
-(*     exists h. intuition. *)
-(*     assert (not (h = h')). { eapply list_uniq_fst_second_not_eq; intuition; eauto. } *)
-(*     right. exists h', t'. intuition. *)
-(*     exists (i - 1)%Z. intuition. *)
-(*     apply list_uniq_tl_uniq with (l := t); intuition; eauto. *)
-(*     eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
-(*     exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
-(*     eapply list_uniq_hd_not_in_tl in H11; eauto. *)
-(* Qed. *)
-
-(* Lemma uniq_query: (forall i, (0 <= i -> (forall v, (exists s, (uniq s/\ len s i/\ (exists x, (~list_mem s x/\ ((uniq v/\ len v (i + 1)/\ (forall u, (list_mem v u <-> (list_mem s u \/ u = x)))) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ (exists i_1, (uniq t/\ len t i_1/\ (exists x_3, (uniq x_3/\ len x_3 (i_1 + 1)/\ (forall u, (list_mem x_3 u <-> (list_mem t u \/ u = h)))/\ 0 <= i_1/\ i_1 < i/\ ~list_mem t h/\ hd v x/\ tl v x_3))))))))))))))))%Z. *)
-(* Proof. *)
-(*   intros. *)
-(*   destruct (classic (uniq v /\ len v (i + 1)%Z)). *)
-(*   2: { destruct (list_uniq_any_len i) as (s & Hs). lia. exists s. intuition. *)
-(*        destruct (list_uniq_not_mem s) as (x & Hx); auto. exists x. intuition. } *)
-(*   assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. } *)
-(*   destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto. *)
-(*   assert (uniq t). { eapply list_uniq_tl_uniq; intuition; eauto. } *)
-(*   assert (not (list_mem t h)). { eapply list_uniq_hd_not_in_tl; intuition; eauto. } *)
-(*   assert (len t i). { eapply list_len_tl_len; intuition; eauto. } *)
-(*   destruct (classic (i = 0%Z)); subst. *)
-(*   - exists t. intuition. exists h. intuition. *)
-(*     assert (emp t). { apply list_len_zero_is_emp. eapply list_len_tl_len; intuition; eauto. } *)
-(*     left. intuition. exists t. intuition. *)
-(*   - assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. } *)
-(*     destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto. *)
-(*     exists t. intuition. *)
-(*     exists h. intuition. *)
-(*     assert (not (h = h')). { eapply list_uniq_fst_second_not_eq; intuition; eauto. } *)
-(*     right. exists h', t'. intuition. *)
-(*     exists (i - 1)%Z. intuition. *)
-(*     apply list_uniq_tl_uniq with (l := t); intuition; eauto. *)
-(*     eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
-(*     exists t. intuition. eapply list_len_tl_len; intuition; try z_simpl; eauto. *)
-(*     eapply list_mem_hd_or_tl; eauto. *)
-(*     eapply list_mem_tl_also_l; eauto. *)
-(*     subst. eapply list_hd_is_mem; eauto. *)
-(*     eapply list_uniq_hd_not_in_tl in H12; eauto. *)
-(* Qed. *)
-
-
-Lemma list_sorted_any_len (i: int): (i >= 0 ->  exists (l: IL), len l i /\ sorted l)%Z.
-Admitted.
-
-Lemma list_destruct (l: IL): (emp l \/ exists (h: int), exists (t: IL), hd l h /\ tl l t)%Z.
-Admitted.
-
-Lemma list_sorted_tl_sorted (l: IL) (l': IL): (sorted l /\ tl l l' -> sorted l')%Z.
-Admitted.
-
-Lemma list_sorted_fst_second_lt (l: IL) (h: int) (t: IL) (h': int): (sorted l /\ hd l h /\ tl l t /\ hd t h' -> h < h')%Z.
-Admitted.
 
 Lemma sorted_query: (forall i, (0 <= i -> (forall v, (exists x, (exists s, (sorted s/\ len s i/\ ((sorted v/\ len v (i + 1)) -> ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ~x = h/\ x < h/\ (exists x_3, (hd x_3 h/\ tl x_3 t/\ hd v x/\ tl v x_3)))))))))))))%Z.
 Proof.

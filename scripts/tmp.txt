@@ -1,23 +1,11 @@
-Lemma list_uniq_any_len (i: int): (i >= 0 -> exists (l: IL), len l i /\ uniq l)%Z.
+Lemma list_singleton_list_sorted (l: IL): (len l 1 -> sorted l)%Z.
 Admitted.
 
-Lemma list_uniq_not_mem (l: IL): uniq l -> exists (x: int), (not (list_mem l x)).
+Lemma list_singleton_list_uniq (l: IL): (len l 1 -> uniq l)%Z.
 Admitted.
 
-Lemma list_uniq_tl_uniq (l: IL) (l': IL): uniq l /\ tl l l' -> uniq l'.
+Lemma list_singleton_list_ex (h: int): (exists (l: IL) (l': IL), len l 1 /\ hd l h /\ tl l l' /\ len l' 0)%Z.
 Admitted.
 
-Lemma list_uniq_hd_not_in_tl (l: IL) (h: int) (l': IL): uniq l /\ tl l l' /\ hd l h -> not (list_mem l' h).
-Admitted.
-
-Lemma list_uniq_fst_second_not_eq (l: IL) (h: int) (t: IL) (h': int): (uniq l /\ hd l h /\ tl l t /\ hd t h' -> not (h = h'))%Z.
-Admitted.
-
-Lemma list_mem_hd_or_tl (l: IL) (h: int) (t: IL) (u: int): (list_mem l u /\ hd l h /\ tl l t -> (list_mem t u \/ u = h))%Z.
-Admitted.
-
-Lemma list_mem_tl_also_l (l: IL) (t: IL) (u: int): (list_mem t u /\ tl l t -> list_mem l u)%Z.
-Admitted.
-
-Lemma list_hd_is_mem (l: IL) (u: int): (hd l u -> list_mem l u)%Z.
+Lemma list_len_lenlte (l: IL) (n: int) (m: int): (len l n /\ n <= m -> lenlte l m)%Z.
 Admitted.

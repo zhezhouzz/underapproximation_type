@@ -54,8 +54,7 @@ let ocaml_structure_item_to_item structure =
              (* let () = failwith "end" in *)
              MFuncImpRaw
                {
-                 name =
-                   name #: (Some (__get_lam_term_ty __FILE__ __LINE__ body));
+                 name = name #: (_get_lam_term_ty body);
                  if_rec = get_if_rec flag;
                  body;
                }
