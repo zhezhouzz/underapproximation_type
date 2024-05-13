@@ -5,7 +5,7 @@ open Zzdatatype.Datatype
 open Preprocessing.Normal_item_typing
 open Frontend_opt
 open To_item
-open Raw_term_to_anf
+open Normalize
 
 let parse = Ocaml5_parser.Frontend.parse
 

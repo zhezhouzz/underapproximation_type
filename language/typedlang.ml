@@ -32,17 +32,15 @@ let layout_item item = To_item.layout_item @@ map_item some item
 let layout_structure s = To_item.layout_structure @@ List.map (map_item some) s
 
 let layout_typed_term e =
-  let e = Anf_to_raw_term.denormalize_term e in
+  let e = Denormalize.denormalize_term e in
   layout_typed_raw_term e
 
 let layout_typed_value e =
-  let e = Anf_to_raw_term.denormalize_value e in
+  let e = Denormalize.denormalize_value e in
   layout_typed_raw_term e
 
-let layout_item item = layout_item @@ Anf_to_raw_term.denormalize_item item
-
-let layout_structure s =
-  layout_structure @@ Anf_to_raw_term.denormalize_structure s
+let layout_item item = layout_item @@ Denormalize.denormalize_item item
+let layout_structure s = layout_structure @@ Denormalize.denormalize_structure s
 
 (* Lit *)
 
