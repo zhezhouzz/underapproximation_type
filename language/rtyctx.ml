@@ -11,7 +11,7 @@ type t = Nt.t
 type rctx = {
   builtin_ctx : t rty ctx;
   local_ctx : t rty ctx;
-  axioms : t prop list;
+  axioms : (string * t prop) list;
 }
 
 let pprint_typectx x =

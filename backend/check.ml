@@ -57,6 +57,14 @@ let smt_solve ctx assertions =
   (*   @@ Goal.get_formulas g *)
   (* in *)
   let _ = Solver.add solver (get_formulas g) in
+  (* let () = *)
+  (*   Printf.printf "Tactics: %s\n" *)
+  (*     (Zzdatatype.Datatype.StrList.to_string (Z3.Tactic.get_tactic_names ctx)) *)
+  (* in *)
+  (* let res = Z3.Tactic.apply (Z3.Tactic.mk_tactic ctx "nnf") g None in *)
+  (* let () = Printf.printf "%s\n" (Z3.Tactic.ApplyResult.to_string res) in *)
+  (* let gs = Z3.Tactic.ApplyResult.get_subgoals res in *)
+  (* let _ = List.iter (fun g -> Solver.add solver (get_formulas g)) gs in *)
   let _, res = Sugar.clock (fun () -> solver_result solver) in
   res
 
@@ -87,8 +95,9 @@ let extend =
   ]
 
 let _filter_ax = true
+let _inline_ax_iter_bound = 2
 
-let smt_neg_and_solve ctx axioms vc =
+let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   (* let () = *)
   (*   Env.show_debug_queries @@ fun _ -> *)
   (*   Printf.printf "Query: %s\n" @@ Language.Rty.layout_prop vc *)
@@ -113,15 +122,38 @@ let smt_neg_and_solve ctx axioms vc =
   let axioms =
     if _filter_ax then
       List.filter
-        (fun a ->
+        (fun (_, a) ->
           let mps = prop_get_mp a in
           List.for_all (fun mp -> List.exists (String.equal mp) current_mps) mps)
         axioms
     else axioms
   in
-  let () = Printf.printf "Num of axioms: %i\n" (List.length axioms) in
+  let () =
+    Env.show_log "axiom" @@ fun _ ->
+    Printf.printf "Num of axioms before inline: %i\n" (List.length axioms)
+  in
   (* let () = failwith "end" in *)
-  let assertions = List.map (Propencoding.to_z3 ctx) (axioms @ [ Not vc ]) in
+  let axioms, vc =
+    Ax_inline.inline_ax_with_bound _inline_ax_iter_bound axioms vc
+  in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    Printf.printf "Num of axioms after inline: %i\n" (List.length axioms)
+  in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    List.iter
+      (fun (name, prop) ->
+        Pp.printf "@{<yellow>Ax: %s@} := %s\n" name (layout_prop prop))
+      axioms
+  in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    Pp.printf "@{<yellow>VC@} := %s\n" (layout_prop vc)
+  in
+  let assertions =
+    List.map (Propencoding.to_z3 ctx) (List.map snd axioms @ [ Not vc ])
+  in
   let time_t, res =
     Sugar.clock (fun () ->
         match smt_solve ctx [ Propencoding.to_z3 ctx (Not vc) ] with
@@ -156,7 +188,7 @@ let handle_check_res query_action =
   (* | SmtSat model -> *)
   (*     ( Env.show_log "model" @@ fun _ -> *)
   (*       Printf.printf "model:\n%s\n" *)
-  (*       @@ Sugar.short_str 1000 @@ Z3.Model.to_string model ); *)
+  (*       @@ Sugar.short_str 10000 @@ Z3.Model.to_string model ); *)
   (*     false *)
   | Timeout ->
       ( Env.show_debug_queries @@ fun _ ->

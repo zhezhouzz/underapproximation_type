@@ -76,7 +76,7 @@ let get_templates () =
 
 let get_axioms () =
   let m = get_meta () in
-  List.map snd m.predefined_axioms
+  m.predefined_axioms
 
 let get_statements_by_name name =
   let m = get_meta () in

@@ -243,3 +243,120 @@ let ho_subst_prop name prop_var (prop : t prop) =
     | Exists { body; qv } -> Exists { body = aux body; qv }
   in
   simplify_prop @@ aux prop
+
+let rec gather_ex_qvs if_exn prop =
+  match prop with
+  | Lit _ -> ([], prop)
+  | Implies (p1, p2) ->
+      let qvs1, p1 = gather_fa_qvs if_exn p1 in
+      let qvs2, p2 = gather_ex_qvs if_exn p2 in
+      (qvs1 @ qvs2, Implies (p1, p2))
+  | Ite _ -> _failatwith __FILE__ __LINE__ "should be desugared"
+  | Not p1 ->
+      let qvs1, p1 = gather_fa_qvs if_exn p1 in
+      (qvs1, Not p1)
+  | And ps ->
+      let qvss, ps = List.split @@ List.map (gather_ex_qvs if_exn) ps in
+      (List.concat qvss, And ps)
+  | Or ps ->
+      let qvss, ps = List.split @@ List.map (gather_ex_qvs if_exn) ps in
+      (List.concat qvss, Or ps)
+  | Iff _ -> _failatwith __FILE__ __LINE__ "should be desugared"
+  | Forall _ ->
+      if if_exn then
+        let () = Printf.printf "prop: %s\n" (layout_prop prop) in
+        _failatwith __FILE__ __LINE__ "is not in EPR"
+      else ([], prop)
+  | Exists { qv; body } ->
+      let qvs1, body = gather_ex_qvs if_exn body in
+      (qv :: qvs1, body)
+
+and gather_fa_qvs if_exn prop =
+  match prop with
+  | Lit _ -> ([], prop)
+  | Implies (p1, p2) ->
+      let qvs1, p1 = gather_ex_qvs if_exn p1 in
+      let qvs2, p2 = gather_fa_qvs if_exn p2 in
+      (qvs1 @ qvs2, Implies (p1, p2))
+  | Ite _ -> _failatwith __FILE__ __LINE__ "should be desugared"
+  | Not p1 ->
+      let qvs1, p1 = gather_ex_qvs if_exn p1 in
+      (qvs1, Not p1)
+  | And ps ->
+      let qvss, ps = List.split @@ List.map (gather_fa_qvs if_exn) ps in
+      (List.concat qvss, And ps)
+  | Or ps ->
+      let qvss, ps = List.split @@ List.map (gather_fa_qvs if_exn) ps in
+      (List.concat qvss, Or ps)
+  | Iff _ -> _failatwith __FILE__ __LINE__ "should be desugared"
+  | Forall { qv; body } ->
+      let qvs1, body = gather_fa_qvs if_exn body in
+      (qv :: qvs1, body)
+  | Exists _ ->
+      if if_exn then
+        let () = Printf.printf "prop: %s\n" (layout_prop prop) in
+        _failatwith __FILE__ __LINE__ "is not in EPR"
+      else ([], prop)
+
+(* let rec gather_ex_fa_qvs prop = *)
+(*   match prop with *)
+(*   | Lit _ -> (([], []), prop) *)
+(*   | Implies (p1, p2) -> *)
+(*       let (qvs1, qvs1'), p1 = gather_fa_ex_qvs p1 in *)
+(*       let (qvs2, qvs2'), p2 = gather_ex_fa_qvs p2 in *)
+(*       ((qvs1 @ qvs2, qvs1' @ qvs2'), Implies (p1, p2)) *)
+(*   | Ite _ -> _failatwith __FILE__ __LINE__ "should be desugared" *)
+(*   | Not p1 -> *)
+(*       let (qvs1, qvs1'), p1 = gather_fa_ex_qvs p1 in *)
+(*       ((qvs1, qvs1'), Not p1) *)
+(*   | And ps -> *)
+(*       let tmp, ps = List.split @@ List.map gather_ex_fa_qvs ps in *)
+(*       let qvss, qvss' = List.split tmp in *)
+(*       ((List.concat qvss, List.concat qvss'), And ps) *)
+(*   | Or ps -> *)
+(*       let tmp, ps = List.split @@ List.map gather_ex_fa_qvs ps in *)
+(*       let qvss, qvss' = List.split tmp in *)
+(*       ((List.concat qvss, List.concat qvss'), Or ps) *)
+(*   | Iff _ -> _failatwith __FILE__ __LINE__ "should be desugared" *)
+(*   | Forall { qv; body } -> *)
+(*       let qvs', body = gather_fa_qvs true body in *)
+(*       (([], qv :: qvs'), body) *)
+(*   | Exists { qv; body } -> *)
+(*       let (qvs, qvs'), body = gather_ex_fa_qvs body in *)
+(*       ((qv :: qvs, qvs'), body) *)
+
+(* and gather_fa_ex_qvs prop = *)
+(*   match prop with *)
+(*   | Lit _ -> (([], []), prop) *)
+(*   | Implies (p1, p2) -> *)
+(*       let (qvs1, qvs1'), p1 = gather_ex_fa_qvs p1 in *)
+(*       let (qvs2, qvs2'), p2 = gather_fa_ex_qvs p2 in *)
+(*       ((qvs1 @ qvs2, qvs1' @ qvs2'), Implies (p1, p2)) *)
+(*   | Ite _ -> _failatwith __FILE__ __LINE__ "should be desugared" *)
+(*   | Not p1 -> *)
+(*       let (qvs1, qvs1'), p1 = gather_ex_fa_qvs p1 in *)
+(*       ((qvs1, qvs1'), Not p1) *)
+(*   | And ps -> *)
+(*       let tmp, ps = List.split @@ List.map gather_fa_ex_qvs ps in *)
+(*       let qvss, qvss' = List.split tmp in *)
+(*       ((List.concat qvss, List.concat qvss'), And ps) *)
+(*   | Or ps -> *)
+(*       let tmp, ps = List.split @@ List.map gather_fa_ex_qvs ps in *)
+(*       let qvss, qvss' = List.split tmp in *)
+(*       ((List.concat qvss, List.concat qvss'), Or ps) *)
+(*   | Iff _ -> _failatwith __FILE__ __LINE__ "should be desugared" *)
+(*   | Forall { qv; body } -> *)
+(*       let (qvs, qvs'), body = gather_fa_ex_qvs body in *)
+(*       ((qv :: qvs, qvs'), body) *)
+(*   | Exists { qv; body } -> *)
+(*       let qvs', body = gather_ex_qvs true body in *)
+(*       (([], qv :: qvs'), body) *)
+
+let contruct_prenex_normal_form (faqvs, exqvs) prop =
+  let prop = List.fold_right (fun qv body -> Exists { qv; body }) exqvs prop in
+  let prop = List.fold_right (fun qv body -> Forall { qv; body }) faqvs prop in
+  prop
+
+(* let epr_to_prenex_normal_form prop = *)
+(*   let (faqvs, exqvs), prop = gather_fa_ex_qvs prop in *)
+(*   contruct_prenex_normal_form (faqvs, exqvs) prop *)

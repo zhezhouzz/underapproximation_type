@@ -47,6 +47,10 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
         term_type_check (add_to_right rctx arg #: argrty) body retty
     | VLam { lamarg; body }, RtyArrArr { argrty; retty } ->
         term_type_check (add_to_right rctx lamarg.x #: argrty) body retty
+    | VLam _, RtyGhostArr { argcty; arg; retty } ->
+        let index = arg #: (mk_rty Fa @@ argcty) in
+        let rctx = add_to_right rctx index in
+        value_type_check rctx a retty
     | VLam _, _ -> _failatwith __FILE__ __LINE__ ""
     | VFix { fixname; fixarg; body }, RtyBaseArr { argcty; arg; retty } ->
         let rec_constraint_cty = apply_rec_arg arg #: fixarg.ty in
@@ -70,6 +74,14 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
       when Nt.eq (erase_cty argcty) Nt.Ty_int ->
         (* NOTE: We assume the index type is nature number *)
         let argnty = erase_cty argcty in
+        let natural_num_constraint =
+          List.fold_left apply_pi_prop
+            (Env.get_statements_by_name "natrual_number")
+            [ mk_typed_lit_by_id default_v #: argnty ]
+        in
+        let argcty =
+          map_phi_in_cty (smart_add_to natural_num_constraint) argcty
+        in
         let index = arg #: (mk_rty Fa @@ argcty) in
         let rctx = add_to_left rctx index in
         let self_rty =
@@ -83,9 +95,7 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
                 mk_typed_lit_by_id default_v #: argnty;
               ]
           in
-          let argcty' =
-            map_cty_on_phi argcty (fun phi -> smart_add_to phi' phi)
-          in
+          let argcty' = map_cty_on_phi argcty (smart_add_to phi') in
           let rty = RtyGhostArr { argcty = argcty'; arg; retty } in
           rty
         in
@@ -223,7 +233,11 @@ and match_case_type_infer (rctx : rctx) (matched : (t, t value) typed)
       Some rty
 
 and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
-  let () = Printf.printf "appf_rty: %s\n" (layout_rty appf_rty) in
+  let () =
+    Pp.printf "applying type @{<yellow>%s@} on argument @{<orange>%s@}\n"
+      (layout_rty appf_rty)
+      (layout_typed_value apparg)
+  in
   match appf_rty with
   | RtyGhostArr { argcty; arg; retty } ->
       let argnty = erase_cty argcty in
@@ -253,46 +267,34 @@ and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
           [ (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit phi) ]
         in
         Some (forward_rctx, backward_binding, retty)
-  (* | RtyBaseDepPair { argcty; arg; retty } -> *)
-  (*     let apparg_rty = value_type_infer rctx apparg in *)
-  (*     let argrty = cty_to_rty Ex argcty in *)
-  (*     if sub_rty_bool rctx (apparg_rty, argrty) then *)
-  (*       let retty = pack_rty_to_rty (arg #: argrty, retty) in *)
-  (*       let rctx', _ = consume_rty rctx apparg_rty in *)
-  (*       let constrain_rty = *)
-  (*         mk_rty Fa *)
-  (*         @@ subst_cty_instance default_v *)
-  (*              (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x argcty *)
-  (*       in *)
-  (*       let rctx' = add_to_right rctx' (Rename.unique "tmp") #: constrain_rty in *)
-  (*       Some (rctx', retty) *)
-  (*     else ( *)
-  (*       _warinning_subtyping_error __FILE__ __LINE__ (apparg_rty, argrty); *)
-  (*       _warinning_typing_error __FILE__ __LINE__ *)
-  (*         (layout_typed_value apparg, argrty); *)
-  (*       None) *)
   | RtyBaseDepPair { argcty; arg; retty } ->
       let apparg_rty = value_type_infer rctx apparg in
-      (* let argrty = cty_to_rty Ex argcty in *)
-      let retty =
-        subst_rty_instance arg
-          (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x retty
-      in
-      let rctx', _ = consume_rty rctx apparg_rty in
-      let phi =
-        subst_prop_instance default_v
-          (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x
-        @@ get_cty_prop argcty
-      in
-      (* let () = Printf.printf "phi: %s\n" (layout_prop phi) in *)
-      let forward_rctx =
-        add_to_right rctx'
-          (Rename.unique "tmp") #: (prop_to_rty Fa Nt.Ty_unit phi)
-      in
-      let backward_rctx =
-        [ (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit phi) ]
-      in
-      Some (forward_rctx, backward_rctx, retty)
+      let argrty = cty_to_rty Ex argcty in
+      if sub_rty_bool rctx (apparg_rty, argrty) then
+        let rctx', _ = consume_rty rctx apparg_rty in
+        let retty =
+          subst_rty_instance arg
+            (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x retty
+        in
+        let phi =
+          subst_prop_instance default_v
+            (typed_value_to_typed_lit __FILE__ __LINE__ apparg).x
+          @@ get_cty_prop argcty
+        in
+        (* let () = Printf.printf "phi: %s\n" (layout_prop phi) in *)
+        let forward_rctx =
+          add_to_right rctx'
+            (Rename.unique "tmp") #: (prop_to_rty Fa Nt.Ty_unit phi)
+        in
+        let backward_rctx =
+          [ (Rename.unique "tmp") #: (prop_to_rty Ex Nt.Ty_unit phi) ]
+        in
+        Some (forward_rctx, backward_rctx, retty)
+      else (
+        _warinning_subtyping_error __FILE__ __LINE__ (apparg_rty, argrty);
+        _warinning_typing_error __FILE__ __LINE__
+          (layout_typed_value apparg, argrty);
+        None)
   | RtyArrArr { argrty; retty } ->
       let apparg_rty = value_type_infer rctx apparg in
       if sub_rty_bool rctx (apparg_rty, argrty) then Some (rctx, [], retty)
