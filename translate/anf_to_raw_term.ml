@@ -19,15 +19,30 @@ and typed_term_to_typed_raw_term (term_e : ('t, 't term) typed) =
   match term_e.x with
   | CErr -> Err #: term_e.ty
   | CVal _t__tvaluetyped0 -> typed_value_to_typed_raw_term _t__tvaluetyped0
-  | CLetE { rhs; lhs; body } ->
-      (Let
-         {
-           rhs = typed_term_to_typed_raw_term rhs;
-           lhs = [ lhs ];
-           letbody = typed_term_to_typed_raw_term body;
-           if_rec = false;
-         })
-      #: term_e.ty
+  | CLetE { rhs; lhs; body } -> (
+      match rhs.x with
+      | CVal { x = VFix { fixname; fixarg; body = fixbody }; _ } ->
+          let _ =
+            Sugar._check_equality __FILE__ __LINE__ String.equal fixname.x lhs.x
+          in
+          let f = VLam { lamarg = fixarg; body = fixbody } in
+          (Let
+             {
+               rhs = typed_term_to_typed_raw_term (CVal f #: rhs.ty) #: rhs.ty;
+               lhs = [ lhs ];
+               letbody = typed_term_to_typed_raw_term body;
+               if_rec = true;
+             })
+          #: term_e.ty
+      | _ ->
+          (Let
+             {
+               rhs = typed_term_to_typed_raw_term rhs;
+               lhs = [ lhs ];
+               letbody = typed_term_to_typed_raw_term body;
+               if_rec = false;
+             })
+          #: term_e.ty)
   | CLetDeTu { turhs; tulhs; body } ->
       (Let
          {

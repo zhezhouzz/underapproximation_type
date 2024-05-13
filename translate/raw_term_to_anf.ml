@@ -71,6 +71,17 @@ and normalize_get_comp (k : 't cont) (expr : ('t, 't raw_term) typed) :
               let rhs = value_to_term @@ mk_fix fixname fixarg fixbody in
               construct_lete fixname rhs (normalize_get_comp k letbody))
             rhs
+      | true, [ lhs ] ->
+          normalize_get_value
+            (fun rhs ->
+              match rhs.x with
+              | VLam { lamarg; body } ->
+                  let f = VFix { fixname = lhs; fixarg = lamarg; body } in
+                  construct_lete lhs
+                    (CVal f #: rhs.ty) #: rhs.ty
+                    (normalize_get_comp k letbody)
+              | _ -> _failatwith __FILE__ __LINE__ "bad")
+            rhs
       | true, _ -> _failatwith __FILE__ __LINE__ "bad"
       | false, [] -> _failatwith __FILE__ __LINE__ "bad"
       | false, [ lhs ] ->
