@@ -38,6 +38,21 @@ let[@library] ( - ) =
   let b = (true : [%v: int]) [@over] in
   (v == a - b : [%v: int]) [@under]
 
+let[@library] ( * ) =
+  let a = (true : [%v: int]) [@over] in
+  let b = (true : [%v: int]) [@over] in
+  (v == a * b : [%v: int]) [@under]
+
+let[@library] ( || ) =
+  let a = (true : [%v: bool]) [@over] in
+  let b = (true : [%v: bool]) [@over] in
+  (iff v (a || b) : [%v: bool]) [@under]
+
+let[@library] ( && ) =
+  let a = (true : [%v: bool]) [@over] in
+  let b = (true : [%v: bool]) [@over] in
+  (iff v (a && b) : [%v: bool]) [@under]
+
 let[@library] TT = (true : [%v: unit]) [@under]
 let[@library] True = (v : [%v: bool]) [@under]
 let[@library] False = (not v : [%v: bool]) [@under]

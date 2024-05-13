@@ -30,5 +30,5 @@ let id_of_pattern pattern =
   | Ppat_any -> "_"
   | Ppat_construct (name, None) -> longid_to_id name
   | _ ->
-      Printf.printf "[%s::%i] %s" __FILE__ __LINE__ (layout_ pattern);
+      Printf.printf "[%s::%i] %s\n" __FILE__ __LINE__ (layout_ pattern);
       _failatwith __FILE__ __LINE__ "die"

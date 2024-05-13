@@ -1,0 +1,2 @@
+Paper: Data-Driven Inference of Representation Invariants
+Source: https://github.com/amiltner/HanoiArtifactEvaluation/blob/master/code/benchmarks/micro/stutter_list.ds

@@ -31,3 +31,13 @@ type stlc_term =
   | Stlc_abs of stlc_ty * stlc_term
 
 type stlc_tyctx = Stlc_tyctx_nil | Stlc_tyctx_cons of stlc_ty * stlc_tyctx
+
+(** Hanoi *)
+
+type natnatoption = NonePair | SomePair of int * int
+
+type natoptionnatoption =
+  | NoneNone
+  | SomeNone of int
+  | NoneSome of int
+  | SomeSome of int * int

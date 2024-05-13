@@ -83,6 +83,13 @@ let direct_check_ mode meta_config_file source_file () =
   | "overlap" -> Subtyping.Overlaprty.external_check ctx (rty1, rty2)
   | _ -> failwith "unknown mode"
 
+let ntype_check_ meta_config_file source_file () =
+  let () = Env.load_meta meta_config_file in
+  let code = preproress meta_config_file source_file () in
+  let prim_path = Env.get_prim_path () in
+  let _ = preproress meta_config_file prim_path.coverage_typing () in
+  ()
+
 let type_check_ mode meta_config_file source_file () =
   let () = Env.load_meta meta_config_file in
   let code = preproress meta_config_file source_file () in
@@ -125,6 +132,7 @@ let test =
   Command.group ~summary:"Poirot"
     [
       ("print-source-code", print_source_code);
+      ("ntype-check", input_config_source "type check" ntype_check_);
       ("type-check", input_config_source "type check" (type_check_ TypeCheck));
       ("type-infer", input_config_source "type infer" (type_check_ TypeInfer));
       ("type-refine", input_config_source "type refine" (type_check_ TypeRefine));
