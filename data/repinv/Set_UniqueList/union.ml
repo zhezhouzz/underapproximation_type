@@ -25,10 +25,16 @@ let rec union (s1 : int list) (s2 : int list) : int list =
           if h1 == h2 then Err else if h1 < h2 then h1 :: union t1 s2 else Err)
 
 let[@assert] union =
-  let (n [@ghost]) = (2 <= v : [%v: int]) [@over] in
-  let s1 = (sorted v && lenlte v (n - 1) : [%v: int list]) [@under] in
-  let s2 = (sorted v && lenlte v (n - 1) : [%v: int list]) [@under] in
-  (sorted v && len v n : [%v: int list]) [@under]
+  [|
+    (let (i [@ghost]) = (true : [%v: int]) [@over] in
+     let s1 = (emp v : [%v: int list]) [@over] in
+     let s2 = (sorted v && lenlte v i : [%v: int list]) [@under] in
+     (sorted v && len v i : [%v: int list]) [@under]);
+    (let (n [@ghost]) = (2 <= v : [%v: int]) [@over] in
+     let s1 = (sorted v && lenlte v (n - 1) : [%v: int list]) [@under] in
+     let s2 = (sorted v && lenlte v (n - 1) : [%v: int list]) [@under] in
+     (sorted v && len v n : [%v: int list]) [@under]);
+  |]
 
 (* let[@assert] union = *)
 (*   let (n [@ghost]) = (2 <= v : [%v: int]) [@over] in *)

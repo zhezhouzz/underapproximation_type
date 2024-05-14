@@ -56,7 +56,8 @@ let ctx_list_to_cctx pctx =
     | None -> uqvs
     | Some (pctx, binding) -> (
         match binding.ty with
-        | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ -> aux pctx uqvs
+        | RtyBaseDepPair _ | RtyBaseArr _ | RtyArrArr _ | RtyIntersect _ ->
+            aux pctx uqvs
         | RtyGhostArr _ -> (
             match erase_rty binding.ty with
             | Nt.Ty_arrow _ -> aux pctx uqvs

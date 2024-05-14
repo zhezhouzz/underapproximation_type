@@ -6,6 +6,33 @@ open Sugar
 (* open Subtyping *)
 (* type t = Nt.t *)
 
+let ghost_recurisve_rty_unfold (argcty, arg, retty) =
+  (* NOTE: We assume the index type is nature number *)
+  let argnty = erase_cty argcty in
+  let natural_num_constraint =
+    List.fold_left apply_pi_prop
+      (Env.get_statements_by_name "natrual_number")
+      [ mk_typed_lit_by_id default_v #: argnty ]
+  in
+  let argcty = map_phi_in_cty (smart_add_to natural_num_constraint) argcty in
+  let index = arg #: (mk_rty Fa @@ argcty) in
+  let self_rty =
+    (* let arg' = Rename.unique arg in *)
+    (* let retty' = subst_rty_instance arg (AVar arg' #: argnty) retty in *)
+    let phi' =
+      List.fold_left apply_pi_prop
+        (Env.get_statements_by_name "rec_arg")
+        [
+          mk_typed_lit_by_id arg #: argnty;
+          mk_typed_lit_by_id default_v #: argnty;
+        ]
+    in
+    let argcty' = map_cty_on_phi argcty (smart_add_to phi') in
+    let rty = RtyGhostArr { argcty = argcty'; arg; retty } in
+    rty
+  in
+  (index, self_rty)
+
 let rec value_type_infer (rctx : rctx) (a : (t, t value) typed) : t rty =
   let rty =
     match a.x with
@@ -26,6 +53,53 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
   let () = pprint_simple_typectx_judge rctx (layout_typed_value a, rty) in
   let res =
     match (a.x, rty) with
+    | _, RtyIntersect _ -> (
+        let rtys = rty_intersect_to_rtys rty in
+        match a.x with
+        | VFix { fixname; fixarg; body } ->
+            let* _ =
+              List.fold_left
+                (fun checked_rtys rty ->
+                  let* checked_rtys = checked_rtys in
+                  let () =
+                    Pp.printf
+                      "Now type check @{<yellow>%s@} from the intersection type\n"
+                      (layout_rty rty)
+                  in
+                  match rty with
+                  | RtyGhostArr { argcty; arg; retty } ->
+                      let index, self_rty =
+                        ghost_recurisve_rty_unfold (argcty, arg, retty)
+                      in
+                      let rctx = add_to_left rctx index in
+                      let binding =
+                        [
+                          fixname.x
+                          #: (rty_mk_intersect (checked_rtys @ [ self_rty ]));
+                        ]
+                      in
+                      let rctx' = add_to_rights rctx binding in
+                      let* _ =
+                        value_type_check rctx'
+                          (VLam { lamarg = fixarg; body }) #: fixname.ty
+                          retty
+                      in
+                      Some (checked_rtys @ [ rty ])
+                  | _ -> _failatwith __FILE__ __LINE__ "die")
+                (Some []) rtys
+            in
+            Some ()
+        | _ ->
+            List.fold_left
+              (fun result rty ->
+                let* _ = result in
+                let () =
+                  Pp.printf
+                    "Now type check @{<yellow>%s@} from the intersection type\n"
+                    (layout_rty rty)
+                in
+                value_type_check rctx a rty)
+              (Some ()) rtys)
     | VConst _, _ | VVar _, _ ->
         let rty' = value_type_infer rctx a in
         if sub_rty_bool rctx (rty', rty) then Some ()
@@ -72,33 +146,8 @@ and value_type_check (rctx : rctx) (a : (t, t value) typed) (rty : t rty) :
           body retty
     | VFix { fixname; fixarg; body }, RtyGhostArr { argcty; arg; retty }
       when Nt.eq (erase_cty argcty) Nt.Ty_int ->
-        (* NOTE: We assume the index type is nature number *)
-        let argnty = erase_cty argcty in
-        let natural_num_constraint =
-          List.fold_left apply_pi_prop
-            (Env.get_statements_by_name "natrual_number")
-            [ mk_typed_lit_by_id default_v #: argnty ]
-        in
-        let argcty =
-          map_phi_in_cty (smart_add_to natural_num_constraint) argcty
-        in
-        let index = arg #: (mk_rty Fa @@ argcty) in
+        let index, self_rty = ghost_recurisve_rty_unfold (argcty, arg, retty) in
         let rctx = add_to_left rctx index in
-        let self_rty =
-          (* let arg' = Rename.unique arg in *)
-          (* let retty' = subst_rty_instance arg (AVar arg' #: argnty) retty in *)
-          let phi' =
-            List.fold_left apply_pi_prop
-              (Env.get_statements_by_name "rec_arg")
-              [
-                mk_typed_lit_by_id arg #: argnty;
-                mk_typed_lit_by_id default_v #: argnty;
-              ]
-          in
-          let argcty' = map_cty_on_phi argcty (smart_add_to phi') in
-          let rty = RtyGhostArr { argcty = argcty'; arg; retty } in
-          rty
-        in
         let binding = [ fixname.x #: self_rty ] in
         (* let () = Printf.printf "%s\n" index'.x in *)
         (* let () = Printf.printf "%s\n" fixname.x in *)
@@ -303,6 +352,25 @@ and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
         _warinning_typing_error __FILE__ __LINE__
           (layout_typed_value apparg, argrty);
         None)
+  | RtyIntersect _ ->
+      let appf_rtys = rty_intersect_to_rtys appf_rty in
+      (* NOTE: we choose the first valid application *)
+      let rec aux appf_rtys =
+        match appf_rtys with
+        | [] -> None
+        | appf_rty :: appf_rtys -> (
+            let res = arrow_type_apply rctx appf_rty apparg in
+            match res with
+            | None -> aux appf_rtys
+            | Some _ ->
+                let () =
+                  Pp.printf
+                    "We choose type @{<yellow>%s@} from the intersection type\n"
+                    (layout_rty appf_rty)
+                in
+                res)
+      in
+      aux appf_rtys
   | _ -> _failatwith __FILE__ __LINE__ "type error: not an arrow type"
 
 and term_type_infer_app (rctx : rctx) (a : ('t, 't term) typed) :

@@ -109,6 +109,30 @@ Admitted.
 Lemma list_len_lenlte (l: IL) (n: int) (m: int): (len l n /\ n <= m -> lenlte l m)%Z.
 Admitted.
 
+Lemma unique_union_inter: (forall v, (forall i, (0 <= i -> (forall n, ((0 <= n/\ 2 <= n) -> ((sorted v/\ len v n) -> (exists s1, (sorted s1/\ lenlte s1 (n - 1)/\ (exists s2, (sorted s2/\ lenlte s2 (n - 1)/\ ((emp s1/\ v = s2) \/ (exists h1, (exists t1, (hd s1 h1/\ tl s1 t1/\ (exists h2, (exists t2, (hd s2 h2/\ tl s2 t2/\ ~h1 = h2/\ h1 < h2/\ (exists i_3, (i_3 < i/\ 0 <= i_3/\ emp t1/\ (exists x_3, (sorted x_3/\ len x_3 i_3/\ sorted s2/\ lenlte s2 i_3/\ hd v h1/\ tl v x_3)))))))))))))))))))))%Z.
+Proof.
+  intros.
+  assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
+  destruct (list_destruct_non_emp v) as (h & t & Hh & Ht); auto.
+  assert (sorted t). { eapply list_sorted_tl_sorted; intuition; eauto. }
+  assert (len t (n - 1)%Z). { eapply list_len_tl_len; intuition; try z_simpl; eauto. }
+  destruct (list_singleton_list_ex h) as (s1 & t1 & Hs1).
+  assert (sorted s1). { apply list_singleton_list_sorted; intuition. }
+  exists s1. intuition. apply list_len_lenlte with 1%Z; intuition; eauto.
+  exists t. intuition. apply list_len_lenlte with (n - 1)%Z; intuition; eauto.
+  right.
+  exists h, t1. intuition.
+  assert (~ emp t). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
+  destruct (list_destruct_non_emp t) as (h2 & t2 & Hh2 & Ht2); auto.
+  assert (h < h2)%Z. { eapply list_sorted_fst_second_lt; intuition; eauto. }
+  exists h2, t2. intuition.
+  exists (i - 1)%Z. intuition. apply list_sorted_tl_sorted with s1; intuition; eauto.
+  apply list_len_lenlte with 0%Z; intuition; eauto.
+  exists t. intuition.
+  eapply list_len_lenlte; intuition; eauto.
+Qed.
+
+
 Lemma unique_insert_sub: (forall v, (forall i, ((0 <= i/\ 0 < i) -> (forall s, ((uniq s/\ len s (i - 1)) -> (exists x, (~list_mem s x/\ (exists h, (exists t, ((hd s h/\ tl s t) -> (~x = h -> (exists i_1, (i_1 < i/\ 0 <= i_1/\ 0 < i_1/\ ((uniq v/\ len v (i_1 - 1)) -> v = t))))))))))))))%Z.
 Proof.
   intros. intuition.

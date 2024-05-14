@@ -23,5 +23,6 @@ let bi_typed_rty_check (ctx : t ctx) (rty : t option rty) : t rty =
         let argcty = bi_typed_cty_check ctx argcty in
         let arg' = arg #: (erase_cty argcty) in
         RtyGhostArr { argcty; arg; retty = aux (add_to_right ctx arg') retty }
+    | RtyIntersect (rty1, rty2) -> RtyIntersect (aux ctx rty1, aux ctx rty2)
   in
   aux ctx rty

@@ -101,6 +101,7 @@ let map_rty_on_result_type rty f =
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
     | RtyGhostArr { argcty; arg; retty } ->
         RtyGhostArr { argcty; arg; retty = aux retty }
+    | RtyIntersect (rty1, rty2) -> RtyIntersect (aux rty1, aux rty2)
   in
   aux rty
 
@@ -114,3 +115,11 @@ let alpha_renaming x rty =
   let x' = Rename.unique x.x in
   let rty' = subst_rty_instance x.x (AVar x' #: x.ty) rty in
   (x' #: x.ty, rty')
+
+let rty_intersect_to_rtys rty =
+  let rec aux rty =
+    match rty with
+    | RtyIntersect (rty1, rty2) -> aux rty1 @ aux rty2
+    | _ -> [ rty ]
+  in
+  aux rty

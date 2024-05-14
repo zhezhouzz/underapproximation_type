@@ -35,6 +35,7 @@ let map_in_retrty (f : 't rty -> 't rty) t =
     | RtyGhostArr { argcty; arg; retty } ->
         RtyGhostArr { argcty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    | RtyIntersect (rty1, rty2) -> RtyIntersect (aux rty1, aux rty2)
   in
   aux t
 
@@ -49,6 +50,7 @@ let map_base_in_retrty (f : 't cty -> 't cty) t =
     | RtyGhostArr { argcty; arg; retty } ->
         RtyGhostArr { argcty; arg; retty = aux retty }
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    | RtyIntersect (rty1, rty2) -> RtyIntersect (aux rty1, aux rty2)
   in
   aux t
 
@@ -231,6 +233,7 @@ let alpha_renaming_rty_in_scope (scope : string list) (rty : t rty) =
                   subst_rty_instance arg (AVar arg' #: (erase_cty argcty)) retty;
               })
     | RtyArrArr { argrty; retty } -> RtyArrArr { argrty; retty = aux retty }
+    | RtyIntersect (rty1, rty2) -> RtyIntersect (aux rty1, aux rty2)
   in
   aux rty
 

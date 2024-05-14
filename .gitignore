@@ -1,3 +1,4 @@
+*.lia.cache
 *.glob
 *.aux
 *.cache

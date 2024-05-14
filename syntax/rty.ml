@@ -15,6 +15,7 @@ type 't rty =
     }
   | RtyArrArr of { argrty : 't rty; retty : 't rty }
   | RtyGhostArr of { argcty : 't cty; arg : (string[@bound]); retty : 't rty }
+  | RtyIntersect of 't rty * 't rty
 [@@deriving sexp]
 
 let rec stale_rty (rty_e : 't rty) =
@@ -30,6 +31,7 @@ let rec stale_rty (rty_e : 't rty) =
   | RtyGhostArr { argcty; arg; retty } ->
       let res = [] @ stale_rty retty in
       res @ stale_cty argcty @ [ arg ]
+  | RtyIntersect (rty1, rty2) -> stale_rty rty1 @ stale_rty rty2
 
 and typed_stale_rty (rty_e : ('t, 't rty) typed) = stale_rty rty_e.x
 
@@ -62,6 +64,7 @@ let rec fv_rty (rty_e : 't rty) =
           res
       in
       res @ fv_cty argcty
+  | RtyIntersect (rty1, rty2) -> fv_rty rty1 @ fv_rty rty2
 
 and typed_fv_rty (rty_e : ('t, 't rty) typed) = fv_rty rty_e.x
 
@@ -104,6 +107,8 @@ let rec subst_rty (string_x : string) f (rty_e : 't rty) =
             arg;
             retty = subst_rty string_x f retty;
           }
+  | RtyIntersect (rty1, rty2) ->
+      RtyIntersect (subst_rty string_x f rty1, subst_rty string_x f rty2)
 
 and typed_subst_rty (string_x : string) f (rty_e : ('t, 't rty) typed) =
   rty_e #-> (subst_rty string_x f)
@@ -119,6 +124,7 @@ let rec map_rty (f : 't -> 's) (rty_e : 't rty) =
       RtyArrArr { argrty = map_rty f argrty; retty = map_rty f retty }
   | RtyGhostArr { argcty; arg; retty } ->
       RtyGhostArr { argcty = map_cty f argcty; arg; retty = map_rty f retty }
+  | RtyIntersect (rty1, rty2) -> RtyIntersect (map_rty f rty1, map_rty f rty2)
 
 and typed_map_rty (f : 't -> 's) (rty_e : ('t, 't rty) typed) =
   rty_e #=> f #-> (map_rty f)
@@ -155,6 +161,7 @@ let rec erase_rty = function
   | RtyArrArr { argrty; retty } ->
       Nt.mk_arr (erase_rty argrty) (erase_rty retty)
   | RtyGhostArr { retty; _ } -> erase_rty retty
+  | RtyIntersect (rty1, _) -> erase_rty rty1
 
 let default_res = "r"
 
@@ -170,3 +177,12 @@ let rty_to_cty = function
 let rty_to_ou = function
   | RtyBase { ou; _ } -> ou
   | _ -> Sugar._failatwith __FILE__ __LINE__ "die"
+
+let rty_mk_intersect rtys =
+  match List.rev rtys with
+  | [] -> failwith "syntax error: empty intersection type"
+  | [ rty ] -> rty
+  | rty :: rtys ->
+      List.fold_right
+        (fun rty res -> RtyIntersect (rty, res))
+        (List.rev rtys) rty

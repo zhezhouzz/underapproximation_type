@@ -26,6 +26,8 @@ let rec layout_rty = function
       | _ -> spf "(%s:[%s]) → %s" arg (layout_cty argcty) (layout_rty retty))
   | RtyArrArr { argrty; retty } ->
       spf "%s → %s" (layout_rty argrty) (layout_rty retty)
+  | RtyIntersect (rty1, rty2) ->
+      spf "%s ⊓ %s" (layout_rty rty1) (layout_rty rty2)
 
 let get_ou expr =
   match expr.pexp_attributes with
@@ -66,14 +68,7 @@ let rec rty_of_expr expr =
       | RtyBase { cty; ou = Ex; _ } ->
           RtyBaseDepPair { argcty = cty; arg; retty }
       | _ -> _failatwith __FILE__ __LINE__ "die")
-  (* | Pexp_array ls -> ( *)
-  (*     let htys = List.map rty_of_expr ls in *)
-  (*     match List.rev htys with *)
-  (*     | [] | [ _ ] -> failwith "syntax error: empty/singleton intersection type" *)
-  (*     | rty :: rtys -> *)
-  (*         List.fold_right *)
-  (*           (fun rty res -> RtyInter (rty, res)) *)
-  (*           (List.rev rtys) rty) *)
+  | Pexp_array ls -> rty_mk_intersect (List.map rty_of_expr ls)
   | _ ->
       _failatwith __FILE__ __LINE__
         (spf "wrong refinement type: %s" (Pprintast.string_of_expression expr))
