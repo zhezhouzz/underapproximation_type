@@ -95,8 +95,57 @@ let extend =
       ] );
   ]
 
-let _filter_ax = true
-let _inline_ax_iter_bound = 1
+let _enable_filter_ax = true
+let _enable_inline_ax_ = true
+let _inline_ax_iter_bound = 2
+
+open Language
+
+let _smt_neg_and_solve_ ctx axioms vc =
+  let () =
+    Env.show_log "axiom" @@ fun _ ->
+    Pp.printf "@{<yellow>VC@} := %s\n" (layout_prop_to_coq vc)
+  in
+  let assertions =
+    List.map (Propencoding.to_z3 ctx) (List.map snd axioms @ [ Not vc ])
+  in
+  let time_t, res =
+    Sugar.clock (fun () ->
+        match smt_solve ctx [ Propencoding.to_z3 ctx (Not vc) ] with
+        | SmtUnsat -> SmtUnsat
+        | _ -> smt_solve ctx assertions)
+  in
+  let () =
+    Env.show_debug_stat @@ fun _ -> Pp.printf "Z3 solving time: %0.4fs\n" time_t
+  in
+  res
+
+let smt_neg_and_solve_inline ctx axioms vc =
+  let ex_axioms, fa_axioms = Ax_inline.split_inlinable_axioms axioms in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    Printf.printf "Num of axioms as precondition: %i\n" (List.length axioms)
+  in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    List.iter
+      (fun (name, prop) ->
+        Pp.printf "@{<yellow>Ax: %s@} := %s\n" name (layout_prop prop))
+      axioms
+  in
+  let inline_ctx = Ax_inline.inline_ctx_init ex_axioms in
+  let rec aux i =
+    if i > _inline_ax_iter_bound then Timeout
+    else
+      let vc = Ax_inline.inline_ax_with_bound i inline_ctx vc in
+      match _smt_neg_and_solve_ ctx fa_axioms vc with
+      | SmtUnsat -> SmtUnsat
+      | Timeout ->
+          (* let _ = Printf.printf "timeout!!\n" in *)
+          aux (i + 1)
+      | _ -> aux (i + 1)
+  in
+  aux 0
 
 let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   (* let () = *)
@@ -121,7 +170,7 @@ let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   (*     (Zzdatatype.Datatype.StrList.to_string current_mps) *)
   (* in *)
   let axioms =
-    if _filter_ax then
+    if _enable_filter_ax then
       List.filter
         (fun (_, a) ->
           let mps = prop_get_mp a in
@@ -131,40 +180,10 @@ let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   in
   let () =
     Env.show_log "axiom" @@ fun _ ->
-    Printf.printf "Num of axioms before inline: %i\n" (List.length axioms)
+    Printf.printf "Num of axioms under consideration: %i\n" (List.length axioms)
   in
-  (* let () = failwith "end" in *)
-  let axioms, vc =
-    Ax_inline.inline_ax_with_bound _inline_ax_iter_bound axioms vc
-  in
-  let () =
-    Env.show_log "axiom_inline" @@ fun _ ->
-    Printf.printf "Num of axioms after inline: %i\n" (List.length axioms)
-  in
-  let () =
-    Env.show_log "axiom_inline" @@ fun _ ->
-    List.iter
-      (fun (name, prop) ->
-        Pp.printf "@{<yellow>Ax: %s@} := %s\n" name (layout_prop prop))
-      axioms
-  in
-  let () =
-    Env.show_log "axiom_inline" @@ fun _ ->
-    Pp.printf "@{<yellow>VC@} := %s\n" (layout_prop_to_coq vc)
-  in
-  let assertions =
-    List.map (Propencoding.to_z3 ctx) (List.map snd axioms @ [ Not vc ])
-  in
-  let time_t, res =
-    Sugar.clock (fun () ->
-        match smt_solve ctx [ Propencoding.to_z3 ctx (Not vc) ] with
-        | SmtUnsat -> SmtUnsat
-        | _ -> smt_solve ctx assertions)
-  in
-  let () =
-    Env.show_debug_stat @@ fun _ -> Pp.printf "Z3 solving time: %0.4fs\n" time_t
-  in
-  res
+  if _enable_inline_ax_ then smt_neg_and_solve_inline ctx axioms vc
+  else _smt_neg_and_solve_ ctx axioms vc
 
 exception SMTTIMEOUT
 

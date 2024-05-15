@@ -32,7 +32,7 @@ type inline_ctx = {
   inlined : (string, inline_setting list) Hashtbl.t;
 }
 
-let inline_ctx_init axioms =
+let split_inlinable_axioms axioms =
   let axioms, fa_axioms =
     List.partition
       (fun (_, prop) ->
@@ -40,12 +40,20 @@ let inline_ctx_init axioms =
         List.length exqvs > 0)
       axioms
   in
+  (axioms, fa_axioms)
+
+let inline_ctx_init axioms =
+  let axioms, _ = split_inlinable_axioms axioms in
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    Printf.printf "Num of axioms to inline: %i\n" (List.length axioms)
+  in
   let ax_names = List.map fst axioms in
   let axs = Hashtbl.create (List.length ax_names) in
   let inlined = Hashtbl.create (List.length ax_names) in
   let () = List.iter (fun (x, prop) -> Hashtbl.add axs x prop) axioms in
   let () = List.iter (fun x -> Hashtbl.add inlined x []) ax_names in
-  ({ ax_names; axs; inlined }, fa_axioms)
+  { ax_names; axs; inlined }
 
 let setting_eq s1 s2 = List.eq (fun x y -> String.equal x.x y.x) s1 s2
 
@@ -140,11 +148,14 @@ let do_inline_over_pnf (ctx : inline_ctx) prop =
   in
   prop
 
-let inline_ax_with_bound iter_num axioms prop =
-  if iter_num <= 0 then (axioms, prop)
+let inline_ax_with_bound iter_num ctx prop =
+  let () =
+    Env.show_log "axiom_inline" @@ fun _ ->
+    Pp.printf "@{<yellow>Inline times:@} %i\n" iter_num
+  in
+  if iter_num <= 0 then prop
   else
-    let ctx, axioms = inline_ctx_init axioms in
     let rec aux i prop =
       if i <= 0 then prop else aux (i - 1) (do_inline_over_pnf ctx prop)
     in
-    (axioms, aux iter_num prop)
+    aux iter_num prop
