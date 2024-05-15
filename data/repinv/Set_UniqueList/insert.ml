@@ -1,8 +1,10 @@
-let rec insert (s : int list) (x : int) : int list =
-  match s with [] -> [ x ] | h :: t -> if x == h then s else x :: insert t h
+let rec insert (s : elem list) (x : elem) : elem list =
+  match s with
+  | [] -> [ x ]
+  | h :: t -> if elem_eq x h then s else x :: insert t h
 
 let[@assert] insert =
   let (i [@ghost]) = (0 < v : [%v: int]) [@over] in
-  let s = (uniq v && len v (i - 1) : [%v: int list]) [@under] in
-  let x = (not (list_mem s v) : [%v: int]) [@under] in
-  (uniq v && len v i : [%v: int list]) [@under]
+  let s = (uniq v && len v (i - 1) : [%v: elem list]) [@under] in
+  let x = (not (list_mem s v) : [%v: elem]) [@under] in
+  (uniq v && len v i : [%v: elem list]) [@under]

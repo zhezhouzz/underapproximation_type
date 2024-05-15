@@ -1,15 +1,24 @@
 val ( == ) : 'a -> 'a -> bool
 val ( != ) : 'a -> 'a -> bool
-val ( < ) : int -> int -> bool
-val ( <= ) : int -> int -> bool
-val ( > ) : int -> int -> bool
-val ( >= ) : int -> int -> bool
+val ( < ) : 'a -> 'a -> bool
+val ( <= ) : 'a -> 'a -> bool
+val ( > ) : 'a -> 'a -> bool
+val ( >= ) : 'a -> 'a -> bool
 val ( + ) : int -> int -> int
 val ( - ) : int -> int -> int
 val ( * ) : int -> int -> int
 val ( || ) : bool -> bool -> bool
 val ( && ) : bool -> bool -> bool
 (* dt *)
+
+(* element *)
+
+val elem_eq : elem -> elem -> bool
+val elem_neq : elem -> elem -> bool
+val elem_lt : elem -> elem -> bool
+val elem_lte : elem -> elem -> bool
+val elem_gt : elem -> elem -> bool
+val elem_gte : elem -> elem -> bool
 
 (* others *)
 val int_range : int -> int -> int
@@ -29,7 +38,8 @@ val dummy : unit
 (* method predicates *)
 (* for lists *)
 val len : 'a list -> int -> bool
-val lenlt : 'a list -> int -> bool
+
+(* val lenlt : 'a list -> nat -> bool *)
 val lenlte : 'a list -> int -> bool
 val emp : 'a list -> bool
 val hd : 'a list -> 'a -> bool
@@ -43,7 +53,7 @@ val depth : 'a tree -> int -> bool
 val leaf : 'a tree -> bool
 val root : 'a tree -> 'a -> bool
 val num_node : 'a tree -> int -> bool
-val botright : 'a tree -> 'a tree -> int -> bool
+val botright : 'a tree -> 'a tree -> 'a -> bool
 val lch : 'a tree -> 'a tree -> bool
 val rch : 'a tree -> 'a tree -> bool
 val tree_mem : 'a tree -> 'a -> bool

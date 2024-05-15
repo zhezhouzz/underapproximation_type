@@ -69,7 +69,12 @@ let tp_name_to_sort ctx tp =
   (* let () = Printf.printf "tp:%s\n" (Normalty.Frontend.layout tp) in *)
   T.(
     match tp with
-    | Ty_uninter name -> Sort.mk_uninterpreted_s ctx name
+    | Ty_uninter name ->
+        (* let () = Printf.printf "name: %s\n" name in *)
+        Sort.mk_uninterpreted_s ctx name
+    | Ty_constructor ("elem", []) ->
+        (* let () = Printf.printf "name: %s\n" "elem" in *)
+        Integer.mk_sort ctx
     | _ -> (
         match to_smtty tp with
         | Dt -> Integer.mk_sort ctx
@@ -90,6 +95,7 @@ let z3func ctx funcname inptps outtp =
     (tp_name_to_sort ctx outtp)
 
 let tpedvar_to_z3 ctx (tp, name) =
+  (* let () = failwith "tpedvar_to_z3" in *)
   T.(
     match tp with
     | Ty_uninter _ -> Expr.mk_const_s ctx name (tp_name_to_sort ctx tp)

@@ -53,28 +53,58 @@ let[@library] ( && ) =
   let b = (true : [%v: bool]) [@over] in
   (iff v (a && b) : [%v: bool]) [@under]
 
+let[@library] elem_eq =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a == b) : [%v: bool]) [@under]
+
+let[@library] elem_neq =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a != b) : [%v: bool]) [@under]
+
+let[@library] elem_lt =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a < b) : [%v: bool]) [@under]
+
+let[@library] elem_lte =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a <= b) : [%v: bool]) [@under]
+
+let[@library] elem_gt =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a > b) : [%v: bool]) [@under]
+
+let[@library] elem_gte =
+  let a = (true : [%v: elem]) [@over] in
+  let b = (true : [%v: elem]) [@over] in
+  (iff v (a >= b) : [%v: bool]) [@under]
+
 let[@library] TT = (true : [%v: unit]) [@under]
 let[@library] True = (v : [%v: bool]) [@under]
 let[@library] False = (not v : [%v: bool]) [@under]
-let[@library] Nil = (emp v : [%v: int list]) [@under]
+let[@library] Nil = (emp v : [%v: elem list]) [@under]
 
 let[@library] Cons =
-  let x = (true : [%v: int]) [@over] in
-  let xs = (true : [%v: int list]) [@over] in
-  (hd v x && tl v xs : [%v: int list]) [@under]
+  let x = (true : [%v: elem]) [@over] in
+  let xs = (true : [%v: elem list]) [@over] in
+  (hd v x && tl v xs : [%v: elem list]) [@under]
 
 let[@library] list_mem =
-  let xs = (true : [%v: int list]) [@over] in
-  let x = (true : [%v: int]) [@over] in
+  let xs = (true : [%v: elem list]) [@over] in
+  let x = (true : [%v: elem]) [@over] in
   (v == list_mem xs x : [%v: bool]) [@under]
 
-let[@library] Leaf = (leaf v : [%v: int tree]) [@under]
+let[@library] Leaf = (leaf v : [%v: elem tree]) [@under]
 
 let[@library] Node =
-  let x = (true : [%v: int]) [@over] in
-  let lt = (true : [%v: int tree]) [@over] in
-  let rt = (true : [%v: int tree]) [@over] in
-  (root v x && lch v lt && rch v rt : [%v: int tree]) [@under]
+  let x = (true : [%v: elem]) [@over] in
+  let lt = (true : [%v: elem tree]) [@over] in
+  let rt = (true : [%v: elem tree]) [@over] in
+  (root v x && lch v lt && rch v rt : [%v: elem tree]) [@under]
 
 (* the built-in random generators *)
 
