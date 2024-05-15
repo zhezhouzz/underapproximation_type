@@ -133,19 +133,31 @@ let smt_neg_and_solve_inline ctx axioms vc =
         Pp.printf "@{<yellow>Ax: %s@} := %s\n" name (layout_prop prop))
       axioms
   in
-  let inline_ctx = Ax_inline.inline_ctx_init ex_axioms in
-  let rec aux i =
-    if i > _inline_ax_iter_bound then Timeout
-    else
-      let vc = Ax_inline.inline_ax_with_bound i inline_ctx vc in
-      match _smt_neg_and_solve_ ctx fa_axioms vc with
-      | SmtUnsat -> SmtUnsat
-      | Timeout ->
-          (* let _ = Printf.printf "timeout!!\n" in *)
-          aux (i + 1)
-      | _ -> aux (i + 1)
+  let vcs = Ax_inline.inline_ax_with_bound _inline_ax_iter_bound ex_axioms vc in
+  let rec aux (i, vcs) =
+    match vcs with
+    | [] -> Timeout
+    | vc :: vcs -> (
+        let () =
+          Env.show_log "axiom_inline" @@ fun _ ->
+          Pp.printf "@{<yellow>Inline times:@} %i\n" i
+        in
+        match _smt_neg_and_solve_ ctx fa_axioms vc with
+        | SmtUnsat -> SmtUnsat
+        | Timeout ->
+            let _ =
+              Env.show_log "axiom_inline" @@ fun _ ->
+              Printf.printf ">> timeout!!\n"
+            in
+            aux (i + 1, vcs)
+        | _ ->
+            let _ =
+              Env.show_log "axiom_inline" @@ fun _ ->
+              Printf.printf ">> false!!\n"
+            in
+            aux (i + 1, vcs))
   in
-  aux 0
+  aux (0, vcs)
 
 let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   (* let () = *)

@@ -109,6 +109,22 @@ Admitted.
 Lemma list_len_lenlte (l: IL) (n: int) (m: int): (len l n /\ n <= m -> lenlte l m)%Z.
 Admitted.
 
+Lemma sorted_insert_inline_1: (forall v, (forall i, ((exists l_0, (exists l'_0, (len l_0 1/\ hd l_0 i/\ tl l_0 l'_0/\ len l'_0 0))) -> ((exists h_0, (exists t_0, (~emp v -> (hd v h_0/\ tl v t_0)))) -> ((0 <= i/\ 0 < i) -> ((sorted v/\ len v i) -> (exists x, (exists s, (sorted s/\ len s (i - 1)/\ ((emp s/\ (exists x_0, (emp x_0/\ hd v x/\ tl v x_0))) \/ (exists h, (exists t, (hd s h/\ tl s t/\ ((x = h/\ hd v h/\ tl v t) \/ (~x = h/\ ((x < h/\ (exists x_3, (hd x_3 h/\ tl x_3 t/\ hd v x/\ tl v x_3))) \/ (~x < h/\ (exists i_1, (i_1 < i/\ 0 <= i_1/\ 0 < i_1/\ (exists x_5, (sorted x_5/\ len x_5 i_1/\ sorted t/\ len t (i_1 - 1)/\ hd v h/\ tl v x_5)))))))))))))))))))))%Z.
+Proof.
+  intros.
+  assert (~ emp v). { eapply list_len_not_zero_not_emp. intuition; eauto. lia. }
+  destruct H0 as (h & t & Hh & Ht); auto.
+  assert (sorted t). { eapply list_sorted_tl_sorted; intuition; eauto. }
+  assert (len t (i - 1))%Z. { eapply list_len_tl_len; intuition; try z_simpl; eauto. }
+  exists h, t. intuition.
+  destruct (classic (emp t)); subst.
+  - left. intuition. exists t. intuition.
+  - right.
+    destruct (list_destruct_non_emp t) as (h' & t' & Hh' & Ht'); auto.
+    assert (h < h')%Z. { eapply list_sorted_fst_second_lt; intuition; eauto. }
+    exists h', t'. intuition. right. intuition. left. intuition. exists t. intuition.
+Qed.
+
 Lemma unique_union_inter: (forall v, (forall i, (0 <= i -> (forall n, ((0 <= n/\ 2 <= n) -> ((sorted v/\ len v n) -> (exists s1, (sorted s1/\ lenlte s1 (n - 1)/\ (exists s2, (sorted s2/\ lenlte s2 (n - 1)/\ ((emp s1/\ v = s2) \/ (exists h1, (exists t1, (hd s1 h1/\ tl s1 t1/\ (exists h2, (exists t2, (hd s2 h2/\ tl s2 t2/\ ~h1 = h2/\ h1 < h2/\ (exists i_3, (i_3 < i/\ 0 <= i_3/\ emp t1/\ (exists x_3, (sorted x_3/\ len x_3 i_3/\ sorted s2/\ lenlte s2 i_3/\ hd v h1/\ tl v x_3)))))))))))))))))))))%Z.
 Proof.
   intros.

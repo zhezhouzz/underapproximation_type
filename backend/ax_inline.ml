@@ -148,14 +148,12 @@ let do_inline_over_pnf (ctx : inline_ctx) prop =
   in
   prop
 
-let inline_ax_with_bound iter_num ctx prop =
-  let () =
-    Env.show_log "axiom_inline" @@ fun _ ->
-    Pp.printf "@{<yellow>Inline times:@} %i\n" iter_num
+let inline_ax_with_bound iter_num axioms prop =
+  let ctx = inline_ctx_init axioms in
+  let rec aux i (res, prop) =
+    if i > iter_num then res
+    else
+      let prop' = do_inline_over_pnf ctx prop in
+      aux (i + 1) (res @ [ prop' ], prop')
   in
-  if iter_num <= 0 then prop
-  else
-    let rec aux i prop =
-      if i <= 0 then prop else aux (i - 1) (do_inline_over_pnf ctx prop)
-    in
-    aux iter_num prop
+  aux 1 ([ prop ], prop)
