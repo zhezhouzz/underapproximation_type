@@ -1,11 +1,59 @@
-Lemma list_singleton_list_sorted (l: IL): (len l 1 -> sorted l)%Z.
+Lemma tree_num_node_exists (tr: IT): exists (n: int), num_node tr n.
 Admitted.
 
-Lemma list_singleton_list_uniq (l: IL): (len l 1 -> uniq l)%Z.
+Lemma tree_destruct_non_leaf (tr: IT): (~ leaf tr -> exists (y: int), exists (l: IT), exists (r: IT), exists (nl: int), exists (nr: int), root tr y /\ lch tr l /\ rch tr r /\ num_node l nl /\ num_node r nr)%Z.
 Admitted.
 
-Lemma list_singleton_list_ex (h: int): (exists (l: IL) (l': IL), len l 1 /\ hd l h /\ tl l l' /\ len l' 0)%Z.
+Lemma tree_num_node_gte_zero (tr: IT) (n: int): ((num_node tr n) -> (0 <= n))%Z.
 Admitted.
 
-Lemma list_len_lenlte (l: IL) (n: int) (m: int): (len l n /\ n <= m -> lenlte l m)%Z.
+Lemma tree_num_node_gt_zero_is_not_leaf (tr: IT) (n: int): ((num_node tr n /\ n > 0) -> (not (leaf tr)))%Z.
+Admitted.
+
+Lemma tree_num_node_1_ch_leaf (tr: IT) (tr': IT): ((num_node tr 1 /\ (lch tr tr' \/ rch tr tr')) -> (leaf tr'))%Z.
+Admitted.
+
+Lemma tree_leaf_num_node_zero (tr: IT): ((leaf tr) -> (num_node tr 0))%Z.
+Admitted.
+
+Lemma tree_num_node_zero_leaf (tr: IT): ((num_node tr 0) -> (leaf tr))%Z.
+Admitted.
+
+Lemma tree_num_node_ch_sum_plus_1 (tr: IT) (l: IT) (r: IT) (n: int) (nl: int) (nr: int): (( lch tr l /\ rch tr r /\ num_node tr n /\ num_node l nl /\ num_node r nr) -> (n = 1 + nl + nr))%Z.
+Admitted.
+
+Lemma tree_leaf_bst (tr: IT): ((leaf tr) -> (bst tr))%Z.
+Admitted.
+
+Lemma tree_bst_lch_bst (tr: IT) (tr': IT): ((bst tr /\ lch tr tr') -> (bst tr'))%Z.
+Admitted.
+
+Lemma tree_bst_rch_bst (tr: IT) (tr': IT): ((bst tr /\ rch tr tr') -> (bst tr'))%Z.
+Admitted.
+
+Lemma tree_bst_destruct_botright_non_leaf (tr: IT): ((not (leaf tr)) /\ bst tr -> exists (tr': IT), exists (x: int), exists (y: int), exists (l: IT), exists (r: IT), exists (nl: int), exists (nr: int), botright tr tr' x /\ ((not (leaf tr')) -> (root tr' y /\ lch tr' l /\ rch tr' r /\ num_node l nl /\ num_node r nr)))%Z.
+Admitted.
+
+Lemma tree_bst_botright_rest_bst (tr: IT) (tr': IT) (y: int): (bst tr /\ botright tr tr' y -> bst tr')%Z.
+Admitted.
+
+Lemma tree_bst_botright_rest_bst_num_node_minus_1 (tr: IT) (tr': IT) (y: int) (n: int): (num_node tr n /\ botright tr tr' y -> num_node tr' (n - 1))%Z.
+Admitted.
+
+Lemma tree_bst_botright_num_node_1 (tr: IT) (tr': IT) (y: int) (n: int): (num_node tr 1 /\ botright tr tr' y -> root tr y)%Z.
+Admitted.
+
+Lemma tree_leaf_num_node_eq_zero (tr: IT) (n: int): (leaf tr /\ num_node tr n) -> (n = 0)%Z.
+Admitted.
+
+Lemma tree_num_node_one_any_leaf_child (tr: IT) (tr': IT): (num_node tr 1 /\ leaf tr') -> (lch tr tr' /\ rch tr tr')%Z.
+Admitted.
+
+Lemma tree_bst_botright_not_root (tr: IT) (tr': IT) (y: int): (botright tr tr' y) -> (not (root tr' y)).
+Admitted.
+
+Lemma tree_bst_botright_when_lt_root_of_rest (tr: IT) (tr': IT) (y: int) (x: int) (l: IT) (r': IT) (l': IT) (nl': int): (botright tr tr' y /\ root tr' x /\ lch tr' l' /\ rch tr' r' /\ y < x /\ lch tr l /\ num_node l' nl')%Z -> (root tr x /\ rch tr r' /\ num_node l (nl' + 1))%Z.
+Admitted.
+
+Lemma tree_bst_botright_when_gt_root_of_rest (tr: IT) (tr': IT) (y: int) (x: int) (r: IT) (r': IT) (l': IT) (nr': int): (botright tr tr' y /\ root tr' x /\ lch tr' l' /\ rch tr' r' /\ x < y /\ rch tr r /\ num_node r' nr')%Z -> (root tr x /\ lch tr l' /\ num_node r (nr' + 1))%Z.
 Admitted.

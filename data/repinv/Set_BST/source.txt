@@ -1,0 +1,2 @@
+Paper: A HAT Trick: Automatically Verifying Representation Invariants Using Symbolic Finite Automata
+Source: https://github.com/zhezhouzz/HATs/tree/main/data/ri/Set_Tree

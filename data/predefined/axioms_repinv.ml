@@ -64,3 +64,92 @@ let[@axiom] list_singleton_list_ex (h : int) ((l [@exists]) : int list)
 
 let[@axiom] list_len_lenlte (l : int list) (n : int) (m : int) =
   (len l n && n <= m) #==> (lenlte l m)
+
+(** tree basic *)
+
+(* let[@axiom] tree_num_node_exists (tr : int tree) ((n [@exists]) : int) = *)
+(*   num_node tr n *)
+
+let[@axiom] tree_destruct_non_leaf (tr : int tree) ((y [@exists]) : int)
+    ((l [@exists]) : int tree) ((r [@exists]) : int tree) ((nl [@exists]) : int)
+    ((nr [@exists]) : int) =
+  (not (leaf tr))
+  #==> (root tr y && lch tr l && rch tr r && num_node l nl && num_node r nr)
+
+let[@axiom] tree_num_node_gte_zero (tr : int tree) (n : int) =
+  (num_node tr n) #==> (0 <= n)
+
+let[@axiom] tree_num_node_gt_zero_is_not_leaf (tr : int tree) (n : int) =
+  (num_node tr n && n > 0) #==> (not (leaf tr))
+
+let[@axiom] tree_num_node_1_ch_leaf (tr : int tree) (tr' : int tree) =
+  (num_node tr 1 && (lch tr tr' || rch tr tr')) #==> (leaf tr')
+
+let[@axiom] tree_leaf_num_node_zero (tr : int tree) =
+  (leaf tr) #==> (num_node tr 0)
+
+let[@axiom] tree_num_node_zero_leaf (tr : int tree) =
+  (num_node tr 0) #==> (leaf tr)
+
+let[@axiom] tree_num_node_ch_sum_plus_1 (tr : int tree) (l : int tree)
+    (r : int tree) (n : int) (nl : int) (nr : int) =
+  (lch tr l && rch tr r && num_node tr n && num_node l nl && num_node r nr)
+  #==> (n == 1 + nl + nr)
+
+let[@axiom] tree_leaf_bst (tr : int tree) = (leaf tr) #==> (bst tr)
+
+let[@axiom] tree_bst_lch_bst (tr : int tree) (tr' : int tree) =
+  (bst tr && lch tr tr') #==> (bst tr')
+
+let[@axiom] tree_bst_rch_bst (tr : int tree) (tr' : int tree) =
+  (bst tr && rch tr tr') #==> (bst tr')
+
+let[@axiom] tree_bst_destruct_botright_non_leaf (tr : int tree)
+    ((tr' [@exists]) : int tree) ((y [@exists]) : int) =
+  ((not (leaf tr)) && bst tr) #==> (botright tr tr' y)
+
+let[@axiom] tree_bst_destruct_botright_non_leaf (tr : int tree)
+    ((tr' [@exists]) : int tree) ((x [@exists]) : int) ((y [@exists]) : int)
+    ((l [@exists]) : int tree) ((r [@exists]) : int tree) ((nl [@exists]) : int)
+    ((nr [@exists]) : int) =
+  ((not (leaf tr)) && bst tr)
+  #==> (botright tr tr' x
+       && (not (leaf tr'))
+          #==> (root tr' y && lch tr' l && rch tr' r && num_node l nl
+              && num_node r nr))
+
+let[@axiom] tree_bst_botright_rest_bst (tr : int tree) (tr' : int tree)
+    (y : int) =
+  (bst tr && botright tr tr' y) #==> (bst tr')
+
+let[@axiom] tree_bst_botright_rest_bst_num_node_minus_1 (tr : int tree)
+    (tr' : int tree) (y : int) (n : int) =
+  (num_node tr n && botright tr tr' y) #==> (num_node tr' (n - 1))
+
+let[@axiom] tree_bst_botright_num_node_1 (tr : int tree) (tr' : int tree)
+    (y : int) (n : int) =
+  (num_node tr 1 && botright tr tr' y) #==> (root tr y)
+
+let[@axiom] tree_leaf_num_node_eq_zero (tr : int tree) (n : int) =
+  (leaf tr && num_node tr n) #==> (n == 0)
+
+let[@axiom] tree_num_node_one_any_leaf_child (tr : int tree) (tr' : int tree) =
+  (num_node tr 1 && leaf tr') #==> (lch tr tr' && rch tr tr')
+
+let[@axiom] tree_bst_botright_not_root (tr : int tree) (tr' : int tree)
+    (y : int) =
+  (botright tr tr' y) #==> (not (root tr' y))
+
+let[@axiom] tree_bst_botright_when_lt_root_of_rest (tr : int tree)
+    (tr' : int tree) (y : int) (x : int) (l : int tree) (r' : int tree)
+    (l' : int tree) (nl' : int) =
+  (botright tr tr' y && root tr' x && lch tr' l' && rch tr' r' && y < x
+ && lch tr l && num_node l' nl')
+  #==> (root tr x && rch tr r' && num_node l (nl' + 1))
+
+let[@axiom] tree_bst_botright_when_gt_root_of_rest (tr : int tree)
+    (tr' : int tree) (y : int) (x : int) (r : int tree) (r' : int tree)
+    (l' : int tree) (nr' : int) =
+  (botright tr tr' y && root tr' x && lch tr' l' && rch tr' r' && x < y
+ && rch tr r && num_node r' nr')
+  #==> (root tr x && lch tr l' && num_node r (nr' + 1))

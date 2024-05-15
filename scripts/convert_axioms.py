@@ -10,10 +10,14 @@ regex1 = r"Admitted"
 subst1 = ""
 regex2_0 = "\),"
 subst2_0 = ","
-regex2 = r"\(([a-zA-Y0-9~,\_<>='\:\/\\\s\-\~\(+]*)\)\%Z"
-subst2 = "\g<1>"
+# regex2 = r"\(([a-zA-Y0-9~,\_<>='\:\/\\\s\-\~\(+]*)\)\%Z"
+# subst2 = "\g<1>"
+regex2 = r"\%Z"
+subst2 = ""
 regex3 = r"Lemma"
 subst3 = "let[@axiom]"
+regex4_0 = r"IT"
+subst4_0 = "int tree"
 regex4 = r"IL"
 subst4 = "int list"
 regex5 = r"\/\\"
@@ -38,6 +42,7 @@ with open(sys.argv[1], 'r') as reader:
     result = re.sub(regex2_0, subst2_0, result, 0, re.MULTILINE)
     result = re.sub(regex2, subst2, result, 0, re.MULTILINE)
     result = re.sub(regex3, subst3, result, 0, re.MULTILINE)
+    result = re.sub(regex4_0, subst4_0, result, 0, re.MULTILINE)
     result = re.sub(regex4, subst4, result, 0, re.MULTILINE)
     result = re.sub(regex5, subst5, result, 0, re.MULTILINE)
     result = re.sub(regex6, subst6, result, 0, re.MULTILINE)

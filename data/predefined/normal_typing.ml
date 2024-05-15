@@ -42,6 +42,8 @@ val uniq : 'a list -> bool
 val depth : 'a tree -> int -> bool
 val leaf : 'a tree -> bool
 val root : 'a tree -> 'a -> bool
+val num_node : 'a tree -> int -> bool
+val botright : 'a tree -> 'a tree -> int -> bool
 val lch : 'a tree -> 'a tree -> bool
 val rch : 'a tree -> 'a tree -> bool
 val tree_mem : 'a tree -> 'a -> bool

@@ -6,6 +6,8 @@
         // "ntyping",
         // "typing",
         // "queries",
+        "axiom",
+        "axiom_inline",
         "result",
         "never-use"
     ],

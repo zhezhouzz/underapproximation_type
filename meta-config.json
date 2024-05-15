@@ -7,6 +7,8 @@
         "typing",
         "queries",
         "model",
+        "axiom",
+        "axiom_inline",
         "result",
         "never-use"
     ],

@@ -72,6 +72,7 @@ let extend =
   [
     ("len", [ "hd"; "tl"; "emp" ]);
     ("uniq", [ "hd"; "tl"; "emp" ]);
+    ("bst", [ "num_node"; "botright" ]);
     ( "typing",
       [
         "is_const";
@@ -95,7 +96,7 @@ let extend =
   ]
 
 let _filter_ax = true
-let _inline_ax_iter_bound = 2
+let _inline_ax_iter_bound = 1
 
 let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   (* let () = *)
@@ -149,7 +150,7 @@ let smt_neg_and_solve ctx (axioms : (string * Nt.t Language.prop) list) vc =
   in
   let () =
     Env.show_log "axiom_inline" @@ fun _ ->
-    Pp.printf "@{<yellow>VC@} := %s\n" (layout_prop vc)
+    Pp.printf "@{<yellow>VC@} := %s\n" (layout_prop_to_coq vc)
   in
   let assertions =
     List.map (Propencoding.to_z3 ctx) (List.map snd axioms @ [ Not vc ])
