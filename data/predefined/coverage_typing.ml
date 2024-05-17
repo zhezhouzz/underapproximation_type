@@ -121,6 +121,10 @@ let[@library] int_gen =
   let _ = (true : [%v: unit]) [@over] in
   (true : [%v: int]) [@under]
 
+let[@library] elem_gen =
+  let _ = (true : [%v: unit]) [@over] in
+  (true : [%v: elem]) [@under]
+
 let[@library] nat_gen =
   let _ = (true : [%v: unit]) [@over] in
   (v >= 0 : [%v: int]) [@under]

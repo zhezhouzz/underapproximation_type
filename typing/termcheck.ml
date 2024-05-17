@@ -291,12 +291,15 @@ and arrow_type_apply (rctx : rctx) appf_rty (apparg : ('t, 't value) typed) =
   | RtyGhostArr { argcty; arg; retty } ->
       let argnty = erase_cty argcty in
       let arg', appf_rty' = alpha_renaming arg #: argnty retty in
-      let bindings = [ arg'.x #: (cty_to_rty Ex argcty) ] in
-      let rctx' = add_to_rights rctx bindings in
+      (* NOTE: still, forward using overapproximation, backward using underapproximation. *)
+      let rctx' = add_to_right rctx arg'.x #: (cty_to_rty Fa argcty) in
       let* forward_rctx, backward_binding, retty =
         arrow_type_apply rctx' appf_rty' apparg
       in
-      Some (forward_rctx, bindings @ backward_binding, retty)
+      Some
+        ( forward_rctx,
+          (arg'.x #: (cty_to_rty Ex argcty)) :: backward_binding,
+          retty )
   | RtyBaseArr { argcty; arg; retty } ->
       (* NOTE: we need to capture the constraint from the argument type *)
       let lit = typed_value_to_typed_lit __FILE__ __LINE__ apparg in
@@ -429,9 +432,9 @@ and term_type_infer (rctx : rctx) (y : ('t, 't term) typed) : t rty option =
         let lhs = lhs.x #: rty' in
         let* rty' = term_type_infer (add_to_right rctx' lhs) body in
         let _ =
-          Printf.printf "bindings: %s\n" (layout_bindings (lhs :: bindings))
+          Printf.printf "bindings: %s\n" (layout_bindings (bindings @ [ lhs ]))
         in
-        Some (pack_rtys_to_rty (lhs :: bindings) rty')
+        Some (pack_rtys_to_rty (bindings @ [ lhs ]) rty')
     | CMatch { matched; match_cases } -> (
         let rtys =
           List.filter_map

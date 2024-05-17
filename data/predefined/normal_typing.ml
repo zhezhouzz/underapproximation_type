@@ -23,6 +23,7 @@ val elem_gte : elem -> elem -> bool
 (* others *)
 val int_range : int -> int -> int
 val bool_gen : unit -> bool
+val elem_gen : unit -> elem
 val int_gen : unit -> int
 val nat_gen : unit -> int
 val int_range_inc : int -> int -> int
