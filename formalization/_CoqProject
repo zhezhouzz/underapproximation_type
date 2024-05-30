@@ -15,3 +15,5 @@ ListCtx.v
 RefinementType.v
 RefinementTypeClass.v
 Instantiation.v
+Denotation.v
+InstantiationProp.v

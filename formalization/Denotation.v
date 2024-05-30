@@ -14,6 +14,7 @@ Import NamelessTactics.
 Import ListCtx.
 Import OperationalSemantics.
 Import BasicTyping.
+Import BasicTypingProp.
 Import RefinementType.
 Import Qualifier.
 Import Instantiation.
@@ -218,88 +219,61 @@ Qed.
 
 (* The conclusion has to be strengthened to an equivalence to get around
 termination checker. *)
+
+Lemma rtyR_measure_irrelevant_ i: forall m n ρ e,
+    rty_measure ρ <= i ->
+    i <= n ->
+    i <= m ->
+    rtyR n ρ e <-> rtyR m ρ e.
+Proof.
+  induction i; intros.
+  - destruct ρ; inversion H.
+  - destruct ρ; inversion H; subst.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; simpl; auto; inversion H; lia.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; simpl; auto; inversion H; lia.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; auto; try lia.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; auto; try lia.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; auto; try lia.
+      simpl in H2; simpl; intuition. rewrite <- IHi. apply H5. rewrite IHi. apply H4.
+      all: try lia.
+      rewrite <- open_preserves_rty_measure. lia.
+      simpl in H2; simpl; intuition. rewrite <- IHi. apply H5. rewrite IHi. apply H4.
+      all: try lia.
+      rewrite <- open_preserves_rty_measure. lia.
+    + destruct m, n;
+        try solve [ pose proof (rty_measure_gt_0 ρ); lia
+                  | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; auto; try lia.
+      simpl in H2; simpl; intuition. rewrite <- IHi. apply H6. rewrite IHi. apply H5.
+      all: try (simpl in *; lia).
+      rewrite <- open_preserves_rty_measure. (simpl in *; lia).
+      simpl in H2; simpl; intuition. rewrite <- IHi. apply H6. rewrite IHi. apply H5.
+      all: try (simpl in *; lia).
+      rewrite <- open_preserves_rty_measure. (simpl in *; lia).
+Qed.
+
 Lemma rtyR_measure_irrelevant m n ρ e:
   rty_measure ρ <= n ->
   rty_measure ρ <= m ->
   rtyR n ρ e <-> rtyR m ρ e.
 Proof.
-  generalize dependent m. generalize dependent n.
-  generalize dependent e.
-  induction ρ; simpl; intros.
-  - destruct m, n;
-      try solve [ pose proof (rty_measure_gt_0 ρ); lia
-              | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; simpl; auto; inversion H; lia.
-  - destruct m, n;
-      try solve [ pose proof (rty_measure_gt_0 ρ); lia
-                | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; simpl; auto; inversion H; lia.
-  - destruct m, n;
-      try solve [ pose proof (rty_measure_gt_0 ρ); lia
-                | pose proof (rty_measure_gt_0 τ); lia ]; split; intros; simpl; auto; try lia.
-    inversion H1. intuition.
-    rewrite <- open_preserves_rty_measure. lia.
-    intros.
-    intut
-
-    inversion H.
-    simpl.
-
-
-  induction n; intros;
-    try solve [ pose proof (rty_measure_gt_0 ρ); lia
-              | pose proof (rty_measure_gt_0 τ); lia ].
-  intuition. rewrite <- IHn.
-
-
-  all: destruct m, n; intros;
-    try solve [ pose proof (rty_measure_gt_0 ρ); lia
-              | pose proof (rty_measure_gt_0 τ); lia ].
-  simpl.
-  - intuition.
-    + destruct ρ; intros; simpl in *; eauto.
-      rewrite <- rtyR_measure_irrelevant.
-      auto_apply.
-      rewrite rtyR_measure_irrelevant; eauto. lia. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite <- rtyR_measure_irrelevant; eauto.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-    + destruct ρ; intros; simpl in *; eauto.
-      rewrite rtyR_measure_irrelevant.
-      auto_apply.
-      rewrite <- rtyR_measure_irrelevant; eauto. lia. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite rtyR_measure_irrelevant; eauto.
-      rewrite <- open_preserves_rty_measure. lia.
-      rewrite <- open_preserves_rty_measure. lia.
-  - intuition.
-    + destruct τ; intros; simpl in *; eauto.
-      specialize (H4 _ _ _ H3 H5). intuition.
-      rewrite <- rtyR_measure_irrelevant; eauto. lia. lia.
-      intuition.
-      rewrite <- rtyR_measure_irrelevant; eauto. lia. lia.
-      rewrite <- rtyR_measure_irrelevant; eauto. lia. lia.
-    + destruct τ; intros; simpl in *; eauto.
-      specialize (H4 _ _ _ H3 H5). intuition.
-      rewrite rtyR_measure_irrelevant; eauto. lia. lia.
-      intuition.
-      rewrite rtyR_measure_irrelevant; eauto. lia. lia.
-      rewrite rtyR_measure_irrelevant; eauto. lia. lia.
+  apply (rtyR_measure_irrelevant_ (rty_measure ρ)). lia.
 Qed.
 
 Lemma rtyR_measure_irrelevant' n ρ e :
   rty_measure ρ <= n ->
-  rtyR n ρ e <-> p⟦ ρ ⟧ e.
+  rtyR n ρ e <-> ⟦ ρ ⟧ e.
 Proof.
-  intros. rewrite rtyR_measure_irrelevant; eauto.
-Qed.
-
-Lemma rtyR_measure_irrelevant' n τ e :
-  rty_measure τ <= n ->
-  rtyR n τ e <-> ⟦ τ ⟧ e.
-Proof.
-  intros. rewrite rtyR_measure_irrelevant; eauto.
+  intros. rewrite (rtyR_measure_irrelevant_ (rty_measure ρ)); eauto.
 Qed.
 
 Ltac rewrite_measure_irrelevant :=
@@ -308,13 +282,15 @@ Ltac rewrite_measure_irrelevant :=
   match goal with
   | H : context [rtyR _ _ _] |- _ =>
       setoid_rewrite rtyR_measure_irrelevant' in H; [ | t .. ]
-  | H : context [rtyR _ _ _] |- _ =>
-      setoid_rewrite rtyR_measure_irrelevant' in H; [ | t .. ]
-  | |- context [rtyR _ _ _] =>
-      setoid_rewrite rtyR_measure_irrelevant'; [ | t .. ]
   | |- context [rtyR _ _ _] =>
       setoid_rewrite rtyR_measure_irrelevant'; [ | t .. ]
   end.
+
+Lemma open_is_over (τ: rty) (n: nat) (v_x: value) : is_over (open n v_x τ) <-> is_over τ.
+Proof.
+  induction τ; split; auto.
+Qed.
+
 
 (* A machinery to simplify certain proofs *)
 Definition tm_refine e e' :=
@@ -324,23 +300,18 @@ Definition tm_refine e e' :=
   introduce a large set of naming lemmas about [wf_rty] (and consequently
   everything it depends on). Annoying. *)
   (exists T, ∅ ⊢t e' ⋮t T /\ ∅ ⊢t e ⋮t T) /\
-  (forall α β (v : value), α ⊧ e ↪*{ β} v -> α ⊧ e' ↪*{ β} v).
+    (forall  (v : value), e ↪* v -> e' ↪* v).
 
-(* Semantic refinement preserves denotation. *)
-Lemma rtyR_refine τ e1 e2 :
-  tm_refine e2 e1 ->
-  ⟦ τ ⟧ e1 ->
-  ⟦ τ ⟧ e2.
+Lemma rtyR_refine_over: forall b ϕ e1 e2, tm_refine e2 e1 -> ⟦ {:b|ϕ} ⟧ e1 -> ⟦ {:b|ϕ} ⟧ e2.
 Proof.
-  intros [Ht Hr].
-  assert (rty_measure τ <= rty_measure τ) by reflexivity.
-  revert H. generalize (rty_measure τ) at 2 3 4 as n.
-  intros n. revert τ.
-  induction n. easy.
-  simpl. intuition.
-  qauto using basic_typing_tm_unique.
-  destruct τ; eauto.
-  simpl in *. intuition.
-  apply IHn; eauto. lia.
-  apply IHn; eauto. lia.
+  intros. destruct H as ((T & Ht1 & Ht2) & Hr).
+  simpl in *; intuition.
+  assert (T = b). eapply basic_typing_tm_unique with (e := e1); eauto. subst. eauto.
+Qed.
+
+Lemma rtyR_refine_under: forall b ϕ e1 e2, tm_refine e1 e2 -> ⟦ [:b|ϕ] ⟧ e1 -> ⟦ [:b|ϕ] ⟧ e2.
+Proof.
+  intros. destruct H as ((T & Ht1 & Ht2) & Hr).
+  simpl in *; intuition.
+  assert (T = b). eapply basic_typing_tm_unique with (e := e1); eauto. subst. eauto.
 Qed.
