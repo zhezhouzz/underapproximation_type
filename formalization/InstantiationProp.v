@@ -592,19 +592,22 @@ Proof.
   rewrite dom_insert_L. my_set_solver.
 Qed.
 
-(* Lemma msubst_preserves_closed_rty Γ Γv Γ' ρ : *)
-(*   ctxRst Γ Γv -> *)
-(*   closed_rty (ctxdom (Γ ++ Γ')) ρ -> *)
-(*   closed_rty (ctxdom (Γ')) (m{Γv} ρ). *)
-(* Proof. *)
-(*   intros HΓv H. *)
-(*   sinvert H. *)
-(*   econstructor. eauto using msubst_lc_rty, ctxRst_lc. *)
-(*   rewrite fv_of_msubst_rty_closed by eauto using ctxRst_closed_env. *)
-(*   rewrite ctxdom_app_union in *. *)
-(*   rewrite ctxRst_dom in * by eauto. *)
-(*   my_set_solver. *)
-(* Qed. *)
+Lemma msubst_preserves_closed_rty Γ PN Γ' ρ :
+  ctxRst Γ PN ->
+  closed_rty (ctxdom (Γ ++ Γ')) ρ ->
+  PN (fun Γv => closed_rty (ctxdom (Γ')) (m{Γv} ρ)).
+Proof.
+  intros HΓv H.
+  sinvert H.
+  induction HΓv.
+  - intuition. econstructor.
+  - intuition. eauto using msubst_lc_rty, ctxRst_lc.
+  econstructor. eauto using msubst_lc_rty, ctxRst_lc.
+  rewrite fv_of_msubst_rty_closed by eauto using ctxRst_closed_env.
+  rewrite ctxdom_app_union in *.
+  rewrite ctxRst_dom in * by eauto.
+  my_set_solver.
+Qed.
 
 (* Lemma msubst_preserves_closed_rty_empty Γ Γv ρ : *)
 (*   ctxRst Γ Γv -> *)
