@@ -42,34 +42,6 @@ Fixpoint rtyR (gas: nat) (ρ: rty) (e: tm) : Prop :=
 
 Notation "'⟦' τ '⟧' " := (rtyR (rty_measure τ) τ) (at level 20, format "⟦ τ ⟧", τ constr).
 
-Definition prenex := (env -> Prop) -> Prop.
-
-Definition wf_judgement (Γ: listctx rty) (p: env -> Prop) := forall Γv, p Γv -> ctxdom Γ ≡ dom Γv /\ closed_env Γv.
-
-Definition wf_prenex (Γ: listctx rty) (PN: prenex) := forall p, PN p -> wf_judgement Γ p.
-
-Definition is_over (ρ: rty) :=
-  match ρ with
-  | [: _ | _] => False
-  | _ => True
-  end.
-
-Inductive ctxRst: listctx rty -> prenex -> Prop :=
-| ctxRst0: ctxRst [] (fun p => wf_judgement [] p /\ p ∅)
-| ctxRst1: forall Γ PN (x: atom) b ϕ,
-    ctxRst Γ PN ->
-    (* [ok_ctx] implies [ρ] is closed and valid, meaning that it does not use
-    any function variables. *)
-    ok_ctx (Γ ++ [(x, [: b | ϕ])]) ->
-    ctxRst (Γ ++ [(x, [: b | ϕ])])
-      (fun p => wf_judgement (Γ ++ [(x, [: b | ϕ])]) p /\ PN (fun Γv => exists (v: value), ⟦ m{ Γv } {: b | ϕ} ⟧ v /\ p (<[ x := v ]> Γv)))
-| ctxRst2: forall Γ PN (x: atom) ρ,
-    ctxRst Γ PN ->
-    is_over ρ ->
-    ok_ctx (Γ ++ [(x, ρ)]) ->
-    ctxRst (Γ ++ [(x, ρ)])
-      (fun p => wf_judgement (Γ ++ [(x, ρ)]) p /\ PN (fun Γv => forall (v: value), ⟦ m{ Γv } ρ ⟧ v -> p (<[ x := v ]> Γv))).
-
 (** * Properties of denotation *)
 
 Lemma rtyR_typed_closed gas τ e :
@@ -95,18 +67,6 @@ Proof.
   apply rtyR_typed_closed in H.
   destruct H as (H&_).
   eauto using basic_typing_regular_tm.
-Qed.
-
-Lemma ctxRst_closed_env Γ PN : ctxRst Γ PN -> wf_prenex Γ PN.
-Proof.
-  unfold wf_prenex.
-  induction 1; intros; intuition.
-Qed.
-
-Lemma ctxRst_ok_ctx Γ Γv :
-  ctxRst Γ Γv -> ok_ctx Γ.
-Proof.
-  induction 1; eauto. econstructor.
 Qed.
 
 Lemma mk_over_top_closed_rty b : closed_rty ∅ ({:b | mk_q_under_top}).
@@ -286,10 +246,10 @@ Ltac rewrite_measure_irrelevant :=
       setoid_rewrite rtyR_measure_irrelevant'; [ | t .. ]
   end.
 
-Lemma open_is_over (τ: rty) (n: nat) (v_x: value) : is_over (open n v_x τ) <-> is_over τ.
-Proof.
-  induction τ; split; auto.
-Qed.
+(* Lemma open_is_over (τ: rty) (n: nat) (v_x: value) : is_over (open n v_x τ) <-> is_over τ. *)
+(* Proof. *)
+(*   induction τ; split; auto. *)
+(* Qed. *)
 
 
 (* A machinery to simplify certain proofs *)

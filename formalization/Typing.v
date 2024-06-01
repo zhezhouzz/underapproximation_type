@@ -4,6 +4,7 @@ From CT Require Import OperationalSemantics.
 From CT Require Import BasicTypingClass.
 From CT Require Import RefinementTypeClass.
 From CT Require Import Denotation.
+From CT Require Import DenotationCtx.
 From CT Require Import InstantiationProp.
 
 Import Atom.
@@ -15,6 +16,7 @@ Import OperationalSemantics.
 Import BasicTyping.
 Import RefinementType.
 Import Denotation.
+Import DenotationCtx.
 Import Instantiation.
 Import Qualifier.
 
@@ -33,137 +35,88 @@ Inductive wf_rty: listctx rty -> rty -> Prop :=
 
 Notation " Γ '⊢WF' τ " := (wf_rty Γ τ) (at level 20, τ constr, Γ constr).
 
+(** Semantic subtyping *)
+(* Instead of the syntactic subtyping relation presented in the paper, we use
+semantic subtyping in the mechanization. *)
+
 Definition subtyping (Γ: listctx rty) (τ1 τ2: rty) : Prop :=
   (* Assume [τ1] and [τ2] are valid [rty]s. *)
   ⌊ τ1 ⌋ = ⌊ τ2 ⌋ /\
-    forall PN, ctxRst Γ PN ->
-          forall e, PN (fun Γv => ⟦m{ Γv } τ1⟧ e) →
-               PN (fun Γv => ⟦m{ Γv } τ2⟧ e).
+    forall e, ⟪ Γ ⟫ (fun Γv => ⟦m{ Γv } τ1⟧ e) →
+         ⟪ Γ ⟫ (fun Γv => ⟦m{ Γv } τ2⟧ e).
+
+Notation " Γ '⊢' τ1 '<⋮' τ2 " := (subtyping Γ τ1 τ2) (at level 20, τ1 constr, τ2 constr, Γ constr).
 
 Reserved Notation "Γ '⊢' e '⋮t' τ" (at level 20).
 Reserved Notation "Γ '⊢' e '⋮v' τ"  (at level 20).
 
-(** Semantic subtyping *)
-(* Instead of the syntactic subtyping relation presented in the paper, we use
-semantic subtyping in the mechanization. *)
-Definition rty_subtyping (Γ: listctx rty) (ρ1 ρ2: rty) : Prop :=
-  (* Assume [ρ1] and [ρ2] are valid [rty]s. *)
-  ⌊ ρ1 ⌋ = ⌊ ρ2 ⌋ /\
-  forall Γv, ctxRst Γ Γv ->
-        forall e, p⟦m{ Γv }p ρ1⟧ e →
-             p⟦m{ Γv }p ρ2⟧ e.
-
-Definition subtyping (Γ: listctx rty) (τ1 τ2: rty) : Prop :=
-  (* Assume [τ1] and [τ2] are valid [rty]s. *)
-  ⌊ τ1 ⌋ = ⌊ τ2 ⌋ /\
-  forall Γv, ctxRst Γ Γv ->
-        forall e, ⟦m{ Γv } τ1⟧ e →
-             ⟦m{ Γv } τ2⟧ e.
-
-Notation " Γ '⊢' ρ1 '<⋮p' ρ2 " := (rty_subtyping Γ ρ1 ρ2) (at level 20, ρ1 constr, ρ2 constr, Γ constr).
-Notation " Γ '⊢' τ1 '<⋮' τ2 " := (subtyping Γ τ1 τ2) (at level 20, τ1 constr, τ2 constr, Γ constr).
-
-(* The builtin typing relation (Δ) that our type system is parameterized over. *)
-Parameter builtin_typing_relation : effop -> rty -> Prop.
-
-Reserved Notation "Γ '⊢' op '⋮o' ρ"  (at level 20).
-Reserved Notation "Γ '⊢' e '⋮t' τ" (at level 20).
-Reserved Notation "Γ '⊢' e '⋮v' ρ"  (at level 20).
-
-(** * Typing rules (Fig. 6) *)
-
-Inductive effop_type_check : listctx rty -> effop -> rty -> Prop :=
-| TEOp : forall Γ op ρ_op ρ,
-    Γ ⊢WFp ρ ->
-    builtin_typing_relation op ρ_op ->
-    (* [TSubEOp] is inlined here. Consecutive applications of subtyping is just
-    one subtyping. *)
-    Γ ⊢ ρ_op <⋮p ρ ->
-    ⌊ ρ ⌋ = ty_of_op op ->
-    Γ ⊢ op ⋮o ρ
-where
-"Γ '⊢' op '⋮o' ρ" := (effop_type_check Γ op ρ).
 
 (** Typing rules for values and terms. Values always have refinement types, while
   terms always have Hoare automata types. *)
 Inductive term_type_check : listctx rty -> tm -> rty -> Prop :=
-| TEPur: forall Γ v ρ A,
-    Γ ⊢WF (<[ A ] ρ [ A ]>) ->
-    Γ ⊢ v ⋮v ρ ->
-    Γ ⊢ v ⋮t (<[ A ] ρ [ A ]>)
 | TSub: forall Γ e (τ1 τ2: rty),
     Γ ⊢WF τ2 ->
     Γ ⊢ e ⋮t τ1 ->
     Γ ⊢ τ1 <⋮ τ2 ->
     Γ ⊢ e ⋮t τ2
-| TInter: forall Γ e (τ1 τ2: rty),
-    Γ ⊢WF (τ1 ⊓ τ2) ->
-    Γ ⊢ e ⋮t τ1 ->
-    Γ ⊢ e ⋮t τ2 ->
-    Γ ⊢ e ⋮t (τ1 ⊓ τ2)
-| TLetE: forall Γ e_x e ρx ρ A A' B (L: aset),
-    Γ ⊢WF (<[ A ] ρ [ B ]>) ->
-    Γ ⊢ e_x ⋮t (<[ A ] ρx [ A' ]>) ->
-    (forall x, x ∉ L ->
-          (Γ ++ [(x, ρx)]) ⊢ (e ^t^ x) ⋮t (<[ A' ] ρ [ B ]>)) ->
-    Γ ⊢ (tlete e_x e) ⋮t (<[ A ] ρ [ B ]>)
-| TApp: forall Γ (v1 v2: value) e ρ ρx ρ2 A A' B (L: aset),
-    Γ ⊢WF (<[ (A ^a^ v2) ] ρ [ B ]>) ->
-    Γ ⊢ v2 ⋮v ρ2 ->
-    Γ ⊢ v1 ⋮v (ρ2 ⇨ (<[ A ] ρx [ A' ]>)) ->
-    (forall x, x ∉ L ->
-          (Γ ++ [(x, ρx ^p^ v2)]) ⊢ (e ^t^ x) ⋮t (<[ A' ^a^ v2 ] ρ [ B ]>)) ->
-    Γ ⊢ (tletapp v1 v2 e) ⋮t (<[ A ^a^ v2 ] ρ [ B ]>)
-| TEOpApp: forall Γ (op: effop) (v2: value) e ρ ρx ρ2 A A' B (L: aset),
-    Γ ⊢WF (<[ A ^a^ v2 ] ρ [ B ]>) ->
-    Γ ⊢ v2 ⋮v ρ2 ->
-    Γ ⊢ op ⋮o (ρ2 ⇨ (<[ A ] ρx [ A' ]>)) ->
-    (forall x, x ∉ L ->
-          (Γ ++ [(x, ρx ^p^ v2)]) ⊢ (e ^t^ x) ⋮t (<[ A' ^a^ v2 ] ρ [ B ]>)) ->
-    Γ ⊢ (tleteffop op v2 e) ⋮t (<[ A ^a^ v2 ] ρ [ B ]>)
-| TMatchb: forall Γ (v: value) e1 e2 ϕ τ (L : aset),
-    Γ ⊢WF τ ->
-    Γ ⊢ v ⋮v {:TBool | ϕ} ->
-    (* We can also directly encode the path condition without mentioning [x]:
-    {: TNat | (qual [# v] (fun V => V !!! 0 = (cbool true))%fin) & ϕ ^q^ v} *)
-    (forall x, x ∉ L -> (Γ ++ [(x, {: TBool | b0:c=true & b0:v= v & ϕ})]) ⊢ e1 ⋮t τ) ->
-    (forall x, x ∉ L -> (Γ ++ [(x, {: TBool | b0:c=false & b0:v= v & ϕ})]) ⊢ e2 ⋮t τ) ->
-    Γ ⊢ (tmatchb v e1 e2) ⋮t τ
+(* | TLetE: forall Γ e_x e ρx ρ A A' B (L: aset), *)
+(*     Γ ⊢WF (<[ A ] ρ [ B ]>) -> *)
+(*     Γ ⊢ e_x ⋮t (<[ A ] ρx [ A' ]>) -> *)
+(*     (forall x, x ∉ L -> *)
+(*           (Γ ++ [(x, ρx)]) ⊢ (e ^t^ x) ⋮t (<[ A' ] ρ [ B ]>)) -> *)
+(*     Γ ⊢ (tlete e_x e) ⋮t (<[ A ] ρ [ B ]>) *)
+(* | TApp: forall Γ (v1 v2: value) e ρ ρx ρ2 A A' B (L: aset), *)
+(*     Γ ⊢WF (<[ (A ^a^ v2) ] ρ [ B ]>) -> *)
+(*     Γ ⊢ v2 ⋮v ρ2 -> *)
+(*     Γ ⊢ v1 ⋮v (ρ2 ⇨ (<[ A ] ρx [ A' ]>)) -> *)
+(*     (forall x, x ∉ L -> *)
+(*           (Γ ++ [(x, ρx ^p^ v2)]) ⊢ (e ^t^ x) ⋮t (<[ A' ^a^ v2 ] ρ [ B ]>)) -> *)
+(*     Γ ⊢ (tletapp v1 v2 e) ⋮t (<[ A ^a^ v2 ] ρ [ B ]>) *)
+(* | TEOpApp: forall Γ (op: effop) (v2: value) e ρ ρx ρ2 A A' B (L: aset), *)
+(*     Γ ⊢WF (<[ A ^a^ v2 ] ρ [ B ]>) -> *)
+(*     Γ ⊢ v2 ⋮v ρ2 -> *)
+(*     Γ ⊢ op ⋮o (ρ2 ⇨ (<[ A ] ρx [ A' ]>)) -> *)
+(*     (forall x, x ∉ L -> *)
+(*           (Γ ++ [(x, ρx ^p^ v2)]) ⊢ (e ^t^ x) ⋮t (<[ A' ^a^ v2 ] ρ [ B ]>)) -> *)
+(*     Γ ⊢ (tleteffop op v2 e) ⋮t (<[ A ^a^ v2 ] ρ [ B ]>) *)
+(* | TMatchb: forall Γ (v: value) e1 e2 ϕ τ (L : aset), *)
+(*     Γ ⊢WF τ -> *)
+(*     Γ ⊢ v ⋮v {:TBool | ϕ} -> *)
+(*     (* We can also directly encode the path condition without mentioning [x]: *)
+(*     {: TNat | (qual [# v] (fun V => V !!! 0 = (cbool true))%fin) & ϕ ^q^ v} *) *)
+(*     (forall x, x ∉ L -> (Γ ++ [(x, {: TBool | b0:c=true & b0:v= v & ϕ})]) ⊢ e1 ⋮t τ) -> *)
+(*     (forall x, x ∉ L -> (Γ ++ [(x, {: TBool | b0:c=false & b0:v= v & ϕ})]) ⊢ e2 ⋮t τ) -> *)
+(*     Γ ⊢ (tmatchb v e1 e2) ⋮t τ *)
 with value_type_check : listctx rty -> value -> rty -> Prop :=
-| TSubPP: forall Γ (v: value) (ρ1 ρ2: rty),
-    Γ ⊢WFp ρ2 ->
-    Γ ⊢ v ⋮v ρ1 ->
-    Γ ⊢ ρ1 <⋮p ρ2 ->
-    Γ ⊢ v ⋮v ρ2
-| TGhost: forall Γ v b ρ (L: aset),
-    Γ ⊢WFp (b ⇢ ρ) ->
-    (forall (x: atom), x ∉ L -> (Γ ++ [(x, mk_top b)]) ⊢ v ⋮v (ρ ^p^ x)) ->
-    Γ ⊢ v ⋮v (b ⇢ ρ)
 | TConst: forall Γ (c: constant),
-    Γ ⊢WFp (mk_eq_constant c) ->
+    Γ ⊢WF (mk_eq_constant c) ->
     Γ ⊢ c ⋮v (mk_eq_constant c)
-| TBaseVar: forall Γ (x: atom) b ϕ,
-    Γ ⊢WFp (mk_eq_var b x) ->
+| TBaseVarOver: forall Γ (x: atom) b ϕ,
+    Γ ⊢WF (mk_eq_var b x) ->
     ctxfind Γ x = Some {: b | ϕ} ->
     Γ ⊢ x ⋮v (mk_eq_var b x)
+| TBaseVarUnder: forall Γ (x: atom) b ϕ,
+    Γ ⊢WF (mk_eq_var b x) ->
+    ctxfind Γ x = Some [: b | ϕ] ->
+    Γ ⊢ x ⋮v (mk_eq_var b x)
 | TFuncVar: forall Γ (x: atom) ρ τ,
-    Γ ⊢WFp (ρ ⇨ τ) ->
+    Γ ⊢WF (ρ ⇨ τ) ->
     ctxfind Γ x = Some (ρ ⇨ τ) ->
     Γ ⊢ x ⋮v (ρ ⇨ τ)
 | TFun: forall Γ Tx ρ e τ (L: aset),
-    Γ ⊢WFp (ρ ⇨ τ) ->
-    (forall x, x ∉ L -> (Γ ++ [(x, ρ)]) ⊢ (e ^t^ x) ⋮t (τ ^h^ x)) ->
+    Γ ⊢WF (ρ ⇨ τ) ->
+    (forall x, x ∉ L -> (Γ ++ [(x, ρ)]) ⊢ (e ^^ x) ⋮t (τ ^^ x)) ->
     Tx = ⌊ ρ ⌋ ->
     Γ ⊢ (vlam Tx e) ⋮v (ρ ⇨ τ)
-| TFix: forall Γ (Tx : base_ty) ϕ e τ T (L: aset),
-    Γ ⊢WFp ({: Tx | ϕ} ⇨ τ) ->
-    (* NOTE: should not open the whole type, because the first argument (bound
-    variable 0) of the return type is not the fixed point function but [{: Tx |
-    ϕ}]. The return type should be opened by [x]. *)
-    (forall x, x ∉ L ->
-          (Γ ++ [(x, {: Tx | ϕ})]) ⊢ (vlam (Tx ⤍ T) e) ^v^ x ⋮v (({: Tx | b0:x≺ x & ϕ} ⇨ τ) ⇨ (τ ^h^ x))) ->
-    T = ⌊ τ ⌋ ->
-    Γ ⊢ (vfix (Tx ⤍ T) (vlam (Tx ⤍ T) e)) ⋮v ({: Tx | ϕ} ⇨ τ)
+(* | TFix: forall Γ (Tx : base_ty) ϕ e τ T (L: aset), *)
+(*     Γ ⊢WF ({: Tx | ϕ} ⇨ τ) -> *)
+(*     (* NOTE: should not open the whole type, because the first argument (bound *)
+(*     variable 0) of the return type is not the fixed point function but [{: Tx | *)
+(*     ϕ}]. The return type should be opened by [x]. *) *)
+(*     (forall x, x ∉ L -> *)
+(*           (Γ ++ [(x, {: Tx | ϕ})]) ⊢ (vlam (Tx ⤍ T) e) ^v^ x ⋮v (({: Tx | b0:x≺ x & ϕ} ⇨ τ) ⇨ (τ ^h^ x))) -> *)
+(*     T = ⌊ τ ⌋ -> *)
+(*     Γ ⊢ (vfix (Tx ⤍ T) (vlam (Tx ⤍ T) e)) ⋮v ({: Tx | ϕ} ⇨ τ) *)
 where
 "Γ '⊢' e '⋮t' τ" := (term_type_check Γ e τ) and "Γ '⊢' e '⋮v' ρ" := (value_type_check Γ e ρ).
 
@@ -333,7 +286,7 @@ with wf_rty_closed Γ τ :
 Proof.
   all: destruct 1; eauto; split;
     let go :=
-      repeat select (_ ⊢WFp _) (fun H => apply wf_rty_closed in H; sinvert H);
+      repeat select (_ ⊢WF _) (fun H => apply wf_rty_closed in H; sinvert H);
       repeat select (_ ⊢WF _) (fun H => apply wf_rty_closed in H; sinvert H);
       repeat destruct select (_ ⊢WFa _);
       eauto in

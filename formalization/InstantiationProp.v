@@ -6,6 +6,7 @@ From CT Require Import QualifierClass.
 From CT Require Import RefinementTypeClass.
 From CT Require Import Denotation.
 From CT Require Import Instantiation.
+From CT Require Import DenotationCtx.
 
 Import Atom.
 Import CoreLang.
@@ -232,10 +233,10 @@ Proof.
 Qed.
 
 Tactic Notation "rewrite_msubst" constr(lem) "in" hyp(H) :=
-  rewrite lem in H; eauto using ctxRst_closed_env.
+  rewrite lem in H; eauto.
 
 Tactic Notation "rewrite_msubst" constr(lem) :=
-  rewrite lem in *; eauto using ctxRst_closed_env.
+  rewrite lem in *; eauto.
 
 Lemma msubst_mk_top: forall (Γv: env) b,
     closed_env Γv ->
@@ -312,7 +313,7 @@ Ltac msubst_simp :=
   | |- context [ m{ _ } (mk_eq_constant _) ] => rewrite msubst_mk_eq_constant
   | H: context [ m{ _ } (mk_eq_var _ ?x) ], H': _ !! ?x = Some ?v |- _ => rewrite msubst_mk_eq_var with (v:=v) in H
   | H': _ !! ?x = Some ?v |- context [ m{ _ } (mk_eq_var _ ?x) ] => rewrite msubst_mk_eq_var with (v:=v)
-  end; eauto using ctxRst_closed_env.
+  end; eauto.
 
 (* Most lemmas here are generalization of the corresponding lemmas about
 single-substitution. *)
@@ -592,67 +593,59 @@ Proof.
   rewrite dom_insert_L. my_set_solver.
 Qed.
 
-Lemma msubst_preserves_closed_rty Γ PN Γ' ρ :
-  ctxRst Γ PN ->
-  closed_rty (ctxdom (Γ ++ Γ')) ρ ->
-  PN (fun Γv => closed_rty (ctxdom (Γ')) (m{Γv} ρ)).
-Proof.
-  intros HΓv H.
-  sinvert H.
-  induction HΓv.
-  - intuition. econstructor.
-  - intuition. eauto using msubst_lc_rty, ctxRst_lc.
-  econstructor. eauto using msubst_lc_rty, ctxRst_lc.
-  rewrite fv_of_msubst_rty_closed by eauto using ctxRst_closed_env.
-  rewrite ctxdom_app_union in *.
-  rewrite ctxRst_dom in * by eauto.
-  my_set_solver.
-Qed.
-
-(* Lemma msubst_preserves_closed_rty_empty Γ Γv ρ : *)
-(*   ctxRst Γ Γv -> *)
-(*   closed_rty (ctxdom Γ) ρ -> *)
-(*   closed_rty ∅ (m{Γv} ρ). *)
-(* Proof. *)
-(*   intros. eapply msubst_preserves_closed_rty with (Γ':=[]); eauto. *)
-(*   by simplify_list_eq. *)
-(* Qed. *)
-
-(* Lemma msubst_preserves_closed_hty Γ Γv Γ' τ : *)
-(*   ctxRst Γ Γv -> *)
-(*   closed_hty (ctxdom (Γ ++ Γ')) τ -> *)
-(*   closed_hty (ctxdom Γ') (m{Γv} τ). *)
-(* Proof. *)
-(*   intros HΓv H. *)
-(*   sinvert H. *)
-(*   econstructor. eauto using msubst_lc_hty, ctxRst_lc. *)
-(*   rewrite fv_of_msubst_hty_closed by eauto using ctxRst_closed_env. *)
-(*   rewrite ctxdom_app_union in *. *)
-(*   rewrite ctxRst_dom in * by eauto. *)
-(*   my_set_solver. *)
-(* Qed. *)
-
-(* Lemma msubst_preserves_closed_hty_empty Γ Γv τ: *)
-(*   ctxRst Γ Γv -> *)
-(*   closed_hty (ctxdom Γ) τ -> *)
-(*   closed_hty ∅ (m{Γv} τ). *)
-(* Proof. *)
-(*   intros. eapply msubst_preserves_closed_hty with (Γ':=[]); eauto. *)
-(*   by simplify_list_eq. *)
-(* Qed. *)
-
 Lemma msubst_preserves_rty_measure ρ Γv:
   rty_measure ρ = rty_measure (m{Γv} ρ).
 Proof.
   msubst_tac. qauto using subst_preserves_rty_measure.
 Qed.
 
-(* Lemma msubst_preserves_basic_typing_tm Γ Γv : *)
-(*   ctxRst Γ Γv -> *)
-(*   forall Γ' e T, *)
-(*     (⌊Γ⌋* ∪ Γ') ⊢t e ⋮t T -> *)
-(*     Γ' ⊢t m{Γv} e ⋮t T. *)
-(* Proof. *)
+Lemma msubst_fvar_inv (Γv : env) v (x : atom) :
+  closed_env Γv ->
+  m{Γv} (vfvar v) = x ->
+  v = x /\ x ∉ dom Γv.
+Proof.
+  msubst_tac. my_set_solver.
+  unfold substitute in H2.
+  destruct r; simpl in H2; simplify_eq.
+  case_decide; simplify_eq. exfalso.
+  apply map_Forall_insert in H1; eauto. simp_hyps.
+  unfold closed in *. unfold fv in *.
+  cbn in *. qauto using non_empty_singleton.
+  simp_hyps. split; eauto. subst.
+  rewrite dom_insert. my_set_solver.
+Qed.
+
+
+Lemma msubst_preserves_closed_rty Γ Γ' ρ :
+  closed_rty (ctxdom (Γ ++ Γ')) ρ ->
+  ctxRst Γ (fun Γv => closed_rty (ctxdom (Γ')) (m{Γv} ρ)).
+Proof.
+Admitted.
+(*   intros HΓv H. *)
+(*   sinvert H. *)
+(*   induction HΓv. *)
+(*   - intuition. econstructor. *)
+(*   - intuition. eauto using msubst_lc_rty, ctxRst_lc. *)
+(*   econstructor. eauto using msubst_lc_rty, ctxRst_lc. *)
+(*   rewrite fv_of_msubst_rty_closed by eauto using ctxRst_closed_env. *)
+(*   rewrite ctxdom_app_union in *. *)
+(*   rewrite ctxRst_dom in * by eauto. *)
+(*   my_set_solver. *)
+(* Qed. *)
+
+Lemma msubst_preserves_closed_rty_empty Γ ρ :
+  closed_rty (ctxdom Γ) ρ -> ctxRst Γ (fun Γv => closed_rty ∅ (m{Γv} ρ)).
+Proof.
+  intros. eapply msubst_preserves_closed_rty with (Γ':=[]); eauto.
+  by simplify_list_eq.
+Qed.
+
+Lemma msubst_preserves_basic_typing_tm Γ:
+  forall Γ' (e: tm) T,
+    (⌊Γ⌋* ∪ Γ') ⊢t e ⋮t T ->
+    ctxRst Γ (fun Γv => Γ' ⊢t m{Γv} e ⋮t T).
+Proof.
+Admitted.
 (*   induction 1; intros; eauto. *)
 (*   apply_eq H. cbn. apply map_empty_union. *)
 (*   rewrite ctx_erase_app in H2. *)
@@ -670,31 +663,30 @@ Qed.
 (*   sinvert H1. apply_eq H6. eauto using rty_erase_msubst_eq. *)
 (* Qed. *)
 
-(* Lemma msubst_preserves_basic_typing_tm_empty Γ Γv : *)
-(*   ctxRst Γ Γv -> *)
-(*   forall e T, *)
-(*     ( ⌊Γ⌋* ) ⊢t e ⋮t T -> *)
-(*     ∅ ⊢t m{Γv} e ⋮t T. *)
-(* Proof. *)
-(*   intros. eapply msubst_preserves_basic_typing_tm; eauto. *)
-(*   rewrite map_union_empty. eauto. *)
-(* Qed. *)
+Lemma msubst_preserves_basic_typing_tm_empty Γ :
+  forall (e: tm) T,
+    ( ⌊Γ⌋* ) ⊢t e ⋮t T ->
+    ctxRst Γ (fun Γv => ∅ ⊢t m{Γv} e ⋮t T).
+Proof.
+  intros. eapply msubst_preserves_basic_typing_tm; eauto.
+  rewrite map_union_empty. eauto.
+Qed.
 
-(* Lemma msubst_preserves_basic_typing_value Γ Γv : *)
-(*   ctxRst Γ Γv -> *)
-(*   forall Γ' v T, *)
-(*     (⌊Γ⌋* ∪ Γ') ⊢t v ⋮v T -> *)
-(*     Γ' ⊢t m{Γv} v ⋮v T. *)
-(* Proof. *)
+Lemma msubst_preserves_basic_typing_value Γ:
+  forall Γ' (e: value) T,
+    (⌊Γ⌋* ∪ Γ') ⊢t e ⋮t T ->
+    ctxRst Γ (fun Γv => Γ' ⊢t m{Γv} e ⋮t T).
+Proof.
+Admitted.
 (*   induction 1; intros; eauto. *)
 (*   apply_eq H. cbn. apply map_empty_union. *)
 (*   rewrite ctx_erase_app in H2. *)
 (*   rewrite <- map_union_assoc in H2. *)
 (*   apply IHctxRst in H2. *)
 (*   rewrite msubst_insert; *)
-(*     eauto using subst_commute_value, ctxRst_closed_env, *)
+(*     eauto using subst_commute_tm, ctxRst_closed_env, *)
 (*                 rtyR_closed, ctxRst_ok_insert. *)
-(*   eapply basic_typing_subst_value; cycle 1. *)
+(*   eapply basic_typing_subst_tm; cycle 1. *)
 (*   eapply_eq H2. *)
 (*   cbn. rewrite map_union_empty. rewrite insert_empty. *)
 (*   rewrite <- insert_union_singleton_l. reflexivity. *)
@@ -703,28 +695,11 @@ Qed.
 (*   sinvert H1. apply_eq H6. eauto using rty_erase_msubst_eq. *)
 (* Qed. *)
 
-(* Lemma msubst_preserves_basic_typing_value_empty Γ Γv : *)
-(*   ctxRst Γ Γv -> *)
-(*   forall v T, *)
-(*     ( ⌊Γ⌋* ) ⊢t v ⋮v T -> *)
-(*     ∅ ⊢t m{Γv} v ⋮v T. *)
-(* Proof. *)
-(*   intros. eapply msubst_preserves_basic_typing_value; eauto. *)
-(*   rewrite map_union_empty. eauto. *)
-(* Qed. *)
-
-Lemma msubst_fvar_inv (Γv : env) v (x : atom) :
-  closed_env Γv ->
-  m{Γv} (vfvar v) = x ->
-  v = x /\ x ∉ dom Γv.
+Lemma msubst_preserves_basic_typing_value_empty Γ :
+  forall (e: value) T,
+    ( ⌊Γ⌋* ) ⊢t e ⋮t T ->
+    ctxRst Γ (fun Γv => ∅ ⊢t m{Γv} e ⋮t T).
 Proof.
-  msubst_tac. my_set_solver.
-  unfold substitute in H2.
-  destruct r; simpl in H2; simplify_eq.
-  case_decide; simplify_eq. exfalso.
-  apply map_Forall_insert in H1; eauto. simp_hyps.
-  unfold closed in *. unfold fv in *.
-  cbn in *. qauto using non_empty_singleton.
-  simp_hyps. split; eauto. subst.
-  rewrite dom_insert. my_set_solver.
+  intros. eapply msubst_preserves_basic_typing_value; eauto.
+  rewrite map_union_empty. eauto.
 Qed.
