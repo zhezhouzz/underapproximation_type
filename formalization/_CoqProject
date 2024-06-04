@@ -18,3 +18,4 @@ Instantiation.v
 Denotation.v
 DenotationCtx.v
 InstantiationProp.v
+Typing.v
