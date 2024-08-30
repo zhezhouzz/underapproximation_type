@@ -19,6 +19,7 @@ Import Denotation.
 Import DenotationCtx.
 Import Instantiation.
 Import Qualifier.
+Import InstantiationProp.
 
 (** This file formalizes the type system of λᴱ and the main metatheoretic
   results. *)
@@ -287,6 +288,80 @@ Lemma builtin_fundamental:
 Proof.
 Admitted.
 
+Lemma wf_rty_implies_strengthen (Γ: listctx rty) (τ: rty) (p: env -> Prop) :
+  wf_rty Γ τ -> (forall Γv, closed_env Γv -> p Γv) -> ⟪ Γ ⟫ (fun Γv => p Γv).
+Admitted.
+
+Lemma emptyctx_closed: closed_env ∅.
+Proof.
+  unfold closed_env. unfold map_Forall.
+  intuition. inversion H.
+Qed.
+
+Global Hint Resolve emptyctx_closed: core.
+
+Ltac msubst_simp :=
+  match goal with
+  | H: context [ m{ _ } (tlete _ _) ] |- _ => setoid_rewrite msubst_lete in H
+  | |- context [ m{ _ } (tlete _ _) ] => setoid_rewrite msubst_lete
+  | H: context [ m{ _ } (tletop _ _ _) ] |- _ => setoid_rewrite msubst_tletop in H
+  | |- context [ m{ _ } (tletop _ _ _) ] => setoid_rewrite msubst_tletop
+  | H: context [ m{ _ } (tletapp _ _ _) ] |- _ => setoid_rewrite msubst_tletapp in H
+  | |- context [ m{ _ } (tletapp _ _ _) ] => setoid_rewrite msubst_tletapp
+  | H: context [ m{ _ } (vfix _ _) ] |- _ => setoid_rewrite msubst_fix in H
+  | |- context [ m{ _ } (vfix _ _) ] => setoid_rewrite msubst_fix
+  | H: context [ m{ _ } (treturn _) ] |- _ => setoid_rewrite msubst_value in H
+  | |- context [ m{ _ } (treturn _) ] => setoid_rewrite msubst_value
+  | H: context [ m{ _ } (vlam _ _) ] |- _ => setoid_rewrite msubst_lam in H
+  | |- context [ m{ _ } (vlam _ _) ] => setoid_rewrite msubst_lam
+  | H: context [ m{ _ } (tmatchb _ _ _) ] |- _ => setoid_rewrite msubst_match in H
+  | |- context [ m{ _ } (tmatchb _ _ _) ] => setoid_rewrite msubst_match
+  | H: context [ m{ _ } (vbvar _) ] |- _ => setoid_rewrite msubst_bvar in H
+  | |- context [ m{ _ } (vbvar _) ] => setoid_rewrite msubst_bvar
+  | H: context [ m{ _ } (vfvar _) ] |- _ => setoid_rewrite msubst_fvar in H
+  | |- context [ m{ _ } (vfvar _) ] => setoid_rewrite msubst_fvar
+  | H: context [ m{ _ } (vconst _) ] |- _ => setoid_rewrite msubst_constant in H
+  | |- context [ m{ _ } (vconst _) ] => setoid_rewrite msubst_constant
+  | H: context [ m{ _ } _ ] |- _ => setoid_rewrite msubst_qualifier in H
+  | |- context [ m{ _ } _ ] => setoid_rewrite msubst_qualifier
+  | H: context [ m{ _ } _ ] |- _ => setoid_rewrite msubst_qualifier in H
+  | |- context [ m{ _ } _ ] => setoid_rewrite msubst_qualifier
+  | H: context [ m{ _ } (_ & _) ] |- _ => setoid_rewrite msubst_qualifier_and in H
+  | |- context [ m{ _ } (_ & _) ] => setoid_rewrite msubst_qualifier_and
+  | H: context [ m{ _ } [: _ | _ ] ] |- _ => setoid_rewrite msubst_baserty in H
+  | |- context [ m{ _ } [: _ | _ ] ] => setoid_rewrite msubst_baserty
+  | H: context [ m{ _ } {: _ | _ } ] |- _ => setoid_rewrite msubst_baserty_over in H
+  | |- context [ m{ _ } {: _ | _ } ] => setoid_rewrite msubst_baserty_over
+  | H: context [ m{ _ } (_ ⇨ _) ] |- _ => setoid_rewrite msubst_arrrty in H
+  | |- context [ m{ _ } (_ ⇨ _) ] => setoid_rewrite msubst_arrrty
+  | H: context [ m{ _ } (mk_top _) ] |- _ => setoid_rewrite msubst_mk_top in H
+  | |- context [ m{ _ } (mk_top _) ] => setoid_rewrite msubst_mk_top
+  | H: context [ m{ _ } (mk_eq_constant _) ] |- _ => setoid_rewrite msubst_mk_eq_constant in H
+  | |- context [ m{ _ } (mk_eq_constant _) ] => setoid_rewrite msubst_mk_eq_constant
+  | H: context [ m{ _ } (mk_eq_var _ ?x) ], H': _ !! ?x = Some ?v |- _ => setoid_rewrite msubst_mk_eq_var with (v:=v) in H
+  | H': _ !! ?x = Some ?v |- context [ m{ _ } (mk_eq_var _ ?x) ] => setoid_rewrite msubst_mk_eq_var with (v:=v)
+  end; eauto.
+
+Lemma rtyctx_append_over:
+  forall (Γ: listctx rty) (e: tm) (x: atom) (b: base_ty) ϕ (τ: rty),
+  ⟪Γ ++ [(x, {:b|ϕ})]⟫ (fun Γv => ⟦m{Γv} τ⟧ (m{Γv} e)) ->
+  ⟪Γ⟫ (fun Γv => forall (v: value),
+           ⟦(m{Γv}) {:b|ϕ}⟧ v ->
+           ⟦(m{<[x := v]> Γv}) τ⟧ (m{<[x := v]> Γv} e) ).
+Proof.
+  induction Γ; intros.
+  - simpl in *. intros. apply H. msubst_simp.
+  -  simpl in *.
+    apply emptyctx_closed. eauto. unfold closed_env. unfold map_Forall. intros.inversion H1.  cbv. eauto.
+    Check  msubst_baserty.
+    setoid_rewrite msubst_baserty in H0.
+    assert 
+
+    unfold ctxRst. destruct ρ; simpl in *; intros; eauto.
+
+
+    repeat msubst_simp.
+
 (** Combined fundamental theorem for value typing (refinemnet types) and term
   typing (Hoare automata types) *)
 Theorem fundamental_combined:
@@ -295,6 +370,26 @@ Theorem fundamental_combined:
   (forall (Γ: listctx rty) (e: tm) (τ: rty),
     Γ ⊢ e ⋮t τ -> ctxRst Γ (fun Γv => ⟦ m{Γv} τ ⟧ (m{Γv} e))).
 Proof.
+  apply value_term_type_check_mutind.
+  (* [TConst] *)
+  - intros Γ c HWF. eapply wf_rty_implies_strengthen; eauto.
+    intros Γv ClosedΓ. repeat msubst_simp. admit.
+  (* [TBaseVarOver] *)
+  - intros Γ x b ϕ HWF Hin. admit.
+  (* [TBaseVarUnder] *)
+  - intros Γ x b ϕ HWF Hin. admit.
+  (* [TBaseVarArr] *)
+  - admit.
+  (* [TLam] *)
+  - intros Γ Tx ρ e τ L HWF Hind HindD HTx. subst.
+
+      
+
+    assert (forall (Γv: env), ((m{Γv}) (vconst c)) = c).
+    repeat msubst_simp.
+    setoid_rewrite H.
+
+    unfold
 Admitted.
 
 (** Fundamental theorem for value typing *)
