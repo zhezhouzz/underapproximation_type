@@ -40,11 +40,8 @@ Fixpoint rty_erase ρ : ty :=
 Definition ctx_erase (Γ: listctx rty) :=
   ⋃ ((List.map (fun e => {[e.1 := rty_erase e.2]}) Γ): list (amap ty)).
 
-Class Erase A B := erase : A -> B.
-#[global] Instance rty_erase_ : Erase rty ty := rty_erase.
-#[global] Instance ctx_erase_ : Erase (listctx rty) (amap ty) := ctx_erase.
-
-Notation " '⌊' ty '⌋' " := (erase ty) (at level 5, format "⌊ ty ⌋", ty constr).
+Notation " '⌊' ty '⌋' " := (rty_erase ty) (at level 5, format "⌊ ty ⌋", ty constr).
+Notation " '⌊' ty '⌋*' " := (ctx_erase ty) (at level 5, format "⌊ ty ⌋*", ty constr).
 
 (** * Naming related definitions *)
 
@@ -143,24 +140,24 @@ Definition mk_eq_var ty (x: atom) := [: ty | b0:x= x ].
 (** * Naming properties of refinement type syntax *)
 
 
-Lemma rty_erase_open_eq (ρ: rty) k s : erase ρ = erase ({k ~> s} ρ).
+Lemma rty_erase_open_eq (ρ: rty) k s : ⌊ρ⌋ = ⌊{k ~> s} ρ⌋.
 Proof.
   generalize dependent k.
-  unfold open. unfold erase.
+  unfold open.
   induction ρ; simpl in *; eauto.
   intros. rewrite <- IHρ1. rewrite <- IHρ2. auto.
 Qed.
 
-Lemma rty_erase_subst_eq (ρ: rty) x s : erase ρ = erase ({x := s} ρ).
+Lemma rty_erase_subst_eq (ρ: rty) x s : ⌊ρ⌋ = ⌊{x := s} ρ⌋.
 Proof.
-  unfold substitute. unfold erase.
+  unfold substitute.
   induction ρ; simpl in *; eauto.
   rewrite <- IHρ1. rewrite <- IHρ2. auto.
 Qed.
 
 Lemma ctx_erase_lookup Γ x ρ :
   ctxfind Γ x = Some ρ ->
-  ⌊Γ⌋ !! x = Some ⌊ρ⌋.
+  ⌊Γ⌋* !! x = Some ⌊ρ⌋.
 Proof.
   induction Γ; simpl; intros; try easy.
   destruct a. case_decide. simplify_eq.
@@ -171,17 +168,16 @@ Proof.
 Qed.
 
 Lemma ctx_erase_app Γ Γ':
-  ⌊Γ ++ Γ'⌋ = ⌊Γ⌋ ∪ ⌊Γ'⌋.
+  ⌊Γ ++ Γ'⌋* = ⌊Γ⌋* ∪ ⌊Γ'⌋*.
 Proof.
-  unfold erase.
   induction Γ; simpl.
   - cbn. by rewrite map_empty_union.
-  - destruct a. unfold ctx_erase_ in *. cbn. unfold ctx_erase in *. rewrite IHΓ.
+  - destruct a. cbn. unfold ctx_erase in *. rewrite IHΓ.
     by rewrite map_union_assoc.
 Qed.
 
 Lemma ctx_erase_dom Γ :
-  dom ⌊Γ⌋ ≡ ctxdom Γ.
+  dom ⌊Γ⌋* ≡ ctxdom Γ.
 Proof.
   induction Γ; simpl.
   - cbn. apply dom_empty.
@@ -194,7 +190,7 @@ Qed.
 
 Lemma ctx_erase_app_r Γ x ρ :
   x # Γ ->
-  ⌊Γ ++ [(x, ρ)]⌋ = <[x:=⌊ρ⌋]> ⌊Γ⌋.
+  ⌊Γ ++ [(x, ρ)]⌋* = <[x:=⌊ρ⌋]> ⌊Γ⌋*.
 Proof.
   intros H.
   rewrite ctx_erase_app.

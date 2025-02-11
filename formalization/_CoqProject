@@ -13,4 +13,9 @@ Qualifier.v
 QualifierClass.v
 ListCtx.v
 RefinementType.v
-
+RefinementTypeClass.v
+Instantiation.v
+Denotation.v
+DenotationCtx.v
+InstantiationProp.v
+Typing.v
